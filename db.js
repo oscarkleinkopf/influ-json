@@ -197,11 +197,11 @@ module.exports = {
   },
   
   getPersonaById(id) {
-    return db.prepare('SELECT * FROM personas WHERE id = ?').get();
+    return db.prepare('SELECT * FROM personas WHERE id = ?').get(id);
   },
 
   getPersonaByName(name) {
-    return db.prepare('SELECT * FROM personas WHERE LOWER(name) = LOWER(?)').get();
+    return db.prepare('SELECT * FROM personas WHERE LOWER(name) = LOWER(?)').get(name);
   },
   
   savePersona(p) {
@@ -291,11 +291,11 @@ module.exports = {
   },
 
   getProductById(id) {
-    return db.prepare('SELECT * FROM products WHERE id = ?').get();
+    return db.prepare('SELECT * FROM products WHERE id = ?').get(id);
   },
 
   getProductByName(name) {
-    return db.prepare('SELECT * FROM products WHERE LOWER(name) = LOWER(?)').get();
+    return db.prepare('SELECT * FROM products WHERE LOWER(name) = LOWER(?)').get(name);
   },
 
   saveProduct(p) {
