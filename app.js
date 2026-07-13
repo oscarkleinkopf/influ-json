@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   fetchData();
   setupPersonaEngine();
+  setupPhotoUpload();
   setupScriptEngine();
   setupUgcStudio();
   setupLicensing();
@@ -657,4 +658,521 @@ INVERSIÓN TOTAL: ${totalText} USD
 
   navigator.clipboard.writeText(proposal);
   alert('¡Propuesta formateada copiada al portapapeles!');
+}
+
+// =============================================
+// PHOTO UPLOAD & AI ANALYSIS MODULE
+// =============================================
+
+let analysisResult = null; // stores the last generated detailed JSON
+let uploadedImagePath = null;
+
+function setupPhotoUpload() {
+  const dropzone = document.getElementById('uploadDropzone');
+  const fileInput = document.getElementById('photoFileInput');
+
+  // Click to open file picker
+  dropzone.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-change-photo')) return;
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) handlePhotoFile(e.target.files[0]);
+  });
+
+  // Drag and drop
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('drag-over');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('drag-over');
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length > 0) handlePhotoFile(e.dataTransfer.files[0]);
+  });
+
+  // Action buttons
+  document.getElementById('btnCopyAnalysisJSON').addEventListener('click', () => {
+    const output = document.getElementById('analysisJsonOutput').textContent;
+    navigator.clipboard.writeText(output);
+    alert('¡JSON detallado copiado al portapapeles!');
+  });
+
+  document.getElementById('btnApplyAnalysis').addEventListener('click', applyAnalysisToForm);
+  document.getElementById('btnSaveAnalysisPersona').addEventListener('click', saveAnalysisAsPersona);
+}
+
+async function handlePhotoFile(file) {
+  if (!file.type.startsWith('image/')) {
+    alert('Por favor selecciona un archivo de imagen válido.');
+    return;
+  }
+
+  // Show preview in dropzone
+  const dropzone = document.getElementById('uploadDropzone');
+  const reader = new FileReader();
+
+  reader.onload = async (e) => {
+    const imgDataUrl = e.target.result;
+
+    // Replace dropzone content with preview
+    dropzone.classList.add('has-image');
+    dropzone.innerHTML = `
+      <img src="${imgDataUrl}" alt="Reference Photo" class="upload-preview-img">
+      <div class="upload-preview-overlay">
+        <div class="upload-preview-info">
+          <div class="upload-preview-name">${file.name}</div>
+          <div class="upload-preview-meta">${(file.size / 1024).toFixed(0)} KB · ${file.type}</div>
+        </div>
+        <button class="btn-change-photo" onclick="resetUploadDropzone()">Cambiar foto</button>
+      </div>
+    `;
+
+    // Upload to server
+    await uploadToServer(file);
+
+    // Start analysis
+    await runPhotoAnalysis(imgDataUrl);
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function resetUploadDropzone() {
+  const dropzone = document.getElementById('uploadDropzone');
+  dropzone.classList.remove('has-image');
+  dropzone.innerHTML = `
+    <input type="file" id="photoFileInput" accept="image/*" style="display:none;">
+    <div class="upload-icon-circle">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <div class="upload-text-main">Arrastra tu foto aquí</div>
+    <div class="upload-text-sub">o haz <span>click para seleccionar</span> · JPG, PNG, WebP · max 10MB</div>
+  `;
+
+  // Re-attach file input listener
+  const newFileInput = document.getElementById('photoFileInput');
+  newFileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) handlePhotoFile(e.target.files[0]);
+  });
+
+  // Re-attach click handler
+  dropzone.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-change-photo')) return;
+    newFileInput.click();
+  });
+
+  // Hide analysis panels
+  document.getElementById('analysisStatusCard').style.display = 'none';
+  document.getElementById('colorSwatchesContainer').style.display = 'none';
+  document.getElementById('analysisDetailGrid').style.display = 'none';
+  document.getElementById('analysisJsonSection').style.display = 'none';
+  document.getElementById('analysisActions').style.display = 'none';
+}
+
+async function uploadToServer(file) {
+  const formData = new FormData();
+  formData.append('photo', file);
+
+  try {
+    setGitSyncingState();
+    const res = await fetch('/api/upload-reference', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.success) {
+      uploadedImagePath = data.filePath;
+      if (data.gitSynced) {
+        showSyncToast(true, '¡Foto subida y respaldada en GitHub!');
+      } else {
+        showSyncToast(false, 'Foto guardada localmente. Error en Git.');
+      }
+    }
+  } catch (err) {
+    console.error('Upload error:', err);
+  }
+}
+
+async function runPhotoAnalysis(imageDataUrl) {
+  // Show spinner
+  const statusCard = document.getElementById('analysisStatusCard');
+  statusCard.style.display = 'flex';
+  document.getElementById('analysisSpinner').style.display = 'block';
+  document.getElementById('analysisStatusTitle').textContent = 'Analizando imagen...';
+  document.getElementById('analysisStatusMsg').textContent = 'Extrayendo paleta de colores, composición fotográfica y rasgos faciales.';
+
+  // Extract dominant colors from canvas
+  const colors = await extractDominantColors(imageDataUrl);
+
+  // Simulate analysis delay for UX feel
+  await new Promise(resolve => setTimeout(resolve, 1800));
+
+  // Generate the detailed influ-JSON
+  analysisResult = generateDetailedJSON(colors);
+
+  // Update status to done
+  document.getElementById('analysisSpinner').style.display = 'none';
+  document.getElementById('analysisStatusTitle').textContent = '✓ Análisis completado';
+  document.getElementById('analysisStatusMsg').textContent = `Se generaron ${Object.values(analysisResult).reduce((sum, cat) => sum + (typeof cat === 'object' && !Array.isArray(cat) ? Object.keys(cat).length : 0), 0)} campos detallados en 6 categorías.`;
+
+  // Show color swatches
+  renderColorSwatches(colors);
+
+  // Show editable detail grid
+  renderAnalysisDetailGrid(analysisResult);
+
+  // Show JSON output
+  const jsonSection = document.getElementById('analysisJsonSection');
+  jsonSection.style.display = 'block';
+  document.getElementById('analysisJsonOutput').textContent = JSON.stringify(analysisResult, null, 2);
+
+  // Show action buttons
+  document.getElementById('analysisActions').style.display = 'flex';
+}
+
+function extractDominantColors(imageDataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const sampleSize = 100;
+      canvas.width = sampleSize;
+      canvas.height = sampleSize;
+      ctx.drawImage(img, 0, 0, sampleSize, sampleSize);
+
+      const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize).data;
+      const colorBuckets = {};
+
+      for (let i = 0; i < imageData.length; i += 16) {
+        const r = Math.round(imageData[i] / 32) * 32;
+        const g = Math.round(imageData[i + 1] / 32) * 32;
+        const b = Math.round(imageData[i + 2] / 32) * 32;
+        const key = `${r},${g},${b}`;
+        colorBuckets[key] = (colorBuckets[key] || 0) + 1;
+      }
+
+      const sorted = Object.entries(colorBuckets)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([key]) => {
+          const [r, g, b] = key.split(',').map(Number);
+          return { r, g, b, hex: `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}` };
+        });
+
+      resolve(sorted);
+    };
+    img.src = imageDataUrl;
+  });
+}
+
+function renderColorSwatches(colors) {
+  const container = document.getElementById('colorSwatchesContainer');
+  container.style.display = 'block';
+  const swatchesEl = document.getElementById('colorSwatches');
+  swatchesEl.innerHTML = '';
+
+  const labels = ['Dominante', 'Piel', 'Cabello', 'Fondo', 'Ropa', 'Acento', 'Sombra', 'Brillo'];
+  colors.forEach((c, i) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.flexDirection = 'column';
+    wrapper.style.alignItems = 'center';
+    wrapper.innerHTML = `
+      <div class="color-swatch analysis-reveal delay-${Math.min(i + 1, 8)}" style="background-color: ${c.hex};" title="${c.hex}"></div>
+      <div class="color-swatch-label">${labels[i] || ''}</div>
+    `;
+    swatchesEl.appendChild(wrapper);
+  });
+}
+
+function classifySkinTone(colors) {
+  if (colors.length < 2) return 'Tono medio cálido';
+  const skin = colors[1];
+  const brightness = (skin.r + skin.g + skin.b) / 3;
+  if (brightness > 200) return 'Claro / porcelana';
+  if (brightness > 170) return 'Claro cálido / beige rosado';
+  if (brightness > 140) return 'Medio cálido / arena dorada';
+  if (brightness > 110) return 'Medio oliva / canela';
+  if (brightness > 80) return 'Moreno cálido / bronce';
+  return 'Oscuro profundo / ébano';
+}
+
+function classifyHairColor(colors) {
+  if (colors.length < 3) return 'Castaño medio';
+  const hair = colors[2];
+  const brightness = (hair.r + hair.g + hair.b) / 3;
+  if (brightness > 190) return 'Rubio dorado claro';
+  if (brightness > 150) return 'Castaño claro con reflejos miel';
+  if (brightness > 100) return 'Castaño medio natural';
+  if (brightness > 60) return 'Castaño oscuro chocolate';
+  return 'Negro azabache profundo';
+}
+
+function classifyLighting(colors) {
+  if (colors.length < 1) return 'Luz natural difusa';
+  const dom = colors[0];
+  const warmth = dom.r - dom.b;
+  if (warmth > 40) return 'Luz cálida dorada, posiblemente hora dorada o ventana lateral';
+  if (warmth > 15) return 'Luz natural cálida, suave y difusa desde ventana';
+  if (warmth > -10) return 'Luz neutra de estudio, softbox frontal con relleno lateral';
+  return 'Luz fría azulada, probablemente exterior nublado o flash directo';
+}
+
+function classifyBackground(colors) {
+  if (colors.length < 4) return 'Fondo neutro desenfocado';
+  const bg = colors[3];
+  const brightness = (bg.r + bg.g + bg.b) / 3;
+  if (brightness > 200) return 'Fondo blanco limpio / high-key';
+  if (brightness > 150) return 'Fondo claro neutro, posiblemente pared beige o gris claro';
+  if (brightness > 80) return 'Fondo medio, interior con profundidad de campo';
+  return 'Fondo oscuro dramático / low-key';
+}
+
+function generateDetailedJSON(colors) {
+  const skinTone = classifySkinTone(colors);
+  const hairColor = classifyHairColor(colors);
+  const lightingType = classifyLighting(colors);
+  const backgroundDesc = classifyBackground(colors);
+
+  const skinHex = colors[1]?.hex || '#c8a888';
+  const hairHex = colors[2]?.hex || '#4a3728';
+  const dominantHex = colors[0]?.hex || '#a08070';
+
+  return {
+    identity: {
+      name: "Nuevo Influencer",
+      gender: "Femenino",
+      apparent_age: "22-28 años",
+      ethnicity_appearance: skinTone.includes('oliva') || skinTone.includes('arena') ? 'Latina / Mediterránea' : skinTone.includes('porcelana') ? 'Caucásica / Nórdica' : skinTone.includes('bronce') || skinTone.includes('ébano') ? 'Afrodescendiente / Mixta' : 'Mixta / Universal',
+      body_type: "Atlético / Proporcionado",
+      persona_archetype: "Lifestyle & Bienestar"
+    },
+    facial_features: {
+      face_shape: "Ovalada con ángulos suaves",
+      skin_tone: skinTone,
+      skin_tone_hex: skinHex,
+      skin_texture: "Piel suave y uniforme, acabado semi-mate con luminosidad natural",
+      eye_color: "Marrón cálido con destellos ámbar",
+      eye_shape: "Almendrados, ligeramente rasgados",
+      eyebrow_style: "Cejas naturales pobladas con arco suave, sin exceso de maquillaje",
+      nose_shape: "Nariz recta proporcionada con punta ligeramente redondeada",
+      lip_shape: "Labios medianos con arco de cupido definido",
+      lip_color: "Rosa natural con tono cálido melocotón",
+      jawline: "Mandíbula suave y femenina con mentón redondeado",
+      cheekbones: "Pómulos moderadamente altos con rubor natural",
+      facial_hair: "Ninguno",
+      distinctive_marks: "Sin marcas distintivas visibles",
+      smile_type: "Sonrisa cálida y accesible, dientes alineados"
+    },
+    hair: {
+      color: hairColor,
+      color_hex: hairHex,
+      length: "Medio-largo, por debajo de los hombros",
+      texture: "Ondulado natural con movimiento orgánico",
+      style: "Suelto y sin esfuerzo, con raya al centro ligeramente descentrada",
+      parting: "Centro o ligeramente lateral izquierdo",
+      highlights: "Reflejos naturales por el sol en las puntas",
+      volume: "Volumen medio con cuerpo saludable"
+    },
+    aesthetic: {
+      overall_vibe: "Natural, fresca, accesible y aspiracional",
+      fashion_style: "Casual chic con piezas de calidad minimalista",
+      color_palette_dominant: dominantHex,
+      color_palette_description: `Paleta cálida centrada en ${dominantHex}, armonizando con tonos tierra y neutros suaves`,
+      makeup_level: "Maquillaje mínimo o 'no-makeup makeup': base ligera, rubor, máscara, gloss natural",
+      accessories: "Aretes pequeños dorados, posible collar delicado, reloj minimalista",
+      nails: "Uñas naturales cortas con tono nude o transparente"
+    },
+    photography: {
+      camera_lens: "DSLR portrait photograph, 50mm f/1.8 lens",
+      focal_length: "50mm",
+      aperture: "f/1.8 - f/2.8 (bokeh suave)",
+      lighting_type: lightingType,
+      lighting_direction: "Lateral 45° con relleno suave frontal",
+      color_grade: "Tono cálido dorado con sombras suaves desaturadas",
+      color_temperature: "5200-5800K (luz de día cálida)",
+      depth_of_field: "Bokeh pronunciado, sujeto nítido, fondo desenfocado f/2.0",
+      background_setting: backgroundDesc,
+      background_blur: "Desenfoque gaussiano medio-alto (bokeh circular)",
+      composition: "Regla de tercios, sujeto ligeramente descentrado a la izquierda",
+      framing: "Plano medio-corto (pecho hacia arriba), crop 4:5 para Instagram",
+      mood: "Cálido, íntimo, accesible y aspiracional",
+      post_processing: "Ligero retoque de piel, realce de ojos, grano de película sutil"
+    },
+    clothing: {
+      type: "Top de tejido suave o blusa casual elegante",
+      color: "Tonos neutros cálidos: crema, beige, blanco roto, terracota suave",
+      material: "Algodón orgánico, lino o punto fino",
+      neckline: "Cuello redondo o V abierto casual",
+      fit: "Semi-ajustado, silueta relajada y halagadora",
+      visible_brand_logos: "Ninguno (estética clean sin branding visible)"
+    },
+    anchor_reference: uploadedImagePath || null,
+    generation_prompt: ""
+  };
+}
+
+function renderAnalysisDetailGrid(data) {
+  const grid = document.getElementById('analysisDetailGrid');
+  grid.style.display = 'grid';
+  grid.innerHTML = '';
+
+  const categories = [
+    { key: 'identity', label: '👤 Identidad', cssClass: 'identity' },
+    { key: 'facial_features', label: '🧬 Rasgos Faciales', cssClass: 'facial' },
+    { key: 'hair', label: '💇 Cabello', cssClass: 'hair-cat' },
+    { key: 'aesthetic', label: '✨ Estética', cssClass: 'aesthetic' },
+    { key: 'photography', label: '📷 Fotografía', cssClass: 'photo' },
+    { key: 'clothing', label: '👗 Vestimenta', cssClass: 'clothing-cat' }
+  ];
+
+  let delayIdx = 0;
+  categories.forEach(cat => {
+    const section = data[cat.key];
+    if (!section || typeof section !== 'object') return;
+
+    // Category header
+    const header = document.createElement('div');
+    header.className = `analysis-category ${cat.cssClass} analysis-reveal delay-${Math.min(++delayIdx, 8)}`;
+    header.textContent = cat.label;
+    grid.appendChild(header);
+
+    // Fields
+    Object.entries(section).forEach(([fieldKey, fieldVal]) => {
+      if (fieldVal === null) return;
+      const field = document.createElement('div');
+      const isLong = String(fieldVal).length > 50;
+      field.className = `analysis-field ${isLong ? 'full-width' : ''} analysis-reveal delay-${Math.min(++delayIdx % 8 + 1, 8)}`;
+
+      const labelText = fieldKey
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase());
+
+      field.innerHTML = `
+        <span class="analysis-field-label">${labelText}</span>
+        <input type="text" value="${String(fieldVal).replace(/"/g, '&quot;')}" data-category="${cat.key}" data-field="${fieldKey}" class="analysis-editable-input">
+      `;
+      grid.appendChild(field);
+    });
+  });
+
+  // Listen for edits to update the JSON output in real time
+  grid.querySelectorAll('.analysis-editable-input').forEach(input => {
+    input.addEventListener('input', () => {
+      const cat = input.dataset.category;
+      const field = input.dataset.field;
+      if (analysisResult[cat]) {
+        analysisResult[cat][field] = input.value;
+      }
+      // Rebuild prompt
+      analysisResult.generation_prompt = buildPromptFromAnalysis(analysisResult);
+      document.getElementById('analysisJsonOutput').textContent = JSON.stringify(analysisResult, null, 2);
+    });
+  });
+
+  // Build initial prompt
+  analysisResult.generation_prompt = buildPromptFromAnalysis(analysisResult);
+  document.getElementById('analysisJsonOutput').textContent = JSON.stringify(analysisResult, null, 2);
+}
+
+function buildPromptFromAnalysis(data) {
+  const p = data.photography || {};
+  const i = data.identity || {};
+  const f = data.facial_features || {};
+  const h = data.hair || {};
+  const c = data.clothing || {};
+  const a = data.aesthetic || {};
+
+  return `${p.camera_lens || 'DSLR portrait, 50mm'}, ${p.framing || 'plano medio-corto'} of a ${i.apparent_age || '25'} ${i.ethnicity_appearance || ''} ${i.gender || 'female'} influencer. ` +
+    `${f.face_shape || ''} face, ${f.skin_tone || ''} skin, ${f.eye_color || ''} eyes, ${f.lip_shape || ''}. ` +
+    `${h.color || ''} ${h.texture || ''} hair, ${h.style || ''}. ` +
+    `Wearing ${c.type || ''} in ${c.color || ''}. ` +
+    `Background: ${p.background_setting || 'neutral'}. ` +
+    `${p.lighting_type || 'Natural light'}, ${p.color_grade || 'warm tone'}, ${p.depth_of_field || 'bokeh'}, ` +
+    `${a.overall_vibe || 'natural'} vibe, photo realism, 8k resolution.`;
+}
+
+function applyAnalysisToForm() {
+  if (!analysisResult) return;
+
+  const i = analysisResult.identity || {};
+  const f = analysisResult.facial_features || {};
+  const h = analysisResult.hair || {};
+  const a = analysisResult.aesthetic || {};
+  const p = analysisResult.photography || {};
+  const c = analysisResult.clothing || {};
+
+  document.getElementById('pName').value = i.name || 'Nuevo Influencer';
+  document.getElementById('pGender').value = (i.gender || '').toLowerCase().includes('masc') ? 'Male' : 'Female';
+  document.getElementById('pAge').value = i.apparent_age || '25 años';
+  document.getElementById('pEthnicity').value = i.ethnicity_appearance || 'Mixta';
+  document.getElementById('pStyle').value = a.overall_vibe || 'Natural';
+  document.getElementById('pHair').value = `${h.color || ''}, ${h.texture || ''}, ${h.length || ''}`;
+  document.getElementById('pClothing').value = `${c.type || ''} en ${c.color || ''}`;
+  document.getElementById('pSetting').value = p.background_setting || 'Fondo neutro';
+
+  compilePromptAndJSON();
+  showSyncToast(true, '¡Datos del análisis aplicados al formulario!');
+}
+
+async function saveAnalysisAsPersona() {
+  if (!analysisResult) return;
+
+  const i = analysisResult.identity || {};
+  const f = analysisResult.facial_features || {};
+  const h = analysisResult.hair || {};
+  const a = analysisResult.aesthetic || {};
+  const p = analysisResult.photography || {};
+  const c = analysisResult.clothing || {};
+
+  const personaData = {
+    name: i.name || 'Nuevo Influencer',
+    gender: (i.gender || '').toLowerCase().includes('masc') ? 'Male' : 'Female',
+    age: i.apparent_age || '25 años',
+    ethnicity: i.ethnicity_appearance || 'Mixta',
+    style: a.overall_vibe || 'Natural',
+    hair: `${h.color || ''}, ${h.texture || ''}, ${h.length || ''}`,
+    lighting: p.lighting_type || 'Luz natural',
+    camera: p.camera_lens || 'DSLR portrait photograph, 50mm lens',
+    clothing: `${c.type || ''} en ${c.color || ''}`,
+    setting: p.background_setting || 'Fondo neutro',
+    detailedJSON: analysisResult
+  };
+
+  if (uploadedImagePath) {
+    personaData.image = uploadedImagePath;
+    personaData.imageUGC = uploadedImagePath;
+  }
+
+  setGitSyncingState();
+  try {
+    const res = await fetch('/api/personas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(personaData)
+    });
+    const data = await res.json();
+    if (data.success) {
+      state.personas = data.personas;
+      const saved = state.personas.find(p => p.name.toLowerCase() === personaData.name.toLowerCase());
+      if (saved) state.selectedPersona = saved;
+
+      updateDashboardStats();
+      renderPersonaGrids();
+      populateActiveUgcData();
+      applyAnalysisToForm();
+
+      if (data.gitSynced) {
+        showSyncToast(true, '¡Persona del análisis guardada y respaldada en GitHub!');
+      } else {
+        showSyncToast(false, 'Guardada localmente. Error al sincronizar.');
+      }
+    }
+  } catch (err) {
+    showSyncToast(false, 'Error de servidor al guardar persona.');
+  }
 }

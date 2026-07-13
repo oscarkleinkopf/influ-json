@@ -2,6 +2,22 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
+const multer = require('multer');
+
+// Multer storage config — saves uploaded reference photos to assets/
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, 'assets', 'references');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const safeName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
+    const unique = `ref_${Date.now()}_${safeName}`;
+    cb(null, unique);
+  }
+});
+const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -187,6 +203,35 @@ app.post('/api/sync', (req, res) => {
     } else {
       res.status(500).json({ success: false, message: "Error al sincronizar con GitHub", gitMessage: msg });
     }
+  });
+});
+
+// Upload reference photo endpoint
+app.post('/api/upload-reference', upload.single('photo'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'No se recibió ningún archivo.' });
+  }
+
+  const relativePath = `assets/references/${req.file.filename}`;
+  const absolutePath = path.join(__dirname, relativePath);
+
+  // Sync reference image to scratch directory
+  const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
+  if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
+  fs.copyFileSync(absolutePath, path.join(scratchRefsDir, req.file.filename));
+  console.log(`Reference image synced to scratch: ${req.file.filename}`);
+
+  // Auto-git-backup the new reference
+  runGitBackup((gitSuccess, msg) => {
+    res.json({
+      success: true,
+      filePath: relativePath,
+      fileName: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+      gitSynced: gitSuccess,
+      gitMessage: msg
+    });
   });
 });
 
