@@ -12,6 +12,16 @@ app.use(express.static(path.join(__dirname)));
 const PERSONAS_FILE = path.join(__dirname, 'personas.json');
 const PRODUCTS_FILE = path.join(__dirname, 'products.json');
 
+// Persisted scratch directory in appData conversation directory
+const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b-aa1e-adaeba8ce81d/scratch';
+const SCRATCH_PERSONAS_FILE = path.join(SCRATCH_DIR, 'personas.json');
+const SCRATCH_PRODUCTS_FILE = path.join(SCRATCH_DIR, 'products.json');
+
+// Ensure scratch directory exists
+if (!fs.existsSync(SCRATCH_DIR)) {
+  fs.mkdirSync(SCRATCH_DIR, { recursive: true });
+}
+
 // Initialize default data if files don't exist
 const defaultPersonas = [
   {
@@ -79,7 +89,18 @@ function readJSONFile(filePath, defaultValue) {
 
 function writeJSONFile(filePath, data) {
   try {
+    // Write to the main workspace file path
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    
+    // Auto-sync replica to scratch directory
+    if (filePath === PERSONAS_FILE) {
+      fs.writeFileSync(SCRATCH_PERSONAS_FILE, JSON.stringify(data, null, 2), 'utf-8');
+      console.log(`Synced personas.json to scratch directory: ${SCRATCH_PERSONAS_FILE}`);
+    } else if (filePath === PRODUCTS_FILE) {
+      fs.writeFileSync(SCRATCH_PRODUCTS_FILE, JSON.stringify(data, null, 2), 'utf-8');
+      console.log(`Synced products.json to scratch directory: ${SCRATCH_PRODUCTS_FILE}`);
+    }
+    
     return true;
   } catch (error) {
     console.error(`Error writing to ${filePath}:`, error);
