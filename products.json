@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Glow Serum Organics",
+    "benefit": "Piel brillante y profundamente hidratada en 5 minutos",
+    "audience": "Jóvenes ocupadas con piel seca y opaca",
+    "frustration": "No tener tiempo para rutinas coreanas de 10 pasos",
+    "image": "assets/product_serum.png"
+  },
+  {
+    "name": "HydraFlask Matte",
+    "benefit": "Mantiene el agua fría por 24 horas con estilo minimalista",
+    "audience": "Entusiastas del fitness y profesionales ocupados",
+    "frustration": "Botellas que gotean o no mantienen la temperatura",
+    "image": "assets/product_bottle.png"
+  }
+]

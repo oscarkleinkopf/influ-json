@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Sofia",
+    "gender": "Female",
+    "age": "25 años",
+    "ethnicity": "Latina",
+    "style": "Minimalista y natural",
+    "hair": "Marrón ondulado largo",
+    "lighting": "Warm morning sunlight streaming through window",
+    "camera": "DSLR portrait photograph, 35mm lens",
+    "clothing": "Suéter de punto color crema",
+    "setting": "Sala de estar moderna y neutral",
+    "image": "assets/influencer_female.png",
+    "imageUGC": "assets/influencer_female_serum.png",
+    "handle": "@sofia_ai_ugc"
+  },
+  {
+    "name": "Lucas",
+    "gender": "Male",
+    "age": "28 años",
+    "ethnicity": "Europeo / Atlético",
+    "style": "Deportivo y tecnológico",
+    "hair": "Corto oscuro peinado",
+    "lighting": "Clean modern studio lighting, soft shadows",
+    "camera": "DSLR headshot, 50mm lens",
+    "clothing": "Camiseta deportiva negra",
+    "setting": "Gimnasio interior moderno con luces tenues",
+    "image": "assets/influencer_male.png",
+    "imageUGC": "assets/influencer_male_bottle.png",
+    "handle": "@lucas_fit_tech"
+  }
+]
