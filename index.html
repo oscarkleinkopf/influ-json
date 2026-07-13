@@ -23,6 +23,12 @@
             Resumen
           </button>
         </li>
+        <li class="nav-item" data-tab="campaigns">
+          <button>
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            Campañas
+          </button>
+        </li>
         <li class="nav-item" data-tab="persona-engine">
           <button>
             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -45,6 +51,12 @@
           <button>
             <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             Licensing & Pitch
+          </button>
+        </li>
+        <li class="nav-item" data-tab="gallery">
+          <button>
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            Galería Prompts
           </button>
         </li>
       </nav>
@@ -135,6 +147,118 @@
         </div>
       </section>
       
+      <!-- TAB: CAMPAIGNS -->
+      <section id="campaigns" class="tab-panel">
+        <div class="content-header">
+          <div class="content-title">
+            <h1>Gestión de Campañas</h1>
+            <p>Agrupa tus productos, influencers, scripts y licencias en un solo paquete comercial exportable.</p>
+          </div>
+          <button class="btn" id="btnNewCampaign">+ Nueva Campaña</button>
+        </div>
+        
+        <!-- Modal for creating campaign -->
+        <div id="campaignModal" class="modal-overlay" style="display: none;">
+          <div class="glass-card modal-card">
+            <h2 style="font-family: var(--font-display); margin-bottom: 20px;">Crear Nueva Campaña</h2>
+            <form id="campaignForm" class="editor-form-group">
+              <div>
+                <label for="cName">Nombre de la Campaña</label>
+                <input type="text" id="cName" placeholder="ej. Campaña Glow Serum Verano 2026" required>
+              </div>
+              <div class="form-row" style="margin-top: 12px;">
+                <div>
+                  <label for="cClient">Nombre del Cliente / Marca</label>
+                  <input type="text" id="cClient" placeholder="ej. Organics Labs Co." required>
+                </div>
+                <div>
+                  <label for="cBudget">Presupuesto ($ USD)</label>
+                  <input type="number" id="cBudget" value="300" required>
+                </div>
+              </div>
+              <div class="form-row" style="margin-top: 12px;">
+                <div>
+                  <label for="cProductSelect">Producto Vinculado</label>
+                  <select id="cProductSelect" required></select>
+                </div>
+                <div>
+                  <label for="cStatusSelect">Estado</label>
+                  <select id="cStatusSelect">
+                    <option value="draft">Borrador</option>
+                    <option value="active">Activa</option>
+                    <option value="completed">Completada</option>
+                  </select>
+                </div>
+              </div>
+              <div style="margin-top: 16px;">
+                <label>Asignar Influencer(s)</label>
+                <div class="campaign-persona-checklist" id="cPersonaChecklist" style="max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: var(--border-radius-sm); border: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 8px;">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+              <div style="margin-top: 24px; display: flex; gap: 12px;">
+                <button type="button" class="btn btn-secondary" id="btnCancelCampaign">Cancelar</button>
+                <button type="submit" class="btn">Guardar Campaña</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="editor-layout">
+          <!-- Left: Campaign List -->
+          <div class="glass-card">
+            <h2 style="font-family: var(--font-display); margin-bottom: 20px;">Campañas Activas</h2>
+            <div id="campaignListGrid" class="campaign-list-grid" style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          
+          <!-- Right: Campaign Details & Exports -->
+          <div class="glass-card" id="campaignDetailCard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--glass-border); padding-bottom: 16px; margin-bottom: 20px;">
+              <div>
+                <h2 id="cdName" style="font-family: var(--font-display); margin-bottom: 4px;">Nombre Campaña</h2>
+                <span id="cdStatus" class="badge">Borrador</span>
+              </div>
+              <button class="btn btn-sm btn-secondary" id="btnDeleteCampaign" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171;">Eliminar</button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+              <div class="form-row">
+                <div class="analysis-field">
+                  <span class="analysis-field-label">Cliente / Marca</span>
+                  <span class="analysis-field-value" id="cdClient">Marca</span>
+                </div>
+                <div class="analysis-field">
+                  <span class="analysis-field-label">Presupuesto Comercial</span>
+                  <span class="analysis-field-value" id="cdBudget">$0.00</span>
+                </div>
+              </div>
+              
+              <div class="analysis-field">
+                <span class="analysis-field-label">Producto Vinculado</span>
+                <span class="analysis-field-value" id="cdProduct">Producto</span>
+              </div>
+
+              <div>
+                <label style="margin-bottom: 8px; display: block;">Modelos AI Asignados</label>
+                <div class="persona-gallery-grid" id="cdPersonaGrid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;">
+                  <!-- Dynamic campaign personas -->
+                </div>
+              </div>
+
+              <div class="prompt-console" style="margin-top: 10px;">
+                <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 8px;">Acciones de Entrega</h4>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                  <a href="" id="btnExportZip" class="btn" style="flex: 1; text-align: center; text-decoration: none; padding: 12px 16px;">📦 Exportar Campaña (ZIP)</a>
+                  <button class="btn btn-secondary" id="btnGenerateCampaignScripts" style="flex: 1;">✍️ Regenerar Scripts</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       <!-- TAB: PERSONA ENGINE -->
       <section id="persona-engine" class="tab-panel">
         <div class="content-header">
@@ -199,6 +323,87 @@
           </div>
         </div>
         
+        <!-- Comparison & Version History Controls -->
+        <div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: flex-end;">
+          <button class="btn btn-secondary btn-sm" id="btnToggleAB" style="display: flex; align-items: center; gap: 6px;">
+            ⚖️ Comparador A/B Split
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btnToggleHistory" style="display: flex; align-items: center; gap: 6px;">
+            ⏳ Historial de Versiones
+          </button>
+        </div>
+
+        <!-- Hidden A/B Split-View Comparator -->
+        <div id="abComparatorContainer" style="display: none; margin-bottom: 28px;">
+          <div class="glass-card">
+            <h2 style="font-family: var(--font-display); margin-bottom: 16px;">⚖️ Comparador A/B de Personas</h2>
+            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px;">Configura y compara dos variaciones de prompt en paralelo para evaluar la consistencia de identidad.</p>
+            <div class="ab-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+              <!-- Left Side A -->
+              <div class="ab-column" style="border-right: 1px solid var(--glass-border); padding-right: 24px;">
+                <h3 style="color: var(--accent-primary); margin-bottom: 12px;">Variación A</h3>
+                <div class="editor-form-group">
+                  <div>
+                    <label for="abA_setting">Fondo / Setting</label>
+                    <input type="text" id="abA_setting" value="Sala de estar moderna y neutral">
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <label for="abA_clothing">Ropa</label>
+                    <input type="text" id="abA_clothing" value="Suéter de punto color crema">
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <label for="abA_lighting">Iluminación</label>
+                    <select id="abA_lighting">
+                      <option value="Casual daylight from bedroom window">Luz natural de ventana casual</option>
+                      <option value="Warm natural sunset flare, outdoor">Luz cálida de atardecer, exterior</option>
+                      <option value="Harsh direct smartphone camera flash">Flash directo de cámara de celular</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="prompt-console" style="margin-top: 16px;">
+                  <span class="analysis-field-label">Prompt A Compilado</span>
+                  <div class="prompt-text" id="promptPreviewA" style="font-size: 11px; max-height: 80px; overflow-y: auto;">Generando...</div>
+                </div>
+              </div>
+
+              <!-- Right Side B -->
+              <div class="ab-column">
+                <h3 style="color: var(--accent-secondary); margin-bottom: 12px;">Variación B</h3>
+                <div class="editor-form-group">
+                  <div>
+                    <label for="abB_setting">Fondo / Setting</label>
+                    <input type="text" id="abB_setting" value="Cafetería al aire libre con luces desenfocadas">
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <label for="abB_clothing">Ropa</label>
+                    <input type="text" id="abB_clothing" value="Chaqueta vaquera casual">
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <label for="abB_lighting">Iluminación</label>
+                    <select id="abB_lighting">
+                      <option value="Warm natural sunset flare, outdoor" selected>Luz cálida de atardecer, exterior</option>
+                      <option value="Casual daylight from bedroom window">Luz natural de ventana casual</option>
+                      <option value="Harsh direct smartphone camera flash">Flash directo de cámara de celular</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="prompt-console" style="margin-top: 16px;">
+                  <span class="analysis-field-label">Prompt B Compilado</span>
+                  <div class="prompt-text" id="promptPreviewB" style="font-size: 11px; max-height: 80px; overflow-y: auto;">Generando...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden Version History Timeline Container -->
+        <div id="historyTimelineContainer" style="display: none; margin-bottom: 28px;" class="glass-card">
+          <h2 style="font-family: var(--font-display); margin-bottom: 16px;">⏳ Historial de Versiones</h2>
+          <div class="version-timeline-list" id="versionTimelineList" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Dynamically populated timeline -->
+          </div>
+        </div>
+
         <div class="editor-layout">
           <div class="glass-card">
             <h2 style="font-family: var(--font-display); margin-bottom: 20px;">Configuración del Personaje</h2>
@@ -416,6 +621,43 @@
               </div>
               
               <div>
+                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">Generación & Producción AI</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                  <button class="btn" id="btnGenerateUgcImage" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    🤖 Generar Imagen AI con Prompt
+                  </button>
+                  <div class="analysis-status-card" id="ugcGenStatusCard" style="display: none; padding: 12px;">
+                    <div class="analysis-spinner" style="width: 24px; height: 24px;"></div>
+                    <span id="ugcGenStatusText" style="font-size: 12px; margin-left: 8px;">Generando imagen...</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🎬 Video UGC Pipeline (Infraestructura Veo/Runway)</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
+                  <button class="btn btn-secondary" id="btnGenerateUgcVideo" style="width: 100%;">
+                    🎥 Renderizar Video UGC (15 Segundos)
+                  </button>
+                  <div class="video-timeline-preview" id="videoTimelinePreview" style="display: none; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 6px;">
+                      <span>Progreso:</span>
+                      <span id="videoTimelineProgress">0%</span>
+                    </div>
+                    <div class="progress-bar-container" style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; position: relative;">
+                      <div id="videoProgressBar" style="width: 0%; height: 100%; background: var(--accent-gradient); transition: width 0.3s ease;"></div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px; font-size: 9px; color: var(--text-muted);">
+                      <div class="timeline-step" id="vtStep1" style="flex: 1; text-align: center;">Gancho</div>
+                      <div class="timeline-step" id="vtStep2" style="flex: 1; text-align: center;">Demo</div>
+                      <div class="timeline-step" id="vtStep3" style="flex: 1; text-align: center;">Giro</div>
+                      <div class="timeline-step" id="vtStep4" style="flex: 1; text-align: center;">CTA</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
                 <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">Configuración Legal & Cumplimiento (June 2026)</h3>
                 
                 <div class="compliance-controls">
@@ -613,6 +855,24 @@
         </div>
       </section>
       
+      <!-- TAB: GALLERY -->
+      <section id="gallery" class="tab-panel">
+        <div class="content-header">
+          <div class="content-title">
+            <h1>Galería de Prompts Exitosos</h1>
+            <p>Colección de prompts que han arrojado resultados visuales consistentes en el studio.</p>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="gallery-filters" style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <input type="text" id="gallerySearchInput" placeholder="🔍 Buscar por palabras clave..." style="padding: 10px 16px; font-size: 13px; max-width: 320px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: var(--border-radius-sm); color: #fff; outline: none;">
+          </div>
+          <div class="gallery-grid" id="galleryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+            <!-- Dynamically populated cards -->
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
   
@@ -620,6 +880,20 @@
   <div class="sync-banner" id="syncBanner">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
     <span id="syncBannerText">¡Cambios respaldados en GitHub!</span>
+  </div>
+
+  <!-- Login Screen Modal Overlay -->
+  <div id="loginModal" class="login-modal-overlay" style="display: none;">
+    <div class="glass-card login-card" style="width: 100%; max-width: 360px; text-align: center; padding: 40px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+      <div class="logo-icon" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center;">I</div>
+      <h2 style="font-family: var(--font-display); font-size: 22px; margin-bottom: 6px; color: #fff;">influ-JSON Studio</h2>
+      <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 28px;">Introduce tu PIN de acceso para abrir el studio.</p>
+      
+      <form id="loginForm">
+        <input type="password" id="loginPinInput" placeholder="••••" required style="text-align: center; font-size: 24px; letter-spacing: 8px; padding: 12px; margin-bottom: 20px; width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: var(--border-radius-sm); color: #fff; outline: none;">
+        <button type="submit" class="btn" style="width: 100%; padding: 12px;">Desbloquear Studio</button>
+      </form>
+    </div>
   </div>
   
   <script src="app.js"></script>
