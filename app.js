@@ -216,7 +216,7 @@ function compilePromptAndJSON() {
       name: name,
       gender: gender,
       age: age,
-      ethnicity: ethnicity
+      ethnicity_appearance: ethnicity
     },
     aesthetic: {
       style_vibe: style,
