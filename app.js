@@ -206,8 +206,8 @@ function compilePromptAndJSON() {
   const clothing = document.getElementById('pClothing').value;
   const setting = document.getElementById('pSetting').value;
   
-  // Prompt builder natural language compilation
-  const prompt = `${camera}, close up face shot of a ${age} ${ethnicity} ${gender.toLowerCase()} influencer. ${hair}, wearing ${clothing}. Background is a ${setting}. ${lighting}, cinematic grade, photo realism, 8k resolution.`;
+  // Prompt builder natural language compilation - UGC style (iPhone raw selfie snapshot)
+  const prompt = `Amateur casual UGC style, ${camera}. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with a very natural expression, looking at camera. ${hair}, wearing ${clothing}. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections.`;
   document.getElementById('promptPreview').textContent = prompt;
   
   // JSON builder compilation
@@ -988,20 +988,20 @@ function generateDetailedJSON(colors) {
       nails: "Uñas naturales cortas con tono nude o transparente"
     },
     photography: {
-      camera_lens: "DSLR portrait photograph, 50mm f/1.8 lens",
-      focal_length: "50mm",
-      aperture: "f/1.8 - f/2.8 (bokeh suave)",
+      camera_lens: "iPhone 15 Pro front camera selfie",
+      focal_length: "24mm (equivalente en celular)",
+      aperture: "f/1.9 (cámara frontal de celular)",
       lighting_type: lightingType,
-      lighting_direction: "Lateral 45° con relleno suave frontal",
-      color_grade: "Tono cálido dorado con sombras suaves desaturadas",
-      color_temperature: "5200-5800K (luz de día cálida)",
-      depth_of_field: "Bokeh pronunciado, sujeto nítido, fondo desenfocado f/2.0",
+      lighting_direction: "Luz natural frontal-lateral directa",
+      color_grade: "Aspecto natural sin filtros, balance de blancos automático de celular",
+      color_temperature: "5500-6000K (luz natural de día)",
+      depth_of_field: "Profundidad de campo típica de celular, fondo ligeramente legible",
       background_setting: backgroundDesc,
-      background_blur: "Desenfoque gaussiano medio-alto (bokeh circular)",
-      composition: "Regla de tercios, sujeto ligeramente descentrado a la izquierda",
-      framing: "Plano medio-corto (pecho hacia arriba), crop 4:5 para Instagram",
-      mood: "Cálido, íntimo, accesible y aspiracional",
-      post_processing: "Ligero retoque de piel, realce de ojos, grano de película sutil"
+      background_blur: "Desenfoque natural de lente de celular (sin bokeh exagerado)",
+      composition: "Sujeto centrado en plano de autorretrato (selfie)",
+      framing: "Plano medio-corto (selfie de brazo extendido), crop 4:5 para Instagram",
+      mood: "Casual, espontáneo, cotidiano y auténtico",
+      post_processing: "Foto RAW móvil sin filtros, aspecto amateur natural"
     },
     clothing: {
       type: "Top de tejido suave o blusa casual elegante",
@@ -1244,13 +1244,13 @@ function buildPromptFromAnalysis(data) {
   const c = data.clothing || {};
   const a = data.aesthetic || {};
 
-  return `${p.camera_lens || 'DSLR portrait, 50mm'}, ${p.framing || 'plano medio-corto'} of a ${i.apparent_age || '25'} ${i.ethnicity_appearance || ''} ${i.gender || 'female'} influencer. ` +
+  return `Amateur casual UGC style photo, ${p.camera_lens || 'iPhone front camera selfie'}. A ${i.apparent_age || '25'} ${i.ethnicity_appearance || ''} ${i.gender || 'female'} influencer, looking at camera with a natural expression. ` +
     `${f.face_shape || ''} face, ${f.skin_tone || ''} skin, ${f.eye_color || ''} eyes, ${f.lip_shape || ''}. ` +
     `${h.color || ''} ${h.texture || ''} hair, ${h.style || ''}. ` +
     `Wearing ${c.type || ''} in ${c.color || ''}. ` +
-    `Background: ${p.background_setting || 'neutral'}. ` +
-    `${p.lighting_type || 'Natural light'}, ${p.color_grade || 'warm tone'}, ${p.depth_of_field || 'bokeh'}, ` +
-    `${a.overall_vibe || 'natural'} vibe, photo realism, 8k resolution.`;
+    `Background: ${p.background_setting || 'casual indoor room'}. ` +
+    `${p.lighting_type || 'daylight from window'}, ${p.color_grade || 'natural unedited colors'}, ` +
+    `raw mobile snapshot quality, natural skin texture with realistic details, no filters, unedited mobile photo.`;
 }
 
 function applyAnalysisToForm() {
