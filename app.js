@@ -2,15 +2,22 @@
 let state = {
   personas: [],
   products: [],
+  campaigns: [],
   selectedPersona: null,
   selectedProduct: null,
+  selectedCampaign: null,
   scripts: [],
   selectedAngleIndex: 0,
   baseFee: 150,
-  selectedLicenceDays: 90
+  selectedLicenceDays: 90,
+  galleryItems: [],
+  activeTab: 'dashboard'
 };
 
-// Dom elements
+// Auth session token (stored in memory/sessionStorage)
+let studioPin = sessionStorage.getItem('studioPin') || '';
+
+// DOM Elements
 const navItems = document.querySelectorAll('.nav-item');
 const tabPanels = document.querySelectorAll('.tab-panel');
 const gitIndicator = document.getElementById('gitIndicator');
@@ -19,24 +26,97 @@ const btnSyncNow = document.getElementById('btnSyncNow');
 const syncBanner = document.getElementById('syncBanner');
 const syncBannerText = document.getElementById('syncBannerText');
 
+// Unified authenticated fetch helper
+async function authFetch(url, options = {}) {
+  options.headers = options.headers || {};
+  options.headers['Content-Type'] = 'application/json';
+  if (studioPin) {
+    options.headers['Authorization'] = `Bearer ${studioPin}`;
+  }
+
+  const res = await fetch(url, options);
+  
+  if (res.status === 401) {
+    showLoginScreen();
+    throw new Error('Unauthorized');
+  }
+  
+  return res;
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
   setupTabs();
-  fetchData();
+  checkAuthAndInit();
+  setupLogin();
   setupPersonaEngine();
   setupPhotoUpload();
+  setupABComparator();
+  setupVersionHistory();
+  setupCampaigns();
   setupScriptEngine();
   setupUgcStudio();
   setupLicensing();
+  setupGallery();
   
   btnSyncNow.addEventListener('click', manualGitSync);
 });
+
+// Authentication Modal Logic
+function checkAuthAndInit() {
+  fetch('/api/status')
+    .then(res => res.json())
+    .then(status => {
+      if (status.pinRequired && !studioPin) {
+        showLoginScreen();
+      } else {
+        fetchData();
+      }
+    });
+}
+
+function showLoginScreen() {
+  document.getElementById('loginModal').style.display = 'flex';
+}
+
+function hideLoginScreen() {
+  document.getElementById('loginModal').style.display = 'none';
+}
+
+function setupLogin() {
+  const form = document.getElementById('loginForm');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pin = document.getElementById('loginPinInput').value;
+    
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        studioPin = pin;
+        sessionStorage.setItem('studioPin', pin);
+        hideLoginScreen();
+        fetchData();
+      } else {
+        alert('PIN incorrecto. Inténtalo de nuevo.');
+      }
+    } catch (err) {
+      alert('Error de conexión al autenticar.');
+    }
+  });
+}
 
 // Tab Switcher Logic
 function setupTabs() {
   navItems.forEach(item => {
     item.addEventListener('click', () => {
       const tabId = item.getAttribute('data-tab');
+      state.activeTab = tabId;
       
       // Update active nav class
       navItems.forEach(nav => nav.classList.remove('active'));
@@ -50,6 +130,10 @@ function setupTabs() {
           panel.classList.remove('active');
         }
       });
+      
+      // Hook triggers for specific tabs
+      if (tabId === 'campaigns') renderCampaigns();
+      if (tabId === 'gallery') renderGallery();
     });
   });
 }
@@ -57,7 +141,7 @@ function setupTabs() {
 // Fetch Initial Data
 async function fetchData() {
   try {
-    const res = await fetch('/api/data');
+    const res = await authFetch('/api/data');
     const data = await res.json();
     
     state.personas = data.personas;
@@ -73,7 +157,7 @@ async function fetchData() {
     generateMockScripts();
     updateLicensingCalculator();
   } catch (err) {
-    console.error('Error fetching data:', err);
+    console.error('Error fetching initial data:', err);
   }
 }
 
@@ -87,12 +171,12 @@ function updateDashboardStats() {
   
   state.personas.forEach(p => {
     const card = document.createElement('div');
-    card.className = `persona-card ${state.selectedPersona?.name === p.name ? 'selected' : ''}`;
+    card.className = `persona-card ${state.selectedPersona?.id === p.id ? 'selected' : ''}`;
     card.innerHTML = `
       <img src="${p.image}" alt="${p.name}">
       <div class="persona-card-info">
         <div class="persona-card-name">${p.name}</div>
-        <div class="persona-card-tag">${p.age} • ${p.ethnicity}</div>
+        <div class="persona-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance}</div>
       </div>
     `;
     card.addEventListener('click', () => selectPersona(p));
@@ -112,7 +196,7 @@ function selectPersona(persona) {
   document.getElementById('pName').value = persona.name;
   document.getElementById('pGender').value = persona.gender;
   document.getElementById('pAge').value = persona.age;
-  document.getElementById('pEthnicity').value = persona.ethnicity;
+  document.getElementById('pEthnicity').value = persona.ethnicity || 'Latina';
   document.getElementById('pStyle').value = persona.style;
   document.getElementById('pHair').value = persona.hair;
   document.getElementById('pLighting').value = persona.lighting;
@@ -130,12 +214,12 @@ function renderPersonaGrids() {
   
   state.personas.forEach(p => {
     const card = document.createElement('div');
-    card.className = `persona-card ${state.selectedPersona?.name === p.name ? 'selected' : ''}`;
+    card.className = `persona-card ${state.selectedPersona?.id === p.id ? 'selected' : ''}`;
     card.innerHTML = `
       <img src="${p.image}" alt="${p.name}">
       <div class="persona-card-info">
         <div class="persona-card-name">${p.name}</div>
-        <div class="persona-card-tag">${p.age} • ${p.ethnicity}</div>
+        <div class="persona-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance}</div>
       </div>
     `;
     card.addEventListener('click', () => selectPersona(p));
@@ -164,7 +248,7 @@ function setGitSyncingState() {
 async function manualGitSync() {
   setGitSyncingState();
   try {
-    const res = await fetch('/api/sync', { method: 'POST' });
+    const res = await authFetch('/api/sync', { method: 'POST' });
     const data = await res.json();
     if (data.success) {
       showSyncToast(true, '¡Cambios respaldados en GitHub!');
@@ -231,6 +315,9 @@ function compilePromptAndJSON() {
   };
   
   document.getElementById('jsonEditor').value = JSON.stringify(jsonConfig, null, 2);
+  
+  // Keep split A/B prompts up to date
+  updateABPrompts();
 }
 
 async function savePersona() {
@@ -249,11 +336,14 @@ async function savePersona() {
     name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting
   };
   
+  if (state.selectedPersona?.id) {
+    personaData.id = state.selectedPersona.id;
+  }
+  
   setGitSyncingState();
   try {
-    const res = await fetch('/api/personas', {
+    const res = await authFetch('/api/personas', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(personaData)
     });
     const data = await res.json();
@@ -278,6 +368,280 @@ async function savePersona() {
   }
 }
 
+// A/B Comparator Logic
+function setupABComparator() {
+  const btn = document.getElementById('btnToggleAB');
+  const abPanel = document.getElementById('abComparatorContainer');
+  const standardLayout = document.querySelector('.editor-layout');
+  
+  btn.addEventListener('click', () => {
+    if (abPanel.style.display === 'none') {
+      abPanel.style.display = 'block';
+      btn.classList.add('active');
+      updateABPrompts();
+    } else {
+      abPanel.style.display = 'none';
+      btn.classList.remove('active');
+    }
+  });
+
+  // Watch input changes for A/B inputs
+  const inputs = ['abA_setting', 'abA_clothing', 'abA_lighting', 'abB_setting', 'abB_clothing', 'abB_lighting'];
+  inputs.forEach(id => {
+    document.getElementById(id).addEventListener('input', updateABPrompts);
+  });
+}
+
+function updateABPrompts() {
+  if (document.getElementById('abComparatorContainer').style.display === 'none') return;
+  
+  const camera = document.getElementById('pCamera').value;
+  const age = document.getElementById('pAge').value;
+  const name = document.getElementById('pName').value;
+  const gender = document.getElementById('pGender').value;
+  const ethnicity = document.getElementById('pEthnicity').value;
+  const hair = document.getElementById('pHair').value;
+
+  const abA_setting = document.getElementById('abA_setting').value;
+  const abA_clothing = document.getElementById('abA_clothing').value;
+  const abA_lighting = document.getElementById('abA_lighting').value;
+
+  const abB_setting = document.getElementById('abB_setting').value;
+  const abB_clothing = document.getElementById('abB_clothing').value;
+  const abB_lighting = document.getElementById('abB_lighting').value;
+
+  const promptA = `Amateur casual UGC style, ${camera}. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with a very natural expression, looking at camera. ${hair}, wearing ${abA_clothing}. Background is a ${abA_setting}. ${abA_lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections.`;
+  const promptB = `Amateur casual UGC style, ${camera}. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with a very natural expression, looking at camera. ${hair}, wearing ${abB_clothing}. Background is a ${abB_setting}. ${abB_lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections.`;
+
+  document.getElementById('promptPreviewA').textContent = promptA;
+  document.getElementById('promptPreviewB').textContent = promptB;
+}
+
+// Version History Timeline Logic
+function setupVersionHistory() {
+  const btn = document.getElementById('btnToggleHistory');
+  const historyPanel = document.getElementById('historyTimelineContainer');
+  
+  btn.addEventListener('click', async () => {
+    if (historyPanel.style.display === 'none') {
+      await fetchVersionsHistory();
+      historyPanel.style.display = 'block';
+      btn.classList.add('active');
+    } else {
+      historyPanel.style.display = 'none';
+      btn.classList.remove('active');
+    }
+  });
+}
+
+async function fetchVersionsHistory() {
+  if (!state.selectedPersona?.id) return;
+  
+  const listContainer = document.getElementById('versionTimelineList');
+  listContainer.innerHTML = '<p style="color:var(--text-secondary); text-align:center;">Cargando historial...</p>';
+  
+  try {
+    const res = await authFetch(`/api/personas/${state.selectedPersona.id}/versions`);
+    const versions = await res.json();
+    
+    listContainer.innerHTML = '';
+    if (versions.length === 0) {
+      listContainer.innerHTML = '<p style="color:var(--text-secondary); text-align:center; padding:12px 0;">No hay versiones anteriores de este modelo.</p>';
+      return;
+    }
+    
+    versions.forEach(v => {
+      const date = new Date(v.created_at).toLocaleString();
+      const div = document.createElement('div');
+      div.className = 'version-timeline-item';
+      div.innerHTML = `
+        <div class="version-timeline-content">
+          <div>
+            <div class="version-timeline-meta">${date}</div>
+            <div style="font-size: 13px; font-weight:600; margin-top:2px;">Cambio detectado</div>
+          </div>
+          <button class="btn btn-sm btn-secondary" onclick="revertVersion('${v.id}')">Restaurar esta versión</button>
+        </div>
+      `;
+      listContainer.appendChild(div);
+    });
+  } catch (err) {
+    listContainer.innerHTML = '<p style="color:var(--text-secondary); text-align:center;">Error al cargar historial.</p>';
+  }
+}
+
+async function revertVersion(versionId) {
+  if (!state.selectedPersona?.id) return;
+  if (!confirm('¿Estás seguro de que quieres revertir a esta versión? Perderás los cambios no guardados.')) return;
+  
+  try {
+    const res = await authFetch(`/api/personas/${state.selectedPersona.id}/revert/${versionId}`, {
+      method: 'POST'
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      selectPersona(data.persona);
+      await fetchVersionsHistory();
+      alert('¡Versión restaurada con éxito!');
+    }
+  } catch (err) {
+    alert('Error al restaurar la versión.');
+  }
+}
+
+// Campaigns Tab Logic
+function setupCampaigns() {
+  const modal = document.getElementById('campaignModal');
+  const btnNew = document.getElementById('btnNewCampaign');
+  const btnCancel = document.getElementById('btnCancelCampaign');
+  const form = document.getElementById('campaignForm');
+  
+  btnNew.addEventListener('click', () => {
+    // Populate select lists
+    const prodSelect = document.getElementById('cProductSelect');
+    prodSelect.innerHTML = state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    
+    const personaList = document.getElementById('cPersonaChecklist');
+    personaList.innerHTML = state.personas.map(p => `
+      <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer;">
+        <input type="checkbox" name="personaCheck" value="${p.id}">
+        <span>${p.name}</span>
+      </label>
+    `).join('');
+    
+    modal.style.display = 'flex';
+  });
+  
+  btnCancel.addEventListener('click', () => modal.style.display = 'none');
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('cName').value;
+    const client = document.getElementById('cClient').value;
+    const budget = parseFloat(document.getElementById('cBudget').value);
+    const productId = document.getElementById('cProductSelect').value;
+    const status = document.getElementById('cStatusSelect').value;
+    
+    const checkboxes = document.querySelectorAll('input[name="personaCheck"]:checked');
+    const personaIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    const campaignData = {
+      campaign: { name, client_name: client, budget, product_id: productId, status },
+      personaIds
+    };
+    
+    setGitSyncingState();
+    try {
+      const res = await authFetch('/api/campaigns', {
+        method: 'POST',
+        body: JSON.stringify(campaignData)
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        state.campaigns = data.campaigns;
+        modal.style.display = 'none';
+        renderCampaigns();
+        showSyncToast(true, 'Campaña creada y guardada en GitHub!');
+      }
+    } catch (err) {
+      alert('Error de red al guardar campaña.');
+    }
+  });
+
+  document.getElementById('btnDeleteCampaign').addEventListener('click', async () => {
+    if (!state.selectedCampaign) return;
+    if (!confirm('¿Estás seguro de que quieres borrar esta campaña?')) return;
+
+    try {
+      const res = await authFetch(`/api/campaigns/${state.selectedCampaign.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        state.campaigns = data.campaigns;
+        state.selectedCampaign = null;
+        document.getElementById('campaignDetailCard').style.display = 'none';
+        renderCampaigns();
+        showSyncToast(true, 'Campaña eliminada correctamente.');
+      }
+    } catch (err) {
+      alert('Error al borrar la campaña.');
+    }
+  });
+}
+
+async function renderCampaigns() {
+  const listGrid = document.getElementById('campaignListGrid');
+  listGrid.innerHTML = '<p style="color:var(--text-secondary);">Cargando campañas...</p>';
+  
+  try {
+    const res = await authFetch('/api/campaigns');
+    const campaigns = await res.json();
+    state.campaigns = campaigns;
+    
+    listGrid.innerHTML = '';
+    if (campaigns.length === 0) {
+      listGrid.innerHTML = '<p style="color:var(--text-secondary); padding: 12px 0;">No hay campañas registradas todavía.</p>';
+      return;
+    }
+    
+    campaigns.forEach(c => {
+      const card = document.createElement('div');
+      card.className = `campaign-card ${state.selectedCampaign?.id === c.id ? 'active-campaign' : ''}`;
+      card.innerHTML = `
+        <div class="campaign-card-info">
+          <h3>${c.name}</h3>
+          <p>Cliente: ${c.client_name} · Presupuesto: $${c.budget.toFixed(2)}</p>
+        </div>
+        <span class="badge">${c.status}</span>
+      `;
+      card.addEventListener('click', () => selectCampaign(c));
+      listGrid.appendChild(card);
+    });
+  } catch (err) {
+    listGrid.innerHTML = '<p style="color:var(--text-secondary);">Error al recuperar listado de campañas.</p>';
+  }
+}
+
+function selectCampaign(c) {
+  state.selectedCampaign = c;
+  renderCampaigns();
+  
+  // Show Details Card
+  const card = document.getElementById('campaignDetailCard');
+  card.style.display = 'block';
+  
+  document.getElementById('cdName').textContent = c.name;
+  document.getElementById('cdStatus').textContent = c.status;
+  document.getElementById('cdStatus').className = `badge ${c.status}`;
+  document.getElementById('cdClient').textContent = c.client_name;
+  document.getElementById('cdBudget').textContent = `$${c.budget.toFixed(2)}`;
+  document.getElementById('cdProduct').textContent = c.product ? c.product.name : 'Ninguno';
+  
+  // Render assigned personas
+  const personasGrid = document.getElementById('cdPersonaGrid');
+  personasGrid.innerHTML = '';
+  if (c.personas && c.personas.length > 0) {
+    c.personas.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'persona-card';
+      item.innerHTML = `
+        <img src="${p.image}" alt="${p.name}" style="height:90px;">
+        <div class="persona-card-info" style="padding:6px 8px;">
+          <div class="persona-card-name" style="font-size:12px;">${p.name}</div>
+        </div>
+      `;
+      personasGrid.appendChild(item);
+    });
+  } else {
+    personasGrid.innerHTML = '<p style="font-size:11px; color:var(--text-muted);">Sin influencers asignados.</p>';
+  }
+
+  // Setup ZIP Export link
+  const exportBtn = document.getElementById('btnExportZip');
+  exportBtn.href = `/api/export/campaign/${c.id}`;
+}
+
 // Script Engine Tab Logic
 function setupScriptEngine() {
   document.getElementById('btnGenerateScripts').addEventListener('click', generateScriptsAction);
@@ -290,7 +654,7 @@ function setupScriptEngine() {
   });
 }
 
-function generateScriptsAction() {
+async function generateScriptsAction() {
   const name = document.getElementById('prodName').value;
   const benefit = document.getElementById('prodBenefit').value;
   const audience = document.getElementById('prodAudience').value;
@@ -298,30 +662,60 @@ function generateScriptsAction() {
   
   state.selectedProduct = { name, benefit, audience, frustration };
   
-  // Mock API call to products save
+  // Save product to database
   setGitSyncingState();
-  fetch('/api/products', {
+  const res = await authFetch('/api/products', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(state.selectedProduct)
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      state.products = data.products;
-      document.getElementById('statProductsCount').textContent = state.products.length;
-      
-      generateMockScripts();
-      populateActiveUgcData();
-      updateLicensingCalculator();
-      
-      if (data.gitSynced) {
-        showSyncToast(true, '¡Campaña guardada y respaldada en GitHub!');
-      } else {
-        showSyncToast(false, 'Guardado localmente. Fallo al subir.');
+  });
+  const data = await res.json();
+  
+  if (data.success) {
+    state.products = data.products;
+    document.getElementById('statProductsCount').textContent = state.products.length;
+    
+    // Check if Gemini API is available for script generation
+    const statusRes = await fetch('/api/status');
+    const statusData = await statusRes.json();
+    
+    if (statusData.apiConnected && state.selectedPersona) {
+      document.getElementById('btnGenerateScripts').textContent = '🤖 Generando scripts con Gemini...';
+      try {
+        const aiRes = await authFetch('/api/ai/generate-scripts', {
+          method: 'POST',
+          body: JSON.stringify({
+            product: state.selectedProduct,
+            persona: state.selectedPersona,
+            count: 10
+          })
+        });
+        const aiData = await aiRes.json();
+        if (aiData.success && aiData.scripts) {
+          state.scripts = aiData.scripts;
+          renderScriptsUI();
+          populateActiveUgcData();
+          updateLicensingCalculator();
+          showSyncToast(true, 'Scripts generados por Gemini con éxito!');
+          document.getElementById('btnGenerateScripts').textContent = 'Generar 10 Variaciones de Scripts (Conectar AI)';
+          return;
+        }
+      } catch (err) {
+        console.warn('Gemini script gen failed, falling back to local simulation.');
       }
     }
-  });
+    
+    // Fallback to local offline template simulation
+    generateMockScripts();
+    populateActiveUgcData();
+    updateLicensingCalculator();
+    document.getElementById('btnGenerateScripts').textContent = 'Generar 10 Variaciones de Scripts ( offline fallback )';
+    
+    if (data.gitSynced) {
+      showSyncToast(true, '¡Campaña guardada y respaldada en GitHub!');
+    } else {
+      showSyncToast(false, 'Guardado localmente. Fallo al subir.');
+    }
+  }
 }
 
 function generateMockScripts() {
@@ -519,6 +913,69 @@ function setupUgcStudio() {
   document.getElementById('toggleNYLaw').addEventListener('change', updateUgcMockupCompliance);
   document.getElementById('toggleFTC').addEventListener('change', updateUgcMockupCompliance);
   document.getElementById('ugcPostCaption').addEventListener('input', updateUgcMockupCaption);
+  
+  // Generate Image AI Action
+  document.getElementById('btnGenerateUgcImage').addEventListener('click', generateAIImageAction);
+  
+  // Video Pipeline Simulation Action
+  document.getElementById('btnGenerateUgcVideo').addEventListener('click', startVideoPipelineSimulation);
+}
+
+async function generateAIImageAction() {
+  const prompt = document.getElementById('promptPreview').textContent;
+  const statusCard = document.getElementById('ugcGenStatusCard');
+  const statusText = document.getElementById('ugcGenStatusText');
+  
+  statusCard.style.display = 'flex';
+  statusText.textContent = 'Invocando generador de imágenes Imagen 3...';
+  
+  try {
+    const res = await authFetch('/api/ai/generate-image', {
+      method: 'POST',
+      body: JSON.stringify({ prompt })
+    });
+    const data = await res.json();
+    
+    if (data.success && data.imagePath) {
+      document.getElementById('mockupImage').src = data.imagePath;
+      statusText.textContent = '✓ Imagen generada y cargada en mockup!';
+      setTimeout(() => statusCard.style.display = 'none', 3000);
+    } else {
+      statusText.textContent = '⚠ La API está offline. Copia el prompt para generarlo gratis.';
+      setTimeout(() => statusCard.style.display = 'none', 5000);
+    }
+  } catch (err) {
+    statusText.textContent = '⚠ Error en la generación. Copia el prompt.';
+    setTimeout(() => statusCard.style.display = 'none', 5000);
+  }
+}
+
+function startVideoPipelineSimulation() {
+  const timelinePanel = document.getElementById('videoTimelinePreview');
+  const progressText = document.getElementById('videoTimelineProgress');
+  const progressBar = document.getElementById('videoProgressBar');
+  const steps = ['vtStep1', 'vtStep2', 'vtStep3', 'vtStep4'];
+  
+  timelinePanel.style.display = 'block';
+  progressBar.style.width = '0%';
+  progressText.textContent = '0%';
+  steps.forEach(s => document.getElementById(s).style.color = 'var(--text-muted)');
+  
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += 5;
+    progressBar.style.width = `${progress}%`;
+    progressText.textContent = `${progress}%`;
+    
+    if (progress >= 25) document.getElementById('vtStep1').style.color = 'var(--accent-primary)';
+    if (progress >= 50) document.getElementById('vtStep2').style.color = 'var(--accent-secondary)';
+    if (progress >= 75) document.getElementById('vtStep3').style.color = '#f59e0b';
+    if (progress >= 100) {
+      document.getElementById('vtStep4').style.color = 'var(--success)';
+      clearInterval(interval);
+      alert('🎥 Renderizado del video UGC finalizado. Timeline del clip listo para entrega.');
+    }
+  }, 150);
 }
 
 function populateActiveUgcData() {
@@ -527,12 +984,13 @@ function populateActiveUgcData() {
   
   document.getElementById('ugcActiveAvatar').src = creator.image;
   document.getElementById('ugcActiveName').textContent = creator.name;
-  document.getElementById('ugcActiveMeta').textContent = `${creator.age} • ${creator.ethnicity}`;
+  document.getElementById('ugcActiveMeta').textContent = `${creator.age} • ${creator.ethnicity || creator.ethnicity_appearance}`;
   
-  const prodImg = creator.gender === "Male" ? "assets/product_bottle.png" : "assets/product_serum.png";
+  const prodImg = creator.gender === 'Male' ? 'assets/product_bottle.png' : 'assets/product_serum.png';
   document.getElementById('ugcActiveProductImg').src = prodImg;
   document.getElementById('ugcActiveProduct').textContent = prod.name;
-  document.getElementById('ugcActiveProductMeta').textContent = prod.benefit || "Beneficio del producto";
+  document.getElementById('cdProduct').textContent = prod.name;
+  document.getElementById('ugcActiveProductMeta').textContent = prod.benefit || "Piel brillante en 5 minutos";
   
   // Mockup elements
   document.getElementById('mockupImage').src = creator.imageUGC || "assets/influencer_female_serum.png";
@@ -660,6 +1118,67 @@ INVERSIÓN TOTAL: ${totalText} USD
   alert('¡Propuesta formateada copiada al portapapeles!');
 }
 
+// Prompt Gallery Logic
+function setupGallery() {
+  // Watch search input
+  const searchInput = document.getElementById('gallerySearchInput');
+  searchInput.addEventListener('input', (e) => {
+    const val = e.target.value.toLowerCase();
+    const filtered = state.galleryItems.filter(item => item.prompt.toLowerCase().includes(val));
+    renderGalleryGrid(filtered);
+  });
+}
+
+async function renderGallery() {
+  const grid = document.getElementById('galleryGrid');
+  grid.innerHTML = '<p style="color:var(--text-secondary);">Cargando galería...</p>';
+  
+  try {
+    const res = await authFetch('/api/gallery');
+    state.galleryItems = await res.json();
+    renderGalleryGrid(state.galleryItems);
+  } catch (err) {
+    grid.innerHTML = '<p style="color:var(--text-secondary);">Error al recuperar la galería.</p>';
+  }
+}
+
+function renderGalleryGrid(items) {
+  const grid = document.getElementById('galleryGrid');
+  grid.innerHTML = '';
+  
+  if (items.length === 0) {
+    grid.innerHTML = '<p style="color:var(--text-secondary); grid-column:1/-1; text-align:center; padding:24px 0;">No hay prompts guardados que coincidan.</p>';
+    return;
+  }
+  
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'gallery-card';
+    card.innerHTML = `
+      <img src="${item.image_path || 'assets/influencer_female_serum.png'}" class="gallery-card-img" alt="Gallery preview">
+      <div class="gallery-card-content">
+        <p class="gallery-card-prompt">${item.prompt}</p>
+        <button class="btn btn-sm btn-secondary" style="width: 100%;" onclick="loadPromptFromGallery('${item.prompt.replace(/'/g, "\\'")}')">Cargar prompt</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function loadPromptFromGallery(prompt) {
+  // Pre-load prompt into prompt preview box
+  document.getElementById('promptPreview').textContent = prompt;
+  
+  // Switch to Persona Engine tab
+  const tabItem = document.querySelector('[data-tab="persona-engine"]');
+  tabItem.click();
+  
+  alert('¡Prompt cargado en el Persona Engine! Puedes copiarlo o aplicarle cambios.');
+}
+
+window.loadPromptFromGallery = loadPromptFromGallery;
+window.revertVersion = revertVersion;
+
 // =============================================
 // PHOTO UPLOAD & AI ANALYSIS MODULE
 // =============================================
@@ -780,7 +1299,7 @@ async function uploadToServer(file) {
 
   try {
     setGitSyncingState();
-    const res = await fetch('/api/upload-reference', { method: 'POST', body: formData });
+    const res = await authFetch('/api/upload-reference', { method: 'POST', body: formData });
     const data = await res.json();
     if (data.success) {
       uploadedImagePath = data.filePath;
@@ -806,13 +1325,37 @@ async function runPhotoAnalysis(imageDataUrl) {
   // Extract dominant colors from canvas
   const colors = await extractDominantColors(imageDataUrl);
 
-  // Simulate analysis delay for UX feel
+  // Check if Gemini Vision API is connected
+  const statusRes = await fetch('/api/status');
+  const statusData = await statusRes.json();
+  
+  if (statusData.apiConnected && uploadedImagePath) {
+    document.getElementById('analysisStatusTitle').textContent = '🤖 Analizando con Gemini Vision...';
+    try {
+      const aiRes = await authFetch('/api/ai/analyze-photo', {
+        method: 'POST',
+        body: JSON.stringify({ imagePath: uploadedImagePath })
+      });
+      const aiData = await aiRes.json();
+      if (aiData.success && aiData.analysis) {
+        analysisResult = aiData.analysis;
+        displayAnalysisResults(colors);
+        showSyncToast(true, 'Análisis de foto completado con Gemini Vision API!');
+        return;
+      }
+    } catch (err) {
+      console.warn('Gemini vision analysis failed, falling back to local simulation.');
+    }
+  }
+
+  // Fallback simulation mode
   await new Promise(resolve => setTimeout(resolve, 1800));
-
-  // Generate the detailed influ-JSON
   analysisResult = generateDetailedJSON(colors);
+  displayAnalysisResults(colors);
+}
 
-  // Update status to done
+function displayAnalysisResults(colors) {
+  // Update status card to done
   document.getElementById('analysisSpinner').style.display = 'none';
   document.getElementById('analysisStatusTitle').textContent = '✓ Análisis completado';
   document.getElementById('analysisStatusMsg').textContent = `Se generaron ${Object.values(analysisResult).reduce((sum, cat) => sum + (typeof cat === 'object' && !Array.isArray(cat) ? Object.keys(cat).length : 0), 0)} campos detallados en 6 categorías.`;
@@ -1081,11 +1624,12 @@ const ANALYSIS_FIELD_OPTIONS = {
   },
   photography: {
     camera_lens: [
-      "DSLR portrait photograph, 50mm f/1.8 lens",
-      "DSLR headshot, 85mm f/1.4 lens",
+      "iPhone 15 Pro front camera selfie",
+      "Amateur smartphone mirror selfie, camera lens visible",
+      "Candid hand-held smartphone snapshot",
+      "Close-up raw portrait shot on iPhone 15",
       "iPhone/Smartphone portrait mode photo",
-      "35mm analog film portrait photo",
-      "Wide-angle portrait, 35mm lens"
+      "Casual snapchat-style photo"
     ],
     focal_length: ["50mm", "85mm", "35mm", "24mm", "105mm"],
     aperture: ["f/1.8 - f/2.8 (bokeh suave)", "f/1.4 (bokeh ultra cremoso, fondo muy desenfocado)", "f/4.0 (mayor nitidez del fondo)", "f/8.0 (todo enfocado)"],
@@ -1307,9 +1851,8 @@ async function saveAnalysisAsPersona() {
 
   setGitSyncingState();
   try {
-    const res = await fetch('/api/personas', {
+    const res = await authFetch('/api/personas', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(personaData)
     });
     const data = await res.json();

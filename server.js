@@ -3,6 +3,38 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const multer = require('multer');
+const archiver = require('archiver');
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
+
+const dbService = require('./db');
+const authService = require('./auth');
+const aiService = require('./ai-service');
+
+// Initialize DB and migrate legacy JSON data if empty
+dbService.runMigrations();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+app.use(authService.sessionMiddleware);
+
+// Serve static assets with no auth required
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+// Serve main app pages
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+app.get('/app.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'app.js'));
+});
+app.get('/index.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.css'));
+});
 
 // Multer storage config — saves uploaded reference photos to assets/
 const storage = multer.diskStorage({
@@ -19,115 +51,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname)));
-
-const PERSONAS_FILE = path.join(__dirname, 'personas.json');
-const PRODUCTS_FILE = path.join(__dirname, 'products.json');
-
-// Persisted scratch directory in appData conversation directory
+// Persisted scratch directory
 const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b-aa1e-adaeba8ce81d/scratch';
-const SCRATCH_PERSONAS_FILE = path.join(SCRATCH_DIR, 'personas.json');
-const SCRATCH_PRODUCTS_FILE = path.join(SCRATCH_DIR, 'products.json');
-
-// Ensure scratch directory exists
-if (!fs.existsSync(SCRATCH_DIR)) {
-  fs.mkdirSync(SCRATCH_DIR, { recursive: true });
-}
-
-// Initialize default data if files don't exist
-const defaultPersonas = [
-  {
-    name: "Sofia",
-    gender: "Female",
-    age: "25 años",
-    ethnicity: "Latina",
-    style: "Minimalista y natural",
-    hair: "Marrón ondulado largo",
-    lighting: "Warm morning sunlight streaming through window",
-    camera: "DSLR portrait photograph, 35mm lens",
-    clothing: "Suéter de punto color crema",
-    setting: "Sala de estar moderna y neutral",
-    image: "assets/influencer_female.png",
-    imageUGC: "assets/influencer_female_serum.png",
-    handle: "@sofia_ai_ugc"
-  },
-  {
-    name: "Lucas",
-    gender: "Male",
-    age: "28 años",
-    ethnicity: "Europeo / Atlético",
-    style: "Deportivo y tecnológico",
-    hair: "Corto oscuro peinado",
-    lighting: "Clean modern studio lighting, soft shadows",
-    camera: "DSLR headshot, 50mm lens",
-    clothing: "Camiseta deportiva negra",
-    setting: "Gimnasio interior moderno con luces tenues",
-    image: "assets/influencer_male.png",
-    imageUGC: "assets/influencer_male_bottle.png",
-    handle: "@lucas_fit_tech"
-  }
-];
-
-const defaultProducts = [
-  {
-    name: "Glow Serum Organics",
-    benefit: "Piel brillante y profundamente hidratada en 5 minutos",
-    audience: "Jóvenes ocupadas con piel seca y opaca",
-    frustration: "No tener tiempo para rutinas coreanas de 10 pasos",
-    image: "assets/product_serum.png"
-  },
-  {
-    name: "HydraFlask Matte",
-    benefit: "Mantiene el agua fría por 24 horas con estilo minimalista",
-    audience: "Entusiastas del fitness y profesionales ocupados",
-    frustration: "Botellas que gotean o no mantienen la temperatura",
-    image: "assets/product_bottle.png"
-  }
-];
-
-function readJSONFile(filePath, defaultValue) {
-  try {
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify(defaultValue, null, 2), 'utf-8');
-      return defaultValue;
-    }
-    const data = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error(`Error reading ${filePath}:`, error);
-    return defaultValue;
-  }
-}
-
-function writeJSONFile(filePath, data) {
-  try {
-    // Write to the main workspace file path
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
-    
-    // Auto-sync replica to scratch directory
-    if (filePath === PERSONAS_FILE) {
-      fs.writeFileSync(SCRATCH_PERSONAS_FILE, JSON.stringify(data, null, 2), 'utf-8');
-      console.log(`Synced personas.json to scratch directory: ${SCRATCH_PERSONAS_FILE}`);
-    } else if (filePath === PRODUCTS_FILE) {
-      fs.writeFileSync(SCRATCH_PRODUCTS_FILE, JSON.stringify(data, null, 2), 'utf-8');
-      console.log(`Synced products.json to scratch directory: ${SCRATCH_PRODUCTS_FILE}`);
-    }
-    
-    return true;
-  } catch (error) {
-    console.error(`Error writing to ${filePath}:`, error);
-    return false;
-  }
-}
 
 // Git backup helper function
 function runGitBackup(callback) {
   const commitMsg = `Backup auto-sync: Campaign update ${new Date().toISOString()}`;
-  const commands = `git add . && git commit -m "${commitMsg}" && git push origin main`;
+  const commands = `git add . ; git commit -m "${commitMsg}" ; git push origin main`;
   
   exec(commands, (error, stdout, stderr) => {
     if (error) {
@@ -140,70 +70,267 @@ function runGitBackup(callback) {
   });
 }
 
-// Endpoints
+// =============================================
+// PUBLIC ENDPOINTS
+// =============================================
+
+// Auth Login
+app.post('/api/auth/login', (req, res) => {
+  const { pin } = req.body;
+  if (authService.verifyPin(pin)) {
+    req.session.authenticated = true;
+    res.json({ success: true, message: 'Sesión iniciada correctamente.' });
+  } else {
+    res.status(401).json({ success: false, message: 'PIN incorrecto. Inténtalo de nuevo.' });
+  }
+});
+
+// API Connection Status
+app.get('/api/status', (req, res) => {
+  res.json({
+    success: true,
+    apiConnected: aiService.isApiConnected(),
+    gitLinked: fs.existsSync(path.join(__dirname, '.git')),
+    pinRequired: process.env.STUDIO_PIN !== ''
+  });
+});
+
+// =============================================
+// PROTECTED ENDPOINTS (requireAuth)
+// =============================================
+
+app.use('/api', authService.requireAuth);
+
+// Get All Data (legacy fallback endpoint)
 app.get('/api/data', (req, res) => {
-  const personas = readJSONFile(PERSONAS_FILE, defaultPersonas);
-  const products = readJSONFile(PRODUCTS_FILE, defaultProducts);
+  const personas = dbService.getAllPersonas();
+  const products = dbService.getAllProducts();
   res.json({ personas, products });
 });
 
+// Personas endpoints
+app.get('/api/personas', (req, res) => {
+  res.json(dbService.getAllPersonas());
+});
+
 app.post('/api/personas', (req, res) => {
-  const newPersona = req.body;
-  const personas = readJSONFile(PERSONAS_FILE, defaultPersonas);
-  
-  // Update if exists by name, else append
-  const idx = personas.findIndex(p => p.name.toLowerCase() === newPersona.name.toLowerCase());
-  if (idx !== -1) {
-    personas[idx] = { ...personas[idx], ...newPersona };
-  } else {
-    // Assign a default image fallback for demo
-    newPersona.image = newPersona.gender === "Male" ? "assets/influencer_male.png" : "assets/influencer_female.png";
-    newPersona.imageUGC = newPersona.gender === "Male" ? "assets/influencer_male_bottle.png" : "assets/influencer_female_serum.png";
-    newPersona.handle = `@${newPersona.name.toLowerCase()}_ai_ugc`;
-    personas.push(newPersona);
-  }
-  
-  const success = writeJSONFile(PERSONAS_FILE, personas);
-  if (success) {
-    // Trigger auto-git-backup in the background
+  const persona = dbService.savePersona(req.body);
+  runGitBackup((gitSuccess, msg) => {
+    res.json({ success: true, personas: dbService.getAllPersonas(), persona, gitSynced: gitSuccess, gitMessage: msg });
+  });
+});
+
+// Persona Versions & Revert
+app.get('/api/personas/:id/versions', (req, res) => {
+  res.json(dbService.getVersionsForPersona(req.params.id));
+});
+
+app.post('/api/personas/:id/revert/:versionId', (req, res) => {
+  const reverted = dbService.revertPersonaVersion(req.params.id, req.params.versionId);
+  if (reverted) {
     runGitBackup((gitSuccess, msg) => {
-      res.json({ success: true, personas, gitSynced: gitSuccess, gitMessage: msg });
+      res.json({ success: true, persona: reverted, gitSynced: gitSuccess, gitMessage: msg });
     });
   } else {
-    res.status(500).json({ success: false, message: "Error al guardar la persona" });
+    res.status(404).json({ success: false, message: 'Versión no encontrada.' });
   }
+});
+
+// Products endpoints
+app.get('/api/products', (req, res) => {
+  res.json(dbService.getAllProducts());
 });
 
 app.post('/api/products', (req, res) => {
-  const newProduct = req.body;
-  const products = readJSONFile(PRODUCTS_FILE, defaultProducts);
-  
-  const idx = products.findIndex(p => p.name.toLowerCase() === newProduct.name.toLowerCase());
-  if (idx !== -1) {
-    products[idx] = { ...products[idx], ...newProduct };
+  const product = dbService.saveProduct(req.body);
+  runGitBackup((gitSuccess, msg) => {
+    res.json({ success: true, products: dbService.getAllProducts(), product, gitSynced: gitSuccess, gitMessage: msg });
+  });
+});
+
+// Campaigns endpoints
+app.get('/api/campaigns', (req, res) => {
+  res.json(dbService.getAllCampaigns());
+});
+
+app.get('/api/campaigns/:id', (req, res) => {
+  const c = dbService.getCampaignById(req.params.id);
+  if (c) {
+    res.json(c);
   } else {
-    newProduct.image = products.length % 2 === 0 ? "assets/product_serum.png" : "assets/product_bottle.png";
-    products.push(newProduct);
-  }
-  
-  const success = writeJSONFile(PRODUCTS_FILE, products);
-  if (success) {
-    runGitBackup((gitSuccess, msg) => {
-      res.json({ success: true, products, gitSynced: gitSuccess, gitMessage: msg });
-    });
-  } else {
-    res.status(500).json({ success: false, message: "Error al guardar el producto" });
+    res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
   }
 });
 
-app.post('/api/sync', (req, res) => {
+app.post('/api/campaigns', (req, res) => {
+  const { campaign, personaIds } = req.body;
+  const c = dbService.saveCampaign(campaign, personaIds);
   runGitBackup((gitSuccess, msg) => {
-    if (gitSuccess) {
-      res.json({ success: true, message: "Sincronización exitosa con GitHub", gitMessage: msg });
-    } else {
-      res.status(500).json({ success: false, message: "Error al sincronizar con GitHub", gitMessage: msg });
-    }
+    res.json({ success: true, campaign: c, campaigns: dbService.getAllCampaigns(), gitSynced: gitSuccess, gitMessage: msg });
   });
+});
+
+app.delete('/api/campaigns/:id', (req, res) => {
+  dbService.deleteCampaign(req.params.id);
+  runGitBackup((gitSuccess, msg) => {
+    res.json({ success: true, campaigns: dbService.getAllCampaigns(), gitSynced: gitSuccess, gitMessage: msg });
+  });
+});
+
+// Scripts endpoints
+app.post('/api/campaigns/:id/scripts', (req, res) => {
+  const saved = dbService.saveScripts(req.params.id, req.body.scripts);
+  runGitBackup((gitSuccess, msg) => {
+    res.json({ success: true, scripts: saved, gitSynced: gitSuccess, gitMessage: msg });
+  });
+});
+
+// Gallery endpoints
+app.get('/api/gallery', (req, res) => {
+  res.json(dbService.getGalleryItems());
+});
+
+app.post('/api/gallery', (req, res) => {
+  const { prompt, imagePath } = req.body;
+  const item = dbService.saveToGallery(prompt, imagePath);
+  runGitBackup((gitSuccess, msg) => {
+    res.json({ success: true, item, gitSynced: gitSuccess, gitMessage: msg });
+  });
+});
+
+// AI endpoints
+app.post('/api/ai/analyze-photo', (req, res) => {
+  const { imagePath } = req.body;
+  aiService.analyzeReferencePhoto(imagePath)
+    .then(result => {
+      res.json({ success: true, analysis: result });
+    })
+    .catch(err => {
+      res.status(500).json({ success: false, message: err.message });
+    });
+});
+
+app.post('/api/ai/generate-scripts', (req, res) => {
+  const { product, persona, count } = req.body;
+  aiService.generateScripts(product, persona, count)
+    .then(result => {
+      res.json({ success: true, scripts: result });
+    })
+    .catch(err => {
+      res.status(500).json({ success: false, message: err.message });
+    });
+});
+
+app.post('/api/ai/generate-image', (req, res) => {
+  const { prompt } = req.body;
+  aiService.generateInfluencerImage(prompt)
+    .then(result => {
+      res.json({ success: true, imagePath: result });
+    })
+    .catch(err => {
+      res.status(500).json({ success: false, message: err.message });
+    });
+});
+
+// Video Pipeline generation (stub mock infrastructure ready)
+app.post('/api/ai/generate-video', (req, res) => {
+  const { prompt, duration } = req.body;
+  console.log(`Video generation stub called with prompt: ${prompt}`);
+  
+  // Return a mock path for the video
+  setTimeout(() => {
+    res.json({
+      success: true,
+      videoPath: 'assets/mock_ugc_video.mp4',
+      message: 'Video generado exitosamente utilizando la infraestructura pre-configurada.'
+    });
+  }, 3000);
+});
+
+// ZIP exporter
+app.get('/api/export/campaign/:id', (req, res) => {
+  const c = dbService.getCampaignById(req.params.id);
+  if (!c) {
+    return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
+  }
+
+  res.attachment(`campana_${c.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_export.zip`);
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.on('error', (err) => {
+    res.status(500).send({ error: err.message });
+  });
+
+  archive.pipe(res);
+
+  // 1. Add Campaign metadata JSON
+  archive.append(JSON.stringify(c, null, 2), { name: 'campana.json' });
+
+  // 2. Add Personas JSON
+  if (c.personas && c.personas.length > 0) {
+    c.personas.forEach(p => {
+      archive.append(JSON.stringify(p, null, 2), { name: `personas/${p.name.toLowerCase()}_persona.json` });
+      
+      // If reference image exists, bundle it
+      if (p.image && fs.existsSync(path.join(__dirname, p.image))) {
+        archive.file(path.join(__dirname, p.image), { name: `imagenes/${path.basename(p.image)}` });
+      }
+      if (p.imageUGC && fs.existsSync(path.join(__dirname, p.imageUGC))) {
+        archive.file(path.join(__dirname, p.imageUGC), { name: `imagenes/${path.basename(p.imageUGC)}` });
+      }
+    });
+  }
+
+  // 3. Add Scripts
+  if (c.scripts && c.scripts.length > 0) {
+    c.scripts.forEach((s, idx) => {
+      const scriptText = `
+ÁNGULO PUBLICITARIO: ${s.angle}
+=========================================================
+
+1. EL GANCHO (HOOK) [0-3s]:
+Texto: "${s.hook}"
+Visual: [${s.hookCue}]
+
+2. DEMOSTRACIÓN (DEMO) [3-10s]:
+Texto: "${s.demo}"
+Visual: [${s.demoCue}]
+
+3. EL GIRO (THE TURN) [10-15s]:
+Texto: "${s.turn}"
+Visual: [${s.turnCue}]
+
+4. LLAMADO A LA ACCIÓN (CTA) [15-20s]:
+Texto: "${s.cta}"
+Visual: [${s.ctaCue}]
+=========================================================
+`;
+      archive.append(scriptText.trim(), { name: `scripts/script_${idx + 1}_${s.angle.toLowerCase().replace(/[^a-z0-9]/g, '_')}.txt` });
+    });
+  }
+
+  // 4. Add Proposal / Cotización text
+  const basePrice = 150;
+  const total = basePrice * 2;
+  const proposalText = `
+=========================================================
+COTIZACIÓN COMERCIAL - CAMPAÑA AI UGC
+=========================================================
+Campaña: ${c.name}
+Cliente: ${c.client_name || 'Estándar'}
+Producto: ${c.product ? c.product.name : 'N/D'}
+
+DESGLOSE DE TARIFAS:
+1. Derechos del Modelo Virtual AI: $${basePrice.toFixed(2)} USD
+2. Licencia Comercial Ampliada (90 Días): $${basePrice.toFixed(2)} USD
+3. Copywriting de 10 variaciones de scripts: INCLUIDO
+
+INVERSIÓN TOTAL DE CAMPAÑA: $${total.toFixed(2)} USD
+=========================================================
+`;
+  archive.append(proposalText.trim(), { name: 'propuesta_licencia.txt' });
+
+  archive.finalize();
 });
 
 // Upload reference photo endpoint
@@ -232,6 +359,19 @@ app.post('/api/upload-reference', upload.single('photo'), (req, res) => {
       gitSynced: gitSuccess,
       gitMessage: msg
     });
+  });
+});
+
+// Git sync trigger
+app.post('/api/sync', (req, res) => {
+  // Save DB copy first to ensure latest backup
+  dbService.syncDbToWorkspace();
+  runGitBackup((gitSuccess, msg) => {
+    if (gitSuccess) {
+      res.json({ success: true, message: "Sincronización exitosa con GitHub", gitMessage: msg });
+    } else {
+      res.status(500).json({ success: false, message: "Error al sincronizar con GitHub", gitMessage: msg });
+    }
   });
 });
 
