@@ -275,6 +275,42 @@ function setupPersonaEngine() {
     alert('¡Estructura JSON copiada al portapapeles!');
   });
   
+  document.getElementById('btnCopyChatbotPrompt').addEventListener('click', () => {
+    const prompt = document.getElementById('promptPreview').textContent;
+    const jsonStr = document.getElementById('jsonEditor').value;
+    
+    let detailedJson = {};
+    try {
+      detailedJson = JSON.parse(jsonStr);
+      let fullDetails = {};
+      if (state.selectedPersona && state.selectedPersona.detailedJSON) {
+        try {
+          const parsed = typeof state.selectedPersona.detailedJSON === 'string' 
+            ? JSON.parse(state.selectedPersona.detailedJSON)
+            : state.selectedPersona.detailedJSON;
+          fullDetails = parsed;
+        } catch (e) {}
+      }
+      detailedJson = { ...detailedJson, ...fullDetails };
+    } catch (e) {
+      console.warn("Could not parse json editor string:", e);
+    }
+    
+    const formattedJson = JSON.stringify(detailedJson, null, 2);
+    const copyText = `Utiliza la siguiente especificación de identidad visual JSON del modelo AI para mantener la consistencia física y de la cámara en la generación de imágenes:
+
+--- INICIO ESPECIFICACIÓN DE IDENTIDAD VISUAL (JSON) ---
+${formattedJson}
+--- FIN ESPECIFICACIÓN DE IDENTIDAD VISUAL (JSON) ---
+
+Genera la imagen con el siguiente Prompt:
+${prompt}
+`;
+
+    navigator.clipboard.writeText(copyText);
+    alert('📋 ¡Prompt + Identidad Visual JSON copiados para tu Chatbot (ChatGPT/Gemini)!');
+  });
+
   document.getElementById('btnSaveToGallery').addEventListener('click', async () => {
     const prompt = document.getElementById('promptPreview').textContent;
     const gender = document.getElementById('pGender').value;
