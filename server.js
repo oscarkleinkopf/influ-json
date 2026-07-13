@@ -58,7 +58,7 @@ const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b
 // Git backup helper function
 function runGitBackup(callback) {
   const commitMsg = `Backup auto-sync: Campaign update ${new Date().toISOString()}`;
-  const commands = `git add . && git commit -m "${commitMsg}" && git push origin main`;
+  const commands = `git add . && git commit -m "${commitMsg}" --allow-empty && git push origin main`;
   
   exec(commands, (error, stdout, stderr) => {
     if (error) {
