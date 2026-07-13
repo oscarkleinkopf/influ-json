@@ -28,5 +28,92 @@
     "image": "assets/influencer_male.png",
     "imageUGC": "assets/influencer_male_bottle.png",
     "handle": "@lucas_fit_tech"
+  },
+  {
+    "name": "Huaso",
+    "gender": "Male",
+    "age": "22-28 años",
+    "ethnicity": "Afrodescendiente / Mixta",
+    "style": "Natural, fresca, accesible y aspiracional",
+    "hair": "Rubio dorado claro, Ondulado natural con movimiento orgánico, Medio-largo, por debajo de los hombros",
+    "lighting": "Luz neutra de estudio, softbox frontal con relleno lateral",
+    "camera": "DSLR portrait photograph, 50mm f/1.8 lens",
+    "clothing": "Top de tejido suave o blusa casual elegante en Tonos neutros cálidos: crema, beige, blanco roto, terracota suave",
+    "setting": "Fondo oscuro dramático / low-key",
+    "detailedJSON": {
+      "identity": {
+        "name": "Huaso",
+        "gender": "Masculino",
+        "apparent_age": "22-28 años",
+        "ethnicity_appearance": "Afrodescendiente / Mixta",
+        "body_type": "Atlético / Proporcionado",
+        "persona_archetype": "Lifestyle & Bienestar"
+      },
+      "facial_features": {
+        "face_shape": "Ovalada con ángulos suaves",
+        "skin_tone": "Oscuro profundo / ébano",
+        "skin_tone_hex": "#202020",
+        "skin_texture": "Piel suave y uniforme, acabado semi-mate con luminosidad natural",
+        "eye_color": "Marrón cálido con destellos ámbar",
+        "eye_shape": "Almendrados, ligeramente rasgados",
+        "eyebrow_style": "Cejas naturales pobladas con arco suave, sin exceso de maquillaje",
+        "nose_shape": "Nariz recta proporcionada con punta ligeramente redondeada",
+        "lip_shape": "Labios medianos con arco de cupido definido",
+        "lip_color": "Rosa natural con tono cálido melocotón",
+        "jawline": "Mandíbula suave y femenina con mentón redondeado",
+        "cheekbones": "Pómulos moderadamente altos con rubor natural",
+        "facial_hair": "Ninguno",
+        "distinctive_marks": "Sin marcas distintivas visibles",
+        "smile_type": "Sonrisa cálida y accesible, dientes alineados"
+      },
+      "hair": {
+        "color": "Rubio dorado claro",
+        "color_hex": "#100100100",
+        "length": "Medio-largo, por debajo de los hombros",
+        "texture": "Ondulado natural con movimiento orgánico",
+        "style": "Suelto y sin esfuerzo, con raya al centro ligeramente descentrada",
+        "parting": "Centro o ligeramente lateral izquierdo",
+        "highlights": "Reflejos naturales por el sol en las puntas",
+        "volume": "Volumen medio con cuerpo saludable"
+      },
+      "aesthetic": {
+        "overall_vibe": "Natural, fresca, accesible y aspiracional",
+        "fashion_style": "Casual chic con piezas de calidad minimalista",
+        "color_palette_dominant": "#000000",
+        "color_palette_description": "Paleta cálida centrada en #000000, armonizando con tonos tierra y neutros suaves",
+        "makeup_level": "Maquillaje mínimo o 'no-makeup makeup': base ligera, rubor, máscara, gloss natural",
+        "accessories": "Aretes pequeños dorados, posible collar delicado, reloj minimalista",
+        "nails": "Uñas naturales cortas con tono nude o transparente"
+      },
+      "photography": {
+        "camera_lens": "DSLR portrait photograph, 50mm f/1.8 lens",
+        "focal_length": "50mm",
+        "aperture": "f/1.8 - f/2.8 (bokeh suave)",
+        "lighting_type": "Luz neutra de estudio, softbox frontal con relleno lateral",
+        "lighting_direction": "Lateral 45° con relleno suave frontal",
+        "color_grade": "Tono cálido dorado con sombras suaves desaturadas",
+        "color_temperature": "5200-5800K (luz de día cálida)",
+        "depth_of_field": "Bokeh pronunciado, sujeto nítido, fondo desenfocado f/2.0",
+        "background_setting": "Fondo oscuro dramático / low-key",
+        "background_blur": "Desenfoque gaussiano medio-alto (bokeh circular)",
+        "composition": "Regla de tercios, sujeto ligeramente descentrado a la izquierda",
+        "framing": "Plano medio-corto (pecho hacia arriba), crop 4:5 para Instagram",
+        "mood": "Cálido, íntimo, accesible y aspiracional",
+        "post_processing": "Ligero retoque de piel, realce de ojos, grano de película sutil"
+      },
+      "clothing": {
+        "type": "Top de tejido suave o blusa casual elegante",
+        "color": "Tonos neutros cálidos: crema, beige, blanco roto, terracota suave",
+        "material": "Algodón orgánico, lino o punto fino",
+        "neckline": "Cuello redondo o V abierto casual",
+        "fit": "Semi-ajustado, silueta relajada y halagadora",
+        "visible_brand_logos": "Ninguno (estética clean sin branding visible)"
+      },
+      "anchor_reference": "assets/references/ref_1783914430716_000027.JPG",
+      "generation_prompt": "DSLR portrait photograph, 50mm f/1.8 lens, Plano medio-corto (pecho hacia arriba), crop 4:5 para Instagram of a 22-28 años Afrodescendiente / Mixta Masculino influencer. Ovalada con ángulos suaves face, Oscuro profundo / ébano skin, Marrón cálido con destellos ámbar eyes, Labios medianos con arco de cupido definido. Rubio dorado claro Ondulado natural con movimiento orgánico hair, Suelto y sin esfuerzo, con raya al centro ligeramente descentrada. Wearing Top de tejido suave o blusa casual elegante in Tonos neutros cálidos: crema, beige, blanco roto, terracota suave. Background: Fondo oscuro dramático / low-key. Luz neutra de estudio, softbox frontal con relleno lateral, Tono cálido dorado con sombras suaves desaturadas, Bokeh pronunciado, sujeto nítido, fondo desenfocado f/2.0, Natural, fresca, accesible y aspiracional vibe, photo realism, 8k resolution."
+    },
+    "image": "assets/influencer_male.png",
+    "imageUGC": "assets/influencer_male_bottle.png",
+    "handle": "@huaso_ai_ugc"
   }
 ]
