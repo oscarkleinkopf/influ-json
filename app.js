@@ -275,6 +275,26 @@ function setupPersonaEngine() {
     alert('¡Estructura JSON copiada al portapapeles!');
   });
   
+  document.getElementById('btnSaveToGallery').addEventListener('click', async () => {
+    const prompt = document.getElementById('promptPreview').textContent;
+    const gender = document.getElementById('pGender').value;
+    const imgPath = state.selectedPersona?.image || (gender === 'Male' ? 'assets/influencer_male.png' : 'assets/influencer_female.png');
+    
+    try {
+      const res = await authFetch('/api/gallery', {
+        method: 'POST',
+        body: JSON.stringify({ prompt, imagePath: imgPath })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('⭐ ¡Prompt y miniatura de referencia guardados en la Galería!');
+        if (state.activeTab === 'gallery') renderGallery();
+      }
+    } catch (err) {
+      alert('Error al guardar en la galería.');
+    }
+  });
+  
   compilePromptAndJSON();
 }
 
@@ -1866,10 +1886,22 @@ async function saveAnalysisAsPersona() {
       populateActiveUgcData();
       applyAnalysisToForm();
 
+      // Automatically save prompt to gallery
+      const promptText = buildPromptFromAnalysis(analysisResult);
+      const imgPath = uploadedImagePath || (personaData.gender === 'Male' ? 'assets/influencer_male.png' : 'assets/influencer_female.png');
+      try {
+        await authFetch('/api/gallery', {
+          method: 'POST',
+          body: JSON.stringify({ prompt: promptText, imagePath: imgPath })
+        });
+      } catch (galleryErr) {
+        console.error('Failed to auto-save to gallery:', galleryErr);
+      }
+
       if (data.gitSynced) {
         showSyncToast(true, '¡Persona del análisis guardada y respaldada en GitHub!');
       } else {
-        showSyncToast(false, 'Guardada localmente. Error al sincronizar.');
+        showSyncToast(false, 'Guardada localmente. Error en Git.');
       }
     }
   } catch (err) {
