@@ -1016,6 +1016,132 @@ function generateDetailedJSON(colors) {
   };
 }
 
+const ANALYSIS_FIELD_OPTIONS = {
+  identity: {
+    gender: ["Femenino", "Masculino", "No binario / Andrógino"],
+    apparent_age: ["18-22 años", "22-28 años", "28-35 años", "35-45 años", "45+ años"],
+    ethnicity_appearance: ["Latina / Mediterránea", "Caucásica / Nórdica", "Afrodescendiente / Mixta", "Asiática / Oriental", "Mixta / Universal"],
+    body_type: ["Atlético / Proporcionado", "Esbelto / Delgado", "Curvilíneo / Reloj de arena", "Musculoso / Fit", "Plus size / Curvy"],
+    persona_archetype: ["Lifestyle & Bienestar", "Fitness & Nutrición", "Moda & Belleza", "Tecnología & Gadgets", "Negocios & Finanzas", "Viajes & Aventura"]
+  },
+  facial_features: {
+    face_shape: ["Ovalada con ángulos suaves", "Redonda y accesible", "Cuadrada con mandíbula marcada", "Corazón / Triángulo invertido", "Alargada / Rectangular"],
+    skin_tone: ["Claro / porcelana", "Claro cálido / beige rosado", "Medio cálido / arena dorada", "Medio oliva / canela", "Moreno cálido / bronce", "Oscuro profundo / ébano"],
+    skin_texture: [
+      "Piel suave y uniforme, acabado semi-mate con luminosidad natural",
+      "Textura mate impecable, sin poros visibles",
+      "Acabado dewy / jugoso ultra hidratado",
+      "Textura natural con sutiles imperfecciones realistas"
+    ],
+    eye_color: ["Marrón cálido con destellos ámbar", "Marrón oscuro profundo", "Verde oliva / avellana", "Azul cristalino / grisáceo", "Miel / ámbar claro"],
+    eye_shape: ["Almendrados, ligeramente rasgados", "Grandes y redondos", "Encapotados / Hooded", "Caídos / Downturned", "Rasgados / Monolid"],
+    eyebrow_style: [
+      "Cejas naturales pobladas con arco suave, sin exceso de maquillaje",
+      "Cejas definidas y depiladas con arco marcado",
+      "Cejas delgadas y estilizadas",
+      "Cejas laminadas / bushy modernas"
+    ],
+    nose_shape: ["Nariz recta proporcionada con punta ligeramente redondeada", "Nariz respingada con puente delgado", "Nariz ancha / chata con personalidad", "Nariz aguileña / fuerte perfilada"],
+    lip_shape: ["Labios medianos con arco de cupido definido", "Labios carnosos y simétricos", "Labio superior delgado, inferior más grueso", "Labios finos y estilizados"],
+    lip_color: ["Rosa natural con tono cálido melocotón", "Nude rosado mate", "Rojo clásico satinado", "Brillo transparente natural", "Tono ciruela / malva natural"],
+    jawline: ["Mandíbula suave y femenina con mentón redondeado", "Mandíbula definida y angular", "Mentón prominente / barbilla fuerte", "Línea de mandíbula sutil y difusa"],
+    cheekbones: ["Pómulos moderadamente altos con rubor natural", "Pómulos muy esculpidos e iluminados", "Mejillas redondeadas y juveniles", "Pómulos sutiles y planos"],
+    facial_hair: ["Ninguno", "Barba de 3 días bien recortada", "Barba completa y arreglada", "Bigote estilizado"],
+    distinctive_marks: ["Sin marcas distintivas visibles", "Pecas sutiles en mejillas y nariz", "Lunar característico cerca del ojo", "Lunar cerca del labio"],
+    smile_type: ["Sonrisa cálida y accesible, dientes alineados", "Sonrisa sutil de labios cerrados", "Expresión seria / neutral de alta costura", "Sonrisa amplia y expresiva mostrando dientes"]
+  },
+  hair: {
+    color: [
+      "Castaño medio natural",
+      "Castaño oscuro chocolate",
+      "Rubio dorado claro",
+      "Castaño claro con reflejos miel",
+      "Negro azabache profundo",
+      "Pelirrojo cobrizo / naranja natural",
+      "Rubio platino / cenizo"
+    ],
+    length: ["Medio-largo, por debajo de los hombros", "Corto estilo pixie", "Bob clásico a la barrailla", "Largo por la cintura", "Rapado / rapado lateral"],
+    texture: ["Ondulado natural con movimiento orgánico", "Liso sedoso impecable", "Rizado con bucles definidos (tipo afro/kinky)", "Ligeramente ondulado / despeinado de playa"],
+    style: ["Suelto y sin esfuerzo, con raya al centro ligeramente descentrada", "Recogido en moño alto desenfadado (messy bun)", "Media cola elegante", "Cola de caballo alta y pulida", "Trenzas estilizadas"],
+    parting: ["Centro o ligeramente lateral izquierdo", "Raya lateral profunda a la derecha", "Raya lateral profunda a la izquierda", "Sin raya definida, peinado hacia atrás"],
+    highlights: ["Reflejos naturales por el sol en las puntas", "Balayage sutil en tonos miel", "Luces completas (babylights)", "Sin reflejos, color entero sólido"],
+    volume: ["Volumen medio con cuerpo saludable", "Volumen alto, cabello denso y con rebote", "Volumen bajo, cabello fino y lacio"]
+  },
+  aesthetic: {
+    overall_vibe: ["Natural, fresca, accesible y aspiracional", "Glow urbano, moderno y fashionista", "Minimalista, nórdico y limpio", "Cozy, otoñal y hogareño", "Atlético, enérgico y motivador", "Premium, lujoso y sofisticado"],
+    fashion_style: ["Casual chic con piezas de calidad minimalista", "Athleisure deportivo y cómodo", "Estilo boho chic relajado", "Business casual moderno", "Streetwear vanguardista con capas"],
+    makeup_level: [
+      "Maquillaje mínimo o 'no-makeup makeup': base ligera, rubor, máscara, gloss natural",
+      "Sin maquillaje, cara lavada limpia",
+      "Maquillaje de noche: delineado marcado y labios intensos",
+      "Maquillaje de estudio: piel mate perfecta y contorno suave"
+    ],
+    accessories: ["Aretes pequeños dorados, posible collar delicado, reloj minimalista", "Gafas de sol de diseño, pendientes de aro", "Sin accesorios", "Sombrero de ala ancha, anillos apilados", "Auriculares inalámbricos modernos"],
+    nails: ["Uñas naturales cortas con tono nude o transparente", "Manicura francesa clásica", "Uñas rojas intensas almendradas", "Uñas oscuras / negras cortas", "Sin pintar, uñas cortas y limpias"]
+  },
+  photography: {
+    camera_lens: [
+      "DSLR portrait photograph, 50mm f/1.8 lens",
+      "DSLR headshot, 85mm f/1.4 lens",
+      "iPhone/Smartphone portrait mode photo",
+      "35mm analog film portrait photo",
+      "Wide-angle portrait, 35mm lens"
+    ],
+    focal_length: ["50mm", "85mm", "35mm", "24mm", "105mm"],
+    aperture: ["f/1.8 - f/2.8 (bokeh suave)", "f/1.4 (bokeh ultra cremoso, fondo muy desenfocado)", "f/4.0 (mayor nitidez del fondo)", "f/8.0 (todo enfocado)"],
+    lighting_type: [
+      "Luz natural cálida, suave y difusa desde ventana",
+      "Luz cálida dorada, posiblemente hora dorada o ventana lateral",
+      "Luz neutra de estudio, softbox frontal con relleno lateral",
+      "Luz fría azulada, probablemente exterior nublado o flash directo",
+      "Luz de estudio tipo anillo (ring light) con reflejo circular en ojos",
+      "Moody cinematic lighting con fuerte contraste y sombras marcadas",
+      "Luz natural difusa"
+    ],
+    lighting_direction: ["Lateral 45° con relleno suave frontal", "Contraluz (backlight) con halo de luz en cabello", "Luz cenital suave (cenital)", "Luz frontal directa y plana", "Luz lateral dramática (rembrandt)"],
+    color_grade: [
+      "Tono cálido dorado con sombras suaves desaturadas",
+      "Tono frío y limpio con blancos puros",
+      "Filtro vintage analógico con tonos mate y grano sutil",
+      "Colores vibrantes y saturados con alto contraste",
+      "Cinematográfico desaturado con verdes azulados en sombras"
+    ],
+    color_temperature: ["5200-5800K (luz de día cálida)", "6000-6500K (luz fría / nublado)", "3200-4000K (luz cálida interior tungsteno)", "5500K (flash neutro)"],
+    depth_of_field: ["Bokeh pronunciado, sujeto nítido, fondo desenfocado f/2.0", "Profundidad de campo completa, sujeto y fondo enfocados", "Fondo sutilmente desenfocado, plano medio legible"],
+    background_setting: [
+      "Fondo claro neutro, posiblemente pared beige o gris claro",
+      "Fondo blanco limpio / high-key",
+      "Fondo oscuro dramático / low-key",
+      "Fondo medio, interior con profundidad de campo",
+      "Fondo neutro desenfocado",
+      "Sala de estar moderna y minimalista con plantas de interior",
+      "Cocina de concepto abierto iluminada, con encimera de mármol",
+      "Exterior urbano desenfocado (calles de la ciudad con luces)",
+      "Fondo de naturaleza / follaje verde desenfocado (parque)"
+    ],
+    background_blur: ["Desenfoque gaussiano medio-alto (bokeh circular)", "Sin desenfoque, fondo nítido", "Desenfoque extremo (bokeh pictórico)"],
+    composition: ["Regla de tercios, sujeto ligeramente descentrado a la izquierda", "Sujeto perfectamente centrado (simétrico)", "Primer plano encuadrado de cerca (close-up)", "Plano medio americano"],
+    framing: ["Plano medio-corto (pecho hacia arriba), crop 4:5 para Instagram", "Primer plano facial (headshot)", "Plano medio-largo (cintura para arriba)", "Plano general de cuerpo completo"],
+    mood: ["Cálido, íntimo, accesible y aspiracional", "Profesional, serio, corporativo", "Misterioso, sofisticado, melancólico", "Aventurero, enérgico, libre"],
+    post_processing: ["Ligero retoque de piel, realce de ojos, grano de película sutil", "Procesado digital limpio sin grano", "Estilo vintage Kodak Portra con grano medio", "Sin postprocesado visible"]
+  },
+  clothing: {
+    type: [
+      "Top de tejido suave o blusa casual elegante",
+      "Suéter de punto cuello de tortuga",
+      "Camiseta básica de algodón de alta calidad",
+      "Camisa de lino holgada",
+      "Sudadera con capucha minimalista (hoodie)",
+      "Blazer casual bien estructurado"
+    ],
+    color: ["Tonos neutros cálidos: crema, beige, blanco roto, terracota suave", "Negro absoluto minimalista", "Blanco óptico limpio", "Gris melange suave", "Verde oliva / verde bosque apagado", "Azul marino clásico"],
+    material: ["Algodón orgánico, lino o punto fino", "Lana de punto grueso o cachemira", "Mezclilla o lona lavada", "Seda o satén sutil", "Tejido sintético deportivo"],
+    neckline: ["Cuello redondo o V abierto casual", "Cuello de tortuga / mock neck", "Cuello camisero ligeramente desabrochado", "Escote barco elegante"],
+    fit: ["Semi-ajustado, silueta relajada y halagadora", "Ajustado / fit", "Oversized / silueta holgada moderna"],
+    visible_brand_logos: ["Ninguno (estética clean sin branding visible)", "Logotipo pequeño y discreto en el pecho", "Estampado gráfico frontal completo"]
+  }
+};
+
 function renderAnalysisDetailGrid(data) {
   const grid = document.getElementById('analysisDetailGrid');
   grid.style.display = 'grid';
@@ -1052,9 +1178,38 @@ function renderAnalysisDetailGrid(data) {
         .replace(/_/g, ' ')
         .replace(/\b\w/g, l => l.toUpperCase());
 
+      // Check if there are options defined for this field
+      const options = ANALYSIS_FIELD_OPTIONS[cat.key]?.[fieldKey];
+      let inputHtml = '';
+
+      if (options) {
+        const valLower = String(fieldVal).toLowerCase();
+        const lowerOptions = options.map(o => o.toLowerCase());
+        
+        let selectedIndex = lowerOptions.findIndex(o => o === valLower || valLower.includes(o) || o.includes(valLower));
+        let optionsList = [...options];
+        
+        if (selectedIndex === -1) {
+          optionsList.unshift(fieldVal);
+          selectedIndex = 0;
+        }
+
+        inputHtml = `
+          <select data-category="${cat.key}" data-field="${fieldKey}" class="analysis-editable-input">
+            ${optionsList.map((opt, idx) => `
+              <option value="${opt}" ${idx === selectedIndex ? 'selected' : ''}>${opt}</option>
+            `).join('')}
+          </select>
+        `;
+      } else {
+        inputHtml = `
+          <input type="text" value="${String(fieldVal).replace(/"/g, '&quot;')}" data-category="${cat.key}" data-field="${fieldKey}" class="analysis-editable-input">
+        `;
+      }
+
       field.innerHTML = `
         <span class="analysis-field-label">${labelText}</span>
-        <input type="text" value="${String(fieldVal).replace(/"/g, '&quot;')}" data-category="${cat.key}" data-field="${fieldKey}" class="analysis-editable-input">
+        ${inputHtml}
       `;
       grid.appendChild(field);
     });
@@ -1062,7 +1217,7 @@ function renderAnalysisDetailGrid(data) {
 
   // Listen for edits to update the JSON output in real time
   grid.querySelectorAll('.analysis-editable-input').forEach(input => {
-    input.addEventListener('input', () => {
+    const updateHandler = () => {
       const cat = input.dataset.category;
       const field = input.dataset.field;
       if (analysisResult[cat]) {
@@ -1071,7 +1226,9 @@ function renderAnalysisDetailGrid(data) {
       // Rebuild prompt
       analysisResult.generation_prompt = buildPromptFromAnalysis(analysisResult);
       document.getElementById('analysisJsonOutput').textContent = JSON.stringify(analysisResult, null, 2);
-    });
+    };
+    input.addEventListener('input', updateHandler);
+    input.addEventListener('change', updateHandler);
   });
 
   // Build initial prompt
