@@ -1725,6 +1725,8 @@ let uploadedImagePath = null;
 function setupPhotoUpload() {
   const dropzone = document.getElementById('uploadDropzone');
   const fileInput = document.getElementById('photoFileInput');
+  const btnLoadPhotoUrl = document.getElementById('btnLoadPhotoUrl');
+  const photoUrlInput = document.getElementById('photoUrlInput');
 
   // Click to open file picker
   dropzone.addEventListener('click', (e) => {
@@ -1750,6 +1752,31 @@ function setupPhotoUpload() {
     if (e.dataTransfer.files.length > 0) handlePhotoFile(e.dataTransfer.files[0]);
   });
 
+  // Load photo from URL
+  if (btnLoadPhotoUrl && photoUrlInput) {
+    btnLoadPhotoUrl.addEventListener('click', async () => {
+      const url = photoUrlInput.value.trim();
+      if (!url) {
+        alert('Por favor introduce un link de imagen.');
+        return;
+      }
+      await handlePhotoUrl(url);
+    });
+
+    // Support enter key on input
+    photoUrlInput.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const url = photoUrlInput.value.trim();
+        if (!url) {
+          alert('Por favor introduce un link de imagen.');
+          return;
+        }
+        await handlePhotoUrl(url);
+      }
+    });
+  }
+
   // Action buttons
   document.getElementById('btnCopyAnalysisJSON').addEventListener('click', () => {
     const output = document.getElementById('analysisJsonOutput').textContent;
@@ -1759,6 +1786,59 @@ function setupPhotoUpload() {
 
   document.getElementById('btnApplyAnalysis').addEventListener('click', applyAnalysisToForm);
   document.getElementById('btnSaveAnalysisPersona').addEventListener('click', saveAnalysisAsPersona);
+}
+
+async function handlePhotoUrl(url) {
+  // Show spinner
+  const statusCard = document.getElementById('analysisStatusCard');
+  statusCard.style.display = 'flex';
+  document.getElementById('analysisSpinner').style.display = 'block';
+  document.getElementById('analysisStatusTitle').textContent = 'Descargando imagen de referencia...';
+  document.getElementById('analysisStatusMsg').textContent = 'Conectando con la URL del perfil/imagen proporcionada.';
+
+  // Disable button/input
+  const btnLoad = document.getElementById('btnLoadPhotoUrl');
+  if (btnLoad) btnLoad.disabled = true;
+
+  try {
+    const res = await authFetch('/api/upload-reference-url', {
+      method: 'POST',
+      body: JSON.stringify({ url })
+    });
+    
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Error al descargar la imagen.');
+    }
+    
+    uploadedImagePath = data.filePath;
+    
+    // Show preview in dropzone
+    const dropzone = document.getElementById('uploadDropzone');
+    dropzone.classList.add('has-image');
+    dropzone.innerHTML = `
+      <img src="${data.filePath}" alt="Reference Photo" class="upload-preview-img">
+      <div class="upload-preview-overlay">
+        <div class="upload-preview-info">
+          <div class="upload-preview-name">Imagen desde URL</div>
+          <div class="upload-preview-meta">${(data.size / 1024).toFixed(0)} KB · ${data.fileName}</div>
+        </div>
+        <button class="btn-change-photo" onclick="resetUploadDropzone()">Cambiar foto</button>
+      </div>
+    `;
+
+    const photoUrlInput = document.getElementById('photoUrlInput');
+    if (photoUrlInput) photoUrlInput.value = '';
+    
+    // Start analysis
+    await runPhotoAnalysis(data.filePath);
+  } catch (err) {
+    document.getElementById('analysisSpinner').style.display = 'none';
+    document.getElementById('analysisStatusTitle').textContent = '⚠ Error de Descarga';
+    document.getElementById('analysisStatusMsg').textContent = err.message || 'No se pudo descargar la imagen. Asegúrate de que el enlace sea público y directo.';
+  } finally {
+    if (btnLoad) btnLoad.disabled = false;
+  }
 }
 
 async function handlePhotoFile(file) {

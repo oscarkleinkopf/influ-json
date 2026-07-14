@@ -296,14 +296,22 @@
           <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px;">Sube una foto de referencia y el sistema generará automáticamente un perfil influ-JSON ultra-detallado con 30+ campos de identidad visual.</p>
           
           <div class="upload-section">
-            <!-- Left: Dropzone -->
-            <div class="upload-dropzone" id="uploadDropzone">
-              <input type="file" id="photoFileInput" accept="image/*" style="display:none;">
-              <div class="upload-icon-circle" id="uploadIconArea">
-                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <!-- Left: Dropzone & Link Input -->
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <div class="upload-dropzone" id="uploadDropzone" style="min-height: 240px; padding: 32px 20px;">
+                <input type="file" id="photoFileInput" accept="image/*" style="display:none;">
+                <div class="upload-icon-circle" id="uploadIconArea" style="width: 56px; height: 56px;">
+                  <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="upload-text-main" id="uploadTextMain" style="font-size: 15px;">Arrastra tu foto aquí</div>
+                <div class="upload-text-sub" id="uploadTextSub" style="font-size: 11px;">o haz <span>click para seleccionar</span></div>
               </div>
-              <div class="upload-text-main" id="uploadTextMain">Arrastra tu foto aquí</div>
-              <div class="upload-text-sub" id="uploadTextSub">o haz <span>click para seleccionar</span> · JPG, PNG, WebP · max 10MB</div>
+              
+              <div style="padding: 12px; background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: var(--border-radius-md); display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="photoUrlInput" placeholder="O pega un link de imagen (Instagram, URL directa...)" 
+                  style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: var(--text-primary); font-size: 12px; outline: none;">
+                <button type="button" class="btn" id="btnLoadPhotoUrl" style="padding: 8px 16px; font-size: 12px; white-space: nowrap;">Cargar Link</button>
+              </div>
             </div>
             
             <!-- Right: Analysis Results Panel -->
