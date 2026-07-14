@@ -107,7 +107,27 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS persona_variants (
+    id TEXT PRIMARY KEY,
+    persona_id TEXT NOT NULL,
+    pose TEXT,
+    clothing TEXT,
+    attitude TEXT,
+    setting TEXT,
+    image_path TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
+  );
 `);
+
+// Safe alter schema to support archived field
+try {
+  db.exec("ALTER TABLE personas ADD COLUMN archived INTEGER DEFAULT 0;");
+  console.log("Added archived column to personas schema successfully.");
+} catch (e) {
+  // Column already exists, ignore
+}
 
 syncDbToWorkspace();
 
@@ -563,5 +583,38 @@ module.exports = {
     db.prepare('DELETE FROM personas WHERE id = ?').run(id);
     syncDbToWorkspace();
     return true;
+  },
+
+  toggleArchivePersona(id, archived) {
+    db.prepare('UPDATE personas SET archived = ? WHERE id = ?').run(archived, id);
+    syncDbToWorkspace();
+    return this.getPersonaById(id);
+  },
+
+  getVariantsForPersona(personaId) {
+    return db.prepare('SELECT * FROM persona_variants WHERE persona_id = ? ORDER BY created_at DESC').all(personaId);
+  },
+
+  saveVariant(v) {
+    const { v4: uuidv4 } = require('uuid');
+    const id = uuidv4();
+    db.prepare(`
+      INSERT INTO persona_variants (id, persona_id, pose, clothing, attitude, setting, image_path)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(id, v.persona_id, v.pose, v.clothing, v.attitude, v.setting, v.image_path);
+    syncDbToWorkspace();
+    return db.prepare('SELECT * FROM persona_variants WHERE id = ?').get(id);
+  },
+
+  deleteVariant(id) {
+    db.prepare('DELETE FROM persona_variants WHERE id = ?').run(id);
+    syncDbToWorkspace();
+    return true;
+  },
+
+  setMainVariant(personaId, imagePath) {
+    db.prepare('UPDATE personas SET image = ?, imageUGC = ? WHERE id = ?').run(imagePath, imagePath, personaId);
+    syncDbToWorkspace();
+    return this.getPersonaById(personaId);
   }
 };

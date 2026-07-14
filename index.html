@@ -492,6 +492,9 @@
                 <button type="button" class="btn" id="btnSavePersona" style="flex: 2;">
                   Guardar Persona en influ-JSON
                 </button>
+                <button type="button" class="btn btn-secondary" id="btnArchivePersona" style="flex: 1.2; background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3);">
+                  📦 Archivar
+                </button>
                 <button type="button" class="btn btn-secondary" id="btnDeletePersona" style="flex: 1; background: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid rgba(220, 53, 69, 0.4);">
                   🗑️ Eliminar
                 </button>
@@ -520,9 +523,87 @@
         </div>
         
         <div class="glass-card" style="margin-top: 28px;">
-          <h2 style="font-family: var(--font-display); margin-bottom: 16px;">Seleccionar Influencer Guardado</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <h2 style="font-family: var(--font-display); margin: 0;">Seleccionar Influencer Guardado</h2>
+            <div style="display: flex; gap: 8px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; border: 1px solid var(--glass-border);">
+              <button class="btn btn-secondary btn-sm" id="btnFilterActive" style="background: var(--accent-primary); color: #fff; padding: 4px 12px; font-size: 11px; height: auto;">Activos</button>
+              <button class="btn btn-secondary btn-sm" id="btnFilterArchived" style="background: transparent; color: var(--text-secondary); padding: 4px 12px; font-size: 11px; height: auto; border: none;">Archivados</button>
+            </div>
+          </div>
           <div class="persona-gallery-grid" id="personaSelectGrid">
             <!-- Dynamic selection grid -->
+          </div>
+        </div>
+
+        <!-- Influencer Variant Vault & Pose Manager -->
+        <div class="glass-card" style="margin-top: 28px;" id="variantManagerSection">
+          <h2 style="font-family: var(--font-display); margin-bottom: 8px;">🎬 Repositorio de Poses y Variaciones</h2>
+          <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px;">Genera y administra variaciones visuales consistentes (poses, vestuario, actitud) para <strong id="activeInfluencerName">Sofia</strong>.</p>
+          
+          <div class="variant-vault-layout" style="display: grid; grid-template-columns: 320px 1fr; gap: 28px;">
+            <!-- Variant controls -->
+            <div style="border-right: 1px solid var(--glass-border); padding-right: 24px;">
+              <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 16px; color: var(--accent-primary);">Generar Nueva Pose</h3>
+              
+              <div class="editor-form-group" style="display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                  <label for="vPose">Encuadre / Pose</label>
+                  <select id="vPose">
+                    <option value="Selfie de primer plano de rostro (selfie portrait)">Selfie primer plano (rostro)</option>
+                    <option value="Plano medio-corto de brazo extendido (candid hand-held selfie)">Plano medio-corto (selfie)</option>
+                    <option value="Espejo de cuerpo entero sosteniendo el celular (full body mirror selfie)">Selfie de espejo (cuerpo entero)</option>
+                    <option value="Plano medio americano caminando relajada (candid snapshot walking)">Plano medio americano (caminando)</option>
+                    <option value="Sentada de medio lado sonriendo a la cámara (sitting profile view)">Sentada (perfil)</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label for="vAttitude">Actitud / Expresión</label>
+                  <select id="vAttitude">
+                    <option value="sonriendo alegremente de forma muy natural (happy approachable smile)">Sonriente y alegre</option>
+                    <option value="mirada fija seria y elegante de alta costura (serious high-fashion expression)">Seria y elegante</option>
+                    <option value="guiñando un ojo de forma juguetona e ingeniosa (playful confident wink)">Guiñando un ojo</option>
+                    <option value="mirada intensa y misteriosa directa a lente (intense focused look)">Mirada intensa</option>
+                    <option value="pensativa mirando hacia el horizonte (thoughtful distant gaze)">Pensativa / Distante</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="vClothing">Vestuario de Variación</label>
+                  <select id="vClothing">
+                    <!-- Loaded dynamically via JS matching the gender of the active influencer -->
+                  </select>
+                </div>
+
+                <div>
+                  <label for="vSetting">Ubicación / Fondo</label>
+                  <select id="vSetting">
+                    <option value="Fondo de cafetería moderna iluminada de día (modern bright cafe interior)">Cafetería (interior)</option>
+                    <option value="Gimnasio moderno con luces de neón tenues (modern dark fitness studio)">Gimnasio (neón)</option>
+                    <option value="Parque natural soleado con follaje verde desenfocado (sunny green park)">Parque (naturaleza)</option>
+                    <option value="Calle de ciudad de noche con luces bokeh desenfocadas (urban neon street night)">Calle urbana (noche)</option>
+                    <option value="Habitación de hotel lujosa y luminosa (luxury bright hotel room)">Habitación lujosa</option>
+                  </select>
+                </div>
+
+                <button type="button" class="btn" id="btnGenerateVariant" style="width: 100%; margin-top: 8px;">
+                  🤖 Generar Variante / Pose
+                </button>
+                
+                <div class="analysis-status-card" id="variantGenStatus" style="display: none; padding: 12px; margin-top: 8px;">
+                  <div class="analysis-spinner" style="width: 20px; height: 20px;"></div>
+                  <span style="font-size: 11px; margin-left: 8px;" id="variantGenStatusText">Generando...</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Vault grid -->
+            <div>
+              <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 16px; color: var(--text-secondary);">Galería de Variaciones Consistentes</h3>
+              <div class="persona-gallery-grid" id="variantGalleryGrid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px;">
+                <!-- Dynamically populated variants -->
+              </div>
+            </div>
           </div>
         </div>
       </section>

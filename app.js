@@ -11,7 +11,9 @@ let state = {
   baseFee: 150,
   selectedLicenceDays: 90,
   galleryItems: [],
-  activeTab: 'dashboard'
+  activeTab: 'dashboard',
+  personaFilter: 'active', // 'active' or 'archived'
+  activeVariants: []
 };
 
 // Auth session token (stored in memory/sessionStorage)
@@ -58,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupUgcStudio();
   setupLicensing();
   setupGallery();
+  setupVariantManager();
   
   btnSyncNow.addEventListener('click', manualGitSync);
 });
@@ -205,15 +208,41 @@ function selectPersona(persona) {
   updateClothingDropdown(persona.clothing);
   document.getElementById('pSetting').value = persona.setting;
   
+  // Variant manager sync
+  const activeNameEl = document.getElementById('activeInfluencerName');
+  if (activeNameEl) activeNameEl.textContent = persona.name;
+  updateVariantClothingDropdown(persona.gender);
+  loadVariantsForPersona(persona.id);
+
+  // Archive button label and styling
+  const archiveBtn = document.getElementById('btnArchivePersona');
+  if (archiveBtn) {
+    if (persona.archived === 1) {
+      archiveBtn.textContent = '📦 Desarchivar';
+      archiveBtn.style.background = 'rgba(40, 167, 69, 0.15)';
+      archiveBtn.style.color = '#28a745';
+      archiveBtn.style.border = '1px solid rgba(40, 167, 69, 0.3)';
+    } else {
+      archiveBtn.textContent = '📦 Archivar';
+      archiveBtn.style.background = 'rgba(255, 193, 7, 0.15)';
+      archiveBtn.style.color = '#ffc107';
+      archiveBtn.style.border = '1px solid rgba(255, 193, 7, 0.3)';
+    }
+  }
+
   compilePromptAndJSON();
 }
 
 // Render Select grids in tabs
 function renderPersonaGrids() {
   const selectGrid = document.getElementById('personaSelectGrid');
+  if (!selectGrid) return;
   selectGrid.innerHTML = '';
   
-  state.personas.forEach(p => {
+  const isArchivedMode = state.personaFilter === 'archived';
+  const filtered = state.personas.filter(p => isArchivedMode ? (p.archived === 1) : (!p.archived || p.archived === 0));
+  
+  filtered.forEach(p => {
     const card = document.createElement('div');
     card.className = `persona-card ${state.selectedPersona?.id === p.id ? 'selected' : ''}`;
     card.innerHTML = `
@@ -2239,4 +2268,230 @@ async function deletePersonaAction() {
   } catch (err) {
     showSyncToast(false, 'Error de servidor al eliminar.');
   }
+}
+
+// ─── Influencer Variants (Poses, Wardrobe, Attitude) Manager ───
+
+function updateVariantClothingDropdown(gender) {
+  const select = document.getElementById('vClothing');
+  if (!select) return;
+  
+  select.innerHTML = '';
+  const options = CLOTHING_OPTIONS_BY_GENDER[gender] || CLOTHING_OPTIONS_BY_GENDER.Female;
+  
+  options.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt;
+    o.textContent = opt;
+    select.appendChild(o);
+  });
+}
+
+async function loadVariantsForPersona(personaId) {
+  const grid = document.getElementById('variantGalleryGrid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="color: var(--text-secondary); font-size: 13px;">Cargando variaciones...</div>';
+  
+  try {
+    const res = await authFetch(`/api/personas/${personaId}/variants`);
+    state.activeVariants = await res.json();
+    renderVariantVaultGrid();
+  } catch (err) {
+    grid.innerHTML = '<div style="color: #ff6b6b; font-size: 13px;">Error al cargar poses.</div>';
+  }
+}
+
+function renderVariantVaultGrid() {
+  const grid = document.getElementById('variantGalleryGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  
+  if (state.activeVariants.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; border: 1px dashed var(--glass-border); border-radius: var(--border-radius-md); background: rgba(0,0,0,0.1);">
+        <p style="color: var(--text-muted); font-size: 13px; margin: 0;">No hay poses o variaciones creadas para este influencer aún.</p>
+        <p style="color: var(--text-secondary); font-size: 11px; margin-top: 6px;">¡Selecciona una pose y vestuario a la izquierda y presiona Generar!</p>
+      </div>
+    `;
+    return;
+  }
+  
+  state.activeVariants.forEach(v => {
+    const card = document.createElement('div');
+    card.className = 'variant-card';
+    card.style = 'position: relative; border-radius: var(--border-radius-md); overflow: hidden; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); transition: transform 0.2s ease, box-shadow 0.2s ease;';
+    card.innerHTML = `
+      <img src="${v.image_path}" style="width: 100%; aspect-ratio: 1; object-fit: cover; display: block;">
+      <div style="padding: 10px; background: rgba(0,0,0,0.7); position: absolute; bottom: 0; left: 0; right: 0; transform: translateY(100%); transition: transform 0.2s ease;" class="variant-hover-actions">
+        <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          ${v.pose.split('(')[0]}
+        </div>
+        <div style="display: flex; gap: 4px;">
+          <button class="btn btn-sm btn-primary" style="flex: 1; font-size: 9px; padding: 4px 6px;" onclick="setMainVariantAction('${v.image_path}')">⭐ Perfil</button>
+          <button class="btn btn-sm btn-secondary" style="flex: 1; font-size: 9px; padding: 4px 6px; background: rgba(220,53,69,0.3); color:#ff6b6b;" onclick="deleteVariantAction('${v.id}')">🗑️ Borrar</button>
+        </div>
+      </div>
+    `;
+    
+    // Setup mouse hover styles in JS
+    card.addEventListener('mouseenter', () => {
+      card.querySelector('.variant-hover-actions').style.transform = 'translateY(0)';
+      card.style.transform = 'scale(1.02)';
+      card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+    });
+    card.addEventListener('mouseleave', () => {
+      card.querySelector('.variant-hover-actions').style.transform = 'translateY(100%)';
+      card.style.transform = 'none';
+      card.style.boxShadow = 'none';
+    });
+    
+    grid.appendChild(card);
+  });
+}
+
+// Attach these to window so inline onclick handlers work
+window.setMainVariantAction = async function(imagePath) {
+  if (!state.selectedPersona) return;
+  setGitSyncingState();
+  try {
+    const res = await authFetch(`/api/personas/${state.selectedPersona.id}/variants/set-main/set-main`, {
+      method: 'POST',
+      body: JSON.stringify({ imagePath })
+    });
+    const data = await res.json();
+    if (data.success) {
+      state.personas = data.personas;
+      state.selectedPersona = state.personas.find(p => p.id === state.selectedPersona.id);
+      renderPersonaGrids();
+      populateActiveUgcData();
+      showSyncToast(true, '¡Retrato principal actualizado!');
+    }
+  } catch (e) {
+    showSyncToast(false, 'Error al actualizar retrato.');
+  }
+};
+
+window.deleteVariantAction = async function(variantId) {
+  if (!state.selectedPersona) return;
+  if (!confirm('¿Estás seguro de que deseas eliminar esta pose/variación?')) return;
+  
+  setGitSyncingState();
+  try {
+    const res = await authFetch(`/api/personas/${state.selectedPersona.id}/variants/${variantId}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (data.success) {
+      state.activeVariants = data.variants;
+      renderVariantVaultGrid();
+      showSyncToast(true, 'Pose eliminada correctamente.');
+    }
+  } catch (e) {
+    showSyncToast(false, 'Error al eliminar pose.');
+  }
+};
+
+async function generateVariantAction() {
+  const p = state.selectedPersona;
+  if (!p) {
+    alert('Selecciona un influencer primero.');
+    return;
+  }
+  
+  const pose = document.getElementById('vPose').value;
+  const attitude = document.getElementById('vAttitude').value;
+  const clothing = document.getElementById('vClothing').value;
+  const setting = document.getElementById('vSetting').value;
+  
+  const statusCard = document.getElementById('variantGenStatus');
+  const statusText = document.getElementById('variantGenStatusText');
+  statusCard.style.display = 'flex';
+  statusText.textContent = 'Renderizando pose virtual con Nano Banana / Flux...';
+  
+  // Compile the dynamic prompt based on influencer visual identity + pose properties
+  const detailed = getFullPersonaJSON();
+  const genderWord = p.gender === 'Male' ? 'Masculino' : 'Femenino';
+  const age = detailed.identity?.apparent_age || p.age || '25 años';
+  const ethnicity = detailed.identity?.ethnicity_appearance || p.ethnicity || 'Latina';
+  const hair = detailed.hair ? `${detailed.hair.color || ''} ${detailed.hair.texture || ''}` : p.hair;
+  
+  const variantPrompt = `Amateur casual UGC style, ${pose}. A ${age} ${ethnicity} ${genderWord.toLowerCase()} influencer ${attitude}. ${hair}, wearing ${clothing}. Background is ${setting}. Natural indoor light, raw photo format, shot on mobile camera, consistent face characteristics, realistic skin texture.`;
+  
+  try {
+    const res = await authFetch(`/api/personas/${p.id}/variants`, {
+      method: 'POST',
+      body: JSON.stringify({ pose, attitude, clothing, setting, prompt: variantPrompt })
+    });
+    const data = await res.json();
+    if (data.success) {
+      state.activeVariants = data.variants;
+      renderVariantVaultGrid();
+      statusText.textContent = '✓ Pose agregada exitosamente!';
+      setTimeout(() => statusCard.style.display = 'none', 3000);
+    } else {
+      statusText.textContent = 'Error al generar la pose.';
+    }
+  } catch (err) {
+    statusText.textContent = 'La generación falló o el servidor está offline.';
+    setTimeout(() => statusCard.style.display = 'none', 4000);
+  }
+}
+
+async function archivePersonaAction() {
+  const p = state.selectedPersona;
+  if (!p) return;
+  
+  const isArchiving = p.archived !== 1;
+  const confirmMsg = isArchiving 
+    ? `¿Estás seguro de que deseas archivar a "${p.name}"? Se ocultará del panel principal de campañas.`
+    : `¿Deseas desarchivar a "${p.name}" y regresarla a la lista de activos?`;
+    
+  if (!confirm(confirmMsg)) return;
+  
+  setGitSyncingState();
+  try {
+    const res = await authFetch(`/api/personas/${p.id}/archive`, {
+      method: 'POST',
+      body: JSON.stringify({ archived: isArchiving })
+    });
+    const data = await res.json();
+    if (data.success) {
+      state.personas = data.personas;
+      state.selectedPersona = state.personas.find(pers => pers.id === p.id);
+      
+      // Update gallery view filters
+      renderPersonaGrids();
+      selectPersona(state.selectedPersona);
+      showSyncToast(true, isArchiving ? 'Influencer archivada.' : 'Influencer desarchivada.');
+    }
+  } catch (err) {
+    showSyncToast(false, 'Error al cambiar estado de archivo.');
+  }
+}
+
+function setupVariantManager() {
+  document.getElementById('btnGenerateVariant').addEventListener('click', generateVariantAction);
+  document.getElementById('btnArchivePersona').addEventListener('click', archivePersonaAction);
+  
+  // Set up Active / Archived filter buttons
+  const btnActive = document.getElementById('btnFilterActive');
+  const btnArchived = document.getElementById('btnFilterArchived');
+  
+  btnActive.addEventListener('click', () => {
+    state.personaFilter = 'active';
+    btnActive.style.background = 'var(--accent-primary)';
+    btnActive.style.color = '#fff';
+    btnArchived.style.background = 'transparent';
+    btnArchived.style.color = 'var(--text-secondary)';
+    renderPersonaGrids();
+  });
+  
+  btnArchived.addEventListener('click', () => {
+    state.personaFilter = 'archived';
+    btnArchived.style.background = 'var(--accent-primary)';
+    btnArchived.style.color = '#fff';
+    btnActive.style.background = 'transparent';
+    btnActive.style.color = 'var(--text-secondary)';
+    renderPersonaGrids();
+  });
 }

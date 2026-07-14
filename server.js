@@ -128,6 +128,62 @@ app.delete('/api/personas/:id', (req, res) => {
   });
 });
 
+// Persona Archiving
+app.post('/api/personas/:id/archive', (req, res) => {
+  const { archived } = req.body;
+  const persona = dbService.toggleArchivePersona(req.params.id, archived ? 1 : 0);
+  runGitBackup((gitSuccess, msg) => {
+    res.json({ success: true, personas: dbService.getAllPersonas(), persona, gitSynced: gitSuccess, gitMessage: msg });
+  });
+});
+
+// Persona Variants endpoints
+app.get('/api/personas/:id/variants', (req, res) => {
+  res.json(dbService.getVariantsForPersona(req.params.id));
+});
+
+app.post('/api/personas/:id/variants', (req, res) => {
+  const { pose, clothing, attitude, setting, prompt } = req.body;
+  
+  // Call Image generator
+  aiService.generateInfluencerImage(prompt)
+    .then(imagePath => {
+      if (imagePath) {
+        const variant = dbService.saveVariant({
+          persona_id: req.params.id,
+          pose,
+          clothing,
+          attitude,
+          setting,
+          image_path: imagePath
+        });
+        runGitBackup((gitSuccess, msg) => {
+          res.json({ success: true, variant, variants: dbService.getVariantsForPersona(req.params.id), gitSynced: gitSuccess, gitMessage: msg });
+        });
+      } else {
+        res.status(500).json({ success: false, message: 'La generación de imagen falló.' });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ success: false, message: err.message });
+    });
+});
+
+app.delete('/api/personas/:id/variants/:variantId', (req, res) => {
+  dbService.deleteVariant(req.params.variantId);
+  runGitBackup((gitSuccess, msg) => {
+    res.json({ success: true, variants: dbService.getVariantsForPersona(req.params.id), gitSynced: gitSuccess, gitMessage: msg });
+  });
+});
+
+app.post('/api/personas/:id/variants/:variantId/set-main', (req, res) => {
+  const { imagePath } = req.body;
+  const persona = dbService.setMainVariant(req.params.id, imagePath);
+  runGitBackup((gitSuccess, msg) => {
+    res.json({ success: true, personas: dbService.getAllPersonas(), persona, gitSynced: gitSuccess, gitMessage: msg });
+  });
+});
+
 // Persona Versions & Revert
 app.get('/api/personas/:id/versions', (req, res) => {
   res.json(dbService.getVersionsForPersona(req.params.id));
