@@ -574,7 +574,10 @@
             <div class="script-viewer">
               <div class="script-header-info">
                 <div class="script-angle-title" id="activeScriptAngle">Ángulo Seleccionado</div>
-                <button class="btn btn-secondary btn-sm" id="btnCopyScript">Copiar Guión</button>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-secondary btn-sm" id="btnCopyScript">Copiar Guión</button>
+                  <button class="btn btn-sm" id="btnExportScriptChatbot" style="background: var(--accent-gradient); border: none;">📋 Exportar para Chatbot</button>
+                </div>
               </div>
               
               <div class="script-content-box" id="activeScriptContent">
@@ -631,6 +634,9 @@
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                   <button class="btn" id="btnGenerateUgcImage" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     🤖 Generar Imagen AI con Prompt
+                  </button>
+                  <button class="btn btn-secondary" id="btnExportUgcChatbot" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    📋 Exportar Pack Completo para Chatbot
                   </button>
                   <div class="analysis-status-card" id="ugcGenStatusCard" style="display: none; padding: 12px;">
                     <div class="analysis-spinner" style="width: 24px; height: 24px;"></div>

@@ -260,6 +260,129 @@ async function manualGitSync() {
   }
 }
 
+// ─── Shared Export Helper: assembles the richest JSON for the active persona ───
+function getFullPersonaJSON() {
+  // Priority 1: live analysisResult from photo analysis (richest source)
+  if (typeof analysisResult !== 'undefined' && analysisResult && Object.keys(analysisResult).length > 2) {
+    const copy = JSON.parse(JSON.stringify(analysisResult));
+    delete copy.generation_prompt;
+    delete copy.anchor_reference;
+    return copy;
+  }
+  
+  // Priority 2: detailedJSON stored in the selected persona record
+  if (state.selectedPersona && state.selectedPersona.detailedJSON) {
+    try {
+      const stored = typeof state.selectedPersona.detailedJSON === 'string'
+        ? JSON.parse(state.selectedPersona.detailedJSON)
+        : state.selectedPersona.detailedJSON;
+      if (stored && Object.keys(stored).length > 2) {
+        const copy = JSON.parse(JSON.stringify(stored));
+        delete copy.generation_prompt;
+        delete copy.anchor_reference;
+        return copy;
+      }
+    } catch (e) {}
+  }
+  
+  // Priority 3: build from current form fields (basic but complete enough)
+  const p = state.selectedPersona || {};
+  return {
+    identity: {
+      name: document.getElementById('pName')?.value || p.name || 'Influencer',
+      gender: document.getElementById('pGender')?.value || p.gender || 'Female',
+      age: document.getElementById('pAge')?.value || p.age || '25 años',
+      ethnicity_appearance: document.getElementById('pEthnicity')?.value || p.ethnicity || 'Mixta'
+    },
+    aesthetic: {
+      overall_vibe: document.getElementById('pStyle')?.value || p.style || 'Natural',
+      hair_details: document.getElementById('pHair')?.value || p.hair || '',
+      clothing_type: document.getElementById('pClothing')?.value || p.clothing || ''
+    },
+    photography: {
+      camera_lens: document.getElementById('pCamera')?.value || p.camera || 'iPhone 15 Pro front camera selfie',
+      lighting_type: document.getElementById('pLighting')?.value || p.lighting || 'Luz natural',
+      background_setting: document.getElementById('pSetting')?.value || p.setting || 'Fondo neutro'
+    }
+  };
+}
+
+function buildChatbotExportText({ includePrompt = true, includeScript = false, includeProduct = false, scriptData = null, productData = null } = {}) {
+  const personaJSON = getFullPersonaJSON();
+  const formattedJson = JSON.stringify(personaJSON, null, 2);
+  
+  let sections = [];
+  
+  // Section 1: Persona identity instructions
+  sections.push(`Eres un generador de contenido UGC (User Generated Content) para un influencer virtual. Utiliza la siguiente especificación de identidad visual JSON para mantener la consistencia física y de la cámara en TODA imagen generada. Cada campo describe un atributo visual específico del modelo — respétalos todos para lograr coherencia entre imágenes.
+
+═══════════════════════════════════════════
+  IDENTIDAD VISUAL DEL MODELO (JSON)
+═══════════════════════════════════════════
+${formattedJson}
+═══════════════════════════════════════════`);
+  
+  // Section 2: Product context (if included)
+  if (includeProduct && productData) {
+    sections.push(`
+═══════════════════════════════════════════
+  PRODUCTO / MARCA
+═══════════════════════════════════════════
+• Nombre: ${productData.name || 'Sin definir'}
+• Beneficio principal: ${productData.benefit || 'Sin definir'}
+• Audiencia objetivo: ${productData.audience || 'Sin definir'}
+• Frustración clave: ${productData.frustration || 'Sin definir'}
+═══════════════════════════════════════════`);
+  }
+
+  // Section 3: Campaign script (if included)
+  if (includeScript && scriptData) {
+    sections.push(`
+═══════════════════════════════════════════
+  GUIÓN DE CAMPAÑA UGC (${scriptData.angle})
+═══════════════════════════════════════════
+
+[1. GANCHO / HOOK]
+Diálogo: "${scriptData.hook}"
+Dirección visual: ${scriptData.hookCue}
+
+[2. DEMOSTRACIÓN / DEMO]
+Diálogo: "${scriptData.demo}"
+Dirección visual: ${scriptData.demoCue}
+
+[3. EL GIRO / THE TURN]
+Diálogo: "${scriptData.turn}"
+Dirección visual: ${scriptData.turnCue}
+
+[4. LLAMADO A LA ACCIÓN / CTA]
+Diálogo: "${scriptData.cta}"
+Dirección visual: ${scriptData.ctaCue}
+═══════════════════════════════════════════`);
+  }
+
+  // Section 4: Image generation prompt (if included)
+  if (includePrompt) {
+    const prompt = document.getElementById('promptPreview')?.textContent || '';
+    sections.push(`
+═══════════════════════════════════════════
+  PROMPT DE GENERACIÓN DE IMAGEN
+═══════════════════════════════════════════
+${prompt}
+═══════════════════════════════════════════`);
+  }
+
+  // Final instructions
+  sections.push(`
+INSTRUCCIONES PARA EL CHATBOT:
+• Genera imágenes que coincidan EXACTAMENTE con las características del JSON de identidad visual.
+• Mantén consistencia entre cada imagen generada (mismo rostro, cabello, tono de piel).
+• El estilo debe ser UGC casual y natural, como tomado por el influencer con su propio teléfono.
+• NO uses vocabulario como "cinematic", "8K", "photorealistic" — el estilo debe ser amateur y real.
+• Si hay un guión de campaña, genera las imágenes correspondientes a cada escena del guión.`);
+
+  return sections.join('\n');
+}
+
 // Persona Engine Tab Logic
 function setupPersonaEngine() {
   const formInputs = document.querySelectorAll('#personaForm input, #personaForm select');
@@ -276,39 +399,9 @@ function setupPersonaEngine() {
   });
   
   document.getElementById('btnCopyChatbotPrompt').addEventListener('click', () => {
-    const prompt = document.getElementById('promptPreview').textContent;
-    const jsonStr = document.getElementById('jsonEditor').value;
-    
-    let detailedJson = {};
-    try {
-      detailedJson = JSON.parse(jsonStr);
-      let fullDetails = {};
-      if (state.selectedPersona && state.selectedPersona.detailedJSON) {
-        try {
-          const parsed = typeof state.selectedPersona.detailedJSON === 'string' 
-            ? JSON.parse(state.selectedPersona.detailedJSON)
-            : state.selectedPersona.detailedJSON;
-          fullDetails = parsed;
-        } catch (e) {}
-      }
-      detailedJson = { ...detailedJson, ...fullDetails };
-    } catch (e) {
-      console.warn("Could not parse json editor string:", e);
-    }
-    
-    const formattedJson = JSON.stringify(detailedJson, null, 2);
-    const copyText = `Utiliza la siguiente especificación de identidad visual JSON del modelo AI para mantener la consistencia física y de la cámara en la generación de imágenes:
-
---- INICIO ESPECIFICACIÓN DE IDENTIDAD VISUAL (JSON) ---
-${formattedJson}
---- FIN ESPECIFICACIÓN DE IDENTIDAD VISUAL (JSON) ---
-
-Genera la imagen con el siguiente Prompt:
-${prompt}
-`;
-
-    navigator.clipboard.writeText(copyText);
-    alert('📋 ¡Prompt + Identidad Visual JSON copiados para tu Chatbot (ChatGPT/Gemini)!');
+    const exportText = buildChatbotExportText({ includePrompt: true });
+    navigator.clipboard.writeText(exportText);
+    alert('📋 ¡Prompt + Identidad Visual JSON copiados para tu Chatbot (ChatGPT/Gemini/Claude)!');
   });
 
   document.getElementById('btnSaveToGallery').addEventListener('click', async () => {
@@ -701,12 +794,40 @@ function selectCampaign(c) {
 // Script Engine Tab Logic
 function setupScriptEngine() {
   document.getElementById('btnGenerateScripts').addEventListener('click', generateScriptsAction);
+  
+  // Plain text copy (script only)
   document.getElementById('btnCopyScript').addEventListener('click', () => {
     if (state.scripts.length === 0) return;
     const activeScript = state.scripts[state.selectedAngleIndex];
     const scriptText = `Ángulo: ${activeScript.angle}\n\n[GANCHO / HOOK]\n${activeScript.hook}\nCue: ${activeScript.hookCue}\n\n[DEMOSTRACIÓN / DEMO]\n${activeScript.demo}\nCue: ${activeScript.demoCue}\n\n[EL GIRO / TURN]\n${activeScript.turn}\nCue: ${activeScript.turnCue}\n\n[CTA]\n${activeScript.cta}\nCue: ${activeScript.ctaCue}`;
     navigator.clipboard.writeText(scriptText);
     alert('¡Guión publicitario copiado al portapapeles!');
+  });
+  
+  // Full chatbot export (script + persona JSON + product + prompt)
+  document.getElementById('btnExportScriptChatbot').addEventListener('click', () => {
+    if (state.scripts.length === 0) {
+      alert('Primero genera los scripts de campaña.');
+      return;
+    }
+    const activeScript = state.scripts[state.selectedAngleIndex];
+    const product = state.selectedProduct || {
+      name: document.getElementById('prodName')?.value || '',
+      benefit: document.getElementById('prodBenefit')?.value || '',
+      audience: document.getElementById('prodAudience')?.value || '',
+      frustration: document.getElementById('prodFrustration')?.value || ''
+    };
+    
+    const exportText = buildChatbotExportText({
+      includePrompt: true,
+      includeScript: true,
+      includeProduct: true,
+      scriptData: activeScript,
+      productData: product
+    });
+    
+    navigator.clipboard.writeText(exportText);
+    alert('📋 ¡Guión + Identidad Visual JSON + Producto copiados para tu Chatbot!');
   });
 }
 
@@ -972,6 +1093,28 @@ function setupUgcStudio() {
   
   // Generate Image AI Action
   document.getElementById('btnGenerateUgcImage').addEventListener('click', generateAIImageAction);
+
+  // Export active bundle for chatbot
+  document.getElementById('btnExportUgcChatbot').addEventListener('click', () => {
+    const activeScript = state.scripts.length > 0 ? state.scripts[state.selectedAngleIndex] : null;
+    const product = state.selectedProduct || {
+      name: document.getElementById('prodName')?.value || '',
+      benefit: document.getElementById('prodBenefit')?.value || '',
+      audience: document.getElementById('prodAudience')?.value || '',
+      frustration: document.getElementById('prodFrustration')?.value || ''
+    };
+    
+    const exportText = buildChatbotExportText({
+      includePrompt: true,
+      includeScript: !!activeScript,
+      includeProduct: true,
+      scriptData: activeScript,
+      productData: product
+    });
+    
+    navigator.clipboard.writeText(exportText);
+    alert('📋 ¡Pack Completo (Guión + Identidad Visual JSON + Producto + Prompt) copiado para tu Chatbot!');
+  });
   
   // Video Pipeline Simulation Action
   document.getElementById('btnGenerateUgcVideo').addEventListener('click', startVideoPipelineSimulation);
