@@ -582,7 +582,7 @@ async function savePersona() {
   try {
     const imgRes = await authFetch('/api/ai/generate-image', {
       method: 'POST',
-      body: JSON.stringify({ prompt: promptText })
+      body: JSON.stringify({ prompt: promptText, referenceLocalPath: uploadedImagePath || state.selectedPersona?.image })
     });
     const imgData = await imgRes.json();
     if (imgData.success && imgData.imagePath) {
@@ -2149,7 +2149,7 @@ async function saveAnalysisAsPersona() {
   try {
     const imgRes = await authFetch('/api/ai/generate-image', {
       method: 'POST',
-      body: JSON.stringify({ prompt: promptText })
+      body: JSON.stringify({ prompt: promptText, referenceLocalPath: uploadedImagePath })
     });
     const imgData = await imgRes.json();
     if (imgData.success && imgData.imagePath) {

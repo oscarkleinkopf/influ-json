@@ -142,11 +142,35 @@ app.get('/api/personas/:id/variants', (req, res) => {
   res.json(dbService.getVariantsForPersona(req.params.id));
 });
 
-app.post('/api/personas/:id/variants', (req, res) => {
+app.post('/api/personas/:id/variants', async (req, res) => {
   const { pose, clothing, attitude, setting, prompt } = req.body;
   
-  // Call Image generator
-  aiService.generateInfluencerImage(prompt)
+  const persona = dbService.getPersonaById(req.params.id);
+  let referenceLocalPath = null;
+  if (persona) {
+    if (persona.detailedJSON) {
+      try {
+        const detailed = typeof persona.detailedJSON === 'string' ? JSON.parse(persona.detailedJSON) : persona.detailedJSON;
+        if (detailed && detailed.anchor_reference) {
+          referenceLocalPath = detailed.anchor_reference;
+        }
+      } catch (e) {}
+    }
+    if (!referenceLocalPath) {
+      referenceLocalPath = persona.image;
+    }
+  }
+  
+  let referenceUrl = null;
+  if (referenceLocalPath && !referenceLocalPath.startsWith('http')) {
+    try {
+      referenceUrl = await aiService.uploadToTmpFiles(referenceLocalPath);
+    } catch (e) {
+      console.warn('Failed to upload variant reference photo:', e);
+    }
+  }
+  
+  aiService.generateInfluencerImage(prompt, referenceUrl)
     .then(imagePath => {
       if (imagePath) {
         const variant = dbService.saveVariant({
@@ -161,7 +185,7 @@ app.post('/api/personas/:id/variants', (req, res) => {
           res.json({ success: true, variant, variants: dbService.getVariantsForPersona(req.params.id), gitSynced: gitSuccess, gitMessage: msg });
         });
       } else {
-        res.status(500).json({ success: false, message: 'La generación de imagen falló.' });
+        res.status(500).json({ success: false, message: 'La generación de la pose falló.' });
       }
     })
     .catch(err => {
@@ -285,9 +309,19 @@ app.post('/api/ai/generate-scripts', (req, res) => {
     });
 });
 
-app.post('/api/ai/generate-image', (req, res) => {
-  const { prompt } = req.body;
-  aiService.generateInfluencerImage(prompt)
+app.post('/api/ai/generate-image', async (req, res) => {
+  const { prompt, referenceLocalPath } = req.body;
+  
+  let referenceUrl = null;
+  if (referenceLocalPath && !referenceLocalPath.startsWith('http')) {
+    try {
+      referenceUrl = await aiService.uploadToTmpFiles(referenceLocalPath);
+    } catch (e) {
+      console.warn('Failed to upload reference photo for generation:', e);
+    }
+  }
+
+  aiService.generateInfluencerImage(prompt, referenceUrl)
     .then(result => {
       res.json({ success: true, imagePath: result });
     })
