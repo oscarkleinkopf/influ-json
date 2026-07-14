@@ -521,6 +521,58 @@ app.post('/api/upload-reference', upload.single('photo'), (req, res) => {
   });
 });
 
+app.post('/api/upload-reference-url', async (req, res) => {
+  const { url } = req.body;
+  if (!url) {
+    return res.status(400).json({ success: false, message: 'No se recibió ninguna URL.' });
+  }
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+    }
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    let ext = 'jpg';
+    if (contentType.includes('png')) ext = 'png';
+    else if (contentType.includes('webp')) ext = 'webp';
+
+    const filename = `ref_${Date.now()}.${ext}`;
+    const relativePath = `assets/references/${filename}`;
+    const absolutePath = path.join(__dirname, relativePath);
+
+    // Make sure folder exists
+    const dir = path.dirname(absolutePath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    fs.writeFileSync(absolutePath, buffer);
+
+    // Sync reference image to scratch directory
+    const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
+    if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
+    fs.writeFileSync(path.join(scratchRefsDir, filename), buffer);
+    console.log(`Reference image from URL synced to scratch: ${filename}`);
+
+    // Auto-git-backup the new reference
+    runGitBackup((gitSuccess, msg) => {
+      res.json({
+        success: true,
+        filePath: relativePath,
+        fileName: filename,
+        originalName: 'url_download',
+        size: buffer.length,
+        gitSynced: gitSuccess,
+        gitMessage: msg
+      });
+    });
+  } catch (err) {
+    console.error('Error downloading reference from URL:', err);
+    res.status(500).json({ success: false, message: `Error al descargar la imagen: ${err.message}` });
+  }
+});
+
 // Git sync trigger
 app.post('/api/sync', (req, res) => {
   // Save DB copy first to ensure latest backup
