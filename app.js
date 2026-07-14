@@ -187,6 +187,7 @@ function updateDashboardStats() {
 // Select Persona
 function selectPersona(persona) {
   state.selectedPersona = persona;
+  uploadedImagePath = null; // Clear upload session when selecting another persona
   updateDashboardStats();
   renderPersonaGrids();
   populateActiveUgcData();
@@ -484,7 +485,7 @@ async function savePersona() {
   const promptText = document.getElementById('promptPreview').textContent;
   showSyncToast(true, 'Generando retrato virtual consistente con Nano Banana...');
   
-  let portraitPath = state.selectedPersona?.image;
+  let portraitPath = null;
   try {
     const imgRes = await authFetch('/api/ai/generate-image', {
       method: 'POST',
@@ -495,13 +496,16 @@ async function savePersona() {
       portraitPath = imgData.imagePath;
     }
   } catch (err) {
-    console.warn('Image generation failed or offline. Using existing or default image.');
+    console.warn('Image generation failed or offline. Using reference or existing image.');
   }
+
+  const finalImage = portraitPath || uploadedImagePath || state.selectedPersona?.image || (gender === 'Male' ? 'assets/influencer_male.png' : 'assets/nano_banana_influencer.png');
+  const finalImageUGC = portraitPath || uploadedImagePath || state.selectedPersona?.imageUGC || (gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/nano_banana_ugc.png');
 
   const personaData = {
     name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting,
-    image: portraitPath || state.selectedPersona?.image || (gender === 'Male' ? 'assets/influencer_male.png' : 'assets/influencer_female.png'),
-    imageUGC: portraitPath || state.selectedPersona?.imageUGC || (gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/influencer_female_serum.png'),
+    image: finalImage,
+    imageUGC: finalImageUGC,
     detailedJSON: getFullPersonaJSON()
   };
   
@@ -518,6 +522,7 @@ async function savePersona() {
     const data = await res.json();
     if (data.success) {
       state.personas = data.personas;
+      uploadedImagePath = null; // Clear upload path after successful save
       // Select newly saved persona
       const saved = state.personas.find(p => p.name.toLowerCase() === name.toLowerCase());
       if (saved) state.selectedPersona = saved;
@@ -2092,6 +2097,7 @@ async function saveAnalysisAsPersona() {
     const data = await res.json();
     if (data.success) {
       state.personas = data.personas;
+      uploadedImagePath = null; // Clear upload path after successful save
       const saved = state.personas.find(p => p.name.toLowerCase() === personaData.name.toLowerCase());
       if (saved) state.selectedPersona = saved;
 

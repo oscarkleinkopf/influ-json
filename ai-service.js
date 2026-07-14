@@ -191,12 +191,8 @@ module.exports = {
 
   async generateInfluencerImage(prompt) {
     if (!ai) {
-      console.log('Offline mode: Image generation returns default asset fallback path.');
-      const lowerPrompt = String(prompt).toLowerCase();
-      if (lowerPrompt.includes('male') || lowerPrompt.includes('masculino') || lowerPrompt.includes('hombre')) {
-        return 'assets/influencer_male_bottle.png';
-      }
-      return 'assets/nano_banana_influencer.png';
+      console.log('Offline mode: Image generation returns null fallback.');
+      return null;
     }
 
     try {
