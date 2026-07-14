@@ -193,9 +193,9 @@ module.exports = {
     if (!ai) {
       console.log('Using Pollinations.ai free keyless generator for virtual portrait...');
       try {
-        let url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=512&height=512&model=flux&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+        let url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${Math.floor(Math.random() * 100000)}`;
         if (referenceUrl) {
-          url += `&image=${encodeURIComponent(referenceUrl)}`;
+          url += `&image=${encodeURIComponent(referenceUrl)}&strength=0.65`;
         }
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Pollinations HTTP error: ${res.status}`);

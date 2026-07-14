@@ -97,6 +97,17 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS generation_history (
+    id TEXT PRIMARY KEY,
+    persona_id TEXT NOT NULL,
+    prompt TEXT,
+    image_path TEXT NOT NULL,
+    generation_type TEXT,
+    metadata TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
+  );
+
   CREATE TABLE IF NOT EXISTS versions (
     id TEXT PRIMARY KEY,
     persona_id TEXT,
@@ -616,5 +627,34 @@ module.exports = {
     db.prepare('UPDATE personas SET image = ?, imageUGC = ? WHERE id = ?').run(imagePath, imagePath, personaId);
     syncDbToWorkspace();
     return this.getPersonaById(personaId);
+  },
+
+  saveGeneration(gen) {
+    const id = gen.id || `gen_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    db.prepare(`INSERT INTO generation_history (id, persona_id, prompt, image_path, generation_type, metadata) VALUES (?, ?, ?, ?, ?, ?)`)
+      .run(id, gen.persona_id, gen.prompt || '', gen.image_path, gen.generation_type || 'portrait', gen.metadata || '{}');
+    syncDbToWorkspace();
+    return id;
+  },
+
+  getGenerationsForPersona(personaId) {
+    return db.prepare('SELECT * FROM generation_history WHERE persona_id = ? ORDER BY created_at DESC').all(personaId);
+  },
+
+  deleteGeneration(id) {
+    db.prepare('DELETE FROM generation_history WHERE id = ?').run(id);
+    syncDbToWorkspace();
+  },
+
+  updateGenerationPersonaId(oldId, newId) {
+    db.prepare('UPDATE generation_history SET persona_id = ? WHERE persona_id = ?').run(newId, oldId);
+    syncDbToWorkspace();
+  },
+
+  getGenerationStats() {
+    const total = db.prepare('SELECT COUNT(*) as count FROM generation_history').get();
+    const byType = db.prepare('SELECT generation_type, COUNT(*) as count FROM generation_history GROUP BY generation_type').all();
+    const byPersona = db.prepare('SELECT persona_id, COUNT(*) as count FROM generation_history GROUP BY persona_id ORDER BY count DESC').all();
+    return { total: total.count, byType, byPersona };
   }
 };
