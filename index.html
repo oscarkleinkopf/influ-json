@@ -478,7 +478,9 @@
               <div class="form-row">
                 <div>
                   <label for="pClothing">Vestimenta</label>
-                  <input type="text" id="pClothing" value="Suéter de punto color crema">
+                  <select id="pClothing">
+                    <!-- Dynamic gender options will be loaded here -->
+                  </select>
                 </div>
                 <div>
                   <label for="pSetting">Ubicación / Fondo</label>
@@ -486,9 +488,12 @@
                 </div>
               </div>
               
-              <div style="margin-top: 10px;">
-                <button type="button" class="btn" id="btnSavePersona" style="width: 100%;">
+              <div style="margin-top: 10px; display: flex; gap: 8px;">
+                <button type="button" class="btn" id="btnSavePersona" style="flex: 2;">
                   Guardar Persona en influ-JSON
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnDeletePersona" style="flex: 1; background: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid rgba(220, 53, 69, 0.4);">
+                  🗑️ Eliminar
                 </button>
               </div>
             </form>

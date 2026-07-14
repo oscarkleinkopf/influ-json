@@ -191,8 +191,36 @@ module.exports = {
 
   async generateInfluencerImage(prompt) {
     if (!ai) {
-      console.log('Offline mode: Image generation returns null fallback.');
-      return null;
+      console.log('Using Pollinations.ai free keyless generator for virtual portrait...');
+      try {
+        const url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=512&height=512&model=flux&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Pollinations HTTP error: ${res.status}`);
+        
+        const arrayBuffer = await res.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        
+        const filename = `gen_flux_${Date.now()}.jpg`;
+        const relativePath = `assets/generated/${filename}`;
+        const absolutePath = path.join(__dirname, relativePath);
+
+        const dir = path.dirname(absolutePath);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+        fs.writeFileSync(absolutePath, buffer);
+        
+        // Sync to scratch directory
+        const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b-aa1e-adaeba8ce81d/scratch';
+        const scratchGenDir = path.join(SCRATCH_DIR, 'assets', 'generated');
+        if (!fs.existsSync(scratchGenDir)) fs.mkdirSync(scratchGenDir, { recursive: true });
+        fs.writeFileSync(path.join(scratchGenDir, filename), buffer);
+
+        console.log(`Pollinations Image generated and saved to: ${relativePath}`);
+        return relativePath;
+      } catch (err) {
+        console.error('Pollinations generation error:', err);
+        return null;
+      }
     }
 
     try {
