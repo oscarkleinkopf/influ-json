@@ -189,11 +189,14 @@ module.exports = {
     }
   },
 
-  async generateInfluencerImage(prompt) {
+  async generateInfluencerImage(prompt, referenceUrl = null) {
     if (!ai) {
       console.log('Using Pollinations.ai free keyless generator for virtual portrait...');
       try {
-        const url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=512&height=512&model=flux&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+        let url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=512&height=512&model=flux&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+        if (referenceUrl) {
+          url += `&image=${encodeURIComponent(referenceUrl)}`;
+        }
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Pollinations HTTP error: ${res.status}`);
         
@@ -257,6 +260,44 @@ module.exports = {
       return null;
     } catch (err) {
       console.error('Gemini Image generation (Imagen) error:', err);
+      return null;
+    }
+  },
+
+  async uploadToTmpFiles(localPath) {
+    try {
+      const absolutePath = path.resolve(localPath);
+      if (!fs.existsSync(absolutePath)) {
+        console.warn(`File does not exist: ${absolutePath}`);
+        return null;
+      }
+
+      // Check if it is a directory
+      if (fs.lstatSync(absolutePath).isDirectory()) {
+        console.warn(`Path is a directory, cannot upload: ${absolutePath}`);
+        return null;
+      }
+
+      const fileBuffer = fs.readFileSync(absolutePath);
+      const fileBlob = new Blob([fileBuffer], { type: 'image/jpeg' });
+      const formData = new FormData();
+      formData.append('file', fileBlob, path.basename(absolutePath));
+
+      const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) throw new Error(`tmpfiles.org API responded with status ${res.status}`);
+      const data = await res.json();
+      if (data && data.data && data.data.url) {
+        const directUrl = data.data.url.replace('https://tmpfiles.org/', 'https://tmpfiles.org/dl/');
+        console.log(`Uploaded local image ${localPath} to tmpfiles.org successfully: ${directUrl}`);
+        return directUrl;
+      }
+      return null;
+    } catch (e) {
+      console.error('Error uploading local image to tmpfiles.org:', e);
       return null;
     }
   }
