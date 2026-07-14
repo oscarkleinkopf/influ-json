@@ -217,9 +217,16 @@ function selectPersona(persona) {
   }
   
   document.getElementById('pSkinTone').value = detailed.facial_features?.skin_tone || 'Piel clara ligeramente bronceada';
+  document.getElementById('pSkinTexture').value = detailed.facial_features?.skin_texture || 'Piel suave con poros y pecas muy sutiles';
   document.getElementById('pEyebrows').value = detailed.facial_features?.eyebrows || detailed.facial_features?.eyebrow_style || 'Cejas castañas oscuras y pobladas';
   document.getElementById('pLips').value = detailed.facial_features?.lips || (detailed.facial_features?.lip_color ? `${detailed.facial_features.lip_color} ${detailed.facial_features.lip_shape || ''}` : '') || 'Labios rosados naturales carnosos';
   document.getElementById('pHairColor').value = detailed.hair?.color || 'Castaño oscuro natural';
+  document.getElementById('pHairTexture').value = detailed.hair?.texture || 'Ondulado natural con cuerpo';
+  document.getElementById('pHairLength').value = detailed.hair?.length || 'Largo, por debajo de los hombros';
+  document.getElementById('pEyeColor').value = detailed.facial_features?.eye_color || 'Marrón cálido con destellos miel';
+  document.getElementById('pFaceShape').value = detailed.facial_features?.face_shape || 'Ovalada con mandíbula definida';
+  document.getElementById('pSmileType').value = detailed.facial_features?.smile_type || 'Sonrisa cálida, accesible y natural';
+  document.getElementById('pBodyType').value = detailed.identity?.body_type || 'Atlético y proporcionado';
   
   // Variant manager sync
   const activeNameEl = document.getElementById('activeInfluencerName');
@@ -335,13 +342,20 @@ function getFullPersonaJSON() {
   base.identity.gender = document.getElementById('pGender')?.value || base.identity.gender || p.gender || 'Female';
   base.identity.apparent_age = document.getElementById('pAge')?.value || base.identity.apparent_age || p.age || '25 años';
   base.identity.ethnicity_appearance = document.getElementById('pEthnicity')?.value || base.identity.ethnicity_appearance || p.ethnicity || 'Mixta';
+  base.identity.body_type = document.getElementById('pBodyType')?.value || base.identity.body_type || p.body_type || 'Atlético y proporcionado';
   
   // Advanced physical traits
+  base.facial_features.face_shape = document.getElementById('pFaceShape')?.value || base.facial_features.face_shape || 'Ovalada';
   base.facial_features.skin_tone = document.getElementById('pSkinTone')?.value || base.facial_features.skin_tone || 'Piel clara';
+  base.facial_features.skin_texture = document.getElementById('pSkinTexture')?.value || base.facial_features.skin_texture || 'Suave';
+  base.facial_features.eye_color = document.getElementById('pEyeColor')?.value || base.facial_features.eye_color || 'Marrón';
   base.facial_features.eyebrows = document.getElementById('pEyebrows')?.value || base.facial_features.eyebrows || 'Cejas naturales';
-  base.facial_features.lips = document.getElementById('pLips')?.value || base.facial_features.lips || 'Labios rosados naturales';
+  base.facial_features.lips = document.getElementById('pLips')?.value || base.facial_features.lips || 'Labios rosados';
+  base.facial_features.smile_type = document.getElementById('pSmileType')?.value || base.facial_features.smile_type || 'Natural';
   
   base.hair.color = document.getElementById('pHairColor')?.value || base.hair.color || 'Castaño';
+  base.hair.texture = document.getElementById('pHairTexture')?.value || base.hair.texture || 'Ondulado';
+  base.hair.length = document.getElementById('pHairLength')?.value || base.hair.length || 'Largo';
   base.hair.details = document.getElementById('pHair')?.value || base.hair.details || p.hair || '';
   
   base.aesthetic.overall_vibe = document.getElementById('pStyle')?.value || base.aesthetic.overall_vibe || p.style || 'Natural';
@@ -554,14 +568,21 @@ function compilePromptAndJSON() {
   const clothing = document.getElementById('pClothing').value;
   const setting = document.getElementById('pSetting').value;
   
-  // New detailed facial traits
+  // High-fidelity facial & body details
   const skinTone = document.getElementById('pSkinTone').value;
-  const eyebrows = document.getElementById('pEyebrows').value;
-  const lips = document.getElementById('pLips').value;
+  const skinTexture = document.getElementById('pSkinTexture').value;
   const hairColor = document.getElementById('pHairColor').value;
+  const hairTexture = document.getElementById('pHairTexture').value;
+  const hairLength = document.getElementById('pHairLength').value;
+  const eyebrows = document.getElementById('pEyebrows').value;
+  const eyeColor = document.getElementById('pEyeColor').value;
+  const lips = document.getElementById('pLips').value;
+  const faceShape = document.getElementById('pFaceShape').value;
+  const smileType = document.getElementById('pSmileType').value;
+  const bodyType = document.getElementById('pBodyType').value;
   
   // Prompt builder natural language compilation - UGC style (iPhone raw selfie snapshot)
-  const prompt = `Amateur casual UGC style, ${camera}. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with a very natural expression, looking at camera. ${skinTone}, ${hairColor} hair (${hair}), ${eyebrows}, ${lips}, wearing ${clothing}. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections.`;
+  const prompt = `Amateur casual UGC style, ${camera}. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with a ${smileType} and a ${faceShape} face, looking at camera. ${skinTone} (${skinTexture}), ${hairColor} ${hairTexture} ${hairLength} hair (${hair}), ${eyebrows}, ${eyeColor} eyes, ${lips}, ${bodyType} body build, wearing ${clothing}. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections.`;
   document.getElementById('promptPreview').textContent = prompt;
   
   // JSON builder compilation
@@ -570,15 +591,22 @@ function compilePromptAndJSON() {
       name: name,
       gender: gender,
       age: age,
-      ethnicity_appearance: ethnicity
+      ethnicity_appearance: ethnicity,
+      body_type: bodyType
     },
     facial_features: {
+      face_shape: faceShape,
       skin_tone: skinTone,
+      skin_texture: skinTexture,
+      eye_color: eyeColor,
       eyebrows: eyebrows,
-      lips: lips
+      lips: lips,
+      smile_type: smileType
     },
     hair: {
       color: hairColor,
+      texture: hairTexture,
+      length: hairLength,
       details: hair
     },
     aesthetic: {
@@ -2171,9 +2199,16 @@ function applyAnalysisToForm() {
 
   // Populating advanced details
   document.getElementById('pSkinTone').value = f.skin_tone || 'Piel clara';
+  document.getElementById('pSkinTexture').value = f.skin_texture || 'Piel suave con poros naturales';
   document.getElementById('pEyebrows').value = f.eyebrow_style || 'Cejas naturales';
   document.getElementById('pLips').value = f.lips || (f.lip_color ? `${f.lip_color} ${f.lip_shape || ''}` : '') || 'Labios rosados naturales';
   document.getElementById('pHairColor').value = h.color || 'Castaño';
+  document.getElementById('pHairTexture').value = h.texture || 'Ondulado';
+  document.getElementById('pHairLength').value = h.length || 'Largo';
+  document.getElementById('pEyeColor').value = f.eye_color || 'Marrón';
+  document.getElementById('pFaceShape').value = f.face_shape || 'Ovalada';
+  document.getElementById('pSmileType').value = f.smile_type || 'Natural';
+  document.getElementById('pBodyType').value = i.body_type || 'Atlético y proporcionado';
 
   compilePromptAndJSON();
   showSyncToast(true, '¡Datos del análisis aplicados al formulario!');
