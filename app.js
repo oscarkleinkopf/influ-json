@@ -207,6 +207,19 @@ function selectPersona(persona) {
   document.getElementById('pCamera').value = persona.camera;
   updateClothingDropdown(persona.clothing);
   document.getElementById('pSetting').value = persona.setting;
+
+  // Extract detailed features from detailedJSON if available
+  let detailed = {};
+  if (persona.detailedJSON) {
+    try {
+      detailed = typeof persona.detailedJSON === 'string' ? JSON.parse(persona.detailedJSON) : persona.detailedJSON;
+    } catch(e) {}
+  }
+  
+  document.getElementById('pSkinTone').value = detailed.facial_features?.skin_tone || 'Piel clara ligeramente bronceada';
+  document.getElementById('pEyebrows').value = detailed.facial_features?.eyebrows || detailed.facial_features?.eyebrow_style || 'Cejas castañas oscuras y pobladas';
+  document.getElementById('pLips').value = detailed.facial_features?.lips || (detailed.facial_features?.lip_color ? `${detailed.facial_features.lip_color} ${detailed.facial_features.lip_shape || ''}` : '') || 'Labios rosados naturales carnosos';
+  document.getElementById('pHairColor').value = detailed.hair?.color || 'Castaño oscuro natural';
   
   // Variant manager sync
   const activeNameEl = document.getElementById('activeInfluencerName');
@@ -292,49 +305,57 @@ async function manualGitSync() {
 
 // ─── Shared Export Helper: assembles the richest JSON for the active persona ───
 function getFullPersonaJSON() {
-  // Priority 1: live analysisResult from photo analysis (richest source)
-  if (typeof analysisResult !== 'undefined' && analysisResult && Object.keys(analysisResult).length > 2) {
-    const copy = JSON.parse(JSON.stringify(analysisResult));
-    delete copy.generation_prompt;
-    delete copy.anchor_reference;
-    return copy;
-  }
+  let base = {};
   
-  // Priority 2: detailedJSON stored in the selected persona record
-  if (state.selectedPersona && state.selectedPersona.detailedJSON) {
+  // 1. Start with the richest source (analysisResult or stored detailedJSON)
+  if (typeof analysisResult !== 'undefined' && analysisResult && Object.keys(analysisResult).length > 2) {
+    base = JSON.parse(JSON.stringify(analysisResult));
+  } else if (state.selectedPersona && state.selectedPersona.detailedJSON) {
     try {
       const stored = typeof state.selectedPersona.detailedJSON === 'string'
         ? JSON.parse(state.selectedPersona.detailedJSON)
         : state.selectedPersona.detailedJSON;
       if (stored && Object.keys(stored).length > 2) {
-        const copy = JSON.parse(JSON.stringify(stored));
-        delete copy.generation_prompt;
-        delete copy.anchor_reference;
-        return copy;
+        base = JSON.parse(JSON.stringify(stored));
       }
     } catch (e) {}
   }
   
-  // Priority 3: build from current form fields (basic but complete enough)
+  // 2. Ensure nested structures exist
+  if (!base.identity) base.identity = {};
+  if (!base.facial_features) base.facial_features = {};
+  if (!base.hair) base.hair = {};
+  if (!base.aesthetic) base.aesthetic = {};
+  if (!base.photography) base.photography = {};
+  
+  // 3. Overwrite with live form values
   const p = state.selectedPersona || {};
-  return {
-    identity: {
-      name: document.getElementById('pName')?.value || p.name || 'Influencer',
-      gender: document.getElementById('pGender')?.value || p.gender || 'Female',
-      age: document.getElementById('pAge')?.value || p.age || '25 años',
-      ethnicity_appearance: document.getElementById('pEthnicity')?.value || p.ethnicity || 'Mixta'
-    },
-    aesthetic: {
-      overall_vibe: document.getElementById('pStyle')?.value || p.style || 'Natural',
-      hair_details: document.getElementById('pHair')?.value || p.hair || '',
-      clothing_type: document.getElementById('pClothing')?.value || p.clothing || ''
-    },
-    photography: {
-      camera_lens: document.getElementById('pCamera')?.value || p.camera || 'iPhone 15 Pro front camera selfie',
-      lighting_type: document.getElementById('pLighting')?.value || p.lighting || 'Luz natural',
-      background_setting: document.getElementById('pSetting')?.value || p.setting || 'Fondo neutro'
-    }
-  };
+  
+  base.identity.name = document.getElementById('pName')?.value || base.identity.name || p.name || 'Influencer';
+  base.identity.gender = document.getElementById('pGender')?.value || base.identity.gender || p.gender || 'Female';
+  base.identity.apparent_age = document.getElementById('pAge')?.value || base.identity.apparent_age || p.age || '25 años';
+  base.identity.ethnicity_appearance = document.getElementById('pEthnicity')?.value || base.identity.ethnicity_appearance || p.ethnicity || 'Mixta';
+  
+  // Advanced physical traits
+  base.facial_features.skin_tone = document.getElementById('pSkinTone')?.value || base.facial_features.skin_tone || 'Piel clara';
+  base.facial_features.eyebrows = document.getElementById('pEyebrows')?.value || base.facial_features.eyebrows || 'Cejas naturales';
+  base.facial_features.lips = document.getElementById('pLips')?.value || base.facial_features.lips || 'Labios rosados naturales';
+  
+  base.hair.color = document.getElementById('pHairColor')?.value || base.hair.color || 'Castaño';
+  base.hair.details = document.getElementById('pHair')?.value || base.hair.details || p.hair || '';
+  
+  base.aesthetic.overall_vibe = document.getElementById('pStyle')?.value || base.aesthetic.overall_vibe || p.style || 'Natural';
+  base.aesthetic.clothing_type = document.getElementById('pClothing')?.value || base.aesthetic.clothing_type || p.clothing || '';
+  
+  base.photography.camera_lens = document.getElementById('pCamera')?.value || base.photography.camera_lens || p.camera || 'iPhone';
+  base.photography.lighting_type = document.getElementById('pLighting')?.value || base.photography.lighting_type || p.lighting || 'Luz natural';
+  base.photography.background_setting = document.getElementById('pSetting')?.value || base.photography.background_setting || p.setting || 'Fondo neutro';
+  
+  // Clean internal metadata keys
+  delete base.generation_prompt;
+  delete base.anchor_reference;
+  
+  return base;
 }
 
 function buildChatbotExportText({ includePrompt = true, includeScript = false, includeProduct = false, scriptData = null, productData = null } = {}) {
@@ -533,8 +554,14 @@ function compilePromptAndJSON() {
   const clothing = document.getElementById('pClothing').value;
   const setting = document.getElementById('pSetting').value;
   
+  // New detailed facial traits
+  const skinTone = document.getElementById('pSkinTone').value;
+  const eyebrows = document.getElementById('pEyebrows').value;
+  const lips = document.getElementById('pLips').value;
+  const hairColor = document.getElementById('pHairColor').value;
+  
   // Prompt builder natural language compilation - UGC style (iPhone raw selfie snapshot)
-  const prompt = `Amateur casual UGC style, ${camera}. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with a very natural expression, looking at camera. ${hair}, wearing ${clothing}. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections.`;
+  const prompt = `Amateur casual UGC style, ${camera}. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with a very natural expression, looking at camera. ${skinTone}, ${hairColor} hair (${hair}), ${eyebrows}, ${lips}, wearing ${clothing}. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections.`;
   document.getElementById('promptPreview').textContent = prompt;
   
   // JSON builder compilation
@@ -545,9 +572,17 @@ function compilePromptAndJSON() {
       age: age,
       ethnicity_appearance: ethnicity
     },
+    facial_features: {
+      skin_tone: skinTone,
+      eyebrows: eyebrows,
+      lips: lips
+    },
+    hair: {
+      color: hairColor,
+      details: hair
+    },
     aesthetic: {
       style_vibe: style,
-      hair_details: hair,
       clothing_type: clothing
     },
     photography: {
@@ -2130,9 +2165,15 @@ function applyAnalysisToForm() {
   document.getElementById('pAge').value = i.apparent_age || '25 años';
   document.getElementById('pEthnicity').value = i.ethnicity_appearance || 'Mixta';
   document.getElementById('pStyle').value = a.overall_vibe || 'Natural';
-  document.getElementById('pHair').value = `${h.color || ''}, ${h.texture || ''}, ${h.length || ''}`;
+  document.getElementById('pHair').value = `${h.texture || 'ondulado'} ${h.length || 'largo'}`;
   updateClothingDropdown(`${c.type || ''} en ${c.color || ''}`);
   document.getElementById('pSetting').value = p.background_setting || 'Fondo neutro';
+
+  // Populating advanced details
+  document.getElementById('pSkinTone').value = f.skin_tone || 'Piel clara';
+  document.getElementById('pEyebrows').value = f.eyebrow_style || 'Cejas naturales';
+  document.getElementById('pLips').value = f.lips || (f.lip_color ? `${f.lip_color} ${f.lip_shape || ''}` : '') || 'Labios rosados naturales';
+  document.getElementById('pHairColor').value = h.color || 'Castaño';
 
   compilePromptAndJSON();
   showSyncToast(true, '¡Datos del análisis aplicados al formulario!');
