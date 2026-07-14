@@ -1730,7 +1730,7 @@ async function runPhotoAnalysis(imageDataUrl) {
 
   // Fallback simulation mode
   await new Promise(resolve => setTimeout(resolve, 1800));
-  analysisResult = generateDetailedJSON(colors);
+  analysisResult = await generateDetailedJSON(imageDataUrl, colors);
   displayAnalysisResults(colors);
 }
 
@@ -1855,14 +1855,137 @@ function classifyBackground(colors) {
   return 'Fondo oscuro dramático / low-key';
 }
 
-function generateDetailedJSON(colors) {
-  const skinTone = classifySkinTone(colors);
-  const hairColor = classifyHairColor(colors);
+function extractSpatialColorProperties(imageDataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const w = 100;
+      const h = 100;
+      canvas.width = w;
+      canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+      
+      const pixels = ctx.getImageData(0, 0, w, h).data;
+      
+      // Helper to get average RGB in a bounding box (percentages)
+      function getAverageRGB(x1, y1, x2, y2) {
+        let rSum = 0, gSum = 0, bSum = 0, count = 0;
+        const startX = Math.floor(x1 * w / 100);
+        const endX = Math.floor(x2 * w / 100);
+        const startY = Math.floor(y1 * h / 100);
+        const endY = Math.floor(y2 * h / 100);
+        
+        for (let y = startY; y < endY; y++) {
+          for (let x = startX; x < endX; x++) {
+            const idx = (y * w + x) * 4;
+            rSum += pixels[idx];
+            gSum += pixels[idx + 1];
+            bSum += pixels[idx + 2];
+            count++;
+          }
+        }
+        if (count === 0) return { r: 128, g: 128, b: 128, hex: '#808080' };
+        const r = Math.round(rSum / count);
+        const g = Math.round(gSum / count);
+        const b = Math.round(bSum / count);
+        const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        return { r, g, b, hex };
+      }
+      
+      // 1. Face/Skin zone: Center of the image
+      const skinColor = getAverageRGB(40, 35, 60, 55);
+      
+      // 2. Hair zone: Sides of the head (left & right) and top of the head
+      const leftHair = getAverageRGB(15, 25, 30, 50);
+      const rightHair = getAverageRGB(70, 25, 85, 50);
+      const topHair = getAverageRGB(35, 10, 65, 22);
+      
+      // Average the hair samples
+      const hairR = Math.round((leftHair.r + rightHair.r + topHair.r) / 3);
+      const hairG = Math.round((leftHair.g + rightHair.g + topHair.g) / 3);
+      const hairB = Math.round((leftHair.b + rightHair.b + topHair.b) / 3);
+      const hairColor = {
+        r: hairR,
+        g: hairG,
+        b: hairB,
+        hex: `#${hairR.toString(16).padStart(2, '0')}${hairG.toString(16).padStart(2, '0')}${hairB.toString(16).padStart(2, '0')}`
+      };
+      
+      // 3. Background zone: Top corners
+      const tlBg = getAverageRGB(0, 0, 15, 15);
+      const trBg = getAverageRGB(85, 0, 100, 15);
+      const bgR = Math.round((tlBg.r + trBg.r) / 2);
+      const bgG = Math.round((tlBg.g + trBg.g) / 2);
+      const bgB = Math.round((tlBg.b + trBg.b) / 2);
+      const bgColor = {
+        r: bgR,
+        g: bgG,
+        b: bgB,
+        hex: `#${bgR.toString(16).padStart(2, '0')}${bgG.toString(16).padStart(2, '0')}${bgB.toString(16).padStart(2, '0')}`
+      };
+      
+      resolve({ skinColor, hairColor, bgColor });
+    };
+    img.src = imageDataUrl;
+  });
+}
+
+function classifySkinToneColor(c) {
+  const brightness = (c.r + c.g + c.b) / 3;
+  if (brightness > 210) return 'Tez muy clara / porcelana';
+  if (brightness > 185) return 'Tez clara / beige o arena dorada';
+  if (brightness > 140) {
+    if (c.r - c.b > 25) return 'Tez morena clara / oliva cálida';
+    return 'Tez media neutra';
+  }
+  if (brightness > 90) return 'Tez bronceada media / canela';
+  return 'Tez morena oscura / ébano';
+}
+
+function classifyHairColorRGB(c) {
+  const brightness = (c.r + c.g + c.b) / 3;
+  // Blonde: high green and red, lower blue (yellow shade)
+  if (brightness > 125 && c.r > 130 && c.g > 110 && c.b < 120) {
+    if (c.r - c.b > 45) return 'Rubio dorado cálido';
+    return 'Rubio ceniza';
+  }
+  // Redhead: high red, lower green and blue
+  if (c.r > 110 && c.r - c.g > 20 && c.g - c.b > 5) {
+    return 'Pelirrojo cobrizo natural';
+  }
+  // Grey/White: very balanced, high brightness
+  if (brightness > 150 && Math.abs(c.r - c.g) < 12 && Math.abs(c.g - c.b) < 12) {
+    return 'Gris plateado / canoso';
+  }
+  // Brown categories
+  if (brightness > 90) return 'Castaño claro';
+  if (brightness > 45) return 'Castaño oscuro chocolate';
+  return 'Negro azabache';
+}
+
+async function generateDetailedJSON(imageDataUrl, colors) {
+  // Extract spatial color properties (skin, hair, background)
+  let spatial = {
+    skinColor: { r: 200, g: 170, b: 150, hex: '#c8aa96' },
+    hairColor: { r: 74, g: 55, b: 40, hex: '#4a3728' },
+    bgColor: { r: 160, g: 160, b: 160, hex: '#a0a0a0' }
+  };
+  try {
+    spatial = await extractSpatialColorProperties(imageDataUrl);
+  } catch (e) {
+    console.warn("Failed to extract spatial color properties, using dominants:", e);
+  }
+
+  const skinTone = classifySkinToneColor(spatial.skinColor);
+  const hairColor = classifyHairColorRGB(spatial.hairColor);
   const lightingType = classifyLighting(colors);
   const backgroundDesc = classifyBackground(colors);
 
-  const skinHex = colors[1]?.hex || '#c8a888';
-  const hairHex = colors[2]?.hex || '#4a3728';
+  const skinHex = spatial.skinColor.hex;
+  const hairHex = spatial.hairColor.hex;
   const dominantHex = colors[0]?.hex || '#a08070';
 
   return {
@@ -1878,10 +2001,10 @@ function generateDetailedJSON(colors) {
       face_shape: "Ovalada con ángulos suaves",
       skin_tone: skinTone,
       skin_tone_hex: skinHex,
-      skin_texture: "Piel suave y uniforme, acabado semi-mate con luminosidad natural",
+      skin_texture: "Piel suave y uniforme con poros y pecas muy sutiles",
       eye_color: "Marrón cálido con destellos ámbar",
       eye_shape: "Almendrados, ligeramente rasgados",
-      eyebrow_style: "Cejas naturales pobladas con arco suave, sin exceso de maquillaje",
+      eyebrow_style: `Cejas pobladas naturales que armonizan con tono ${hairColor}`,
       nose_shape: "Nariz recta proporcionada con punta ligeramente redondeada",
       lip_shape: "Labios medianos con arco de cupido definido",
       lip_color: "Rosa natural con tono cálido melocotón",
@@ -1894,8 +2017,8 @@ function generateDetailedJSON(colors) {
     hair: {
       color: hairColor,
       color_hex: hairHex,
-      length: "Medio-largo, por debajo de los hombros",
-      texture: "Ondulado natural con movimiento orgánico",
+      length: "Largo, por debajo de los hombros",
+      texture: "Ondulado natural con cuerpo y movimiento orgánico",
       style: "Suelto y sin esfuerzo, con raya al centro ligeramente descentrada",
       parting: "Centro o ligeramente lateral izquierdo",
       highlights: "Reflejos naturales por el sol en las puntas",
