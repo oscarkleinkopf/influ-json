@@ -202,7 +202,7 @@ function selectPersona(persona) {
   document.getElementById('pHair').value = persona.hair;
   document.getElementById('pLighting').value = persona.lighting;
   document.getElementById('pCamera').value = persona.camera;
-  document.getElementById('pClothing').value = persona.clothing;
+  updateClothingDropdown(persona.clothing);
   document.getElementById('pSetting').value = persona.setting;
   
   compilePromptAndJSON();
@@ -384,6 +384,60 @@ INSTRUCCIONES PARA EL CHATBOT:
   return sections.join('\n');
 }
 
+const CLOTHING_OPTIONS_BY_GENDER = {
+  Female: [
+    "Ropa deportiva: Calzas y top deportivo de licra negro",
+    "Ropa de trabajo: Traje sastre gris con blazer entallado y blusa blanca",
+    "Sport elegante: Camisa de lino blanca holgada con vaqueros claros",
+    "Salida de noche: Vestido ajustado negro de satén con tirantes finos",
+    "Lencería sexy: Conjunto de lencería de encaje rojo con transparencias",
+    "Casual cotidiano: Suéter de punto suave en tono crema cuello redondo",
+    "Estilo playero: Vestido veraniego suelto de lino color beige",
+    "Cozy / Casa: Sudadera con capucha minimalista gris melange oversized",
+    "Cóctel / Fiesta: Mono largo de satén verde esmeralda con cinturón",
+    "Estilo urbano / Streetwear: Chaqueta de cuero negra sobre camiseta básica blanca"
+  ],
+  Male: [
+    "Ropa deportiva: Sudadera con capucha de secado rápido y joggers negros",
+    "Ropa de trabajo: Traje clásico azul marino con camisa blanca y corbata",
+    "Sport elegante: Camisa de lino blanca y pantalones chinos beige",
+    "Salida de noche: Camisa de seda negra desabrochada y pantalones oscuros",
+    "Lencería sexy: Bóxers ajustados premium de diseñador color negro",
+    "Casual cotidiano: Jersey de punto fino gris con cuello redondo",
+    "Estilo playero: Camisa guayabera blanca y bermudas de lino beige",
+    "Cozy / Casa: Sudadera con capucha minimalista azul marino oversized",
+    "Saco casual: Blazer beige sobre camiseta básica blanca",
+    "Estilo urbano / Streetwear: Chaqueta de cuero negra sobre camiseta negra con vaqueros"
+  ]
+};
+
+function updateClothingDropdown(selectedVal = null) {
+  const gender = document.getElementById('pGender').value;
+  const select = document.getElementById('pClothing');
+  if (!select) return;
+  
+  select.innerHTML = '';
+  const options = CLOTHING_OPTIONS_BY_GENDER[gender] || CLOTHING_OPTIONS_BY_GENDER.Female;
+  
+  options.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt;
+    o.textContent = opt;
+    select.appendChild(o);
+  });
+  
+  // If we have an existing value that is not in the predefined list, append it as custom option so it doesn't get lost
+  if (selectedVal && !options.includes(selectedVal)) {
+    const customOpt = document.createElement('option');
+    customOpt.value = selectedVal;
+    customOpt.textContent = `Personalizado: ${selectedVal}`;
+    customOpt.selected = true;
+    select.appendChild(customOpt);
+  } else if (selectedVal) {
+    select.value = selectedVal;
+  }
+}
+
 // Persona Engine Tab Logic
 function setupPersonaEngine() {
   const formInputs = document.querySelectorAll('#personaForm input, #personaForm select');
@@ -391,7 +445,15 @@ function setupPersonaEngine() {
     input.addEventListener('input', compilePromptAndJSON);
   });
   
+  // Update clothing select whenever gender select changes
+  document.getElementById('pGender').addEventListener('change', () => {
+    updateClothingDropdown();
+    compilePromptAndJSON();
+  });
+  
   document.getElementById('btnSavePersona').addEventListener('click', savePersona);
+  document.getElementById('btnDeletePersona').addEventListener('click', deletePersonaAction);
+  
   document.getElementById('btnCopyJSON').addEventListener('click', () => {
     const jsonArea = document.getElementById('jsonEditor');
     jsonArea.select();
@@ -425,6 +487,8 @@ function setupPersonaEngine() {
     }
   });
   
+  // Initial populate of clothing select
+  updateClothingDropdown();
   compilePromptAndJSON();
 }
 
@@ -2031,13 +2095,14 @@ function applyAnalysisToForm() {
   const p = analysisResult.photography || {};
   const c = analysisResult.clothing || {};
 
+  const genderVal = (i.gender || '').toLowerCase().includes('masc') ? 'Male' : 'Female';
   document.getElementById('pName').value = i.name || 'Nuevo Influencer';
-  document.getElementById('pGender').value = (i.gender || '').toLowerCase().includes('masc') ? 'Male' : 'Female';
+  document.getElementById('pGender').value = genderVal;
   document.getElementById('pAge').value = i.apparent_age || '25 años';
   document.getElementById('pEthnicity').value = i.ethnicity_appearance || 'Mixta';
   document.getElementById('pStyle').value = a.overall_vibe || 'Natural';
   document.getElementById('pHair').value = `${h.color || ''}, ${h.texture || ''}, ${h.length || ''}`;
-  document.getElementById('pClothing').value = `${c.type || ''} en ${c.color || ''}`;
+  updateClothingDropdown(`${c.type || ''} en ${c.color || ''}`);
   document.getElementById('pSetting').value = p.background_setting || 'Fondo neutro';
 
   compilePromptAndJSON();
@@ -2126,5 +2191,52 @@ async function saveAnalysisAsPersona() {
     }
   } catch (err) {
     showSyncToast(false, 'Error de servidor al guardar persona.');
+  }
+}
+
+async function deletePersonaAction() {
+  if (!state.selectedPersona || !state.selectedPersona.id) {
+    alert('Primero selecciona un influencer guardado para poder eliminarlo.');
+    return;
+  }
+  
+  if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente al influencer "${state.selectedPersona.name}"? Esta acción no se puede deshacer.`)) {
+    return;
+  }
+  
+  setGitSyncingState();
+  try {
+    const res = await authFetch(`/api/personas/${state.selectedPersona.id}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (data.success) {
+      state.personas = data.personas;
+      // Select the first persona if available
+      state.selectedPersona = state.personas.length > 0 ? state.personas[0] : null;
+      
+      updateDashboardStats();
+      renderPersonaGrids();
+      populateActiveUgcData();
+      
+      if (state.selectedPersona) {
+        selectPersona(state.selectedPersona);
+      } else {
+        // Clear form
+        document.getElementById('pName').value = '';
+        document.getElementById('pAge').value = '';
+        document.getElementById('pStyle').value = '';
+        document.getElementById('pSetting').value = '';
+        updateClothingDropdown('');
+      }
+      
+      if (data.gitSynced) {
+        showSyncToast(true, '¡Influencer eliminado y cambios respaldados en GitHub!');
+      } else {
+        showSyncToast(false, 'Eliminado localmente. Error en Git.');
+      }
+    }
+  } catch (err) {
+    showSyncToast(false, 'Error de servidor al eliminar.');
   }
 }

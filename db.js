@@ -557,5 +557,11 @@ module.exports = {
 
   getGalleryItems() {
     return db.prepare('SELECT * FROM prompt_gallery ORDER BY created_at DESC').all();
+  },
+
+  deletePersona(id) {
+    db.prepare('DELETE FROM personas WHERE id = ?').run(id);
+    syncDbToWorkspace();
+    return true;
   }
 };

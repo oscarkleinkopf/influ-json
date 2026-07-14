@@ -121,6 +121,13 @@ app.post('/api/personas', (req, res) => {
   });
 });
 
+app.delete('/api/personas/:id', (req, res) => {
+  dbService.deletePersona(req.params.id);
+  runGitBackup((gitSuccess, msg) => {
+    res.json({ success: true, personas: dbService.getAllPersonas(), gitSynced: gitSuccess, gitMessage: msg });
+  });
+});
+
 // Persona Versions & Revert
 app.get('/api/personas/:id/versions', (req, res) => {
   res.json(dbService.getVersionsForPersona(req.params.id));
