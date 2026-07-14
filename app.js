@@ -12,8 +12,12 @@ let state = {
   selectedLicenceDays: 90,
   galleryItems: [],
   activeTab: 'dashboard',
-  personaFilter: 'active', // 'active' or 'archived'
-  activeVariants: []
+  personaFilter: 'active', // 'active' or 'archived' for select panel
+  portfolioFilter: 'all', // 'all', 'active', 'archived'
+  portfolioSearchQuery: '',
+  activeVariants: [],
+  generationHistory: [],
+  historyFilter: 'all' // 'all', 'portrait', 'variant', 'ugc'
 };
 
 // Auth session token (stored in memory/sessionStorage)
@@ -149,6 +153,7 @@ async function fetchData() {
     
     state.personas = data.personas;
     state.products = data.products;
+    state.generationStats = data.generationStats || { total: 0 };
     
     // Set defaults
     if (state.personas.length > 0) state.selectedPersona = state.personas[0];
@@ -166,25 +171,141 @@ async function fetchData() {
 
 // Dashboard Update
 function updateDashboardStats() {
-  document.getElementById('statPersonasCount').textContent = state.personas.length;
+  const activeCount = state.personas.filter(p => !p.archived || p.archived === 0).length;
+  document.getElementById('statPersonasCount').textContent = activeCount;
   document.getElementById('statProductsCount').textContent = state.products.length;
   
+  // Total generations count from stats state
+  const totalGens = state.generationStats?.total || 0;
+  document.getElementById('statGenerationsCount').textContent = totalGens;
+
+  // Let's approximate scripts count or use campaigns
+  let scriptsCount = 0;
+  try {
+    scriptsCount = state.campaigns.length * 10;
+  } catch(e) {}
+  document.getElementById('statScriptsCount').textContent = scriptsCount || 10;
+  
   const personaGrid = document.getElementById('dashboardPersonaGrid');
+  if (!personaGrid) return;
   personaGrid.innerHTML = '';
   
-  state.personas.forEach(p => {
-    const card = document.createElement('div');
-    card.className = `persona-card ${state.selectedPersona?.id === p.id ? 'selected' : ''}`;
-    card.innerHTML = `
-      <img src="${p.image}" alt="${p.name}">
-      <div class="persona-card-info">
-        <div class="persona-card-name">${p.name}</div>
-        <div class="persona-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance}</div>
+  // Apply search query and filters
+  let filtered = [...state.personas];
+  
+  // Filter by active/archived state
+  if (state.portfolioFilter === 'active') {
+    filtered = filtered.filter(p => !p.archived || p.archived === 0);
+  } else if (state.portfolioFilter === 'archived') {
+    filtered = filtered.filter(p => p.archived === 1);
+  }
+  
+  // Search query filter
+  if (state.portfolioSearchQuery) {
+    const q = state.portfolioSearchQuery.toLowerCase();
+    filtered = filtered.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      (p.style && p.style.toLowerCase().includes(q)) ||
+      (p.ethnicity && p.ethnicity.toLowerCase().includes(q)) ||
+      (p.gender && p.gender.toLowerCase().includes(q))
+    );
+  }
+  
+  if (filtered.length === 0) {
+    personaGrid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 40px; font-size: 14px;">
+        🔍 No se encontraron influencers que coincidan con la búsqueda o filtro.
       </div>
     `;
-    card.addEventListener('click', () => selectPersona(p));
+    return;
+  }
+  
+  filtered.forEach(p => {
+    // Find generation counts for this persona from stats
+    let personaGens = 0;
+    if (state.generationStats?.byPersona) {
+      const pStat = state.generationStats.byPersona.find(s => s.persona_id === p.id);
+      if (pStat) personaGens = pStat.count;
+    }
+
+    const card = document.createElement('div');
+    const isSelected = state.selectedPersona?.id === p.id;
+    card.className = `portfolio-card ${isSelected ? 'selected' : ''}`;
+    if (p.archived === 1) card.classList.add('archived-style');
+
+    card.innerHTML = `
+      <div class="portfolio-card-img-wrapper">
+        <img src="${p.image}" alt="${p.name}">
+        <span class="portfolio-badge badge-style">${p.style || 'Lifestyle'}</span>
+        ${p.archived === 1 ? '<span class="portfolio-badge badge-archived">Archivado</span>' : ''}
+      </div>
+      <div class="portfolio-card-info">
+        <div class="portfolio-card-title-row">
+          <div class="portfolio-card-name">${p.name}</div>
+          <div class="portfolio-card-gens">📸 ${personaGens} gen</div>
+        </div>
+        <div class="portfolio-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance || 'Latina'}</div>
+        <div class="portfolio-card-actions">
+          <button class="btn btn-primary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
+          <button class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
+          <button class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${p.archived === 1 ? 'Desarchivar' : 'Archivar'}</button>
+        </div>
+      </div>
+    `;
+
+    // Click on card selects influencer and navigates
+    card.querySelector('.btn-quick-select').addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectPersona(p);
+      navigateToTab('persona-engine');
+    });
+
+    card.querySelector('.btn-quick-history').addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectPersona(p);
+      navigateToTab('persona-engine');
+      // Scroll to history and show it
+      setTimeout(() => {
+        const histSec = document.getElementById('generationHistorySection');
+        if (histSec) {
+          histSec.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 300);
+    });
+
+    card.querySelector('.btn-quick-archive').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      // Select the persona first so the action acts on it
+      state.selectedPersona = p;
+      await archivePersonaAction();
+    });
+
+    // Make clicking the card select it too
+    card.addEventListener('click', () => {
+      selectPersona(p);
+    });
+
     personaGrid.appendChild(card);
   });
+}
+
+function setPortfolioFilter(filter) {
+  state.portfolioFilter = filter;
+  
+  // Toggle active class on filter buttons
+  document.getElementById('btnPortfolioAll').classList.toggle('active', filter === 'all');
+  document.getElementById('btnPortfolioActive').classList.toggle('active', filter === 'active');
+  document.getElementById('btnPortfolioArchived').classList.toggle('active', filter === 'archived');
+  
+  updateDashboardStats();
+}
+
+function navigateToTab(tabId) {
+  // Simulates nav item click
+  const navItem = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('data-tab') === tabId);
+  if (navItem) {
+    navItem.click();
+  }
 }
 
 // Select Persona
@@ -251,6 +372,7 @@ function selectPersona(persona) {
   }
 
   compilePromptAndJSON();
+  loadGenerationHistory(persona.id);
 }
 
 // Render Select grids in tabs
@@ -581,8 +703,18 @@ function compilePromptAndJSON() {
   const smileType = document.getElementById('pSmileType').value;
   const bodyType = document.getElementById('pBodyType').value;
   
-  // Prompt builder natural language compilation - UGC style (iPhone raw selfie snapshot)
-  const prompt = `Amateur casual UGC style, ${camera}. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with a ${smileType} and a ${faceShape} face, looking at camera. ${skinTone} (${skinTexture}), ${hairColor} ${hairTexture} ${hairLength} hair (${hair}), ${eyebrows}, ${eyeColor} eyes, ${lips}, ${bodyType} body build, wearing ${clothing}. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections.`;
+  // Get hex codes from detailedJSON for color precision
+  let skinHex = '', hairHex = '';
+  try {
+    const dj = state.selectedPersona?.detailedJSON;
+    const parsed = dj ? (typeof dj === 'string' ? JSON.parse(dj) : dj) : {};
+    skinHex = parsed.facial_features?.skin_tone_hex || '';
+    hairHex = parsed.hair?.color_hex || '';
+  } catch(e) {}
+  const hexHint = (skinHex || hairHex) ? ` Exact skin color ${skinHex || 'natural'}, exact hair color ${hairHex || 'natural'}.` : '';
+
+  // Prompt builder - UGC style with high-fidelity facial anchoring
+  const prompt = `Amateur casual UGC style, ${camera}. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with ${hairColor} ${hairTexture} ${hairLength} hair, ${skinTone} skin, ${eyeColor} eyes, ${eyebrows}, ${lips}, ${faceShape} face, ${smileType}, ${bodyType} body build.${hexHint} Wearing ${clothing}. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections. Same person in all shots, consistent facial identity.`;
   document.getElementById('promptPreview').textContent = prompt;
   
   // JSON builder compilation
@@ -645,7 +777,12 @@ async function savePersona() {
   try {
     const imgRes = await authFetch('/api/ai/generate-image', {
       method: 'POST',
-      body: JSON.stringify({ prompt: promptText, referenceLocalPath: uploadedImagePath || state.selectedPersona?.image })
+      body: JSON.stringify({ 
+        prompt: promptText, 
+        referenceLocalPath: uploadedImagePath || state.selectedPersona?.image,
+        personaId: state.selectedPersona?.id || 'new_persona',
+        generationType: 'portrait'
+      })
     });
     const imgData = await imgRes.json();
     if (imgData.success && imgData.imagePath) {
@@ -681,11 +818,15 @@ async function savePersona() {
       uploadedImagePath = null; // Clear upload path after successful save
       // Select newly saved persona
       const saved = state.personas.find(p => p.name.toLowerCase() === name.toLowerCase());
-      if (saved) state.selectedPersona = saved;
+      if (saved) {
+        selectPersona(saved);
+      }
       
+      // Refresh stats
+      const dataRes = await authFetch('/api/data');
+      const dataJson = await dataRes.json();
+      state.generationStats = dataJson.generationStats || { total: 0 };
       updateDashboardStats();
-      renderPersonaGrids();
-      populateActiveUgcData();
       
       if (data.gitSynced) {
         showSyncToast(true, '¡Persona guardada y respaldada en GitHub con su retrato virtual!');
@@ -1310,9 +1451,15 @@ async function generateAIImageAction() {
   statusText.textContent = 'Invocando generador de imágenes Imagen 3...';
   
   try {
+    const bodyPayload = { prompt };
+    if (state.selectedPersona) {
+      bodyPayload.personaId = state.selectedPersona.id;
+      bodyPayload.generationType = 'ugc';
+    }
+    
     const res = await authFetch('/api/ai/generate-image', {
       method: 'POST',
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify(bodyPayload)
     });
     const data = await res.json();
     
@@ -1320,6 +1467,15 @@ async function generateAIImageAction() {
       document.getElementById('mockupImage').src = data.imagePath;
       statusText.textContent = '✓ Imagen generada y cargada en mockup!';
       setTimeout(() => statusCard.style.display = 'none', 3000);
+      
+      // Refresh stats & load history
+      const dataRes = await authFetch('/api/data');
+      const dataJson = await dataRes.json();
+      state.generationStats = dataJson.generationStats || { total: 0 };
+      updateDashboardStats();
+      if (state.selectedPersona) {
+        loadGenerationHistory(state.selectedPersona.id);
+      }
     } else {
       statusText.textContent = '⚠ La API está offline. Copia el prompt para generarlo gratis.';
       setTimeout(() => statusCard.style.display = 'none', 5000);
@@ -2291,13 +2447,15 @@ function buildPromptFromAnalysis(data) {
   const c = data.clothing || {};
   const a = data.aesthetic || {};
 
-  return `Amateur casual UGC style photo, ${p.camera_lens || 'iPhone front camera selfie'}. A ${i.apparent_age || '25'} ${i.ethnicity_appearance || ''} ${i.gender || 'female'} influencer, looking at camera with a natural expression. ` +
-    `${f.face_shape || ''} face, ${f.skin_tone || ''} skin, ${f.eye_color || ''} eyes, ${f.lip_shape || ''}. ` +
-    `${h.color || ''} ${h.texture || ''} hair, ${h.style || ''}. ` +
+  const skinHex = f.skin_tone_hex ? ` Exact skin color ${f.skin_tone_hex}.` : '';
+  const hairHex = h.color_hex ? ` Exact hair color ${h.color_hex}.` : '';
+
+  return `Amateur casual UGC style photo, ${p.camera_lens || 'iPhone front camera selfie'}. A ${i.apparent_age || '25'} ${i.ethnicity_appearance || ''} ${i.gender || 'female'} influencer with ${h.color || ''} ${h.texture || ''} hair, ${f.skin_tone || ''} skin, ${f.eye_color || ''} eyes, ${f.eyebrow_style || ''}, ${f.lip_shape || ''}, ${f.face_shape || ''} face. ` +
+    `${skinHex}${hairHex} ` +
     `Wearing ${c.type || ''} in ${c.color || ''}. ` +
     `Background: ${p.background_setting || 'casual indoor room'}. ` +
     `${p.lighting_type || 'daylight from window'}, ${p.color_grade || 'natural unedited colors'}, ` +
-    `raw mobile snapshot quality, natural skin texture with realistic details, no filters, unedited mobile photo.`;
+    `raw mobile snapshot quality, natural skin texture with realistic details, no filters, unedited mobile photo. Same person in all shots, consistent facial identity.`;
 }
 
 function applyAnalysisToForm() {
@@ -2612,9 +2770,14 @@ async function generateVariantAction() {
   const genderWord = p.gender === 'Male' ? 'Masculino' : 'Femenino';
   const age = detailed.identity?.apparent_age || p.age || '25 años';
   const ethnicity = detailed.identity?.ethnicity_appearance || p.ethnicity || 'Latina';
-  const hair = detailed.hair ? `${detailed.hair.color || ''} ${detailed.hair.texture || ''}` : p.hair;
+  const hair = detailed.hair ? `${detailed.hair.color || ''} ${detailed.hair.texture || ''} ${detailed.hair.length || ''}` : p.hair;
+  const skinTone = detailed.facial_features?.skin_tone || '';
+  const eyeColor = detailed.facial_features?.eye_color || '';
+  const faceShape = detailed.facial_features?.face_shape || '';
+  const skinHex = detailed.facial_features?.skin_tone_hex ? ` Exact skin color ${detailed.facial_features.skin_tone_hex}.` : '';
+  const hairHex = detailed.hair?.color_hex ? ` Exact hair color ${detailed.hair.color_hex}.` : '';
   
-  const variantPrompt = `Amateur casual UGC style, ${pose}. A ${age} ${ethnicity} ${genderWord.toLowerCase()} influencer ${attitude}. ${hair}, wearing ${clothing}. Background is ${setting}. Natural indoor light, raw photo format, shot on mobile camera, consistent face characteristics, realistic skin texture.`;
+  const variantPrompt = `Amateur casual UGC style, ${pose}. A ${age} ${ethnicity} ${genderWord.toLowerCase()} influencer ${attitude}. ${hair} hair, ${skinTone} skin, ${eyeColor} eyes, ${faceShape} face.${skinHex}${hairHex} Wearing ${clothing}. Background is ${setting}. Natural indoor light, raw photo format, shot on mobile camera, same person consistent facial identity, realistic skin texture.`;
   
   try {
     const res = await authFetch(`/api/personas/${p.id}/variants`, {
@@ -2669,7 +2832,18 @@ async function archivePersonaAction() {
 }
 
 function setupVariantManager() {
-  document.getElementById('btnGenerateVariant').addEventListener('click', generateVariantAction);
+  document.getElementById('btnGenerateVariant').addEventListener('click', async () => {
+    await generateVariantAction();
+    // Refresh stats & history when a variant is generated
+    const dataRes = await authFetch('/api/data');
+    const data = await dataRes.json();
+    state.generationStats = data.generationStats || { total: 0 };
+    updateDashboardStats();
+    if (state.selectedPersona) {
+      loadGenerationHistory(state.selectedPersona.id);
+    }
+  });
+  
   document.getElementById('btnArchivePersona').addEventListener('click', archivePersonaAction);
   
   // Set up Active / Archived filter buttons
@@ -2693,4 +2867,188 @@ function setupVariantManager() {
     btnActive.style.color = 'var(--text-secondary)';
     renderPersonaGrids();
   });
+
+  // Portfolio search input listener
+  const portfolioSearchInput = document.getElementById('portfolioSearch');
+  if (portfolioSearchInput) {
+    portfolioSearchInput.addEventListener('input', (e) => {
+      state.portfolioSearchQuery = e.target.value;
+      updateDashboardStats();
+    });
+  }
 }
+
+// Visual Generation History Implementation
+async function loadGenerationHistory(personaId) {
+  const historySection = document.getElementById('generationHistorySection');
+  const historyGrid = document.getElementById('generationHistoryGrid');
+  const historyName = document.getElementById('historyInfluencerName');
+  const emptyMsg = document.getElementById('historyEmptyMsg');
+
+  if (!historySection || !historyGrid) return;
+
+  historyName.textContent = state.selectedPersona?.name || '';
+  historySection.style.display = 'block';
+  historyGrid.innerHTML = '';
+  emptyMsg.style.display = 'none';
+
+  try {
+    const res = await authFetch(`/api/personas/${personaId}/generations`);
+    const data = await res.json();
+    if (data.success) {
+      state.generationHistory = data.generations;
+      renderGenerationHistory();
+    }
+  } catch (err) {
+    console.error('Error loading generation history:', err);
+  }
+}
+
+function renderGenerationHistory() {
+  const historyGrid = document.getElementById('generationHistoryGrid');
+  const emptyMsg = document.getElementById('historyEmptyMsg');
+  if (!historyGrid) return;
+
+  historyGrid.innerHTML = '';
+
+  let filtered = [...state.generationHistory];
+  if (state.historyFilter !== 'all') {
+    filtered = filtered.filter(g => g.generation_type === state.historyFilter);
+  }
+
+  if (filtered.length === 0) {
+    emptyMsg.style.display = 'block';
+    return;
+  }
+
+  emptyMsg.style.display = 'none';
+
+  filtered.forEach(gen => {
+    const card = document.createElement('div');
+    card.className = 'history-card';
+    
+    // Format timestamp nicely
+    const dateStr = new Date(gen.created_at).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Badge styling matching type
+    let typeClass = 'badge-style';
+    let typeLabel = 'Retrato';
+    if (gen.generation_type === 'variant') {
+      typeClass = 'badge-variant';
+      typeLabel = 'Variante';
+    } else if (gen.generation_type === 'ugc') {
+      typeClass = 'badge-ugc';
+      typeLabel = 'UGC Post';
+    }
+
+    card.innerHTML = `
+      <img src="${gen.image_path}" alt="Generation image" class="history-card-img">
+      <div class="history-card-overlay">
+        <span class="history-type-badge ${typeClass}">${typeLabel}</span>
+        <div class="history-card-meta">
+          <div class="history-card-date">${dateStr}</div>
+          <div class="history-card-prompt">${gen.prompt || 'Sin prompt'}</div>
+        </div>
+      </div>
+    `;
+
+    card.addEventListener('click', () => openHistoryModal(gen));
+    historyGrid.appendChild(card);
+  });
+}
+
+function setHistoryFilter(filter) {
+  state.historyFilter = filter;
+  
+  // Toggle active class on filter buttons
+  document.getElementById('btnHistAll').classList.toggle('active', filter === 'all');
+  document.getElementById('btnHistPortrait').classList.toggle('active', filter === 'portrait');
+  document.getElementById('btnHistVariant').classList.toggle('active', filter === 'variant');
+  document.getElementById('btnHistUgc').classList.toggle('active', filter === 'ugc');
+  
+  renderGenerationHistory();
+}
+
+function openHistoryModal(gen) {
+  const modal = document.getElementById('historyModal');
+  const img = document.getElementById('historyModalImage');
+  const typeBadge = document.getElementById('historyModalType');
+  const dateEl = document.getElementById('historyModalDate');
+  const promptEl = document.getElementById('historyModalPrompt');
+  const deleteBtn = document.getElementById('historyModalDelete');
+
+  if (!modal) return;
+
+  img.src = gen.image_path;
+  
+  let typeLabel = 'Retrato Principal';
+  if (gen.generation_type === 'variant') typeLabel = 'Pose / Variante';
+  if (gen.generation_type === 'ugc') typeLabel = 'UGC Producto';
+  
+  typeBadge.textContent = typeLabel;
+  typeBadge.className = `history-type-badge ${gen.generation_type === 'variant' ? 'badge-variant' : gen.generation_type === 'ugc' ? 'badge-ugc' : 'badge-style'}`;
+
+  const dateStr = new Date(gen.created_at).toLocaleString('es-ES', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  });
+  dateEl.textContent = `Generado el: ${dateStr}`;
+  promptEl.textContent = gen.prompt || 'Sin prompt detallado.';
+
+  // Clone delete button to strip old event listeners
+  const newDeleteBtn = deleteBtn.cloneNode(true);
+  deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+
+  newDeleteBtn.addEventListener('click', () => {
+    deleteGenerationAction(gen.id);
+  });
+
+  modal.style.display = 'flex';
+}
+
+function closeHistoryModal() {
+  const modal = document.getElementById('historyModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function deleteGenerationAction(id) {
+  if (!confirm('¿Estás seguro de que deseas eliminar esta imagen de tu historial?')) return;
+  
+  try {
+    const res = await authFetch(`/api/generations/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      closeHistoryModal();
+      
+      // Update generation history list
+      state.generationHistory = state.generationHistory.filter(g => g.id !== id);
+      renderGenerationHistory();
+      
+      // Update stats and dashboard
+      const dataRes = await authFetch('/api/data');
+      const dataJson = await dataRes.json();
+      state.generationStats = dataJson.generationStats || { total: 0 };
+      updateDashboardStats();
+
+      showSyncToast(true, 'Imagen eliminada del historial.');
+    }
+  } catch (e) {
+    showSyncToast(false, 'Error al eliminar del historial.');
+  }
+}
+
+// Global modal click-away
+window.addEventListener('click', (e) => {
+  const modal = document.getElementById('historyModal');
+  if (e.target === modal) {
+    closeHistoryModal();
+  }
+});
+window.closeHistoryModal = closeHistoryModal;
+window.setPortfolioFilter = setPortfolioFilter;
+window.setHistoryFilter = setHistoryFilter;

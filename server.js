@@ -106,7 +106,8 @@ app.use('/api', authService.requireAuth);
 app.get('/api/data', (req, res) => {
   const personas = dbService.getAllPersonas();
   const products = dbService.getAllProducts();
-  res.json({ personas, products });
+  const generationStats = dbService.getGenerationStats();
+  res.json({ personas, products, generationStats });
 });
 
 // Personas endpoints
@@ -115,7 +116,15 @@ app.get('/api/personas', (req, res) => {
 });
 
 app.post('/api/personas', (req, res) => {
+  const isNew = !req.body.id;
   const persona = dbService.savePersona(req.body);
+  if (isNew && persona && persona.id) {
+    try {
+      dbService.updateGenerationPersonaId('new_persona', persona.id);
+    } catch (err) {
+      console.warn('Failed to update generation history persona ID:', err.message);
+    }
+  }
   runGitBackup((gitSuccess, msg) => {
     res.json({ success: true, personas: dbService.getAllPersonas(), persona, gitSynced: gitSuccess, gitMessage: msg });
   });
@@ -181,6 +190,18 @@ app.post('/api/personas/:id/variants', async (req, res) => {
           setting,
           image_path: imagePath
         });
+        // Save to generation history
+        try {
+          dbService.saveGeneration({
+            persona_id: req.params.id,
+            prompt: req.body.prompt,
+            image_path: imagePath,
+            generation_type: 'variant',
+            metadata: JSON.stringify({ pose: req.body.pose, clothing: req.body.clothing, attitude: req.body.attitude, setting: req.body.setting })
+          });
+        } catch (histErr) {
+          console.warn('Failed to save variant generation history:', histErr.message);
+        }
         runGitBackup((gitSuccess, msg) => {
           res.json({ success: true, variant, variants: dbService.getVariantsForPersona(req.params.id), gitSynced: gitSuccess, gitMessage: msg });
         });
@@ -286,6 +307,34 @@ app.post('/api/gallery', (req, res) => {
   });
 });
 
+// Generation History endpoints
+app.get('/api/personas/:id/generations', (req, res) => {
+  try {
+    const generations = dbService.getGenerationsForPersona(req.params.id);
+    res.json({ success: true, generations });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/generations/:id', (req, res) => {
+  try {
+    dbService.deleteGeneration(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/stats/generations', (req, res) => {
+  try {
+    const stats = dbService.getGenerationStats();
+    res.json({ success: true, stats });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // AI endpoints
 app.post('/api/ai/analyze-photo', (req, res) => {
   const { imagePath } = req.body;
@@ -322,8 +371,20 @@ app.post('/api/ai/generate-image', async (req, res) => {
   }
 
   aiService.generateInfluencerImage(prompt, referenceUrl)
-    .then(result => {
-      res.json({ success: true, imagePath: result });
+    .then(imagePath => {
+      // Save to generation history
+      try {
+        dbService.saveGeneration({
+          persona_id: req.body.personaId || 'unknown',
+          prompt: req.body.prompt,
+          image_path: imagePath,
+          generation_type: req.body.generationType || 'portrait',
+          metadata: JSON.stringify({ referenceImage: req.body.referenceImage || null })
+        });
+      } catch (histErr) {
+        console.warn('Failed to save generation history:', histErr.message);
+      }
+      res.json({ success: true, imagePath });
     })
     .catch(err => {
       res.status(500).json({ success: false, message: err.message });
