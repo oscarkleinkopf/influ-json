@@ -376,7 +376,7 @@ module.exports = {
   },
 
   getVersionsForPersona(personaId) {
-    return db.prepare('SELECT * FROM versions WHERE persona_id = ? ORDER BY created_at DESC').all();
+    return db.prepare('SELECT * FROM versions WHERE persona_id = ? ORDER BY created_at DESC').all(personaId);
   },
 
   revertPersonaVersion(personaId, versionId) {
