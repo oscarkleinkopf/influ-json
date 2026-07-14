@@ -481,8 +481,28 @@ async function savePersona() {
   const clothing = document.getElementById('pClothing').value;
   const setting = document.getElementById('pSetting').value;
   
+  const promptText = document.getElementById('promptPreview').textContent;
+  showSyncToast(true, 'Generando retrato virtual consistente con Nano Banana...');
+  
+  let portraitPath = state.selectedPersona?.image;
+  try {
+    const imgRes = await authFetch('/api/ai/generate-image', {
+      method: 'POST',
+      body: JSON.stringify({ prompt: promptText })
+    });
+    const imgData = await imgRes.json();
+    if (imgData.success && imgData.imagePath) {
+      portraitPath = imgData.imagePath;
+    }
+  } catch (err) {
+    console.warn('Image generation failed or offline. Using existing or default image.');
+  }
+
   const personaData = {
-    name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting
+    name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting,
+    image: portraitPath || state.selectedPersona?.image || (gender === 'Male' ? 'assets/influencer_male.png' : 'assets/influencer_female.png'),
+    imageUGC: portraitPath || state.selectedPersona?.imageUGC || (gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/influencer_female_serum.png'),
+    detailedJSON: getFullPersonaJSON()
   };
   
   if (state.selectedPersona?.id) {
@@ -507,7 +527,7 @@ async function savePersona() {
       populateActiveUgcData();
       
       if (data.gitSynced) {
-        showSyncToast(true, '¡Persona guardada y respaldada en GitHub!');
+        showSyncToast(true, '¡Persona guardada y respaldada en GitHub con su retrato virtual!');
       } else {
         showSyncToast(false, 'Guardado localmente. Error en Git.');
       }
@@ -2022,6 +2042,24 @@ function applyAnalysisToForm() {
 async function saveAnalysisAsPersona() {
   if (!analysisResult) return;
 
+  showSyncToast(true, 'Generando retrato virtual consistente con Nano Banana...');
+  
+  const promptText = buildPromptFromAnalysis(analysisResult);
+  let portraitPath = uploadedImagePath;
+  
+  try {
+    const imgRes = await authFetch('/api/ai/generate-image', {
+      method: 'POST',
+      body: JSON.stringify({ prompt: promptText })
+    });
+    const imgData = await imgRes.json();
+    if (imgData.success && imgData.imagePath) {
+      portraitPath = imgData.imagePath;
+    }
+  } catch (err) {
+    console.warn('Image generation failed or offline. Using reference photo as fallback.');
+  }
+
   const i = analysisResult.identity || {};
   const f = analysisResult.facial_features || {};
   const h = analysisResult.hair || {};
@@ -2040,13 +2078,10 @@ async function saveAnalysisAsPersona() {
     camera: p.camera_lens || 'DSLR portrait photograph, 50mm lens',
     clothing: `${c.type || ''} en ${c.color || ''}`,
     setting: p.background_setting || 'Fondo neutro',
-    detailedJSON: analysisResult
+    detailedJSON: analysisResult,
+    image: portraitPath || 'assets/influencer_female.png',
+    imageUGC: portraitPath || 'assets/influencer_female_serum.png'
   };
-
-  if (uploadedImagePath) {
-    personaData.image = uploadedImagePath;
-    personaData.imageUGC = uploadedImagePath;
-  }
 
   setGitSyncingState();
   try {
