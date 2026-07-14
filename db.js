@@ -183,6 +183,107 @@ function runMigrations() {
       }
     }
   }
+  
+  // Ensure "Nano Banana" influencer is always in the database
+  const checkNano = db.prepare("SELECT COUNT(*) as count FROM personas WHERE name = 'Nano Banana'").get();
+  if (checkNano.count === 0) {
+    const id = uuidv4();
+    const nanoBananaDetailedJSON = {
+      identity: {
+        name: "Nano Banana",
+        gender: "Femenino",
+        apparent_age: "24 años",
+        ethnicity_appearance: "Latina / Mediterránea",
+        body_type: "Atlético / Proporcionado",
+        persona_archetype: "Lifestyle & Bienestar"
+      },
+      facial_features: {
+        face_shape: "Ovalada con ángulos suaves",
+        skin_tone: "Medio cálido / arena dorada",
+        skin_tone_hex: "#d3a682",
+        skin_texture: "Piel suave y uniforme, acabado semi-mate con luminosidad natural",
+        eye_color: "Marrón cálido con destellos ámbar",
+        eye_shape: "Almendrados, ligeramente rasgados",
+        eyebrow_style: "Cejas naturales pobladas con arco suave, sin exceso de maquillaje",
+        nose_shape: "Nariz recta proporcionada con punta ligeramente redondeada",
+        lip_shape: "Labios medianos con arco de cupido definido",
+        lip_color: "Rosa natural con tono cálido melocotón",
+        jawline: "Mandíbula suave y femenina con mentón redondeado",
+        cheekbones: "Pómulos moderadamente altos con rubor natural",
+        facial_hair: "Ninguno",
+        distinctive_marks: "Sin marcas distintivas visibles",
+        smile_type: "Sonrisa cálida y accesible, dientes alineados"
+      },
+      hair: {
+        color: "Castaño medio natural",
+        color_hex: "#4a3728",
+        length: "Medio-largo, por debajo de los hombros",
+        texture: "Ondulado natural con movimiento orgánico",
+        style: "Suelto y sin esfuerzo, con raya al centro ligeramente descentrada",
+        parting: "Centro o ligeramente lateral izquierdo",
+        highlights: "Reflejos naturales por el sol en las puntas",
+        volume: "Volumen medio con cuerpo saludable"
+      },
+      aesthetic: {
+        overall_vibe: "Natural, fresca, accesible y aspiracional",
+        fashion_style: "Casual chic con piezas de calidad minimalista",
+        color_palette_dominant: "#a08070",
+        color_palette_description: "Paleta cálida centrada en tonos tierra y neutros suaves",
+        makeup_level: "Maquillaje mínimo o 'no-makeup makeup': base ligera, rubor, máscara, gloss natural",
+        accessories: "Aretes pequeños dorados, posible collar delicado, reloj minimalista",
+        nails: "Uñas naturales cortas con tono nude o transparente"
+      },
+      photography: {
+        camera_lens: "iPhone 15 Pro front camera selfie",
+        focal_length: "24mm (equivalente en celular)",
+        aperture: "f/1.9 (cámara frontal de celular)",
+        lighting_type: "Luz natural cálida, suave y difusa desde ventana",
+        lighting_direction: "Luz natural frontal-lateral directa",
+        color_grade: "Aspecto natural sin filtros, balance de blancos automático de celular",
+        color_temperature: "5500-6000K (luz natural de día)",
+        depth_of_field: "Profundidad de campo típica de celular, fondo ligeramente legible",
+        background_setting: "Sala de estar moderna y minimalista con plantas de interior",
+        background_blur: "Desenfoque natural de lente de celular (sin bokeh exagerado)",
+        composition: "Sujeto centrado en plano de autorretrato (selfie)",
+        framing: "Plano medio-corto (selfie de brazo extendido), crop 4:5 para Instagram",
+        mood: "Casual, espontáneo, cotidiano y auténtico",
+        post_processing: "Foto RAW móvil sin filtros, aspecto amateur natural"
+      },
+      clothing: {
+        type: "Top de tejido suave o blusa casual elegante",
+        color: "Verde claro",
+        material: "Algodón orgánico, lino o punto fino",
+        neckline: "Cuello redondo o V abierto casual",
+        fit: "Semi-ajustado, silueta relajada y halagadora",
+        visible_brand_logos: "Ninguno (estética clean sin branding visible)"
+      },
+      anchor_reference: "assets/nano_banana_influencer.png",
+      generation_prompt: "Amateur casual UGC style, iPhone 15 Pro front camera selfie. A 24 años Latina / Mediterránea Femenino influencer with a very natural expression, looking at camera. Castaño medio natural, Ondulado natural con movimiento orgánico, Medio-largo, por debajo de los hombros, wearing Top de tejido suave o blusa casual elegante en Verde claro. Background is a Sala de estar moderna y minimalista con plantas de interior. Luz natural cálida, suave y difusa desde ventana, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections."
+    };
+
+    db.prepare(`
+      INSERT INTO personas (id, name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting, image, imageUGC, handle, detailedJSON)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      "Nano Banana",
+      "Female",
+      "24 años",
+      "Latina / Mediterránea",
+      "Natural, fresca, accesible y aspiracional",
+      "Castaño medio natural, Ondulado natural con movimiento orgánico, Medio-largo, por debajo de los hombros",
+      "Luz natural cálida, suave y difusa desde ventana",
+      "iPhone 15 Pro front camera selfie",
+      "Top de tejido suave o blusa casual elegante en Verde claro",
+      "Sala de estar moderna y minimalista con plantas de interior",
+      "assets/nano_banana_influencer.png",
+      "assets/nano_banana_ugc.png",
+      "@nano_banana_ai",
+      JSON.stringify(nanoBananaDetailedJSON)
+    );
+    console.log("Successfully seeded Nano Banana influencer into database.");
+  }
+
   syncDbToWorkspace();
 }
 
