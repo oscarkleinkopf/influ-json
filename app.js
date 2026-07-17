@@ -156,7 +156,9 @@ async function fetchData() {
     state.generationStats = data.generationStats || { total: 0 };
     
     // Set defaults
-    if (state.personas.length > 0) state.selectedPersona = state.personas[0];
+    if (state.personas.length > 0) {
+      selectPersona(state.personas[0]);
+    }
     if (state.products.length > 0) state.selectedProduct = state.products[0];
     
     updateDashboardStats();
@@ -373,6 +375,7 @@ function selectPersona(persona) {
 
   compilePromptAndJSON();
   loadGenerationHistory(persona.id);
+  loadCharacterBible("");
 }
 
 // Render Select grids in tabs
@@ -672,10 +675,69 @@ function setupPersonaEngine() {
       alert('Error al guardar en la galería.');
     }
   });
+
+  // Tab Switcher for right column panel
+  const btnTabBible = document.getElementById('btnTabBible');
+  const btnTabJson = document.getElementById('btnTabJson');
+  const contentBibleTab = document.getElementById('contentBibleTab');
+  const contentJsonTab = document.getElementById('contentJsonTab');
+
+  if (btnTabBible && btnTabJson && contentBibleTab && contentJsonTab) {
+    btnTabBible.addEventListener('click', () => {
+      btnTabBible.classList.add('active');
+      btnTabJson.classList.remove('active');
+      contentBibleTab.classList.add('active');
+      contentBibleTab.style.display = 'flex';
+      contentJsonTab.classList.remove('active');
+      contentJsonTab.style.display = 'none';
+    });
+
+    btnTabJson.addEventListener('click', () => {
+      btnTabJson.classList.add('active');
+      btnTabBible.classList.remove('active');
+      contentJsonTab.classList.add('active');
+      contentJsonTab.style.display = 'flex';
+      contentBibleTab.classList.remove('active');
+      contentBibleTab.style.display = 'none';
+    });
+  }
+
+  // Regenerate Character Bible on scene change
+  const btnRegenerateBible = document.getElementById('btnRegenerateBible');
+  if (btnRegenerateBible) {
+    btnRegenerateBible.addEventListener('click', () => {
+      const sceneInput = document.getElementById('sceneDescriptionInput');
+      const val = sceneInput ? sceneInput.value.trim() : "";
+      if (state.selectedPersona) {
+        loadCharacterBible(val);
+      }
+    });
+  }
+
+  // Copy Buttons for Character Bible fields
+  setupCopyButton('btnCopyLockPrompt', 'bibleLockPrompt', 'Rasgos Bloqueados');
+  setupCopyButton('btnCopyPositivePrompt', 'biblePositivePrompt', 'Prompt Positivo Unificado');
+  setupCopyButton('btnCopyMjPrompt', 'bibleMjPrompt', 'Prompt de Midjourney');
+  setupCopyButton('btnCopyFluxPrompt', 'bibleFluxPrompt', 'Prompt de Flux');
+  setupCopyButton('btnCopyLeonardoPrompt', 'bibleLeonardoPrompt', 'Prompt de Leonardo');
+  setupCopyButton('btnCopyIdeogramPrompt', 'bibleIdeogramPrompt', 'Prompt de Ideogram');
   
   // Initial populate of clothing select
   updateClothingDropdown();
   compilePromptAndJSON();
+}
+
+function setupCopyButton(btnId, targetId, label) {
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const el = document.getElementById(targetId);
+      if (el) {
+        navigator.clipboard.writeText(el.textContent);
+        showSyncToast(true, `¡${label} copiado al portapapeles!`);
+      }
+    });
+  }
 }
 
 function compilePromptAndJSON() {
@@ -3122,6 +3184,47 @@ async function deleteGenerationAction(id) {
   }
 }
 
+async function loadCharacterBible(sceneDescription = "") {
+  const persona = state.selectedPersona;
+  if (!persona) return;
+
+  const sceneInput = document.getElementById('sceneDescriptionInput');
+  if (sceneInput && sceneDescription === "") {
+    sceneInput.value = "";
+  }
+
+  const spinner = document.getElementById('bibleLoadingSpinner');
+  if (spinner) spinner.style.display = 'flex';
+
+  try {
+    const res = await authFetch(`/api/personas/${persona.id}/character-bible`, {
+      method: 'POST',
+      body: JSON.stringify({ sceneDescription })
+    });
+    const data = await res.json();
+    if (data.success && data.characterBible) {
+      const b = data.characterBible;
+      
+      document.getElementById('bibleLockPrompt').textContent = b.character_lock_section || "";
+      document.getElementById('biblePositivePrompt').textContent = b.positive_prompt || "";
+      
+      const recs = b.model_recommendations || {};
+      document.getElementById('bibleMjPrompt').textContent = recs.midjourney || "";
+      document.getElementById('bibleFluxPrompt').textContent = recs.flux || "";
+      document.getElementById('bibleLeonardoPrompt').textContent = recs.leonardo || "";
+      document.getElementById('bibleIdeogramPrompt').textContent = recs.ideogram || "";
+      
+      document.getElementById('bibleUsageNotes').textContent = b.usage_notes || "";
+    } else {
+      console.warn("Failed to load character bible details:", data.message);
+    }
+  } catch (err) {
+    console.error("Error loading character bible:", err);
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+  }
+}
+
 // Global modal click-away
 window.addEventListener('click', (e) => {
   const modal = document.getElementById('historyModal');
@@ -3132,3 +3235,4 @@ window.addEventListener('click', (e) => {
 window.closeHistoryModal = closeHistoryModal;
 window.setPortfolioFilter = setPortfolioFilter;
 window.setHistoryFilter = setHistoryFilter;
+window.loadCharacterBible = loadCharacterBible;
