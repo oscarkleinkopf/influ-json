@@ -226,7 +226,55 @@ app.post('/api/personas/:id/variants/:variantId/set-main', (req, res) => {
   const persona = dbService.setMainVariant(req.params.id, imagePath);
   runGitBackup((gitSuccess, msg) => {
     res.json({ success: true, personas: dbService.getAllPersonas(), persona, gitSynced: gitSuccess, gitMessage: msg });
-  });
+});
+
+// Generate Character Bible
+app.post('/api/personas/:id/character-bible', async (req, res) => {
+  const { sceneDescription, options = {} } = req.body;
+  const persona = dbService.getPersonaById(req.params.id);
+  if (!persona) {
+    return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
+  }
+
+  // Attempt to resolve target cref referenceUrl if not provided
+  let referenceUrl = options.referenceUrl;
+  if (!referenceUrl) {
+    let referenceLocalPath = null;
+    if (persona.detailedJSON) {
+      try {
+        const detailed = typeof persona.detailedJSON === 'string' ? JSON.parse(persona.detailedJSON) : persona.detailedJSON;
+        if (detailed && detailed.anchor_reference) {
+          referenceLocalPath = detailed.anchor_reference;
+        }
+      } catch (e) {}
+    }
+    if (!referenceLocalPath) {
+      referenceLocalPath = persona.image;
+    }
+
+    if (referenceLocalPath && !referenceLocalPath.startsWith('http')) {
+      try {
+        // Upload temporary image to tmpfiles.org to get a direct URL for --cref
+        referenceUrl = await aiService.uploadToTmpFiles(referenceLocalPath);
+      } catch (e) {
+        console.warn('Failed to upload character-bible reference photo:', e);
+      }
+    } else {
+      referenceUrl = referenceLocalPath;
+    }
+  }
+
+  try {
+    const characterBible = await aiService.generateDetailedCharacterPrompt(
+      persona,
+      sceneDescription,
+      { ...options, referenceUrl }
+    );
+    res.json({ success: true, characterBible });
+  } catch (err) {
+    console.error('Error generating character bible:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // Persona Versions & Revert

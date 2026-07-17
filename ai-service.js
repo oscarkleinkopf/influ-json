@@ -300,5 +300,176 @@ module.exports = {
       console.error('Error uploading local image to tmpfiles.org:', e);
       return null;
     }
+  },
+
+  async generateDetailedCharacterPrompt(persona, sceneDescription = "", options = {}) {
+    const detailed = typeof persona.detailedJSON === 'string' 
+        ? JSON.parse(persona.detailedJSON) 
+        : (persona.detailedJSON || {});
+
+    const charName = persona.name || detailed.identity?.name || "Influencer";
+    const gender = persona.gender || detailed.identity?.gender || "Female";
+    const age = persona.age || detailed.identity?.apparent_age || "25 años";
+    const ethnicity = persona.ethnicity || detailed.identity?.ethnicity_appearance || "Latina";
+
+    // === Extracción profunda del detailedJSON ===
+    const f = detailed.facial_features || {};
+    const h = detailed.hair || {};
+    const a = detailed.aesthetic || {};
+    const p = detailed.photography || {};
+    const c = detailed.clothing || {};
+
+    const faceShape     = f.face_shape || "ovalada";
+    const skinTone      = f.skin_tone || "tono natural";
+    const skinTexture   = f.skin_texture || "piel real con poros visibles y textura natural";
+    const eyeColor      = f.eye_color || "marrón oscuro";
+    const eyeShape      = f.eye_shape || "almendrados";
+    const eyebrows      = f.eyebrow_style || "cejas naturales y definidas";
+    const nose          = f.nose_shape || "nariz recta y proporcionada";
+    const lips          = f.lip_shape || "labios medianos con arco de cupido definido";
+    const jawline       = f.jawline || "mandíbula suave y definida";
+    const smileType     = f.smile_type || "sonrisa cálida y natural";
+
+    const hairColor     = h.color || "castaño oscuro";
+    const hairLength    = h.length || "medio-largo";
+    const hairTexture   = h.texture || "ondulado natural";
+    const hairStyle     = h.style || "suelto con movimiento";
+
+    const overallVibe   = a.overall_vibe || "natural y accesible";
+    const fashionStyle  = a.fashion_style || "casual chic";
+    const makeupLevel   = a.makeup_level || "maquillaje natural y ligero";
+
+    const camera        = p.camera_lens || persona.camera || "smartphone camera";
+    const lighting      = p.lighting_type || persona.lighting || "luz natural suave";
+    const colorGrade    = p.color_grade || "tono cálido natural";
+    const depthOfField  = p.depth_of_field || "bokeh suave";
+
+    const bodyType      = detailed.identity?.body_type || persona.body_type || "atlético / proporcionado";
+
+    // Referencia para --cref (Midjourney)
+    const referenceUrl = options.referenceUrl || persona.image || "";
+
+    // === Escena ===
+    const scene = sceneDescription && sceneDescription.trim() !== "" 
+        ? sceneDescription.trim() 
+        : "en un entorno natural y luminoso, mirada directa a cámara, expresión auténtica y relajada";
+
+    // ============================================================
+    // MODO ONLINE (Gemini)
+    // ============================================================
+    if (ai) {
+        try {
+            const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+            const systemPrompt = `Eres un experto en prompt engineering para modelos de difusión (Flux, Midjourney, Leonardo, Ideogram). 
+Tu tarea es crear una "Character Bible" de alta calidad para mantener consistencia de personaje.
+
+Debes responder ÚNICAMENTE con un JSON válido con esta estructura exacta:
+
+{
+  "character_name": "string",
+  "positive_prompt": "Prompt muy detallado y optimizado combinando rasgos fijos del personaje + escena",
+  "negative_prompt": "Negative prompt fuerte y específico",
+  "character_lock_section": "Descripción técnica y detallada de los rasgos que NO deben cambiar (cara, ojos, cabello, piel, etc.)",
+  "model_recommendations": {
+    "midjourney": "Prompt optimizado + parámetros (--cref, --cw, --ar, --style raw, etc.)",
+    "flux": "Prompt en lenguaje natural optimizado para Flux",
+    "leonardo": "Prompt optimizado para Leonardo + instrucciones de Character Reference",
+    "ideogram": "Prompt optimizado para Ideogram Character Reference"
+  },
+  "usage_notes": "Consejos prácticos de consistencia"
+}
+
+Reglas importantes:
+- El character_lock_section debe ser muy específico y técnico.
+- El positive_prompt debe ser rico en detalles de piel, cabello, ojos y fotografía.
+- Adapta ligeramente el prompt según la escena proporcionada.
+- No agregues explicaciones fuera del JSON.`;
+
+            const userPrompt = `
+Nombre del personaje: ${charName}
+Edad: ${age}
+Género: ${gender}
+Etnia: ${ethnicity}
+Rasgos faciales: ${faceShape} face, ${skinTone} skin with ${skinTexture}, ${eyeColor} ${eyeShape} eyes, ${eyebrows}, ${lips}, ${jawline}, ${smileType}
+Cabello: ${hairLength}, ${hairTexture}, ${hairColor}, ${hairStyle}
+Cuerpo: ${bodyType}
+Estética: ${overallVibe}, ${fashionStyle}, ${makeupLevel}
+Fotografía: ${camera}, ${lighting}, ${colorGrade}, ${depthOfField}
+
+Escena deseada: ${scene}
+
+Genera ahora la Character Bible siguiendo estrictamente la estructura JSON indicada.
+`;
+
+            const result = await model.generateContent([systemPrompt, userPrompt]);
+            const text = result.response.text().trim();
+            const cleanJson = text.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+            
+            return JSON.parse(cleanJson);
+
+        } catch (err) {
+            console.warn('Gemini generation failed, falling back to offline compiler.', err);
+        }
+    }
+
+    // ============================================================
+    // MODO OFFLINE (Compilador local robusto)
+    // ============================================================
+
+    // --- Character Lock (lo que NO debe cambiar) ---
+    const characterLock = `${charName} is a ${age} ${ethnicity} ${gender.toLowerCase()} with a ${faceShape} face shape. 
+Key facial features: ${skinTone} skin with ${skinTexture}, ${eyeColor} ${eyeShape} eyes, ${eyebrows}, ${nose}, ${lips}, ${jawline} jawline. 
+Hair is ${hairLength}, ${hairTexture}, ${hairColor} with ${hairStyle} style. 
+Body type: ${bodyType}. 
+Signature look: ${overallVibe}, ${fashionStyle} style with ${makeupLevel}.`;
+
+    // --- Positive Prompt ---
+    const positivePrompt = `Raw amateur UGC smartphone photo of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} influencer. 
+She has a ${faceShape} face, ${skinTone} skin with visible natural pores and ${skinTexture}, ${eyeColor} ${eyeShape} eyes, ${eyebrows}, and ${lips}. 
+Her hair is ${hairLength}, ${hairTexture}, ${hairColor} with ${hairStyle}. 
+She is ${scene}. 
+Shot on ${camera}, ${lighting}, ${colorGrade} color grade, ${depthOfField}, natural skin texture, realistic details, unedited smartphone snapshot, authentic and candid moment.`;
+
+    // --- Negative Prompt (mejorado) ---
+    const negativePrompt = "plastic skin, airbrushed, overly smooth skin, makeup overload, cartoon, 3d render, illustration, anime, deformed face, deformed hands, extra fingers, blurry, low resolution, bad anatomy, watermark, text, logo, duplicate, artificial look, heavy filter, instagram filter";
+
+    // --- Midjourney ---
+    const mjCref = referenceUrl ? ` --cref ${referenceUrl} --cw 100` : "";
+    const midjourneyPrompt = `${charName}, ${age} ${ethnicity} ${gender.toLowerCase()}, ${faceShape} face, ${skinTone} skin, ${eyeColor} eyes, ${hairLength} ${hairColor} ${hairTexture} hair. She is ${scene}. Natural lighting, realistic skin texture, candid UGC style --ar 4:5${mjCref} --style raw --v 6.0`;
+
+    // --- Flux ---
+    const fluxPrompt = `Raw unedited mobile phone photograph of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} influencer with ${faceShape} face, ${skinTone} skin showing natural pores and subtle texture, ${eyeColor} eyes, ${hairLength} ${hairTexture} ${hairColor} hair. She is ${scene}. Captured with ${camera}, ${lighting}, realistic amateur smartphone quality, high detail, natural look.`;
+
+    // --- Leonardo ---
+    const leonardoPrompt = `Photorealistic character portrait of ${charName}, ${age} ${ethnicity} ${gender.toLowerCase()} with ${faceShape} face, ${skinTone} skin, ${eyeColor} eyes and ${hairLength} ${hairColor} hair. She is ${scene}. Natural lighting, realistic skin texture, high consistency character. Use with Leonardo Character Reference at maximum strength.`;
+
+    // --- Ideogram ---
+    const ideogramPrompt = `UGC style smartphone photo of ${charName}, ${age} ${ethnicity} ${gender.toLowerCase()} with ${faceShape} face, ${skinTone} skin, ${eyeColor} eyes and ${hairLength} ${hairTexture} ${hairColor} hair. She is ${scene}. Natural light, realistic, candid moment, shot on smartphone.`;
+
+    // --- Usage Notes ---
+    const usageNotes = `**Consejos de Consistencia:**
+
+1. **Midjourney**: Usa siempre \`--cref\` con la URL de tu imagen de referencia + \`--cw 100\` para máxima fidelidad de rostro y cabello. Si quieres cambiar solo la ropa, baja \`--cw\` a 40-60.
+
+2. **Flux**: Funciona muy bien con lenguaje natural. Mantén al inicio palabras como "raw unedited mobile phone photograph" y "natural pores".
+
+3. **Leonardo / Ideogram**: Activa la herramienta de "Character Reference" y sube la imagen de referencia del personaje. En Leonardo pon el peso en 0.9~1.0.
+
+4. **General**: Siempre usa la misma imagen de referencia (anchor) cuando quieras máxima consistencia.`;
+
+    return {
+        character_name: charName,
+        positive_prompt: positivePrompt.replace(/\s+/g, ' ').trim(),
+        negative_prompt: negativePrompt,
+        character_lock_section: characterLock.replace(/\s+/g, ' ').trim(),
+        model_recommendations: {
+            midjourney: midjourneyPrompt.replace(/\s+/g, ' ').trim(),
+            flux: fluxPrompt.replace(/\s+/g, ' ').trim(),
+            leonardo: leonardoPrompt.replace(/\s+/g, ' ').trim(),
+            ideogram: ideogramPrompt.replace(/\s+/g, ' ').trim()
+        },
+        usage_notes: usageNotes
+    };
   }
 };
