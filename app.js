@@ -721,6 +721,9 @@ function setupPersonaEngine() {
   setupCopyButton('btnCopyFluxPrompt', 'bibleFluxPrompt', 'Prompt de Flux');
   setupCopyButton('btnCopyLeonardoPrompt', 'bibleLeonardoPrompt', 'Prompt de Leonardo');
   setupCopyButton('btnCopyIdeogramPrompt', 'bibleIdeogramPrompt', 'Prompt de Ideogram');
+  setupCopyButton('btnCopyGrokPrompt', 'bibleGrokPrompt', 'Prompt de Grok Imagine');
+  setupCopyButton('btnCopyChatGptPrompt', 'bibleChatGptPrompt', 'Prompt de ChatGPT');
+  setupCopyButton('btnCopyMetaAIPrompt', 'bibleMetaAIPrompt', 'Prompt de Meta AI');
   
   // Initial populate of clothing select
   updateClothingDropdown();
@@ -3221,6 +3224,14 @@ async function loadCharacterBible(sceneDescription = "") {
       document.getElementById('bibleFluxPrompt').textContent = recs.flux || "";
       document.getElementById('bibleLeonardoPrompt').textContent = recs.leonardo || "";
       document.getElementById('bibleIdeogramPrompt').textContent = recs.ideogram || "";
+      
+      // Populate Grok, ChatGPT, and Meta AI
+      const grokEl = document.getElementById('bibleGrokPrompt');
+      if (grokEl) grokEl.textContent = recs.grok_imagine || "";
+      const chatgptEl = document.getElementById('bibleChatGptPrompt');
+      if (chatgptEl) chatgptEl.textContent = recs.chatgpt || "";
+      const metaEl = document.getElementById('bibleMetaAIPrompt');
+      if (metaEl) metaEl.textContent = recs.meta_ai || "";
       
       document.getElementById('bibleUsageNotes').textContent = b.usage_notes || "";
     } else {
