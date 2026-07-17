@@ -294,63 +294,31 @@
         </div>
         
         <!-- Photo Upload & AI Analysis -->
-        <div class="glass-card" style="margin-bottom: 28px;">
-          <h2 style="font-family: var(--font-display); margin-bottom: 6px;">📸 Crear Influencer desde Foto Real</h2>
-          <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px;">Sube una foto de referencia y el sistema generará automáticamente un perfil influ-JSON ultra-detallado con 30+ campos de identidad visual.</p>
+        <!-- Action Dashboard: Añadir Nuevo Influencer -->
+        <div class="glass-card" style="margin-bottom: 28px; padding: 24px;">
+          <h2 style="font-family: var(--font-display); margin-bottom: 6px; font-size: 18px; color: #fff;">✨ Añadir Nuevo Influencer</h2>
+          <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">Elige cómo deseas crear el perfil de tu influencer virtual para iniciar la producción de contenido UGC.</p>
           
-          <div class="upload-section">
-            <!-- Left: Dropzone & Link Input -->
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-              <div class="upload-dropzone" id="uploadDropzone" style="min-height: 240px; padding: 32px 20px;">
-                <input type="file" id="photoFileInput" accept="image/*" style="display:none;">
-                <div class="upload-icon-circle" id="uploadIconArea" style="width: 56px; height: 56px;">
-                  <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- Opción 1: Crear desde Cero -->
+            <div class="glass-card option-card" id="cardCreateScratch" style="padding: 20px; cursor: pointer; border: 1px solid var(--glass-border); transition: all 0.3s ease; background: rgba(255,255,255,0.01);">
+              <div style="display: flex; align-items: flex-start; gap: 16px;">
+                <div style="font-size: 28px; padding: 10px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; color: var(--accent-primary); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">✍️</div>
+                <div>
+                  <h3 style="font-family: var(--font-display); font-size: 15px; color: #fff; margin-bottom: 6px;">Crear desde Cero</h3>
+                  <p style="color: var(--text-secondary); font-size: 11px; line-height: 1.5;">Configura manualmente la identidad, rasgos físicos, cabello y estilo fotográfico del personaje.</p>
                 </div>
-                <div class="upload-text-main" id="uploadTextMain" style="font-size: 15px;">Arrastra tu foto aquí</div>
-                <div class="upload-text-sub" id="uploadTextSub" style="font-size: 11px;">o haz <span>click para seleccionar</span></div>
-              </div>
-              
-              <div style="padding: 12px; background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: var(--border-radius-md); display: flex; gap: 8px; align-items: center;">
-                <input type="text" id="photoUrlInput" placeholder="O pega un link de imagen (Instagram, URL directa...)" 
-                  style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: var(--text-primary); font-size: 12px; outline: none;">
-                <button type="button" class="btn" id="btnLoadPhotoUrl" style="padding: 8px 16px; font-size: 12px; white-space: nowrap;">Cargar Link</button>
               </div>
             </div>
             
-            <!-- Right: Analysis Results Panel -->
-            <div class="analysis-panel" id="analysisPanel">
-              <div class="analysis-status-card" id="analysisStatusCard" style="display: none;">
-                <div class="analysis-spinner" id="analysisSpinner"></div>
-                <div class="analysis-status-text">
-                  <h4 id="analysisStatusTitle">Analizando imagen...</h4>
-                  <p id="analysisStatusMsg">Extrayendo características faciales, iluminación, paleta de colores y composición fotográfica.</p>
+            <!-- Opción 2: Tomar Inspiración (URL / Foto) -->
+            <div class="glass-card option-card" id="cardCreateInspiration" style="padding: 20px; cursor: pointer; border: 1px solid var(--glass-border); transition: all 0.3s ease; background: rgba(255,255,255,0.01);">
+              <div style="display: flex; align-items: flex-start; gap: 16px;">
+                <div style="font-size: 28px; padding: 10px; background: rgba(251, 191, 36, 0.1); border-radius: 12px; color: #fbbf24; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">🌐</div>
+                <div>
+                  <h3 style="font-family: var(--font-display); font-size: 15px; color: #fff; margin-bottom: 6px;">Tomar Inspiración (URL / Foto)</h3>
+                  <p style="color: var(--text-secondary); font-size: 11px; line-height: 1.5;">Sube fotos de referencia o pega un enlace de perfil (Instagram, TikTok) para autodetectar rasgos con IA y generar guiones.</p>
                 </div>
-              </div>
-              
-              <!-- Color swatches extracted from image -->
-              <div id="colorSwatchesContainer" style="display: none;">
-                <label style="margin-bottom: 8px; display: block;">Paleta de Colores Detectada</label>
-                <div class="analysis-color-swatches" id="colorSwatches"></div>
-              </div>
-              
-              <!-- Editable analysis detail grid -->
-              <div class="analysis-detail-grid" id="analysisDetailGrid" style="display: none;">
-                <!-- JS will populate with 30+ fields -->
-              </div>
-              
-              <!-- Full JSON output -->
-              <div id="analysisJsonSection" style="display: none;">
-                <div class="panel-header" style="margin-bottom: 8px;">
-                  <span class="panel-title">influ-JSON Generado <span class="badge">30+ campos</span></span>
-                  <button class="btn btn-secondary btn-sm" id="btnCopyAnalysisJSON">Copiar</button>
-                </div>
-                <pre class="analysis-json-output" id="analysisJsonOutput"></pre>
-              </div>
-              
-              <!-- Action buttons -->
-              <div class="analysis-actions" id="analysisActions" style="display: none;">
-                <button class="btn" id="btnApplyAnalysis">Aplicar al Persona Engine</button>
-                <button class="btn btn-secondary" id="btnSaveAnalysisPersona">Guardar como Nueva Persona</button>
               </div>
             </div>
           </div>
@@ -439,7 +407,7 @@
 
         <div class="editor-layout">
           <div class="glass-card">
-            <h2 style="font-family: var(--font-display); margin-bottom: 20px;">Configuración del Personaje</h2>
+            <h2 id="editorHeaderTitle" style="font-family: var(--font-display); margin-bottom: 20px;">Configuración del Personaje</h2>
             
             <form id="personaForm" class="editor-form-group">
               <div class="form-row">
