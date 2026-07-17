@@ -226,6 +226,7 @@ app.post('/api/personas/:id/variants/:variantId/set-main', (req, res) => {
   const persona = dbService.setMainVariant(req.params.id, imagePath);
   runGitBackup((gitSuccess, msg) => {
     res.json({ success: true, personas: dbService.getAllPersonas(), persona, gitSynced: gitSuccess, gitMessage: msg });
+  });
 });
 
 // Generate Character Bible
