@@ -283,11 +283,14 @@
       
       <!-- TAB: PERSONA ENGINE -->
       <section id="persona-engine" class="tab-panel">
-        <div class="content-header">
+        <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
           <div class="content-title">
             <h1>Persona Engine (influ-JSON)</h1>
             <p>Configura la identidad base de tu modelo AI usando un formato estructurado.</p>
           </div>
+          <button type="button" class="btn" id="btnOpenImportModal" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 20px;">
+            📥 Importar Influencer Real
+          </button>
         </div>
         
         <!-- Photo Upload & AI Analysis -->
@@ -854,6 +857,87 @@
               <p id="historyModalPrompt" style="color: var(--text-secondary); font-size: 12px; line-height: 1.5; max-height: 120px; overflow-y: auto;"></p>
               <button class="btn btn-danger" id="historyModalDelete" style="margin-top: 12px; font-size: 12px; padding: 6px 16px;">🗑️ Eliminar</button>
             </div>
+          </div>
+        <!-- Import Influencer Modal (Fase 2) -->
+        <div class="history-modal-overlay" id="importInfluencerModal" style="display: none; align-items: center; justify-content: center; z-index: 1000;">
+          <div class="glass-card" style="width: 100%; max-width: 650px; padding: 32px; position: relative; border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow-y: auto; max-height: 90vh;">
+            <button type="button" class="history-modal-close" id="btnCloseImportModal" style="position: absolute; top: 16px; right: 16px; border: none; background: transparent; font-size: 24px; color: var(--text-secondary); cursor: pointer;">&times;</button>
+            
+            <h2 style="font-family: var(--font-display); margin-bottom: 8px; font-size: 20px; color: #fff; display: flex; align-items: center; gap: 10px;">📥 Importar Influencer Real</h2>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 24px;">Sube fotos o indica un enlace de referencia para crear un influencer consistente con guiones de video UGC.</p>
+
+            <!-- Paso 1: Formulario de Carga -->
+            <div id="importStep1">
+              <div class="editor-form-group">
+                <div style="margin-bottom: 18px;">
+                  <label for="importImages" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px;">📷 Seleccionar Fotos (Recomendado: 3 a 6 fotos de rostro)</label>
+                  <input type="file" id="importImages" multiple accept="image/*" 
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-secondary); font-size: 13px;">
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                  <label for="importUrl" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px;">🔗 URL del Perfil o Foto (Opcional)</label>
+                  <input type="text" id="importUrl" placeholder="Ej: https://instagram.com/p/..." 
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                  <label for="importName" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px;">🏷️ Nombre Personalizado (Opcional)</label>
+                  <input type="text" id="importName" placeholder="Ej: Clara Gómez (Si se omite, se autogenera)" 
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                  <label for="importScriptTopic" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px;">📦 Producto / Nicho para Guiones UGC (Opcional)</label>
+                  <input type="text" id="importScriptTopic" placeholder="Ej: Crema hidratante antiedad Glow Serum" 
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                <button type="button" class="btn btn-secondary" id="btnCancelImportStep1" style="padding: 10px 24px;">Cancelar</button>
+                <button type="button" class="btn" id="btnAnalyzeInfluencer" style="padding: 10px 24px; background: var(--accent-primary);">Analizar Influencer</button>
+              </div>
+            </div>
+
+            <!-- Paso 2: Procesando (Loading) -->
+            <div id="importLoading" style="display: none; padding: 40px 0; text-align: center; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+              <div class="analysis-spinner" style="width: 48px; height: 48px; border-width: 4px; border-color: rgba(99, 102, 241, 0.1); border-top-color: var(--accent-primary);"></div>
+              <div>
+                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 6px;">Analizando imágenes con IA...</h3>
+                <p style="color: var(--text-secondary); font-size: 12px;">Extrayendo rasgos visuales consistentes y redactando guiones UGC para video. Esto puede tomar unos segundos.</p>
+              </div>
+            </div>
+
+            <!-- Paso 3: Vista Previa y Confirmación -->
+            <div id="importPreview" style="display: none;">
+              <h3 style="font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">📋 Perfil Analizado</h3>
+              
+              <div class="editor-form-group" style="margin-bottom: 20px;">
+                <div>
+                  <label for="importSuggestedName" style="display: block; margin-bottom: 6px; font-size: 11px;">Nombre Sugerido (Editable)</label>
+                  <input type="text" id="importSuggestedName" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px;">
+                </div>
+              </div>
+
+              <!-- Visual Summary -->
+              <div class="prompt-console" style="margin-top: 0; margin-bottom: 20px;">
+                <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px;">Resumen del Look y Facciones</span>
+                <div id="importSummaryText" style="font-size: 11px; max-height: 100px; overflow-y: auto; color: var(--text-secondary); padding: 8px 12px; line-height: 1.6;">Cargando resumen...</div>
+              </div>
+
+              <!-- Video Scripts -->
+              <h3 style="font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: #fbbf24; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🎬 Guiones UGC para Generación de Video</h3>
+              <div id="importVideoPrompts" style="display: flex; flex-direction: column; gap: 12px; max-height: 200px; overflow-y: auto; margin-bottom: 24px; padding-right: 4px;">
+                <!-- Dynamically populated scripts -->
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                <button type="button" class="btn btn-secondary" id="btnCancelImportPreview" style="padding: 10px 24px;">Descartar</button>
+                <button type="button" class="btn" id="btnConfirmImport" style="padding: 10px 24px; background: #10b981;">Crear Persona y Guardar</button>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

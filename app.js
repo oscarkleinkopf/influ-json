@@ -35,7 +35,9 @@ const syncBannerText = document.getElementById('syncBannerText');
 // Unified authenticated fetch helper
 async function authFetch(url, options = {}) {
   options.headers = options.headers || {};
-  options.headers['Content-Type'] = 'application/json';
+  if (!(options.body instanceof FormData)) {
+    options.headers['Content-Type'] = 'application/json';
+  }
   if (studioPin) {
     options.headers['Authorization'] = `Bearer ${studioPin}`;
   }
@@ -65,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupLicensing();
   setupGallery();
   setupVariantManager();
+  initImportModal();
   
   btnSyncNow.addEventListener('click', manualGitSync);
 });
@@ -3250,8 +3253,212 @@ window.addEventListener('click', (e) => {
   if (e.target === modal) {
     closeHistoryModal();
   }
+  const importModal = document.getElementById('importInfluencerModal');
+  if (e.target === importModal) {
+    importModal.style.display = 'none';
+  }
 });
+
+// ============================================================
+// IMPORT INFLUENCER MODAL (Fase 2)
+// ============================================================
+function initImportModal() {
+  const modal = document.getElementById('importInfluencerModal');
+  const btnOpen = document.getElementById('btnOpenImportModal');
+  const btnClose = document.getElementById('btnCloseImportModal');
+  const btnCancelStep1 = document.getElementById('btnCancelImportStep1');
+  const btnCancelPreview = document.getElementById('btnCancelImportPreview');
+  const btnAnalyze = document.getElementById('btnAnalyzeInfluencer');
+  const btnConfirm = document.getElementById('btnConfirmImport');
+
+  const step1 = document.getElementById('importStep1');
+  const loading = document.getElementById('importLoading');
+  const preview = document.getElementById('importPreview');
+
+  const imagesInput = document.getElementById('importImages');
+  const urlInput = document.getElementById('importUrl');
+  const nameInput = document.getElementById('importName');
+  const scriptTopicInput = document.getElementById('importScriptTopic');
+  const suggestedNameInput = document.getElementById('importSuggestedName');
+  const summaryText = document.getElementById('importSummaryText');
+  const videoPromptsContainer = document.getElementById('importVideoPrompts');
+
+  let lastImportedPersona = null;
+
+  if (!modal) return;
+
+  function openModal() {
+    modal.style.display = 'flex';
+    step1.style.display = 'block';
+    loading.style.display = 'none';
+    preview.style.display = 'none';
+    
+    // Clear inputs
+    imagesInput.value = '';
+    urlInput.value = '';
+    nameInput.value = '';
+    scriptTopicInput.value = '';
+    suggestedNameInput.value = '';
+    summaryText.innerHTML = '';
+    videoPromptsContainer.innerHTML = '';
+    lastImportedPersona = null;
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+  }
+
+  if (btnOpen) btnOpen.addEventListener('click', openModal);
+  if (btnClose) btnClose.addEventListener('click', closeModal);
+  if (btnCancelStep1) btnCancelStep1.addEventListener('click', closeModal);
+  if (btnCancelPreview) btnCancelPreview.addEventListener('click', closeModal);
+
+  if (btnAnalyze) {
+    btnAnalyze.addEventListener('click', async () => {
+      const files = imagesInput.files;
+      const imageUrl = urlInput.value.trim();
+      const customName = nameInput.value.trim();
+      const scriptTopic = scriptTopicInput.value.trim();
+
+      if (files.length === 0 && !imageUrl) {
+        alert('Por favor, selecciona al menos una foto o proporciona una URL de referencia.');
+        return;
+      }
+
+      // Transition to loading step
+      step1.style.display = 'none';
+      loading.style.display = 'flex';
+      preview.style.display = 'none';
+
+      const formData = new FormData();
+      if (files.length > 0) {
+        formData.append('photo', files[0]); // Multer expects key 'photo'
+      }
+      if (imageUrl) {
+        formData.append('imageUrl', imageUrl);
+      }
+      if (customName) {
+        formData.append('name', customName);
+      }
+      if (scriptTopic) {
+        formData.append('scriptTopic', scriptTopic);
+      }
+
+      try {
+        const response = await authFetch('/api/import-influencer', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.message || 'Error desconocido al analizar.');
+        }
+
+        lastImportedPersona = data.persona;
+
+        // Transition to preview step
+        loading.style.display = 'none';
+        preview.style.display = 'block';
+
+        // Render suggested name
+        suggestedNameInput.value = lastImportedPersona.name;
+
+        // Render visual analysis summary
+        const d = lastImportedPersona.detailedJSON || {};
+        summaryText.innerHTML = `
+          <strong>Género/Edad:</strong> ${d.identity?.gender || lastImportedPersona.gender} (${d.identity?.apparent_age || lastImportedPersona.age})<br>
+          <strong>Etnia:</strong> ${d.identity?.ethnicity_appearance || lastImportedPersona.ethnicity}<br>
+          <strong>Rostro:</strong> ${d.facial_features?.face_shape || 'ovalada'} (${d.facial_features?.skin_tone || 'tono natural'}) con ${d.facial_features?.skin_texture || 'textura natural'}<br>
+          <strong>Cabello:</strong> ${d.hair?.length || 'medio'}, ${d.hair?.texture || 'natural'}, color ${d.hair?.color || 'castaño'}<br>
+          <strong>Estilo:</strong> ${d.aesthetic?.overall_vibe || lastImportedPersona.style}
+        `;
+
+        // Render video scripts list
+        videoPromptsContainer.innerHTML = '';
+        if (data.videoScripts && data.videoScripts.length > 0) {
+          data.videoScripts.forEach((s, idx) => {
+            const card = document.createElement('div');
+            card.className = 'glass-card';
+            card.style.padding = '12px';
+            card.style.background = 'rgba(255,255,255,0.01)';
+            card.style.border = '1px solid rgba(255,255,255,0.05)';
+            card.style.borderRadius = '8px';
+            card.style.marginBottom = '10px';
+
+            const firstScenePrompt = s.scenes && s.scenes[0] ? s.scenes[0].visual_prompt : 'Sin prompt visual';
+            card.innerHTML = `
+              <h4 style="font-size: 12px; color: #fff; margin-bottom: 6px; font-weight: 700;">🎬 ${s.title || `Guion ${idx + 1}`}</h4>
+              <p style="font-size: 11px; margin-bottom: 6px; color: var(--text-secondary); line-height: 1.4;">
+                <strong>Audio:</strong> "${s.hook} ${s.body} ${s.cta}"
+              </p>
+              <div class="prompt-console" style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.2);">
+                <span style="font-size: 8px; color: var(--accent-primary); font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;">Prompt de Video Consistent</span>
+                <div style="font-size: 10px; color: #ccc; max-height: 60px; overflow-y: auto; font-family: var(--font-mono);">${firstScenePrompt}</div>
+              </div>
+            `;
+            videoPromptsContainer.appendChild(card);
+          });
+        } else {
+          videoPromptsContainer.innerHTML = '<p style="font-size: 11px; color: var(--text-secondary);">No se generaron guiones de video.</p>';
+        }
+
+      } catch (err) {
+        console.error('Import analysis failed:', err);
+        alert(`Error al analizar influencer: ${err.message}`);
+        // Return to step 1
+        loading.style.display = 'none';
+        step1.style.display = 'block';
+      }
+    });
+  }
+
+  if (btnConfirm) {
+    btnConfirm.addEventListener('click', async () => {
+      if (!lastImportedPersona) return;
+
+      const finalName = suggestedNameInput.value.trim();
+      if (!finalName) {
+        alert('Por favor, indica un nombre para el influencer.');
+        return;
+      }
+
+      try {
+        // If the user modified the suggested name, save it back to update
+        if (finalName !== lastImportedPersona.name) {
+          lastImportedPersona.name = finalName;
+          lastImportedPersona.handle = `@${finalName.toLowerCase().replace(/\s+/g, '')}_ugc`;
+          
+          await authFetch('/api/personas', {
+            method: 'POST',
+            body: JSON.stringify(lastImportedPersona)
+          });
+        }
+
+        alert(`¡Influencer "${finalName}" importado y creado con éxito!`);
+        closeModal();
+
+        // Refresh lists and select the new influencer
+        if (typeof loadPersonas === 'function') {
+          await loadPersonas();
+        }
+        
+        // Select the newly imported person
+        if (typeof selectPersona === 'function') {
+          selectPersona(lastImportedPersona.id);
+        }
+
+      } catch (err) {
+        console.error('Failed to confirm and save persona:', err);
+        alert(`Error al confirmar la creación: ${err.message}`);
+      }
+    });
+  }
+}
+
 window.closeHistoryModal = closeHistoryModal;
 window.setPortfolioFilter = setPortfolioFilter;
 window.setHistoryFilter = setHistoryFilter;
 window.loadCharacterBible = loadCharacterBible;
+window.initImportModal = initImportModal;
+

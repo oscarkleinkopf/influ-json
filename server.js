@@ -5,6 +5,7 @@ const { exec } = require('child_process');
 const multer = require('multer');
 const archiver = require('archiver');
 const dotenv = require('dotenv');
+const sharp = require('sharp');
 
 // Load environment variables
 dotenv.config();
@@ -606,10 +607,6 @@ app.post('/api/import-influencer', upload.single('photo'), async (req, res) => {
     if (req.file) {
       filename = req.file.filename;
       imagePath = `assets/references/${filename}`;
-      // Sync reference image to scratch directory
-      const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
-      if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
-      fs.copyFileSync(path.join(__dirname, imagePath), path.join(scratchRefsDir, filename));
     } else if (req.body.imageUrl) {
       const url = req.body.imageUrl;
       const response = await fetch(url);
@@ -632,13 +629,34 @@ app.post('/api/import-influencer', upload.single('photo'), async (req, res) => {
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       fs.writeFileSync(absolutePath, buffer);
-
-      // Sync reference image to scratch directory
-      const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
-      if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
-      fs.writeFileSync(path.join(scratchRefsDir, filename), buffer);
     } else {
       return res.status(400).json({ success: false, message: 'Se requiere subir una foto o proporcionar una URL.' });
+    }
+
+    // Optimize image with sharp before analysis
+    try {
+      const fullPath = path.join(__dirname, imagePath);
+      const tempPath = fullPath + '_opt.jpg';
+      
+      await sharp(fullPath)
+        .resize({ width: 1024, height: 1024, fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 85 })
+        .toFile(tempPath);
+      
+      // Overwrite the original with optimized version
+      fs.renameSync(tempPath, fullPath);
+      console.log(`Image optimized with sharp before analysis: ${imagePath}`);
+    } catch (optErr) {
+      console.warn("Failed to optimize image with sharp, proceeding with original:", optErr.message);
+    }
+
+    // Sync reference image to scratch directory
+    try {
+      const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
+      if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
+      fs.copyFileSync(path.join(__dirname, imagePath), path.join(scratchRefsDir, filename));
+    } catch (syncErr) {
+      console.warn("Failed to sync reference image to scratch directory:", syncErr.message);
     }
 
     // Now analyze the image
