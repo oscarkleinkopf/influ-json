@@ -307,7 +307,6 @@ module.exports = {
         ? JSON.parse(persona.detailedJSON) 
         : (persona.detailedJSON || {});
 
-    // === Extracción de datos ===
     const charName   = persona.name || detailed.identity?.name || "Influencer";
     const gender     = persona.gender || detailed.identity?.gender || "Female";
     const age        = persona.age || detailed.identity?.apparent_age || "25 años";
@@ -318,7 +317,7 @@ module.exports = {
     const a = detailed.aesthetic || {};
     const p = detailed.photography || {};
 
-    // Rasgos faciales
+    // === Rasgos faciales ===
     const faceShape   = f.face_shape || "ovalada";
     const skinTone    = f.skin_tone || "tono natural";
     const skinTexture = f.skin_texture || "piel real con poros visibles y textura natural";
@@ -329,13 +328,13 @@ module.exports = {
     const jawline     = f.jawline || "mandíbula suave y definida";
     const smileType   = f.smile_type || "sonrisa cálida y natural";
 
-    // Cabello
+    // === Cabello ===
     const hairColor   = h.color || "castaño oscuro";
     const hairLength  = h.length || "medio-largo";
     const hairTexture = h.texture || "ondulado natural";
     const hairStyle   = h.style || "suelto con movimiento natural";
 
-    // Estética y fotografía
+    // === Estética y fotografía ===
     const overallVibe   = a.overall_vibe || "natural y accesible";
     const fashionStyle  = a.fashion_style || "casual chic";
     const makeupLevel   = a.makeup_level || "maquillaje natural y ligero";
@@ -343,14 +342,11 @@ module.exports = {
     const camera        = p.camera_lens || "smartphone camera";
     const lighting      = p.lighting_type || "luz natural suave";
     const colorGrade    = p.color_grade || "tono cálido natural";
-    const depthOfField  = p.depth_of_field || "bokeh suave y agradable";
+    const depthOfField  = p.depth_of_field || "bokeh suave";
 
     const bodyType = detailed.identity?.body_type || "atlético / proporcionado";
 
-    // Referencia (solo si el usuario la proporciona explícitamente)
     const referenceUrl = options.referenceUrl || "";
-
-    // Escena
     const scene = (sceneDescription && sceneDescription.trim() !== "") 
         ? sceneDescription.trim() 
         : "en un entorno luminoso y natural, mirada directa a cámara, expresión auténtica";
@@ -362,40 +358,38 @@ module.exports = {
         try {
             const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-            const systemPrompt = `Eres un experto en prompt engineering para generación de personajes consistentes en IA (Flux, Midjourney, Leonardo, Ideogram).
-Tu objetivo es crear una Character Bible de alta calidad y consistencia.
+            const systemPrompt = `Eres un experto en prompt engineering especializado en personajes hiperrealistas para UGC.
+Crea una Character Bible de alta calidad enfocándose especialmente en realismo de piel, textura natural y consistencia facial.
 
-Responde ÚNICAMENTE con un JSON válido con esta estructura exacta:
+Responde ÚNICAMENTE con un JSON válido siguiendo esta estructura exacta:
 {
   "character_name": "string",
-  "positive_prompt": "Prompt detallado y bien estructurado",
-  "negative_prompt": "Negative prompt fuerte y específico",
-  "character_lock_section": "Descripción técnica detallada de los rasgos fijos del personaje",
+  "positive_prompt": "Prompt detallado con énfasis en realismo de piel",
+  "negative_prompt": "Negative prompt fuerte",
+  "character_lock_section": "Descripción técnica y detallada de rasgos fijos",
   "model_recommendations": {
-    "midjourney": "Prompt + parámetros para Midjourney",
-    "flux": "Prompt optimizado para Flux",
-    "leonardo": "Prompt optimizado para Leonardo",
-    "ideogram": "Prompt optimizado para Ideogram"
+    "midjourney": "string",
+    "flux": "string",
+    "leonardo": "string",
+    "ideogram": "string"
   },
-  "usage_notes": "Consejos prácticos de uso"
+  "usage_notes": "string"
 }`;
 
-            const userPrompt = `Genera una Character Bible profesional usando la siguiente información del personaje:
-
-Nombre: ${charName}
-Edad: ${age} | Género: ${gender} | Etnia: ${ethnicity}
+            const userPrompt = `Información del personaje:
+Nombre: ${charName} | Edad: ${age} | Género: ${gender} | Etnia: ${ethnicity}
 Cara: ${faceShape}
 Piel: ${skinTone} con ${skinTexture}
 Ojos: ${eyeColor} (${eyeShape}) | Cejas: ${eyebrows}
 Labios: ${lips} | Mandíbula: ${jawline}
-Cabello: ${hairLength}, ${hairTexture}, ${hairColor}, estilo ${hairStyle}
+Cabello: ${hairLength} ${hairTexture} ${hairColor}, estilo ${hairStyle}
 Cuerpo: ${bodyType}
-Estética: ${overallVibe}, estilo ${fashionStyle}, ${makeupLevel}
+Estética: ${overallVibe}, ${fashionStyle}, ${makeupLevel}
 Fotografía: ${camera}, ${lighting}, ${colorGrade}, ${depthOfField}
 
-Escena: ${scene}
+Escena deseada: ${scene}
 
-Genera el JSON siguiendo estrictamente la estructura indicada.`;
+Genera la Character Bible con fuerte énfasis en realismo de piel y textura natural.`;
 
             const result = await model.generateContent([systemPrompt, userPrompt]);
             const text = result.response.text().trim();
@@ -403,55 +397,59 @@ Genera el JSON siguiendo estrictamente la estructura indicada.`;
             return JSON.parse(cleanJson);
 
         } catch (err) {
-            console.warn('Gemini falló, usando modo offline mejorado.', err);
+            console.warn('Gemini falló, usando modo offline avanzado.', err);
         }
     }
 
     // ============================================================
-    // MODO OFFLINE (Compilador local mejorado)
+    // MODO OFFLINE (Versión mejorada con énfasis en piel)
     // ============================================================
 
-    // --- Character Lock (Rasgos fijos) ---
-    const characterLock = `${charName} is a ${age} ${ethnicity} ${gender.toLowerCase()} with a ${faceShape} face shape. 
-Facial features: ${skinTone} skin with ${skinTexture}, ${eyeColor} ${eyeShape} eyes, ${eyebrows}, ${lips}, ${jawline} jawline. 
+    // --- Character Lock (más detallado) ---
+    const characterLock = `${charName} is a ${age} ${ethnicity} ${gender.toLowerCase()} with a ${faceShape} face. 
+Key features: ${skinTone} skin with visible natural pores, subtle skin texture and ${skinTexture}. 
+Eyes: ${eyeColor}, ${eyeShape} shape, with ${eyebrows}. 
+Lips: ${lips}. Jawline: ${jawline}. 
 Hair: ${hairLength}, ${hairTexture}, ${hairColor} with ${hairStyle} style. 
-Body type: ${bodyType}. Signature aesthetic: ${overallVibe}, ${fashionStyle} style with ${makeupLevel}.`;
+Body: ${bodyType}. Overall aesthetic: ${overallVibe}, ${fashionStyle} style with ${makeupLevel}.`;
 
-    // --- Positive Prompt (Estructurado) ---
-    const positivePrompt = `Raw amateur UGC smartphone photograph of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} influencer. 
-She has a ${faceShape} face, ${skinTone} skin with natural pores and ${skinTexture}, ${eyeColor} ${eyeShape} eyes, ${eyebrows}, and ${lips}. 
-Her hair is ${hairLength}, ${hairTexture}, ${hairColor} with ${hairStyle}. 
+    // --- Positive Prompt (enfocado en realismo de piel) ---
+    const positivePrompt = `Raw unedited UGC smartphone photograph of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} influencer. 
+She has a ${faceShape} face with ${skinTone} skin showing natural pores, subtle skin texture, fine details and ${skinTexture}. 
+Her eyes are ${eyeColor} with ${eyeShape} shape, ${eyebrows}, and she has ${lips}. 
+Hair is ${hairLength}, ${hairTexture}, ${hairColor} with ${hairStyle}. 
 She is ${scene}. 
-Shot on ${camera}, ${lighting}, ${colorGrade} color grading, ${depthOfField}, realistic skin texture, natural details, candid and authentic moment, unedited smartphone quality.`;
+Captured with ${camera}, ${lighting}, ${colorGrade} color grade, ${depthOfField}, realistic skin texture, natural imperfections, authentic candid moment, high detail, unedited smartphone quality.`;
 
-    // --- Negative Prompt ---
-    const negativePrompt = "plastic skin, airbrushed, overly smooth, heavy makeup, cartoon, 3d render, illustration, anime, deformed face, bad anatomy, extra fingers, deformed hands, blurry, low resolution, watermark, text, logo, duplicate, artificial lighting, instagram filter, beauty filter";
+    // --- Negative Prompt (mejorado) ---
+    const negativePrompt = "plastic skin, airbrushed, overly smooth skin, waxy texture, heavy makeup, beauty filter, instagram filter, cartoon, 3d render, illustration, anime, deformed face, bad anatomy, extra fingers, blurry, low resolution, watermark, text, logo, duplicate, artificial skin, perfect skin, mannequin look";
 
     // --- Midjourney ---
     const mjCref = referenceUrl ? ` --cref ${referenceUrl} --cw 100` : "";
-    const midjourneyPrompt = `${charName}, ${age} ${ethnicity} ${gender.toLowerCase()}, ${faceShape} face, ${skinTone} skin, ${eyeColor} eyes, ${hairLength} ${hairColor} ${hairTexture} hair. She is ${scene}. Natural lighting, realistic skin texture, candid UGC style --ar 4:5${mjCref} --style raw --v 6.0`;
+    const midjourneyPrompt = `${charName}, ${age} ${ethnicity} ${gender.toLowerCase()}, ${faceShape} face, ${skinTone} skin with natural pores and realistic texture. She is ${scene}. Natural lighting, candid UGC style, realistic skin details --ar 4:5${mjCref} --style raw --v 6.0`;
 
-    // --- Flux ---
+    // --- Flux (enfoque fuerte en piel) ---
     const fluxPrompt = `Raw unedited mobile phone photograph of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} influencer. 
-She has a ${faceShape} face with ${skinTone} skin showing natural pores and subtle texture, ${eyeColor} eyes, and ${hairLength} ${hairTexture} ${hairColor} hair. 
-She is ${scene}. Captured with ${camera} under ${lighting}, realistic amateur smartphone quality, high detail, natural skin, authentic moment.`;
+She has ${skinTone} skin with visible natural pores, subtle skin texture and realistic details. 
+${faceShape} face, ${eyeColor} eyes, ${hairLength} ${hairTexture} ${hairColor} hair. 
+She is ${scene}. Shot on ${camera} with ${lighting}, natural skin, authentic amateur quality, high fidelity, realistic texture.`;
 
     // --- Leonardo ---
-    const leonardoPrompt = `High consistency character portrait of ${charName}, ${age} ${ethnicity} ${gender.toLowerCase()} with ${faceShape} face, ${skinTone} skin, ${eyeColor} eyes and ${hairLength} ${hairColor} hair. She is ${scene}. Natural lighting, realistic skin texture, photorealistic. Use with Leonardo Character Reference at high strength.`;
+    const leonardoPrompt = `Photorealistic character portrait of ${charName}, ${age} ${ethnicity} ${gender.toLowerCase()} with ${faceShape} face and ${skinTone} skin showing natural pores and realistic texture. She is ${scene}. Natural lighting, high detail skin, authentic look. Use with Leonardo Character Reference at high strength.`;
 
     // --- Ideogram ---
-    const ideogramPrompt = `UGC style smartphone photo of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} with ${faceShape} face, ${skinTone} skin, ${eyeColor} eyes and ${hairLength} ${hairColor} hair. She is ${scene}. Natural light, realistic details, candid moment, shot on smartphone camera.`;
+    const ideogramPrompt = `Realistic UGC smartphone photo of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} with ${faceShape} face, ${skinTone} skin with natural texture and pores. She is ${scene}. Natural light, candid moment, shot on smartphone, realistic skin details.`;
 
     // --- Usage Notes ---
-    const usageNotes = `**Consejos de Consistencia:**
+    const usageNotes = `**Consejos para Mejor Consistencia y Realismo:**
 
-1. **Midjourney**: Pega una URL pública de la imagen de referencia en el campo "URL de Referencia". Usa \`--cw 100\` para máxima fidelidad de rostro. Baja el valor si quieres cambiar ropa manteniendo solo la cara.
+1. **Midjourney**: Usa una URL pública de referencia + \`--cw 100\` para máxima fidelidad de rostro y piel. Si quieres cambiar solo la ropa, reduce \`--cw\` a 50-70.
 
-2. **Flux**: Funciona muy bien con lenguaje natural. Mantén frases como "raw unedited mobile phone photograph" y "natural pores" para mejor realismo de piel.
+2. **Flux**: Es excelente con realismo de piel. Mantén palabras como "raw unedited mobile phone photograph", "visible natural pores" y "realistic skin texture".
 
-3. **Leonardo / Ideogram**: Activa la herramienta de Character Reference y sube la imagen del personaje. En Leonardo usa peso alto (0.9 - 1.0).
+3. **Leonardo / Ideogram**: Activa Character Reference y sube la imagen del personaje. En Leonardo pon el peso entre 0.85 y 1.0 para mejor preservación de textura de piel.
 
-4. **General**: Para máxima consistencia, usa siempre la misma imagen de referencia cuando sea posible.`;
+4. **General**: Para máxima consistencia de piel y rostro, usa siempre la misma imagen de referencia cuando sea posible.`;
 
     return {
         character_name: charName,
