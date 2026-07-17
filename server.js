@@ -93,7 +93,7 @@ app.get('/api/status', (req, res) => {
     success: true,
     apiConnected: aiService.isApiConnected(),
     gitLinked: fs.existsSync(path.join(__dirname, '.git')),
-    pinRequired: process.env.STUDIO_PIN !== ''
+    pinRequired: !!process.env.STUDIO_PIN && process.env.STUDIO_PIN.trim() !== ''
   });
 });
 

@@ -16,7 +16,7 @@ const sessionMiddleware = expressSession({
 
 function requireAuth(req, res, next) {
   // Allow bypassing auth if PIN is set to empty or disabled
-  if (DEFAULT_PIN === '') {
+  if (!DEFAULT_PIN || String(DEFAULT_PIN).trim() === '') {
     return next();
   }
 
@@ -26,9 +26,12 @@ function requireAuth(req, res, next) {
   }
 
   const authHeader = req.headers['authorization'];
-  if (authHeader && authHeader === `Bearer ${DEFAULT_PIN}`) {
-    if (req.session) req.session.authenticated = true;
-    return next();
+  if (authHeader) {
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    if (token === String(DEFAULT_PIN).trim()) {
+      if (req.session) req.session.authenticated = true;
+      return next();
+    }
   }
 
   res.status(401).json({ success: false, message: 'Acceso denegado. PIN inválido o sesión expirada.' });
@@ -38,6 +41,7 @@ module.exports = {
   sessionMiddleware,
   requireAuth,
   verifyPin(pin) {
-    return pin === DEFAULT_PIN;
+    if (!pin) return false;
+    return String(pin).trim() === String(DEFAULT_PIN).trim();
   }
 };
