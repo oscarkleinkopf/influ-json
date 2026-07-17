@@ -313,10 +313,98 @@ function navigateToTab(tabId) {
   }
 }
 
+function resetPersonaFormForNew() {
+  state.selectedPersona = null;
+  uploadedImagePath = null;
+
+  // Change config header title
+  const editorTitle = document.getElementById('editorHeaderTitle');
+  if (editorTitle) {
+    editorTitle.textContent = "Configuración del Personaje (Nuevo desde Cero)";
+  }
+
+  // Change save button text
+  const btnSave = document.getElementById('btnSavePersona');
+  if (btnSave) {
+    btnSave.textContent = "Crear Influencer";
+  }
+
+  // Clear basic inputs
+  document.getElementById('pName').value = '';
+  document.getElementById('pGender').value = 'Female';
+  document.getElementById('pAge').value = '25 años';
+  document.getElementById('pEthnicity').value = 'Latina';
+  document.getElementById('pStyle').value = 'Minimalista y natural';
+  document.getElementById('pHair').value = 'Marrón ondulado largo';
+  document.getElementById('pSetting').value = 'Sala de estar moderna y neutral';
+
+  // Select defaults for dropdowns
+  document.getElementById('pLighting').value = 'Casual daylight from bedroom window';
+  document.getElementById('pCamera').value = 'iPhone 15 Pro front camera selfie';
+
+  updateClothingDropdown();
+
+  // Clear detailed inputs
+  document.getElementById('pSkinTone').value = 'piel clara natural';
+  document.getElementById('pSkinTexture').value = 'piel real con poros y textura suave';
+  document.getElementById('pHairColor').value = 'marrón castaño';
+  document.getElementById('pHairTexture').value = 'ondulado natural';
+  document.getElementById('pHairLength').value = 'medio-largo';
+  document.getElementById('pEyebrows').value = 'cejas definidas';
+  document.getElementById('pEyeColor').value = 'marrón oscuro';
+  document.getElementById('pLips').value = 'labios proporcionados';
+  document.getElementById('pFaceShape').value = 'ovalada';
+  document.getElementById('pSmileType').value = 'sonrisa cálida y natural';
+  document.getElementById('pBodyType').value = 'Atlético y proporcionado';
+
+  // Force re-compilation of prompts
+  compilePromptAndJSON();
+  
+  // Set json editor values to default
+  const jsonArea = document.getElementById('jsonEditor');
+  if (jsonArea) {
+    jsonArea.value = JSON.stringify(getFullPersonaJSON(), null, 2);
+  }
+
+  // Clear bible prompts fields
+  document.getElementById('bibleLockPrompt').textContent = "";
+  document.getElementById('biblePositivePrompt').textContent = "";
+  document.getElementById('bibleMjPrompt').textContent = "";
+  document.getElementById('bibleFluxPrompt').textContent = "";
+  document.getElementById('bibleLeonardoPrompt').textContent = "";
+  document.getElementById('bibleIdeogramPrompt').textContent = "";
+  
+  const grokEl = document.getElementById('bibleGrokPrompt');
+  if (grokEl) grokEl.textContent = "";
+  const chatgptEl = document.getElementById('bibleChatGptPrompt');
+  if (chatgptEl) chatgptEl.textContent = "";
+  const metaEl = document.getElementById('bibleMetaAIPrompt');
+  if (metaEl) metaEl.textContent = "";
+  
+  document.getElementById('bibleUsageNotes').textContent = "Completa los campos de la izquierda y haz clic en 'Crear Influencer' para generar la biblia.";
+
+  // Scroll smoothly to form
+  const editorLayout = document.querySelector('.editor-layout');
+  if (editorLayout) {
+    editorLayout.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
 // Select Persona
 function selectPersona(persona) {
   state.selectedPersona = persona;
   uploadedImagePath = null; // Clear upload session when selecting another persona
+  
+  // Reset editor title and save button text
+  const editorTitle = document.getElementById('editorHeaderTitle');
+  if (editorTitle) {
+    editorTitle.textContent = "Configuración del Personaje";
+  }
+  const btnSave = document.getElementById('btnSavePersona');
+  if (btnSave) {
+    btnSave.textContent = "Guardar Persona en influ-JSON";
+  }
+
   updateDashboardStats();
   renderPersonaGrids();
   populateActiveUgcData();
@@ -645,6 +733,17 @@ function setupPersonaEngine() {
   
   document.getElementById('btnSavePersona').addEventListener('click', savePersona);
   document.getElementById('btnDeletePersona').addEventListener('click', deletePersonaAction);
+
+  const cardScratch = document.getElementById('cardCreateScratch');
+  if (cardScratch) cardScratch.addEventListener('click', resetPersonaFormForNew);
+
+  const cardInspiration = document.getElementById('cardCreateInspiration');
+  if (cardInspiration) {
+    cardInspiration.addEventListener('click', () => {
+      const btnOpen = document.getElementById('btnOpenImportModal');
+      if (btnOpen) btnOpen.click();
+    });
+  }
   
   document.getElementById('btnCopyJSON').addEventListener('click', () => {
     const jsonArea = document.getElementById('jsonEditor');
@@ -1792,6 +1891,7 @@ let uploadedImagePath = null;
 
 function setupPhotoUpload() {
   const dropzone = document.getElementById('uploadDropzone');
+  if (!dropzone) return;
   const fileInput = document.getElementById('photoFileInput');
   const btnLoadPhotoUrl = document.getElementById('btnLoadPhotoUrl');
   const photoUrlInput = document.getElementById('photoUrlInput');
