@@ -464,5 +464,142 @@ She is ${scene}. Shot on ${camera} with ${lighting}, natural skin, authentic ama
         },
         usage_notes: usageNotes
     };
+  },
+
+  async generateUgcVideoScripts(persona, scriptTopic = "Video UGC") {
+    const detailed = typeof persona.detailedJSON === 'string' 
+        ? JSON.parse(persona.detailedJSON) 
+        : (persona.detailedJSON || {});
+
+    const charName   = persona.name || detailed.identity?.name || "Influencer";
+    const gender     = persona.gender || detailed.identity?.gender || "Female";
+    const age        = persona.age || detailed.identity?.apparent_age || "25 años";
+    const ethnicity  = persona.ethnicity || detailed.identity?.ethnicity_appearance || "Latina";
+
+    const f = detailed.facial_features || {};
+    const h = detailed.hair || {};
+    const a = detailed.aesthetic || {};
+
+    const faceShape   = f.face_shape || "ovalada";
+    const skinTone    = f.skin_tone || "tono natural";
+    const skinTexture = f.skin_texture || "piel real con poros visibles";
+    const hairColor   = h.color || "castaño oscuro";
+    const hairLength  = h.length || "medio-largo";
+    const hairTexture = h.texture || "ondulado natural";
+    const hairStyle   = h.style || "suelto con movimiento";
+    const overallVibe   = a.overall_vibe || "natural y accesible";
+
+    // ============================================================
+    // MODO ONLINE (Gemini)
+    // ============================================================
+    if (ai) {
+        try {
+            const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+            const systemPrompt = `Eres un guionista y director creativo experto en videos UGC (Contenido Generado por el Usuario) de alta conversión y consistencia de personaje en IA.
+Tu objetivo es generar 3 propuestas de guiones UGC para promocionar un producto/tema.
+
+Responde ÚNICAMENTE con un JSON válido que sea un arreglo de 3 objetos de guion, siguiendo esta estructura exacta:
+[
+  {
+    "title": "Gancho de Problema / Solución",
+    "hook": "Línea inicial de audio para captar atención",
+    "body": "Cuerpo del guion de voz en off",
+    "cta": "Llamado a la acción de audio final",
+    "scenes": [
+      {
+        "dialogue": "Voz en off o acción a realizar en esta escena",
+        "visual_prompt": "Prompt visual detallado para generador de video (como Runway Gen-3 o Luma Dream Machine) describiendo al personaje (nombre, rasgos clave: cabello, cara, tez, vestimenta casual) sosteniendo/usando el producto en un plano de video específico y movimiento de cámara natural."
+      }
+    ]
+  }
+]`;
+
+            const userPrompt = `Información del personaje:
+Nombre: ${charName} | Edad: ${age} | Género: ${gender} | Etnia: ${ethnicity}
+Rasgos físicos clave: rostro ${faceShape}, piel ${skinTone} con ${skinTexture}, cabello ${hairLength} ${hairTexture} ${hairColor} con estilo ${hairStyle}.
+Estética general: ${overallVibe}
+
+Producto / Tema a promocionar: ${scriptTopic}
+
+Genera los 3 guiones UGC profesionales. La respuesta debe ser puramente JSON válido, sin preámbulos ni bloques de markdown.`;
+
+            const result = await model.generateContent([systemPrompt, userPrompt]);
+            const text = result.response.text().trim();
+            const cleanJson = text.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+            return JSON.parse(cleanJson);
+        } catch (err) {
+            console.warn('Gemini falló al generar guiones de video, usando modo offline.', err);
+        }
+    }
+
+    // ============================================================
+    // MODO OFFLINE: Compilador local avanzado de plantillas
+    // ============================================================
+    const pronounCaps = gender.toLowerCase() === "male" ? "Él" : "Ella";
+    const possessive = gender.toLowerCase() === "male" ? "su" : "su";
+
+    return [
+      {
+        title: "Guion 1: Gancho de Problema / Solución (UGC)",
+        hook: `¿Te ha pasado que buscas algo realmente efectivo para ${scriptTopic} y nada funciona?`,
+        body: `Llevo semanas probando de todo y por fin encontré la solución. Esto cambia por completo las reglas del juego y los resultados son inmediatos.`,
+        cta: `Si quieres ver el cambio real, haz clic abajo y pruébalo hoy mismo. ¡No te vas a arrepentir!`,
+        scenes: [
+          {
+            dialogue: `¿Te ha pasado que buscas algo realmente efectivo para ${scriptTopic} y nada funciona?`,
+            visual_prompt: `A close-up video of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} influencer with a ${faceShape} face shape and ${hairLength} ${hairTexture} ${hairColor} hair. ${pronounCaps} has a frustrated expression, looking directly at the camera, holding a product related to ${scriptTopic} in ${possessive} hand, soft natural lighting, realistic skin texture, slow camera pan, raw UGC style.`
+          },
+          {
+            dialogue: `Llevo semanas probando de todo y por fin encontré la solución. Esto cambia por completo las reglas del juego y los resultados son inmediatos.`,
+            visual_prompt: `Medium shot of ${charName}, showing ${possessive} ${faceShape} face with a satisfied smile. ${pronounCaps} is demonstrating how to apply/use the ${scriptTopic} product, showing details of the bottle. Warm daylight, shallow depth of field, natural skin texture, cinematic motion.`
+          },
+          {
+            dialogue: `Si quieres ver el cambio real, haz clic abajo y pruébalo hoy mismo. ¡No te vas a arrepentir!`,
+            visual_prompt: `A bright, friendly close-up of ${charName} smiling warmly, pointing down towards the call to action, holding the ${scriptTopic} product next to ${possessive} face. Natural pores, soft bokeh background, steady smartphone footage, realistic UGC look.`
+          }
+        ]
+      },
+      {
+        title: "Guion 2: Unboxing y Primeras Impresiones",
+        hook: `¡Por fin me llegó esto! El unboxing que todos estaban esperando para ${scriptTopic}.`,
+        body: `Miren este empaque tan premium. El olor y la textura son increíbles. Se siente súper ligero en la piel y se absorbe al instante.`,
+        cta: `Déjame un comentario si quieres que haga una reseña de uso completo en los próximos días.`,
+        scenes: [
+          {
+            dialogue: `¡Por fin me llegó esto! El unboxing que todos estaban esperando para ${scriptTopic}.`,
+            visual_prompt: `A video of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} influencer, unboxing a beautiful package on a table. ${pronounCaps} is smiling excitedly, ${possessive} ${hairLength} ${hairColor} hair falling gently over ${possessive} shoulders. Dynamic camera movement, shallow depth of field.`
+          },
+          {
+            dialogue: `Miren este empaque tan premium. El olor y la textura son increíbles. Se siente súper ligero en la piel y se absorbe al instante.`,
+            visual_prompt: `Extreme close-up on ${charName}'s hands carefully opening the box to reveal the premium ${scriptTopic} container. The camera pulls back slightly to show ${possessive} happy face and glowing ${skinTone} skin under bright window light.`
+          },
+          {
+            dialogue: `Déjame un comentario si quieres que haga una reseña de uso completo en los próximos días.`,
+            visual_prompt: `Medium shot of ${charName} holding the product bottle close to the lens, waving friendly at the camera. ${pronounCaps} has a warm, inviting expression, detailed skin texture, raw home video style.`
+          }
+        ]
+      },
+      {
+        title: "Guion 3: Reseña de Estilo de Vida (Lifestyle)",
+        hook: `Esta es mi rutina diaria secreta y el ingrediente clave para ${scriptTopic}.`,
+        body: `Mucha gente me pregunta cómo mantengo esta consistencia. El secreto es simple: usar esto todas las mañanas sin falta. Es práctico, rápido y efectivo.`,
+        cta: `Si quieres simplificar tu rutina, te dejo el enlace directo aquí mismo. ¡Pruébalo!`,
+        scenes: [
+          {
+            dialogue: `Esta es mi rutina diaria secreta y el ingrediente clave para ${scriptTopic}.`,
+            visual_prompt: `A lifestyle video of ${charName} in a cozy, bright room. ${pronounCaps} has ${hairLength} ${hairTexture} ${hairColor} hair in a casual style, wearing comfortable clothes. The camera follows ${possessive} movements as ${pronounCaps} walks towards the bathroom mirror.`
+          },
+          {
+            dialogue: `Mucha gente me pregunta cómo mantengo esta consistencia. El secreto es simple: usar esto todas las mañanas sin falta. Es práctico, rápido y efectivo.`,
+            visual_prompt: `Close-up shot of ${charName}'s face in the mirror as ${pronounCaps} applies the ${scriptTopic} product. ${possessive} skin looks natural with visible pores, showcasing realistic texture. Warm bathroom light, soft reflection, professional camera movement.`
+          },
+          {
+            dialogue: `Si quieres simplificar tu rutina, te dejo el enlace directo aquí mismo. ¡Pruébalo!`,
+            visual_prompt: `Medium shot of ${charName} sitting on a bed or sofa, smiling sincerely into the camera, gesturing towards the screen. The room is filled with soft natural light, creating a friendly and authentic UGC atmosphere.`
+          }
+        ]
+      }
+    ];
   }
 };
