@@ -616,11 +616,18 @@
               <!-- Scene description input -->
               <div class="glass-card" style="padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;">
                 <label for="sceneDescriptionInput" style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); display: block; margin-bottom: 8px; font-weight: 700;">🎬 Inyectar Nueva Escena / Pose</label>
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                   <input type="text" id="sceneDescriptionInput" placeholder="Ej: tomando café en una terraza en París, atardecer..." 
+                    style="flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none; transition: border 0.2s;">
+                </div>
+
+                <label for="bibleCrefUrlInput" style="font-size: 11px; text-transform: uppercase; color: #a78bfa; display: block; margin-bottom: 8px; font-weight: 700;">🔗 URL de Imagen de Referencia (Opcional --cref)</label>
+                <div style="display: flex; gap: 10px;">
+                  <input type="text" id="bibleCrefUrlInput" placeholder="Pega el enlace público de la imagen (ej: imgur, discord, etc.)" 
                     style="flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none; transition: border 0.2s;">
                   <button type="button" class="btn" id="btnRegenerateBible" style="white-space: nowrap; padding: 10px 18px; font-size: 13px;">Generar Biblia</button>
                 </div>
+
                 <div class="analysis-status-card" id="bibleLoadingSpinner" style="display: none; padding: 10px; margin-top: 10px; border-radius: 6px; border: 1px solid rgba(99, 102, 241, 0.2); background: rgba(99, 102, 241, 0.03);">
                   <div class="analysis-spinner" style="width: 16px; height: 16px; border-width: 2px;"></div>
                   <span style="font-size: 11px; margin-left: 8px; color: var(--text-secondary);" id="bibleLoadingMsg">Compilando prompts de alta consistencia...</span>

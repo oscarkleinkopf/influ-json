@@ -3189,9 +3189,14 @@ async function loadCharacterBible(sceneDescription = "") {
   if (!persona) return;
 
   const sceneInput = document.getElementById('sceneDescriptionInput');
-  if (sceneInput && sceneDescription === "") {
-    sceneInput.value = "";
+  const crefInput = document.getElementById('bibleCrefUrlInput');
+
+  if (sceneDescription === "") {
+    if (sceneInput) sceneInput.value = "";
+    if (crefInput) crefInput.value = "";
   }
+
+  const referenceUrl = crefInput ? crefInput.value.trim() : "";
 
   const spinner = document.getElementById('bibleLoadingSpinner');
   if (spinner) spinner.style.display = 'flex';
@@ -3199,7 +3204,10 @@ async function loadCharacterBible(sceneDescription = "") {
   try {
     const res = await authFetch(`/api/personas/${persona.id}/character-bible`, {
       method: 'POST',
-      body: JSON.stringify({ sceneDescription })
+      body: JSON.stringify({ 
+        sceneDescription,
+        options: { referenceUrl }
+      })
     });
     const data = await res.json();
     if (data.success && data.characterBible) {
