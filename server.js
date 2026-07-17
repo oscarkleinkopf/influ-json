@@ -597,6 +597,200 @@ app.post('/api/upload-reference-url', async (req, res) => {
   }
 });
 
+// Import Real Influencer (Fase 2)
+app.post('/api/import-influencer', upload.single('photo'), async (req, res) => {
+  let imagePath = "";
+  let filename = "";
+
+  try {
+    if (req.file) {
+      filename = req.file.filename;
+      imagePath = `assets/references/${filename}`;
+      // Sync reference image to scratch directory
+      const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
+      if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
+      fs.copyFileSync(path.join(__dirname, imagePath), path.join(scratchRefsDir, filename));
+    } else if (req.body.imageUrl) {
+      const url = req.body.imageUrl;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+      }
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      let ext = 'jpg';
+      if (contentType.includes('png')) ext = 'png';
+      else if (contentType.includes('webp')) ext = 'webp';
+
+      filename = `ref_${Date.now()}.${ext}`;
+      imagePath = `assets/references/${filename}`;
+      const absolutePath = path.join(__dirname, imagePath);
+
+      // Make sure folder exists
+      const dir = path.dirname(absolutePath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      fs.writeFileSync(absolutePath, buffer);
+
+      // Sync reference image to scratch directory
+      const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
+      if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
+      fs.writeFileSync(path.join(scratchRefsDir, filename), buffer);
+    } else {
+      return res.status(400).json({ success: false, message: 'Se requiere subir una foto o proporcionar una URL.' });
+    }
+
+    // Now analyze the image
+    console.log(`Analyzing imported influencer reference image: ${imagePath}`);
+    let analysis = await aiService.analyzeReferencePhoto(imagePath);
+
+    // If analysis fails or offline, use color extraction & heuristics fallback
+    if (!analysis) {
+      console.log('Using local heuristic analysis for imported influencer...');
+      // Extract main colors from image using local canvas analyzer
+      let colors = { hair: '#3d2314', skin: '#d2b48c', dominant: '#e0d0c0' };
+      try {
+        colors = await aiService.extractSpatialColorProperties(imagePath);
+      } catch (ce) {
+        console.warn('Spatial color extraction failed:', ce.message);
+      }
+
+      // Local heuristic classifier
+      let hairClass = 'Castaño Oscuro';
+      const hairRgb = aiService.hexToRgb(colors.hair);
+      if (hairRgb) {
+        const { r, g, b } = hairRgb;
+        if (r > 190 && g > 170 && b < 120) hairClass = 'Rubio';
+        else if (r > 160 && g < 100 && b < 80) hairClass = 'Pelirrojo';
+        else if (r < 60 && g < 60 && b < 60) hairClass = 'Negro';
+        else if (Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && r > 160) hairClass = 'Canoso';
+      }
+
+      let skinClass = 'Tono Natural';
+      const skinRgb = aiService.hexToRgb(colors.skin);
+      if (skinRgb) {
+        const { r, g, b } = skinRgb;
+        if (r > 230 && g > 200 && b > 180) skinClass = 'Piel Clara';
+        else if (r < 130 && g < 100 && b < 80) skinClass = 'Piel Oscura / Morena';
+      }
+
+      analysis = {
+        identity: {
+          name: req.body.name || `Influencer_${Date.now().toString().slice(-4)}`,
+          gender: req.body.gender || "Female",
+          apparent_age: req.body.age || "26 años",
+          ethnicity_appearance: req.body.ethnicity || "Latina",
+          body_type: "Atlético / Proporcionado",
+          persona_archetype: "Lifestyle & Bienestar"
+        },
+        facial_features: {
+          face_shape: "ovalada",
+          skin_tone: skinClass,
+          skin_tone_hex: colors.skin,
+          skin_texture: "piel real con textura suave y poros naturales",
+          eye_color: "marrón oscuro",
+          eye_shape: "almendrados",
+          eyebrow_style: "cejas naturales y delgadas",
+          nose_shape: "recta y proporcionada",
+          lip_shape: "labios proporcionados con arco definido",
+          lip_color: "rosado natural",
+          jawline: "suave",
+          cheekbones: "pómulos definidos",
+          facial_hair: "Ninguno",
+          distinctive_marks: "Ninguno",
+          smile_type: "sonrisa cálida y natural"
+        },
+        hair: {
+          color: hairClass,
+          color_hex: colors.hair,
+          length: "medio-largo",
+          texture: "ondulado natural",
+          style: "suelto",
+          parting: "en el medio",
+          highlights: "ninguno",
+          volume: "normal"
+        },
+        aesthetic: {
+          overall_vibe: "casual chic y natural",
+          fashion_style: "casual elegante",
+          color_palette_dominant: colors.dominant,
+          color_palette_description: "colores neutros y cálidos",
+          makeup_level: "maquillaje natural ligero",
+          accessories: "ninguno",
+          nails: "naturales"
+        },
+        photography: {
+          camera_lens: "cámara de smartphone",
+          focal_length: "24mm",
+          aperture: "f/1.8",
+          lighting_type: "luz natural de día",
+          lighting_direction: "frontal suave",
+          color_grade: "colores naturales cálidos",
+          color_temperature: "5500K",
+          depth_of_field: "bokeh suave",
+          background_setting: "interior de casa minimalista",
+          background_blur: "ligero",
+          composition: "retrato medio",
+          framing: "plano medio corto",
+          mood: "relajado y positivo",
+          post_processing: "estilo orgánico"
+        },
+        clothing: {
+          type: "camiseta casual",
+          color: "blanco",
+          material: "algodón",
+          neckline: "cuello redondo",
+          fit: "regular",
+          visible_brand_logos: "Ninguno"
+        }
+      };
+    }
+
+    // Prepare Persona model database columns
+    const personaName = req.body.name || analysis.identity.name || `Influencer_${Date.now().toString().slice(-4)}`;
+    const persona = {
+      name: personaName,
+      gender: req.body.gender || analysis.identity.gender || "Female",
+      age: req.body.age || analysis.identity.apparent_age || "25 años",
+      ethnicity: req.body.ethnicity || analysis.identity.ethnicity_appearance || "Latina",
+      style: analysis.identity.persona_archetype || analysis.aesthetic.overall_vibe || "Lifestyle & UGC",
+      hair: `${analysis.hair.length}, ${analysis.hair.texture}, color ${analysis.hair.color}`,
+      lighting: analysis.photography.lighting_type,
+      camera: analysis.photography.camera_lens,
+      clothing: analysis.clothing.type,
+      setting: analysis.photography.background_setting,
+      image: imagePath,
+      imageUGC: imagePath,
+      handle: `@${personaName.toLowerCase().replace(/\s+/g, '')}_ugc`,
+      detailedJSON: analysis
+    };
+
+    // Save to SQLite
+    const savedPersona = dbService.savePersona(persona);
+
+    // Generate UGC Video Scripts
+    const scriptTopic = req.body.scriptTopic || "Video UGC Promocional";
+    const videoScripts = await aiService.generateUgcVideoScripts(savedPersona, scriptTopic);
+
+    // Sync database and trigger Git auto-backup
+    dbService.syncDbToWorkspace();
+    runGitBackup((gitSuccess, msg) => {
+      res.json({
+        success: true,
+        persona: savedPersona,
+        videoScripts,
+        gitSynced: gitSuccess,
+        gitMessage: msg
+      });
+    });
+
+  } catch (err) {
+    console.error('Error importing real influencer:', err);
+    res.status(500).json({ success: false, message: `Error al importar influencer real: ${err.message}` });
+  }
+});
+
 // Git sync trigger
 app.post('/api/sync', (req, res) => {
   // Save DB copy first to ensure latest backup
