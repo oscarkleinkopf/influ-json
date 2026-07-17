@@ -3382,10 +3382,24 @@ function initImportModal() {
   const suggestedNameInput = document.getElementById('importSuggestedName');
   const summaryText = document.getElementById('importSummaryText');
   const videoPromptsContainer = document.getElementById('importVideoPrompts');
+  const filesFeedback = document.getElementById('importFilesFeedback');
 
   let lastImportedPersona = null;
 
   if (!modal) return;
+
+  if (imagesInput && filesFeedback) {
+    imagesInput.addEventListener('change', () => {
+      const count = imagesInput.files.length;
+      if (count > 0) {
+        filesFeedback.textContent = `Imágenes seleccionadas: ${count}/4 ${count > 4 ? '(se usarán las primeras 4)' : ''}`;
+        filesFeedback.style.display = 'block';
+      } else {
+        filesFeedback.style.display = 'none';
+        filesFeedback.textContent = '';
+      }
+    });
+  }
 
   function openModal() {
     modal.style.display = 'flex';
@@ -3401,6 +3415,10 @@ function initImportModal() {
     suggestedNameInput.value = '';
     summaryText.innerHTML = '';
     videoPromptsContainer.innerHTML = '';
+    if (filesFeedback) {
+      filesFeedback.style.display = 'none';
+      filesFeedback.textContent = '';
+    }
     lastImportedPersona = null;
   }
 
@@ -3432,7 +3450,10 @@ function initImportModal() {
 
       const formData = new FormData();
       if (files.length > 0) {
-        formData.append('photo', files[0]); // Multer expects key 'photo'
+        const maxFiles = Math.min(files.length, 4);
+        for (let i = 0; i < maxFiles; i++) {
+          formData.append('photo', files[i]);
+        }
       }
       if (imageUrl) {
         formData.append('imageUrl', imageUrl);
@@ -3529,23 +3550,33 @@ function initImportModal() {
           lastImportedPersona.name = finalName;
           lastImportedPersona.handle = `@${finalName.toLowerCase().replace(/\s+/g, '')}_ugc`;
           
-          await authFetch('/api/personas', {
+          const saveRes = await authFetch('/api/personas', {
             method: 'POST',
             body: JSON.stringify(lastImportedPersona)
           });
+          const saveJson = await saveRes.json();
+          if (saveJson.success) {
+            state.personas = saveJson.personas;
+          }
         }
 
         alert(`¡Influencer "${finalName}" importado y creado con éxito!`);
         closeModal();
 
-        // Refresh lists and select the new influencer
-        if (typeof loadPersonas === 'function') {
-          await loadPersonas();
-        }
+        // Refresh all lists and stats
+        const res = await authFetch('/api/data');
+        const data = await res.json();
         
-        // Select the newly imported person
-        if (typeof selectPersona === 'function') {
-          selectPersona(lastImportedPersona.id);
+        state.personas = data.personas;
+        state.products = data.products;
+        state.generationStats = data.generationStats || { total: 0 };
+        
+        // Select the newly created persona
+        const found = state.personas.find(p => p.id === lastImportedPersona.id || p.name === finalName);
+        if (found) {
+          selectPersona(found);
+        } else if (state.personas.length > 0) {
+          selectPersona(state.personas[0]);
         }
 
       } catch (err) {

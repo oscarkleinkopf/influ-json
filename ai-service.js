@@ -141,6 +141,117 @@ module.exports = {
     }
   },
 
+  async generateWithGeminiMulti(imagePaths, options = {}) {
+    if (!ai) {
+      console.log('Offline mode: Using Canvas color matching & heuristic mock analysis (Multi).');
+      return null; // triggers local frontend fallback
+    }
+
+    try {
+      const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      
+      // Build image parts for all imagePaths
+      const imageParts = imagePaths.map(img => {
+        const absolutePath = path.resolve(img);
+        const imgData = fs.readFileSync(absolutePath);
+        return {
+          inlineData: {
+            data: Buffer.from(imgData).toString('base64'),
+            mimeType: 'image/jpeg'
+          }
+        };
+      });
+
+      const prompt = `
+        You are an expert AI Prompt Engineer and visual content director.
+        Analyze all of the provided reference photos of the SAME person/influencer.
+        Combine information from these different angles, expressions, lighting conditions, and outfits to establish a single, highly consistent visual identity sheet.
+        
+        You MUST respond ONLY with a single JSON object matching this exact structure:
+        {
+          "identity": {
+            "name": "A suitable name based on face",
+            "gender": "Femenino" or "Masculino" or "No binario / Andrógino",
+            "apparent_age": "e.g. 22-28 años",
+            "ethnicity_appearance": "e.g. Latina / Mediterránea",
+            "body_type": "e.g. Atlético / Proporcionado",
+            "persona_archetype": "e.g. Lifestyle & Bienestar"
+          },
+          "facial_features": {
+            "face_shape": "Description",
+            "skin_tone": "Description",
+            "skin_tone_hex": "approximate skin hex color code like #d2b48c",
+            "skin_texture": "Description",
+            "eye_color": "Description",
+            "eye_shape": "Description",
+            "eyebrow_style": "Description",
+            "nose_shape": "Description",
+            "lip_shape": "Description",
+            "lip_color": "Description",
+            "jawline": "Description",
+            "cheekbones": "Description",
+            "facial_hair": "Description or Ninguno",
+            "distinctive_marks": "Description or Ninguno",
+            "smile_type": "Description"
+          },
+          "hair": {
+            "color": "Description",
+            "color_hex": "approximate hair hex color code like #3d2314",
+            "length": "Description",
+            "texture": "Description",
+            "style": "Description",
+            "parting": "Description",
+            "highlights": "Description",
+            "volume": "Description"
+          },
+          "aesthetic": {
+            "overall_vibe": "Description",
+            "fashion_style": "Description",
+            "color_palette_dominant": "dominant hex color like #e0d0c0",
+            "color_palette_description": "Description",
+            "makeup_level": "Description",
+            "accessories": "Description",
+            "nails": "Description"
+          },
+          "photography": {
+            "camera_lens": "e.g. iPhone 15 Pro front camera selfie",
+            "focal_length": "e.g. 24mm (equivalente en celular)",
+            "aperture": "e.g. f/1.9 (cámara frontal de celular)",
+            "lighting_type": "e.g. Luz natural de ventana casual",
+            "lighting_direction": "Description",
+            "color_grade": "Description",
+            "color_temperature": "e.g. 5500-6000K",
+            "depth_of_field": "Description",
+            "background_setting": "Description",
+            "background_blur": "Description",
+            "composition": "Description",
+            "framing": "Description",
+            "mood": "Description",
+            "post_processing": "Description"
+          },
+          "clothing": {
+            "type": "Description of clothing worn in photo",
+            "color": "Color of clothing in photo",
+            "material": "Material of clothing in photo",
+            "neckline": "Neckline shape",
+            "fit": "Fit shape",
+            "visible_brand_logos": "Ninguno"
+          }
+        }
+        Do not output any markdown code blocks, preambles, or additional text. Output pure valid JSON only.
+      `;
+
+      const result = await model.generateContent([prompt, ...imageParts]);
+      const text = result.response.text().trim();
+      
+      const cleanJson = text.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+      return JSON.parse(cleanJson);
+    } catch (err) {
+      console.error('Gemini Vision multi-analysis error:', err);
+      return null;
+    }
+  },
+
   async generateScripts(product, persona, count = 10) {
     if (!ai) {
       console.log('Offline mode: Using pre-baked template scripts.');
