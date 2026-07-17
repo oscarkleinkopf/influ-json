@@ -599,15 +599,21 @@ app.post('/api/upload-reference-url', async (req, res) => {
 });
 
 // Import Real Influencer (Fase 2)
-app.post('/api/import-influencer', upload.single('photo'), async (req, res) => {
-  let imagePath = "";
-  let filename = "";
+app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) => {
+  const imagePaths = [];
+  const filenames = [];
 
   try {
-    if (req.file) {
-      filename = req.file.filename;
-      imagePath = `assets/references/${filename}`;
-    } else if (req.body.imageUrl) {
+    // 1. Process files upload
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        filenames.push(file.filename);
+        imagePaths.push(`assets/references/${file.filename}`);
+      }
+    } 
+    
+    // 2. Process remote image URL if provided
+    if (req.body.imageUrl) {
       const url = req.body.imageUrl;
       const response = await fetch(url);
       if (!response.ok) {
@@ -618,9 +624,9 @@ app.post('/api/import-influencer', upload.single('photo'), async (req, res) => {
       if (contentType.includes('png')) ext = 'png';
       else if (contentType.includes('webp')) ext = 'webp';
 
-      filename = `ref_${Date.now()}.${ext}`;
-      imagePath = `assets/references/${filename}`;
-      const absolutePath = path.join(__dirname, imagePath);
+      const filename = `ref_${Date.now()}.${ext}`;
+      const relPath = `assets/references/${filename}`;
+      const absolutePath = path.join(__dirname, relPath);
 
       // Make sure folder exists
       const dir = path.dirname(absolutePath);
@@ -629,47 +635,56 @@ app.post('/api/import-influencer', upload.single('photo'), async (req, res) => {
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       fs.writeFileSync(absolutePath, buffer);
-    } else {
-      return res.status(400).json({ success: false, message: 'Se requiere subir una foto o proporcionar una URL.' });
+
+      filenames.push(filename);
+      imagePaths.push(relPath);
     }
 
-    // Optimize image with sharp before analysis
-    try {
-      const fullPath = path.join(__dirname, imagePath);
-      const tempPath = fullPath + '_opt.jpg';
+    if (imagePaths.length === 0) {
+      return res.status(400).json({ success: false, message: 'Se requiere subir al menos una foto o proporcionar una URL.' });
+    }
+
+    // 3. Optimize each image with sharp and sync to scratch
+    const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
+    if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
+
+    for (let i = 0; i < imagePaths.length; i++) {
+      const imgPath = imagePaths[i];
+      const filename = filenames[i];
+      const fullPath = path.join(__dirname, imgPath);
       
-      await sharp(fullPath)
-        .resize({ width: 1024, height: 1024, fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 85 })
-        .toFile(tempPath);
-      
-      // Overwrite the original with optimized version
-      fs.renameSync(tempPath, fullPath);
-      console.log(`Image optimized with sharp before analysis: ${imagePath}`);
-    } catch (optErr) {
-      console.warn("Failed to optimize image with sharp, proceeding with original:", optErr.message);
+      try {
+        const tempPath = fullPath + '_opt.jpg';
+        await sharp(fullPath)
+          .resize({ width: 1024, height: 1024, fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 85 })
+          .toFile(tempPath);
+        
+        fs.renameSync(tempPath, fullPath);
+        console.log(`Image optimized with sharp: ${imgPath}`);
+      } catch (optErr) {
+        console.warn(`Failed to optimize image ${imgPath} with sharp, using original:`, optErr.message);
+      }
+
+      // Sync to scratch
+      try {
+        fs.copyFileSync(fullPath, path.join(scratchRefsDir, filename));
+      } catch (syncErr) {
+        console.warn(`Failed to sync image ${filename} to scratch:`, syncErr.message);
+      }
     }
 
-    // Sync reference image to scratch directory
-    try {
-      const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
-      if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
-      fs.copyFileSync(path.join(__dirname, imagePath), path.join(scratchRefsDir, filename));
-    } catch (syncErr) {
-      console.warn("Failed to sync reference image to scratch directory:", syncErr.message);
-    }
+    // 4. Perform analysis on multiple images
+    console.log(`Analyzing imported influencer reference images:`, imagePaths);
+    let analysis = await aiService.generateWithGeminiMulti(imagePaths);
 
-    // Now analyze the image
-    console.log(`Analyzing imported influencer reference image: ${imagePath}`);
-    let analysis = await aiService.analyzeReferencePhoto(imagePath);
-
-    // If analysis fails or offline, use color extraction & heuristics fallback
+    // If analysis fails or offline, use color extraction & heuristics fallback on the first image
     if (!analysis) {
-      console.log('Using local heuristic analysis for imported influencer...');
-      // Extract main colors from image using local canvas analyzer
+      console.log('Using local heuristic analysis for imported influencer (Fallback)...');
+      const primaryPath = imagePaths[0];
       let colors = { hair: '#3d2314', skin: '#d2b48c', dominant: '#e0d0c0' };
       try {
-        colors = await aiService.extractSpatialColorProperties(imagePath);
+        colors = await aiService.extractSpatialColorProperties(primaryPath);
       } catch (ce) {
         console.warn('Spatial color extraction failed:', ce.message);
       }
@@ -765,7 +780,8 @@ app.post('/api/import-influencer', upload.single('photo'), async (req, res) => {
       };
     }
 
-    // Prepare Persona model database columns
+    // Prepare Persona model database columns (primary image is the first optimized image)
+    const primaryImagePath = imagePaths[0];
     const personaName = req.body.name || analysis.identity.name || `Influencer_${Date.now().toString().slice(-4)}`;
     const persona = {
       name: personaName,
@@ -778,8 +794,8 @@ app.post('/api/import-influencer', upload.single('photo'), async (req, res) => {
       camera: analysis.photography.camera_lens,
       clothing: analysis.clothing.type,
       setting: analysis.photography.background_setting,
-      image: imagePath,
-      imageUGC: imagePath,
+      image: primaryImagePath,
+      imageUGC: primaryImagePath,
       handle: `@${personaName.toLowerCase().replace(/\s+/g, '')}_ugc`,
       detailedJSON: analysis
     };
