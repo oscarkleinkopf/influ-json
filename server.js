@@ -237,33 +237,8 @@ app.post('/api/personas/:id/character-bible', async (req, res) => {
     return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
   }
 
-  // Attempt to resolve target cref referenceUrl if not provided
-  let referenceUrl = options.referenceUrl;
-  if (!referenceUrl) {
-    let referenceLocalPath = null;
-    if (persona.detailedJSON) {
-      try {
-        const detailed = typeof persona.detailedJSON === 'string' ? JSON.parse(persona.detailedJSON) : persona.detailedJSON;
-        if (detailed && detailed.anchor_reference) {
-          referenceLocalPath = detailed.anchor_reference;
-        }
-      } catch (e) {}
-    }
-    if (!referenceLocalPath) {
-      referenceLocalPath = persona.image;
-    }
-
-    if (referenceLocalPath && !referenceLocalPath.startsWith('http')) {
-      try {
-        // Upload temporary image to tmpfiles.org to get a direct URL for --cref
-        referenceUrl = await aiService.uploadToTmpFiles(referenceLocalPath);
-      } catch (e) {
-        console.warn('Failed to upload character-bible reference photo:', e);
-      }
-    } else {
-      referenceUrl = referenceLocalPath;
-    }
-  }
+  // Use referenceUrl only if explicitly provided in options
+  const referenceUrl = options.referenceUrl || "";
 
   try {
     const characterBible = await aiService.generateDetailedCharacterPrompt(
