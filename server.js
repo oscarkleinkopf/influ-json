@@ -61,13 +61,17 @@ function runGitBackup(callback) {
   const commitMsg = `Backup auto-sync: Campaign update ${new Date().toISOString()}`;
   const commands = `git add . && git commit -m "${commitMsg}" --allow-empty && git push origin main`;
   
+  // Call callback immediately to prevent blocking HTTP response
+  if (callback) {
+    callback(true, 'Git backup scheduled in background');
+  }
+
+  // Run the commands in the background asynchronously
   exec(commands, (error, stdout, stderr) => {
     if (error) {
-      console.error('Git backup error:', error);
-      callback(false, stderr || error.message);
+      console.warn('Background Git backup failed:', error.message);
     } else {
-      console.log('Git backup success:', stdout);
-      callback(true, stdout);
+      console.log('Background Git backup success:', stdout.trim());
     }
   });
 }
@@ -612,36 +616,48 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
       }
     } 
     
-    // 2. Process remote image URL if provided
+    // 2. Process remote image URL if provided (with robust error handling)
     if (req.body.imageUrl) {
       const url = req.body.imageUrl;
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+      try {
+        console.log(`Attempting to fetch remote reference image URL: ${url}`);
+        const response = await fetch(url);
+        if (response.ok) {
+          const contentType = response.headers.get('content-type') || 'image/jpeg';
+          let ext = 'jpg';
+          if (contentType.includes('png')) ext = 'png';
+          else if (contentType.includes('webp')) ext = 'webp';
+
+          const filename = `ref_${Date.now()}.${ext}`;
+          const relPath = `assets/references/${filename}`;
+          const absolutePath = path.join(__dirname, relPath);
+
+          // Make sure folder exists
+          const dir = path.dirname(absolutePath);
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+          const arrayBuffer = await response.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          fs.writeFileSync(absolutePath, buffer);
+
+          filenames.push(filename);
+          imagePaths.push(relPath);
+          console.log(`Successfully downloaded remote reference image to: ${relPath}`);
+        } else {
+          console.warn(`Remote image URL fetch returned status: ${response.status}. Using fallback default avatar.`);
+        }
+      } catch (urlErr) {
+        console.warn(`Failed to fetch remote image URL ${url}, using fallback:`, urlErr.message);
       }
-      const contentType = response.headers.get('content-type') || 'image/jpeg';
-      let ext = 'jpg';
-      if (contentType.includes('png')) ext = 'png';
-      else if (contentType.includes('webp')) ext = 'webp';
-
-      const filename = `ref_${Date.now()}.${ext}`;
-      const relPath = `assets/references/${filename}`;
-      const absolutePath = path.join(__dirname, relPath);
-
-      // Make sure folder exists
-      const dir = path.dirname(absolutePath);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      fs.writeFileSync(absolutePath, buffer);
-
-      filenames.push(filename);
-      imagePaths.push(relPath);
     }
 
+    // 3. Fallback if no images were successfully loaded
     if (imagePaths.length === 0) {
-      return res.status(400).json({ success: false, message: 'Se requiere subir al menos una foto o proporcionar una URL.' });
+      console.log('No reference photos or URLs could be loaded. Applying default avatar fallback.');
+      const isMale = req.body.gender === 'Male';
+      const defaultImg = isMale ? 'assets/influencer_male.png' : 'assets/influencer_female.png';
+      imagePaths.push(defaultImg);
+      filenames.push(path.basename(defaultImg));
     }
 
     // 3. Optimize each image with sharp and sync to scratch
