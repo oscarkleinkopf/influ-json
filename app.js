@@ -54,22 +54,35 @@ async function authFetch(url, options = {}) {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-  setupTabs();
-  checkAuthAndInit();
-  setupLogin();
-  setupPersonaEngine();
-  setupPhotoUpload();
-  setupABComparator();
-  setupVersionHistory();
-  setupCampaigns();
-  setupScriptEngine();
-  setupUgcStudio();
-  setupLicensing();
-  setupGallery();
-  setupVariantManager();
-  initImportModal();
+  const initSteps = [
+    { name: 'setupTabs', fn: setupTabs },
+    { name: 'checkAuthAndInit', fn: checkAuthAndInit },
+    { name: 'setupLogin', fn: setupLogin },
+    { name: 'setupPersonaEngine', fn: setupPersonaEngine },
+    { name: 'setupPhotoUpload', fn: setupPhotoUpload },
+    { name: 'setupABComparator', fn: setupABComparator },
+    { name: 'setupVersionHistory', fn: setupVersionHistory },
+    { name: 'setupCampaigns', fn: setupCampaigns },
+    { name: 'setupScriptEngine', fn: setupScriptEngine },
+    { name: 'setupUgcStudio', fn: setupUgcStudio },
+    { name: 'setupLicensing', fn: setupLicensing },
+    { name: 'setupGallery', fn: setupGallery },
+    { name: 'setupVariantManager', fn: setupVariantManager },
+    { name: 'initImportModal', fn: initImportModal }
+  ];
+
+  initSteps.forEach(step => {
+    try {
+      step.fn();
+    } catch (err) {
+      console.error(`Error in initialization step [${step.name}]:`, err);
+    }
+  });
   
-  btnSyncNow.addEventListener('click', manualGitSync);
+  const syncBtn = document.getElementById('btnSyncNow');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', manualGitSync);
+  }
 });
 
 // Authentication Modal Logic
@@ -3446,26 +3459,26 @@ async function loadCharacterBible(sceneDescription = "") {
     if (data.success && data.characterBible) {
       const b = data.characterBible;
       
-      document.getElementById('bibleLockPrompt').textContent = b.character_lock_section || "";
-      document.getElementById('biblePositivePrompt').textContent = b.positive_prompt || "";
+      const setElText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text || "";
+      };
+      
+      setElText('bibleLockPrompt', b.character_lock_section);
+      setElText('biblePositivePrompt', b.positive_prompt);
       
       const recs = b.model_recommendations || {};
-      document.getElementById('bibleMjPrompt').textContent = recs.midjourney || "";
-      document.getElementById('bibleFluxPrompt').textContent = recs.flux || "";
-      document.getElementById('bibleLeonardoPrompt').textContent = recs.leonardo || "";
-      document.getElementById('bibleIdeogramPrompt').textContent = recs.ideogram || "";
-      
-      // Populate Grok, ChatGPT, and Meta AI
-      const grokEl = document.getElementById('bibleGrokPrompt');
-      if (grokEl) grokEl.textContent = recs.grok_imagine || "";
-      const chatgptEl = document.getElementById('bibleChatGptPrompt');
-      if (chatgptEl) chatgptEl.textContent = recs.chatgpt || "";
-      const metaEl = document.getElementById('bibleMetaAIPrompt');
-      if (metaEl) metaEl.textContent = recs.meta_ai || "";
-      
-      document.getElementById('bibleUsageNotes').textContent = b.usage_notes || "";
+      setElText('bibleMjPrompt', recs.midjourney);
+      setElText('bibleFluxPrompt', recs.flux);
+      setElText('bibleLeonardoPrompt', recs.leonardo);
+      setElText('bibleIdeogramPrompt', recs.ideogram);
+      setElText('bibleGrokPrompt', recs.grok_imagine);
+      setElText('bibleChatGptPrompt', recs.chatgpt);
+      setElText('bibleMetaAIPrompt', recs.meta_ai);
+      setElText('bibleUsageNotes', b.usage_notes);
     } else {
-      console.warn("Failed to load character bible details:", data.message);
+      console.warn("Failed to load character bible details:", data ? data.message : "No data");
+      alert(`Error al generar biblia: ${data ? data.message : "Respuesta de servidor inválida"}`);
     }
   } catch (err) {
     console.error("Error loading character bible:", err);
@@ -3534,14 +3547,20 @@ function initImportModal() {
     loading.style.display = 'none';
     preview.style.display = 'none';
     
-    // Clear inputs
-    imagesInput.value = '';
-    urlInput.value = '';
-    nameInput.value = '';
-    scriptTopicInput.value = '';
-    suggestedNameInput.value = '';
-    summaryText.innerHTML = '';
-    videoPromptsContainer.innerHTML = '';
+    // Clear inputs safely
+    if (imagesInput) imagesInput.value = '';
+    if (urlInput) urlInput.value = '';
+    if (nameInput) nameInput.value = '';
+    if (scriptTopicInput) scriptTopicInput.value = '';
+    if (suggestedNameInput) suggestedNameInput.value = '';
+    if (summaryText) summaryText.innerHTML = '';
+    if (videoPromptsContainer) videoPromptsContainer.innerHTML = '';
+    
+    const importJsonEl = document.getElementById('importJsonOutput');
+    if (importJsonEl) {
+      importJsonEl.value = '';
+    }
+
     if (filesFeedback) {
       filesFeedback.style.display = 'none';
       filesFeedback.textContent = '';
