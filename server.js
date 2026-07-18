@@ -669,17 +669,19 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
       const filename = filenames[i];
       const fullPath = path.join(__dirname, imgPath);
       
-      try {
-        const tempPath = fullPath + '_opt.jpg';
-        await sharp(fullPath)
-          .resize({ width: 1024, height: 1024, fit: 'inside', withoutEnlargement: true })
-          .jpeg({ quality: 85 })
-          .toFile(tempPath);
-        
-        fs.renameSync(tempPath, fullPath);
-        console.log(`Image optimized with sharp: ${imgPath}`);
-      } catch (optErr) {
-        console.warn(`Failed to optimize image ${imgPath} with sharp, using original:`, optErr.message);
+      if (imgPath.startsWith('assets/references/')) {
+        try {
+          const tempPath = fullPath + '_opt.jpg';
+          await sharp(fullPath)
+            .resize({ width: 1024, height: 1024, fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: 85 })
+            .toFile(tempPath);
+          
+          fs.renameSync(tempPath, fullPath);
+          console.log(`Image optimized with sharp: ${imgPath}`);
+        } catch (optErr) {
+          console.warn(`Failed to optimize image ${imgPath} with sharp, using original:`, optErr.message);
+        }
       }
 
       // Sync to scratch
