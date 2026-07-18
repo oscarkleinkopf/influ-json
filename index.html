@@ -409,7 +409,66 @@
           <div class="glass-card">
             <h2 id="editorHeaderTitle" style="font-family: var(--font-display); margin-bottom: 20px;">Configuración del Personaje</h2>
             
-            <form id="personaForm" class="editor-form-group">
+            <!-- Editorial Profile Sheet -->
+            <div id="personaProfileSheet" style="display: none; margin-bottom: 20px;">
+              <div style="display: flex; gap: 24px; margin-bottom: 24px; align-items: flex-start; flex-wrap: wrap;">
+                <!-- Profile Image -->
+                <div class="profile-image-container" style="position: relative; width: 140px; height: 140px; border-radius: 20px; overflow: hidden; border: 2px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); cursor: pointer;">
+                  <img id="sheetProfileImg" src="assets/nano_banana_influencer.png" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); padding: 4px; text-align: center; font-size: 9px; text-transform: uppercase; font-weight: 700; color: var(--accent-primary);">FOTO BASE</div>
+                </div>
+                
+                <!-- Main Info -->
+                <div style="flex: 1; min-width: 200px;">
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                    <h2 id="sheetName" style="font-family: var(--font-display); font-size: 22px; color: #fff; margin: 0;">Sofia</h2>
+                    <span id="sheetArchivedBadge" class="badge" style="background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); font-size: 10px; display: none;">Archivado</span>
+                  </div>
+                  <div id="sheetHandle" style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-primary); margin-bottom: 12px;">@sofia_ugc</div>
+                  
+                  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+                    <span id="sheetGenderBadge" class="badge" style="background: rgba(255,255,255,0.05); font-size: 11px; color: #fff;">Female</span>
+                    <span id="sheetAgeBadge" class="badge" style="background: rgba(255,255,255,0.05); font-size: 11px; color: #fff;">25 años</span>
+                    <span id="sheetEthnicityBadge" class="badge" style="background: rgba(255,255,255,0.05); font-size: 11px; color: #fff;">Latina</span>
+                  </div>
+
+                  <!-- Quick Action Buttons -->
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-sm" id="btnSheetPose" style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 11px;">📸 Nueva Pose</button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnSheetUgc" style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3);">🎬 Crear UGC</button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnSheetEdit" style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 11px;">✏️ Editar Rasgos</button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnSheetArchive" style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 11px; color: #ffc107; background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.2);">📦 Archivar</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Identity Details (Ficha Editorial) -->
+              <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: var(--border-radius-md); padding: 16px; margin-bottom: 20px;">
+                <h3 style="font-family: var(--font-display); font-size: 12px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 12px; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">✨ Identidad Visual & Look</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 11px; color: var(--text-secondary);">
+                  <div><strong>Piel / Tez:</strong> <span id="sheetSkinTone" style="color: #fff;">Cargando...</span></div>
+                  <div><strong>Textura:</strong> <span id="sheetSkinTexture" style="color: #fff;">Cargando...</span></div>
+                  <div><strong>Ojos / Cejas:</strong> <span id="sheetEyes" style="color: #fff;">Cargando...</span></div>
+                  <div><strong>Cabello:</strong> <span id="sheetHairDetails" style="color: #fff;">Cargando...</span></div>
+                  <div><strong>Estilo / Vibe:</strong> <span id="sheetStyle" style="color: #fff;">Cargando...</span></div>
+                  <div><strong>Cámara / Lente:</strong> <span id="sheetCamera" style="color: #fff;">Cargando...</span></div>
+                  <div><strong>Iluminación:</strong> <span id="sheetLighting" style="color: #fff;">Cargando...</span></div>
+                  <div><strong>Ubicación / Fondo:</strong> <span id="sheetSetting" style="color: #fff;">Cargando...</span></div>
+                </div>
+              </div>
+
+              <!-- Versión de Ficha Compilada -->
+              <div class="prompt-console" style="margin-top: 0; margin-bottom: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <h4 style="font-size: 10px; text-transform: uppercase; color: #fbbf24; margin: 0; letter-spacing: 0.5px;">📋 Prompt de Generación Compilado</h4>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnCopySheetPrompt" style="padding: 2px 8px; font-size: 9px; height: auto;">Copiar</button>
+                </div>
+                <div class="prompt-text" id="sheetPromptPreview" style="font-size: 11px; max-height: 80px; overflow-y: auto; line-height: 1.5; color: #ccc;">Cargando...</div>
+              </div>
+            </div>
+            
+            <form id="personaForm" class="editor-form-group" style="display: none;">
               <div class="form-row">
                 <div>
                   <label for="pName">Nombre del Influencer</label>
@@ -553,6 +612,9 @@
               <div style="margin-top: 10px; display: flex; gap: 8px;">
                 <button type="button" class="btn" id="btnSavePersona" style="flex: 2;">
                   Guardar Persona en influ-JSON
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnCancelEditPersona" style="flex: 1.5; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
+                  👁️ Ver Ficha
                 </button>
                 <button type="button" class="btn btn-secondary" id="btnArchivePersona" style="flex: 1.2; background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3);">
                   📦 Archivar
@@ -893,6 +955,15 @@
               <div class="prompt-console" style="margin-top: 0; margin-bottom: 20px;">
                 <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px;">Resumen del Look y Facciones</span>
                 <div id="importSummaryText" style="font-size: 11px; max-height: 100px; overflow-y: auto; color: var(--text-secondary); padding: 8px 12px; line-height: 1.6;">Cargando resumen...</div>
+              </div>
+
+              <!-- JSON Output Preview -->
+              <div class="prompt-console" style="margin-top: 0; margin-bottom: 20px; background: rgba(0,0,0,0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase;">Estructura influ-JSON Detectada</span>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnCopyImportJSON" style="padding: 2px 8px; font-size: 9px; height: auto;">Copiar JSON</button>
+                </div>
+                <textarea id="importJsonOutput" readonly style="width: 100%; height: 110px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; padding: 8px; color: #a7f3d0; font-family: var(--font-mono); font-size: 10px; resize: none; outline: none;"></textarea>
               </div>
 
               <!-- Video Scripts -->

@@ -2029,4 +2029,27 @@ input:checked + .slider:before {
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
+/* Option Cards Hover Effect */
+.option-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.option-card:hover {
+  border-color: var(--glass-border-focus) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* Profile Image Container Hover Effect */
+.profile-image-container {
+  transition: all 0.3s ease;
+}
+
+.profile-image-container:hover {
+  transform: scale(1.03);
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.25) !important;
+}
+
 
