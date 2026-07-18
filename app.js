@@ -812,18 +812,11 @@ function setupPersonaEngine() {
   }
 
   // Profile Sheet toggle buttons
-  const btnSheetEdit = document.getElementById('btnSheetEdit');
-  if (btnSheetEdit) {
-    btnSheetEdit.addEventListener('click', () => {
-      const profileSheet = document.getElementById('personaProfileSheet');
-      const personaForm = document.getElementById('personaForm');
-      if (profileSheet && personaForm) {
-        profileSheet.style.display = 'none';
-        personaForm.style.display = 'flex';
-      }
-      
-      const editorTitle = document.getElementById('editorHeaderTitle');
-      if (editorTitle) editorTitle.textContent = "Editar Parámetros del Personaje";
+  const btnSheetDelete = document.getElementById('btnSheetDelete');
+  if (btnSheetDelete) {
+    btnSheetDelete.addEventListener('click', () => {
+      const btnDelete = document.getElementById('btnDeletePersona');
+      if (btnDelete) btnDelete.click();
     });
   }
 
