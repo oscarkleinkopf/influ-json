@@ -317,6 +317,14 @@ function resetPersonaFormForNew() {
   state.selectedPersona = null;
   uploadedImagePath = null;
 
+  // Toggle visibility
+  const profileSheet = document.getElementById('personaProfileSheet');
+  const personaForm = document.getElementById('personaForm');
+  if (profileSheet && personaForm) {
+    profileSheet.style.display = 'none';
+    personaForm.style.display = 'flex';
+  }
+
   // Change config header title
   const editorTitle = document.getElementById('editorHeaderTitle');
   if (editorTitle) {
@@ -465,6 +473,64 @@ function selectPersona(persona) {
   }
 
   compilePromptAndJSON();
+
+  // Populate and show Editorial Profile Sheet
+  const profileSheet = document.getElementById('personaProfileSheet');
+  const personaForm = document.getElementById('personaForm');
+  if (profileSheet && personaForm) {
+    profileSheet.style.display = 'block';
+    personaForm.style.display = 'none';
+  }
+  
+  if (editorTitle) {
+    editorTitle.textContent = "Ficha de Influencer";
+  }
+
+  const sheetImg = document.getElementById('sheetProfileImg');
+  if (sheetImg) {
+    sheetImg.src = persona.image || (persona.gender === 'Male' ? 'assets/influencer_male.png' : 'assets/nano_banana_influencer.png');
+  }
+  
+  document.getElementById('sheetName').textContent = persona.name;
+  document.getElementById('sheetHandle').textContent = persona.handle || `@${persona.name.toLowerCase().replace(/\s+/g, '')}_ugc`;
+  
+  document.getElementById('sheetGenderBadge').textContent = persona.gender === 'Male' ? 'Masculino' : 'Femenino';
+  document.getElementById('sheetAgeBadge').textContent = persona.age;
+  document.getElementById('sheetEthnicityBadge').textContent = persona.ethnicity || 'Latina';
+  
+  const sheetArchivedBadge = document.getElementById('sheetArchivedBadge');
+  if (sheetArchivedBadge) {
+    sheetArchivedBadge.style.display = (persona.archived === 1) ? 'inline-block' : 'none';
+  }
+
+  document.getElementById('sheetSkinTone').textContent = document.getElementById('pSkinTone').value;
+  document.getElementById('sheetSkinTexture').textContent = document.getElementById('pSkinTexture').value;
+  document.getElementById('sheetEyes').textContent = `${document.getElementById('pEyeColor').value} / ${document.getElementById('pEyebrows').value}`;
+  document.getElementById('sheetHairDetails').textContent = `${document.getElementById('pHairColor').value} (${document.getElementById('pHairTexture').value}, ${document.getElementById('pHairLength').value})`;
+  document.getElementById('sheetStyle').textContent = persona.style || document.getElementById('pStyle').value;
+  document.getElementById('sheetCamera').textContent = document.getElementById('pCamera').value;
+  document.getElementById('sheetLighting').textContent = document.getElementById('pLighting').value;
+  document.getElementById('sheetSetting').textContent = persona.setting;
+  
+  const promptText = document.getElementById('promptPreview')?.textContent || '';
+  document.getElementById('sheetPromptPreview').textContent = promptText;
+
+  // Update profile sheet archive button text/state
+  const sheetArchiveBtn = document.getElementById('btnSheetArchive');
+  if (sheetArchiveBtn) {
+    if (persona.archived === 1) {
+      sheetArchiveBtn.textContent = '📦 Desarchivar';
+      sheetArchiveBtn.style.background = 'rgba(40, 167, 69, 0.1)';
+      sheetArchiveBtn.style.color = '#28a745';
+      sheetArchiveBtn.style.borderColor = 'rgba(40, 167, 69, 0.2)';
+    } else {
+      sheetArchiveBtn.textContent = '📦 Archivar';
+      sheetArchiveBtn.style.background = 'rgba(255, 193, 7, 0.1)';
+      sheetArchiveBtn.style.color = '#ffc107';
+      sheetArchiveBtn.style.borderColor = 'rgba(255, 193, 7, 0.2)';
+    }
+  }
+
   loadGenerationHistory(persona.id);
   loadCharacterBible("");
 }
@@ -742,6 +808,74 @@ function setupPersonaEngine() {
     cardInspiration.addEventListener('click', () => {
       const btnOpen = document.getElementById('btnOpenImportModal');
       if (btnOpen) btnOpen.click();
+    });
+  }
+
+  // Profile Sheet toggle buttons
+  const btnSheetEdit = document.getElementById('btnSheetEdit');
+  if (btnSheetEdit) {
+    btnSheetEdit.addEventListener('click', () => {
+      const profileSheet = document.getElementById('personaProfileSheet');
+      const personaForm = document.getElementById('personaForm');
+      if (profileSheet && personaForm) {
+        profileSheet.style.display = 'none';
+        personaForm.style.display = 'flex';
+      }
+      
+      const editorTitle = document.getElementById('editorHeaderTitle');
+      if (editorTitle) editorTitle.textContent = "Editar Parámetros del Personaje";
+    });
+  }
+
+  const btnCancelEditPersona = document.getElementById('btnCancelEditPersona');
+  if (btnCancelEditPersona) {
+    btnCancelEditPersona.addEventListener('click', () => {
+      const profileSheet = document.getElementById('personaProfileSheet');
+      const personaForm = document.getElementById('personaForm');
+      if (profileSheet && personaForm) {
+        personaForm.style.display = 'none';
+        profileSheet.style.display = 'block';
+      }
+      
+      const editorTitle = document.getElementById('editorHeaderTitle');
+      if (editorTitle) editorTitle.textContent = "Ficha de Influencer";
+    });
+  }
+
+  const btnSheetPose = document.getElementById('btnSheetPose');
+  if (btnSheetPose) {
+    btnSheetPose.addEventListener('click', () => {
+      const sceneInput = document.getElementById('sceneDescriptionInput');
+      if (sceneInput) {
+        sceneInput.focus();
+        sceneInput.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+
+  const btnSheetUgc = document.getElementById('btnSheetUgc');
+  if (btnSheetUgc) {
+    btnSheetUgc.addEventListener('click', () => {
+      navigateToTab('ugc-studio');
+    });
+  }
+
+  const btnSheetArchive = document.getElementById('btnSheetArchive');
+  if (btnSheetArchive) {
+    btnSheetArchive.addEventListener('click', () => {
+      const btnArchive = document.getElementById('btnArchivePersona');
+      if (btnArchive) btnArchive.click();
+    });
+  }
+
+  const btnCopySheetPrompt = document.getElementById('btnCopySheetPrompt');
+  if (btnCopySheetPrompt) {
+    btnCopySheetPrompt.addEventListener('click', () => {
+      const sheetPromptPreview = document.getElementById('sheetPromptPreview');
+      if (sheetPromptPreview) {
+        navigator.clipboard.writeText(sheetPromptPreview.textContent);
+        alert('📋 ¡Prompt copiado al portapapeles!');
+      }
     });
   }
   
@@ -3431,6 +3565,17 @@ function initImportModal() {
   if (btnCancelStep1) btnCancelStep1.addEventListener('click', closeModal);
   if (btnCancelPreview) btnCancelPreview.addEventListener('click', closeModal);
 
+  const btnCopyImportJSON = document.getElementById('btnCopyImportJSON');
+  if (btnCopyImportJSON) {
+    btnCopyImportJSON.addEventListener('click', () => {
+      const importJsonOutput = document.getElementById('importJsonOutput');
+      if (importJsonOutput && importJsonOutput.value) {
+        navigator.clipboard.writeText(importJsonOutput.value);
+        alert('¡Estructura JSON copiada al portapapeles!');
+      }
+    });
+  }
+
   if (btnAnalyze) {
     btnAnalyze.addEventListener('click', async () => {
       const files = imagesInput.files;
@@ -3487,13 +3632,21 @@ function initImportModal() {
 
         // Render visual analysis summary
         const d = lastImportedPersona.detailedJSON || {};
-        summaryText.innerHTML = `
-          <strong>Género/Edad:</strong> ${d.identity?.gender || lastImportedPersona.gender} (${d.identity?.apparent_age || lastImportedPersona.age})<br>
-          <strong>Etnia:</strong> ${d.identity?.ethnicity_appearance || lastImportedPersona.ethnicity}<br>
-          <strong>Rostro:</strong> ${d.facial_features?.face_shape || 'ovalada'} (${d.facial_features?.skin_tone || 'tono natural'}) con ${d.facial_features?.skin_texture || 'textura natural'}<br>
-          <strong>Cabello:</strong> ${d.hair?.length || 'medio'}, ${d.hair?.texture || 'natural'}, color ${d.hair?.color || 'castaño'}<br>
-          <strong>Estilo:</strong> ${d.aesthetic?.overall_vibe || lastImportedPersona.style}
-        `;
+        if (summaryText) {
+          summaryText.innerHTML = `
+            <strong>Género/Edad:</strong> ${d.identity?.gender || lastImportedPersona.gender} (${d.identity?.apparent_age || lastImportedPersona.age})<br>
+            <strong>Etnia:</strong> ${d.identity?.ethnicity_appearance || lastImportedPersona.ethnicity}<br>
+            <strong>Rostro:</strong> ${d.facial_features?.face_shape || 'ovalada'} (${d.facial_features?.skin_tone || 'tono natural'}) con ${d.facial_features?.skin_texture || 'textura natural'}<br>
+            <strong>Cabello:</strong> ${d.hair?.length || 'medio'}, ${d.hair?.texture || 'natural'}, color ${d.hair?.color || 'castaño'}<br>
+            <strong>Estilo:</strong> ${d.aesthetic?.overall_vibe || lastImportedPersona.style}
+          `;
+        }
+
+        // Render JSON preview
+        const importJsonEl = document.getElementById('importJsonOutput');
+        if (importJsonEl) {
+          importJsonEl.value = JSON.stringify(lastImportedPersona.detailedJSON || {}, null, 2);
+        }
 
         // Render video scripts list
         videoPromptsContainer.innerHTML = '';
