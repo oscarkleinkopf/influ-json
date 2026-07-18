@@ -482,7 +482,10 @@ Responde ÚNICAMENTE con un JSON válido siguiendo esta estructura exacta:
     "midjourney": "string",
     "flux": "string",
     "leonardo": "string",
-    "ideogram": "string"
+    "ideogram": "string",
+    "grok_imagine": "string",
+    "chatgpt": "string",
+    "meta_ai": "string"
   },
   "usage_notes": "string"
 }`;
@@ -571,7 +574,10 @@ She is ${scene}. Shot on ${camera} with ${lighting}, natural skin, authentic ama
             midjourney: midjourneyPrompt.replace(/\s+/g, ' ').trim(),
             flux: fluxPrompt.replace(/\s+/g, ' ').trim(),
             leonardo: leonardoPrompt.replace(/\s+/g, ' ').trim(),
-            ideogram: ideogramPrompt.replace(/\s+/g, ' ').trim()
+            ideogram: ideogramPrompt.replace(/\s+/g, ' ').trim(),
+            grok_imagine: `Raw amateur smartphone photo of ${charName}, ${age} ${ethnicity} ${gender.toLowerCase()} influencer. ${faceShape} face, ${skinTone} skin with visible natural pores and real texture. She is ${scene}. Realistic camera lighting, candid capture.`.replace(/\s+/g, ' ').trim(),
+            chatgpt: `Actúa como ${charName}, una creadora de contenido e influencer de ${age} años, de apariencia ${ethnicity}. Su personalidad es ${overallVibe}. Escribe en primera persona, manteniendo un tono muy natural, conversacional y directo para sus publicaciones y guiones de video.`.replace(/\s+/g, ' ').trim(),
+            meta_ai: `Realistic candid photo of ${charName}, ${age} ${ethnicity} ${gender.toLowerCase()} influencer, ${faceShape} face, ${skinTone} skin, natural pores, looking at camera. ${scene}. Bright daylight, high definition.`.replace(/\s+/g, ' ').trim()
         },
         usage_notes: usageNotes
     };
