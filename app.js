@@ -350,8 +350,10 @@ function resetPersonaFormForNew() {
     btnSave.textContent = "Crear Influencer";
   }
 
-  // Clear basic inputs
-  document.getElementById('pName').value = '';
+  // Clear basic inputs & suggest trendy name
+  const trendyNames = ["Clara", "Sofía", "Valentina", "Martina", "Elena", "Paula", "Lucía", "Mateo", "Lucas", "Adrián", "Javier", "Thiago"];
+  const randomName = trendyNames[Math.floor(Math.random() * trendyNames.length)];
+  document.getElementById('pName').value = randomName;
   document.getElementById('pGender').value = 'Female';
   document.getElementById('pAge').value = '25 años';
   document.getElementById('pEthnicity').value = 'Latina';
@@ -387,22 +389,25 @@ function resetPersonaFormForNew() {
     jsonArea.value = JSON.stringify(getFullPersonaJSON(), null, 2);
   }
 
-  // Clear bible prompts fields
-  document.getElementById('bibleLockPrompt').textContent = "";
-  document.getElementById('biblePositivePrompt').textContent = "";
-  document.getElementById('bibleMjPrompt').textContent = "";
-  document.getElementById('bibleFluxPrompt').textContent = "";
-  document.getElementById('bibleLeonardoPrompt').textContent = "";
-  document.getElementById('bibleIdeogramPrompt').textContent = "";
+  // Clear bible prompts fields safely
+  const clearElText = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "";
+  };
+  clearElText('bibleLockPrompt');
+  clearElText('biblePositivePrompt');
+  clearElText('bibleMjPrompt');
+  clearElText('bibleFluxPrompt');
+  clearElText('bibleLeonardoPrompt');
+  clearElText('bibleIdeogramPrompt');
+  clearElText('bibleGrokPrompt');
+  clearElText('bibleChatGptPrompt');
+  clearElText('bibleMetaAIPrompt');
   
-  const grokEl = document.getElementById('bibleGrokPrompt');
-  if (grokEl) grokEl.textContent = "";
-  const chatgptEl = document.getElementById('bibleChatGptPrompt');
-  if (chatgptEl) chatgptEl.textContent = "";
-  const metaEl = document.getElementById('bibleMetaAIPrompt');
-  if (metaEl) metaEl.textContent = "";
-  
-  document.getElementById('bibleUsageNotes').textContent = "Completa los campos de la izquierda y haz clic en 'Crear Influencer' para generar la biblia.";
+  const usageNotesEl = document.getElementById('bibleUsageNotes');
+  if (usageNotesEl) {
+    usageNotesEl.textContent = "Completa los campos de la izquierda y haz clic en 'Crear Influencer' para generar la biblia.";
+  }
 
   // Scroll smoothly to form
   const editorLayout = document.querySelector('.editor-layout');
@@ -1078,7 +1083,8 @@ async function savePersona() {
   const setting = document.getElementById('pSetting').value;
   
   const promptText = document.getElementById('promptPreview').textContent;
-  showSyncToast(true, 'Generando retrato virtual consistente con Nano Banana...');
+  const influencerName = document.getElementById('pName').value || 'Influencer';
+  showSyncToast(true, `Generando retrato virtual consistente con ${influencerName}...`);
   
   let portraitPath = null;
   try {
@@ -2886,7 +2892,8 @@ function applyAnalysisToForm() {
 async function saveAnalysisAsPersona() {
   if (!analysisResult) return;
 
-  showSyncToast(true, 'Generando retrato virtual consistente con Nano Banana...');
+  const name = (analysisResult && analysisResult.identity && analysisResult.identity.name) || 'Influencer';
+  showSyncToast(true, `Generando retrato virtual consistente con ${name}...`);
   
   const promptText = buildPromptFromAnalysis(analysisResult);
   let portraitPath = uploadedImagePath;
@@ -3151,7 +3158,7 @@ async function generateVariantAction() {
   const statusCard = document.getElementById('variantGenStatus');
   const statusText = document.getElementById('variantGenStatusText');
   statusCard.style.display = 'flex';
-  statusText.textContent = 'Renderizando pose virtual con Nano Banana / Flux...';
+  statusText.textContent = `Renderizando pose virtual con ${p.name} / Flux...`;
   
   // Compile the dynamic prompt based on influencer visual identity + pose properties
   const detailed = getFullPersonaJSON();
