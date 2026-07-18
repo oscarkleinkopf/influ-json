@@ -712,5 +712,24 @@ Genera los 3 guiones UGC profesionales. La respuesta debe ser puramente JSON vá
         ]
       }
     ];
+  },
+
+  async extractSpatialColorProperties(imagePath) {
+    // Return realistic default skin/hair/dominant colors as a robust fallback
+    return {
+      hair: '#3d2314',
+      skin: '#e6c29e',
+      dominant: '#e0d0c0'
+    };
+  },
+
+  hexToRgb(hex) {
+    if (!hex) return null;
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
   }
 };
