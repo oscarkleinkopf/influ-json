@@ -51,7 +51,7 @@ const storage = multer.diskStorage({
     cb(null, unique);
   }
 });
-const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 // Persisted scratch directory
 const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b-aa1e-adaeba8ce81d/scratch';
@@ -376,6 +376,15 @@ app.post('/api/ai/analyze-photo', (req, res) => {
     });
 });
 
+app.post('/api/ai/expand-persona-details', async (req, res) => {
+  try {
+    const details = await aiService.generateScratchPersonaDetails(req.body);
+    res.json({ success: true, details });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 app.post('/api/ai/generate-scripts', (req, res) => {
   const { product, persona, count } = req.body;
   aiService.generateScripts(product, persona, count)
@@ -543,12 +552,81 @@ app.post('/api/upload-reference', upload.single('photo'), (req, res) => {
       filePath: relativePath,
       fileName: req.file.filename,
       originalName: req.file.originalname,
-      size: req.file.size,
-      gitSynced: gitSuccess,
       gitMessage: msg
     });
   });
 });
+
+async function downloadOrResolveImage(inputUrl) {
+  let targetUrl = inputUrl;
+  console.log(`Resolving reference image URL: ${targetUrl}`);
+
+  let response = await fetch(targetUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  let contentType = response.headers.get('content-type') || '';
+
+  // If page is HTML (e.g. Instagram/TikTok profile or web page), extract og:image or twitter:image
+  if (contentType.includes('text/html')) {
+    const htmlText = await response.text();
+    const ogMatch = htmlText.match(/<meta\s+[^>]*property=["']og:image["']\s+[^>]*content=["']([^"']+)["']/i) 
+                 || htmlText.match(/<meta\s+[^>]*content=["']([^"']+)["']\s+[^>]*property=["']og:image["']/i);
+    const twitterMatch = htmlText.match(/<meta\s+[^>]*name=["']twitter:image["']\s+[^>]*content=["']([^"']+)["']/i)
+                      || htmlText.match(/<meta\s+[^>]*content=["']([^"']+)["']\s+[^>]*name=["']twitter:image["']/i);
+
+    const extractedImage = (ogMatch && ogMatch[1]) || (twitterMatch && twitterMatch[1]);
+    if (extractedImage) {
+      console.log(`Extracted OpenGraph/Twitter image URL from HTML page: ${extractedImage}`);
+      if (extractedImage.startsWith('http')) {
+        targetUrl = extractedImage;
+      } else {
+        const parsedBase = new URL(inputUrl);
+        targetUrl = new URL(extractedImage, parsedBase.origin).toString();
+      }
+
+      response = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Error HTTP ${response.status} al descargar imagen extraída.`);
+      }
+      contentType = response.headers.get('content-type') || '';
+    } else {
+      throw new Error('La URL es una página HTML pero no contiene etiquetas og:image ni twitter:image.');
+    }
+  }
+
+  let ext = 'jpg';
+  if (contentType.includes('png')) ext = 'png';
+  else if (contentType.includes('webp')) ext = 'webp';
+
+  const filename = `ref_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+  const relativePath = `assets/references/${filename}`;
+  const absolutePath = path.join(__dirname, relativePath);
+
+  const dir = path.dirname(absolutePath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  fs.writeFileSync(absolutePath, buffer);
+
+  // Sync reference image to scratch directory
+  const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
+  if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
+  fs.writeFileSync(path.join(scratchRefsDir, filename), buffer);
+
+  return { relativePath, filename, buffer };
+}
 
 app.post('/api/upload-reference-url', async (req, res) => {
   const { url } = req.body;
@@ -557,34 +635,8 @@ app.post('/api/upload-reference-url', async (req, res) => {
   }
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
-    }
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    let ext = 'jpg';
-    if (contentType.includes('png')) ext = 'png';
-    else if (contentType.includes('webp')) ext = 'webp';
+    const { relativePath, filename, buffer } = await downloadOrResolveImage(url);
 
-    const filename = `ref_${Date.now()}.${ext}`;
-    const relativePath = `assets/references/${filename}`;
-    const absolutePath = path.join(__dirname, relativePath);
-
-    // Make sure folder exists
-    const dir = path.dirname(absolutePath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    fs.writeFileSync(absolutePath, buffer);
-
-    // Sync reference image to scratch directory
-    const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
-    if (!fs.existsSync(scratchRefsDir)) fs.mkdirSync(scratchRefsDir, { recursive: true });
-    fs.writeFileSync(path.join(scratchRefsDir, filename), buffer);
-    console.log(`Reference image from URL synced to scratch: ${filename}`);
-
-    // Auto-git-backup the new reference
     runGitBackup((gitSuccess, msg) => {
       res.json({
         success: true,
@@ -620,32 +672,10 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
     if (req.body.imageUrl) {
       const url = req.body.imageUrl;
       try {
-        console.log(`Attempting to fetch remote reference image URL: ${url}`);
-        const response = await fetch(url);
-        if (response.ok) {
-          const contentType = response.headers.get('content-type') || 'image/jpeg';
-          let ext = 'jpg';
-          if (contentType.includes('png')) ext = 'png';
-          else if (contentType.includes('webp')) ext = 'webp';
-
-          const filename = `ref_${Date.now()}.${ext}`;
-          const relPath = `assets/references/${filename}`;
-          const absolutePath = path.join(__dirname, relPath);
-
-          // Make sure folder exists
-          const dir = path.dirname(absolutePath);
-          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-          const arrayBuffer = await response.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          fs.writeFileSync(absolutePath, buffer);
-
-          filenames.push(filename);
-          imagePaths.push(relPath);
-          console.log(`Successfully downloaded remote reference image to: ${relPath}`);
-        } else {
-          console.warn(`Remote image URL fetch returned status: ${response.status}. Using fallback default avatar.`);
-        }
+        const { relativePath, filename } = await downloadOrResolveImage(url);
+        filenames.push(filename);
+        imagePaths.push(relativePath);
+        console.log(`Successfully downloaded remote reference image to: ${relativePath}`);
       } catch (urlErr) {
         console.warn(`Failed to fetch remote image URL ${url}, using fallback:`, urlErr.message);
       }
@@ -854,6 +884,21 @@ app.post('/api/sync', (req, res) => {
       res.status(500).json({ success: false, message: "Error al sincronizar con GitHub", gitMessage: msg });
     }
   });
+});
+
+// Global error handling middleware (e.g. for Multer errors)
+app.use((err, req, res, next) => {
+  console.error('Unhandled error handler:', err);
+  if (err && err.name === 'MulterError') {
+    let message = 'Error al procesar archivos.';
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      message = 'Una de las imágenes excede el límite de tamaño permitido (50MB).';
+    } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      message = 'Has excedido el límite máximo de fotos (máximo 4 fotos).';
+    }
+    return res.status(400).json({ success: false, message });
+  }
+  res.status(500).json({ success: false, message: err.message || 'Error interno del servidor.' });
 });
 
 app.listen(PORT, () => {
