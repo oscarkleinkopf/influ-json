@@ -1311,6 +1311,84 @@ function updateSettingDropdown(selectedVal = null) {
 }
 
 /**
+ * Stable numeric seed from persona id — same face base across traditional/spicy.
+ */
+function personaSeed(personaId) {
+  const s = String(personaId || 'default');
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) % 1000000;
+}
+
+/**
+ * Shared face/body identity block used by BOTH traditional and spicy variants.
+ * Outfit/pose/scene change; face DNA stays identical.
+ */
+function buildIdentityLockBlock(persona, detailed, skin) {
+  const f = detailed.facial_features || {};
+  const h = detailed.hair || {};
+  const b = detailed.body || {};
+  const genderWord = persona.gender === 'Male' ? 'male' : 'female';
+  const age = detailed.identity?.apparent_age || persona.age || '25 años';
+  let ethnicity = detailed.identity?.ethnicity_appearance || persona.ethnicity || 'Latina';
+  if (skin.isLight && /latina/i.test(ethnicity) && !/clara|fair|light/i.test(ethnicity)) {
+    ethnicity = `${ethnicity} de tez clara`;
+  }
+
+  const faceBits = [
+    f.face_shape && `${f.face_shape} face shape`,
+    f.eye_color && `${f.eye_color} eyes`,
+    f.eye_shape && `${f.eye_shape} eye shape`,
+    (f.eyebrow_style || f.eyebrows) && `${f.eyebrow_style || f.eyebrows}`,
+    (f.lip_shape || f.lips) && `${f.lip_shape || f.lips}`,
+    f.nose_shape && `${f.nose_shape} nose`,
+    f.jawline && `${f.jawline} jawline`,
+    f.cheekbones && `${f.cheekbones}`,
+    f.smile_type && `${f.smile_type}`,
+    f.distinctive_marks && f.distinctive_marks !== 'Ninguno' && `marks: ${f.distinctive_marks}`
+  ].filter(Boolean).join(', ');
+
+  const hairBits = [
+    h.color || '',
+    h.texture || '',
+    h.length || '',
+    h.style || ''
+  ].filter(Boolean).join(' ');
+  const hairHex = h.color_hex ? ` hair hex ${h.color_hex}` : '';
+
+  const bodyBits = [
+    b.body_type || detailed.identity?.body_type,
+    b.height_appearance,
+    b.proportions,
+    b.posture,
+    b.fitness_level
+  ].filter(Boolean).join(', ');
+
+  const skinClause = [
+    `${skin.tone} skin`,
+    skin.hex && `exact skin hex ${skin.hex}`,
+    skin.lock,
+    skin.avoid && `avoid: ${skin.avoid}`,
+    skin.isLight && 'NOT dark, NOT deep tan, NOT morena'
+  ].filter(Boolean).join(', ');
+
+  return {
+    age,
+    ethnicity,
+    genderWord,
+    faceBits,
+    hairBits,
+    hairHex,
+    bodyBits,
+    skinClause,
+    name: persona.name || detailed.identity?.name || 'Influencer'
+  };
+}
+
+/**
  * Resolve skin for generation prompts. Never trust weak labels like "Tono Natural"
  * when DB/hex already say fair/light — that caused spicy variants to darken.
  */
@@ -4082,55 +4160,41 @@ async function generateVariantAction() {
   const attitude = document.getElementById('vAttitude').value;
   const clothing = document.getElementById('vClothing').value;
   const setting = document.getElementById('vSetting').value;
+  const mode = state.variantMode || 'traditional';
   
   const statusCard = document.getElementById('variantGenStatus');
   const statusText = document.getElementById('variantGenStatusText');
   statusCard.style.display = 'flex';
-  statusText.textContent = `Renderizando pose virtual con ${p.name} / Flux...`;
-  toastLoading(`Generando variante de ${p.name} con lock de tez...`);
+  statusText.textContent = `Renderizando ${mode === 'spicy' ? 'spicy' : 'pose'} de ${p.name} (misma identidad)...`;
+  toastLoading(`Generando variante de ${p.name} — misma cara que el retrato principal...`);
   
-  // Compile identity + strong skin lock (spicy was drifting darker with "Tono Natural" + Latina)
+  // SAME identity pipeline for traditional + spicy (only pose/clothes/scene change)
   const detailed = getFullPersonaJSON();
   const skin = resolveSkinForPrompt(detailed, p);
-  const genderWord = p.gender === 'Male' ? 'Masculino' : 'Femenino';
-  const age = detailed.identity?.apparent_age || p.age || '25 años';
-  let ethnicity = detailed.identity?.ethnicity_appearance || p.ethnicity || 'Latina';
-  if (skin.isLight && /latina/i.test(ethnicity) && !/clara|fair|light/i.test(ethnicity)) {
-    ethnicity = `${ethnicity} de tez clara`;
-  }
-  const hair = detailed.hair ? `${detailed.hair.color || ''} ${detailed.hair.texture || ''} ${detailed.hair.length || ''}` : p.hair;
-  const eyeColor = detailed.facial_features?.eye_color || '';
-  const faceShape = detailed.facial_features?.face_shape || '';
-  const hairHex = detailed.hair?.color_hex ? ` Exact hair color ${detailed.hair.color_hex}.` : '';
-  const body = detailed.body || {};
-  const bodyBits = [
-    body.body_type || detailed.identity?.body_type,
-    body.height_appearance,
-    body.proportions,
-    body.posture
-  ].filter(Boolean).join(', ');
+  const id = buildIdentityLockBlock(p, detailed, skin);
 
-  const skinClause = [
-    `${skin.tone} skin`,
-    skin.hex && `exact skin hex ${skin.hex}`,
-    skin.lock,
-    skin.avoid && `avoid: ${skin.avoid}`,
-    skin.isLight && 'NOT dark, NOT deep tan, NOT morena'
-  ].filter(Boolean).join(', ');
-
-  // Lighting: beach/outdoor should not force "indoor light"
   const isOutdoor = /playa|beach|parque|park|terraza|rooftop|calle|street|piscina|pool|bosque|forest/i.test(setting);
   const lightClause = isOutdoor
-    ? 'natural outdoor daylight, consistent fair skin under sun (no over-bronze filter)'
-    : 'soft realistic practical lighting, keep exact skin lightness (no underexposure darkening skin)';
+    ? 'natural outdoor daylight, same skin lightness as reference (no over-bronze)'
+    : 'soft realistic practical lighting, same skin lightness as reference';
 
-  const isSpicy = (state.variantMode || 'traditional') === 'spicy';
-  // Photoreal lock: latex/red glossy outfits easily go CGI without this
-  const realismClause = isSpicy
-    ? 'PHOTOREALISM LOCK (critical): authentic smartphone photo of a real person, real fabric/material with natural micro-wrinkles, subtle real sheen only (NOT mirror chrome, NOT plastic CGI, NOT 3D render, NOT Unreal Engine, NOT doll skin, NOT airbrushed beauty filter). Visible natural skin pores, realistic body proportions, candid UGC authenticity, shot on iPhone, raw unedited look.'
-    : 'photorealistic raw smartphone photo, natural skin texture, realistic fabric.';
-
-  const variantPrompt = `Photorealistic amateur UGC smartphone photo, ${pose}. Medium shot showing face and body. A ${age} ${ethnicity} ${genderWord.toLowerCase()} real human influencer ${attitude}. ${hair} hair, ${skinClause}, ${eyeColor} eyes, ${faceShape} face.${hairHex} Body: ${bodyBits || 'proportioned natural silhouette'}. Wearing ${clothing}. Background is ${setting}. ${lightClause}. ${realismClause} Same person consistent facial identity AND skin lightness. SKIN LOCK (critical): ${skin.tone}${skin.hex ? ' ' + skin.hex : ''} — match reference person skin tone exactly. Avoid: 3d render, plastic latex shine, cartoon, anime, mannequin, wax figure, overly glossy skin.`;
+  // Identity FIRST, then scene/outfit — order matters for img2img models
+  const variantPrompt = [
+    `IDENTITY LOCK (critical — same person as reference photo of ${id.name}):`,
+    `This is the EXACT same ${id.age} ${id.ethnicity} ${id.genderWord} human as the reference image.`,
+    `Identical face: ${id.faceBits || 'same facial structure as reference'}.`,
+    `Hair: ${id.hairBits || p.hair || 'same hair as reference'}.${id.hairHex}`,
+    `Skin: ${id.skinClause}. SKIN LOCK: ${skin.tone}${skin.hex ? ' ' + skin.hex : ''}.`,
+    `Body: ${id.bodyBits || 'same body proportions as reference'}.`,
+    `Do NOT change face shape, eye spacing, nose, lips, jaw, age, or identity — only change pose, outfit, and background.`,
+    `Expression/attitude: ${attitude}.`,
+    `Pose: ${pose}.`,
+    `Wearing: ${clothing}.`,
+    `Background/location: ${setting}.`,
+    lightClause + '.',
+    'Photorealistic amateur UGC smartphone photo, medium shot, real fabric, natural skin pores, raw unedited iPhone look.',
+    'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, mirror chrome latex.'
+  ].join(' ');
   
   try {
     const res = await authFetch(`/api/personas/${p.id}/variants`, {
@@ -4142,15 +4206,17 @@ async function generateVariantAction() {
         setting,
         prompt: variantPrompt,
         photoreal: true,
-        mode: state.variantMode || 'traditional'
+        identityLock: true,
+        mode,
+        seed: personaSeed(p.id)
       })
     });
     const data = await res.json();
     if (data.success) {
       state.activeVariants = data.variants;
       renderVariantVaultGrid();
-      statusText.textContent = '✓ Pose agregada exitosamente!';
-      toastSuccess(`Variante de ${p.name} lista (tez bloqueada: ${skin.tone})`);
+      statusText.textContent = '✓ Pose agregada (misma identidad)!';
+      toastSuccess(`Variante lista — cara anclada a ${p.name}`);
       setTimeout(() => statusCard.style.display = 'none', 3000);
     } else {
       statusText.textContent = 'Error al generar la pose.';

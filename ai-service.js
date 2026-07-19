@@ -345,24 +345,39 @@ module.exports = {
       finalPrompt += '. SKIN LOCK: fair light complexion only, NOT dark, NOT deep tan, NOT morena.';
     }
 
-    // Latex / spicy materials → force anti-CGI wording (red shiny catsuits often go plastic)
-    const wantsPhotoreal = options.photoreal === true
+    // Identity variants (traditional + spicy): same face as reference
+    const identityLock = options.identityLock === true || /IDENTITY LOCK/i.test(finalPrompt);
+    const wantsPhotoreal = options.photoreal === true || identityLock
       || /latex|látex|catsuit|vinyl|vinilo|spicy|PHOTOREALISM LOCK/i.test(finalPrompt);
     if (wantsPhotoreal && !/NOT 3D render|not cgi|photorealistic raw/i.test(finalPrompt)) {
       finalPrompt += '. PHOTOREAL: real smartphone photograph of a real human, real material texture, subtle sheen only, natural pores, NOT 3D render, NOT CGI plastic, NOT mirror chrome, NOT doll.';
     }
+    if (identityLock && referenceUrl) {
+      finalPrompt += ' Keep the exact same face as the reference image; only outfit, pose and background may change.';
+    }
+
+    // Stable seed per persona when provided (consistency across traditional/spicy)
+    const seed = Number.isFinite(options.seed)
+      ? options.seed
+      : Math.floor(Math.random() * 100000);
 
     if (!ai) {
       console.log('Using Pollinations.ai free keyless generator for virtual portrait...');
 
       const fetchPollinations = async (refUrl) => {
-        // enhance=true makes latex/spicy more "AI plastic"; prefer off for photoreal variants
-        const enhance = wantsPhotoreal ? 'false' : 'true';
-        let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=768&height=768&model=flux&nologo=true&enhance=${enhance}&seed=${Math.floor(Math.random() * 100000)}`;
+        // Off enhance for identity variants — enhance makes faces diverge between modes
+        const enhance = (wantsPhotoreal || identityLock) ? 'false' : 'true';
+        // Higher image strength = stick closer to reference face (Pollinations img2img)
+        // Identity lock needs stronger face adherence so spicy ≠ different person
+        let strength = 0.72;
+        if (identityLock) strength = 0.82;
+        else if (wantsPhotoreal) strength = 0.75;
+
+        let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=768&height=768&model=flux&nologo=true&enhance=${enhance}&seed=${seed}`;
         if (refUrl) {
-          // Slightly lower strength than before so clothing can change, face/skin stay real
-          url += `&image=${encodeURIComponent(refUrl)}&strength=${wantsPhotoreal ? '0.68' : '0.72'}`;
+          url += `&image=${encodeURIComponent(refUrl)}&strength=${strength}`;
         }
+        console.log(`[gen] pollinations seed=${seed} strength=${refUrl ? strength : 'n/a'} identityLock=${identityLock} enhance=${enhance}`);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 45000);
         try {
@@ -382,8 +397,21 @@ module.exports = {
           try {
             res = await fetchPollinations(referenceUrl);
           } catch (refErr) {
-            console.warn(`Pollinations image-to-image failed (${refErr.message}), falling back to text prompt generation...`);
-            res = await fetchPollinations(null);
+            // Retry once with slightly lower strength before text-only (text-only = face drift)
+            console.warn(`Pollinations img2img failed (${refErr.message}), retrying once...`);
+            try {
+              const retryOpts = { ...options, seed };
+              // inline retry with strength 0.78 via temporary prompt note
+              let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=768&height=768&model=flux&nologo=true&enhance=false&seed=${seed}&image=${encodeURIComponent(referenceUrl)}&strength=0.78`;
+              const controller = new AbortController();
+              const timer = setTimeout(() => controller.abort(), 45000);
+              res = await fetch(url, { signal: controller.signal });
+              clearTimeout(timer);
+              if (!res.ok) throw new Error(`Pollinations HTTP error: ${res.status}`);
+            } catch (retryErr) {
+              console.warn(`Pollinations retry failed (${retryErr.message}), falling back to text-only (face may drift).`);
+              res = await fetchPollinations(null);
+            }
           }
         } else {
           res = await fetchPollinations(null);
