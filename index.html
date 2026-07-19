@@ -611,6 +611,44 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Personalidad y Reglas de Marca -->
+              <div class="glass-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); margin-top: 14px; padding: 14px; border-radius: var(--border-radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <h4 style="font-size: 11px; text-transform: uppercase; color: #ec4899; margin: 0; font-family: var(--font-display);">🧠 Personalidad, Marcas Distintivas y Reglas de Marca</h4>
+                </div>
+                
+                <div class="form-row">
+                  <div>
+                    <label for="pDistinctiveMarks">Marcas Distintivas y Señas Físicas</label>
+                    <input type="text" id="pDistinctiveMarks" value="Peca sutil en el pómulo izquierdo, pequeño lunar natural en el cuello" placeholder="Ej: Peca en pómulo, pequeño lunar en cuello, tatuaje en muñeca">
+                  </div>
+                  <div>
+                    <label for="pMbti">Arquetipo Psicológico (MBTI)</label>
+                    <select id="pMbti">
+                      <option value="ENFP - El Entusiasta Creativo">ENFP - El Entusiasta Creativo</option>
+                      <option value="ENFJ - El Líder Carismático">ENFJ - El Líder Carismático</option>
+                      <option value="INFJ - El Consejero Inspirador">INFJ - El Consejero Inspirador</option>
+                      <option value="ENTP - El Innovador Audaz">ENTP - El Innovador Audaz</option>
+                      <option value="ESFP - El Animador Espontáneo">ESFP - El Animador Espontáneo</option>
+                      <option value="ESTP - El Emprendedor Dinámico">ESTP - El Emprendedor Dinámico</option>
+                      <option value="INTJ - El Estratega Visionario">INTJ - El Estratega Visionario</option>
+                      <option value="INFP - El Soñador Auténtico">INFP - El Soñador Auténtico</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 10px;">
+                  <div>
+                    <label for="pCommunicationStyle">Tono de Voz y Estilo de Comunicación</label>
+                    <input type="text" id="pCommunicationStyle" value="Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia" placeholder="Ej: Cercano, empático, usa emojis de naturaleza y preguntas directas">
+                  </div>
+                  <div>
+                    <label for="pTaboos">Tabúes y Restricciones de Marca (Separados por coma)</label>
+                    <input type="text" id="pTaboos" value="No promociona fast fashion, No usa lenguaje agresivo, No habla de política" placeholder="Ej: No fast fashion, No lenguaje agresivo, No política">
+                  </div>
+                </div>
+              </div>
               
               <div style="margin-top: 10px; display: flex; gap: 8px;">
                 <button type="button" class="btn" id="btnSavePersona" style="flex: 2;">
@@ -795,9 +833,16 @@
           
           <div class="variant-vault-layout" style="display: grid; grid-template-columns: 320px 1fr; gap: 28px;">
             <!-- Variant controls -->
-            <div style="border-right: 1px solid var(--glass-border); padding-right: 24px;">
-              <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 16px; color: var(--accent-primary);">Generar Nueva Pose</h3>
-              
+              <!-- Mode Switcher: Tradicional vs Spicy -->
+              <div class="variant-mode-selector" style="display: flex; gap: 8px; margin-bottom: 18px; background: rgba(8, 7, 13, 0.6); padding: 4px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                <button type="button" class="btn btn-secondary active" id="btnModeTraditional" onclick="setVariantMode('traditional')" style="flex: 1; padding: 8px 10px; font-size: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  🌿 Tradicional
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnModeSpicy" onclick="setVariantMode('spicy')" style="flex: 1; padding: 8px 10px; font-size: 12px; border-radius: 8px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(217, 70, 239, 0.25)); border-color: rgba(239, 68, 68, 0.5); color: #f43f5e; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  🔥 Modo Spicy
+                </button>
+              </div>
+
               <div class="editor-form-group" style="display: flex; flex-direction: column; gap: 14px;">
                 <div>
                   <label for="vPose">Encuadre / Pose</label>
@@ -805,8 +850,15 @@
                     <option value="Selfie de primer plano de rostro (selfie portrait)">Selfie primer plano (rostro)</option>
                     <option value="Plano medio-corto de brazo extendido (candid hand-held selfie)">Plano medio-corto (selfie)</option>
                     <option value="Espejo de cuerpo entero sosteniendo el celular (full body mirror selfie)">Selfie de espejo (cuerpo entero)</option>
+                    <option value="Pose estilizada de cuerpo entero de pie modelando (full body standing fashion model pose)">Cuerpo entero (Modelando de pie)</option>
                     <option value="Plano medio americano caminando relajada (candid snapshot walking)">Plano medio americano (caminando)</option>
                     <option value="Sentada de medio lado sonriendo a la cámara (sitting profile view)">Sentada (perfil)</option>
+                    <option value="Sentada en el suelo de forma relajada y casual (candid floor seating pose)">Sentada en el suelo (casual)</option>
+                    <option value="Mirando por encima del hombro con pose sugerente (over-the-shoulder look pose)">Mirada sobre el hombro</option>
+                    <option value="Apoyada sutilmente en una pared con postura confiada (leaning against wall pose)">Apoyada en pared (confiada)</option>
+                    <option value="Recostada cómodamente en un sofá o cama (relaxed reclining pose)">Recostada en sofá / cama</option>
+                    <option value="Jugando con el cabello de forma espontánea (playing with hair candid pose)">Jugando con el cabello</option>
+                    <option value="Macro portrait de mirada fija dramática (dramatic close-up beauty shot)">Macro portrait (mirada dramática)</option>
                   </select>
                 </div>
                 
@@ -818,6 +870,9 @@
                     <option value="guiñando un ojo de forma juguetona e ingeniosa (playful confident wink)">Guiñando un ojo</option>
                     <option value="mirada intensa y misteriosa directa a lente (intense focused look)">Mirada intensa</option>
                     <option value="pensativa mirando hacia el horizonte (thoughtful distant gaze)">Pensativa / Distante</option>
+                    <option value="expresión seductora y confiada (confident alluring gaze)">Seductora y confiada</option>
+                    <option value="risa espontánea y divertida (candid laughing moment)">Risa espontánea / Divertida</option>
+                    <option value="actitud desafiante y empoderada (empowered fierce look)">Desafiante / Empoderada</option>
                   </select>
                 </div>
 
@@ -836,6 +891,15 @@
                     <option value="Parque natural soleado con follaje verde desenfocado (sunny green park)">Parque (naturaleza)</option>
                     <option value="Calle de ciudad de noche con luces bokeh desenfocadas (urban neon street night)">Calle urbana (noche)</option>
                     <option value="Habitación de hotel lujosa y luminosa (luxury bright hotel room)">Habitación lujosa</option>
+                    <option value="Playa paradisíaca de arena blanca al atardecer dorado (tropical beach sunset)">Playa paradisíaca (atardecer)</option>
+                    <option value="Estudio fotográfico futurista con luces de neón morado y azul (futuristic neon studio)">Estudio neón (futurista)</option>
+                    <option value="Terraza de penthouse de lujo con vista panorámica a la ciudad (penthouse rooftop skyline view)">Terraza Penthouse (vista urbana)</option>
+                    <option value="Garaje subterráneo industrial con luces neón y autos deportivos (cyberpunk garage interior)">Garaje industrial (Cyberpunk)</option>
+                    <option value="Bosque de pinos nevado de invierno (snowy pine forest background)">Bosque nevado (invierno)</option>
+                    <option value="Cubierta de un yate de lujo navegando en el mar turquesa (luxury yacht ocean deck)">Yate de lujo (alta mar)</option>
+                    <option value="Callejón nocturno húmedo iluminado por letreros neón (wet cyberpunk alleyway)">Callejón Cyberpunk (lluvia / neón)</option>
+                    <option value="Salón exclusivo de club VIP nocturno con luces tenue (exclusive VIP lounge club)">Club VIP (salón nocturno)</option>
+                    <option value="Dunas del desierto con luz solar brillante de oro (epic desert dunes backdrop)">Desierto / Dunas (luz dorada)</option>
                   </select>
                 </div>
 
