@@ -1,27 +1,38 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
+const {
+  DATA_DIR,
+  DB_PATH,
+  WORKSPACE_DB_MIRROR,
+  resolveDatabasePath,
+  ensureDataLayout
+} = require('./paths');
 
-const WORKSPACE_DB_PATH = path.join(__dirname, 'influ.sqlite');
-const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b-aa1e-adaeba8ce81d/scratch';
-const SCRATCH_DB_PATH = path.join(SCRATCH_DIR, 'influ.sqlite');
+// Portable DB: ./data/influ.sqlite (or DATA_DIR) — migrates from legacy paths once
+ensureDataLayout();
+const ACTIVE_DB_PATH = resolveDatabasePath();
+const db = new Database(ACTIVE_DB_PATH);
+console.log(`[db] Opened SQLite at ${ACTIVE_DB_PATH}`);
 
-// Ensure scratch directory exists
-if (!fs.existsSync(SCRATCH_DIR)) {
-  fs.mkdirSync(SCRATCH_DIR, { recursive: true });
-}
-
-// Open DB in scratch directory for persistence
-const db = new Database(SCRATCH_DB_PATH);
-
-// Helper to sync DB back to workspace so git can track it
+/**
+ * Mirror active DB to project-root influ.sqlite for git auto-backup compatibility.
+ */
 function syncDbToWorkspace() {
   try {
-    fs.copyFileSync(SCRATCH_DB_PATH, WORKSPACE_DB_PATH);
-    console.log(`Synced database to workspace: ${WORKSPACE_DB_PATH}`);
+    fs.copyFileSync(ACTIVE_DB_PATH, WORKSPACE_DB_MIRROR);
+    console.log(`Synced database to workspace: ${WORKSPACE_DB_MIRROR}`);
   } catch (err) {
     console.error('Failed to sync DB to workspace:', err);
   }
+}
+
+function getDbPath() {
+  return ACTIVE_DB_PATH;
+}
+
+function getDataDir() {
+  return DATA_DIR;
 }
 
 // Initialize tables
@@ -322,6 +333,10 @@ module.exports = {
   db,
   syncDbToWorkspace,
   runMigrations,
+  getDbPath,
+  getDataDir,
+  DATA_DIR,
+  DB_PATH: ACTIVE_DB_PATH,
   
   // Personas CRUD
   getAllPersonas() {

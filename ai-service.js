@@ -2,6 +2,7 @@ const { GoogleGenAI } = require('@google/generative-ai');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
+const { DATA_DIR, ensureDir } = require('./paths');
 
 // Load environment variables
 dotenv.config();
@@ -347,10 +348,9 @@ module.exports = {
 
         fs.writeFileSync(absolutePath, buffer);
 
-        // Sync to scratch directory
-        const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b-aa1e-adaeba8ce81d/scratch';
-        const scratchGenDir = path.join(SCRATCH_DIR, 'assets', 'generated');
-        if (!fs.existsSync(scratchGenDir)) fs.mkdirSync(scratchGenDir, { recursive: true });
+        // Mirror into portable DATA_DIR (not Antigravity brain path)
+        const scratchGenDir = path.join(DATA_DIR, 'generated');
+        ensureDir(scratchGenDir);
         fs.writeFileSync(path.join(scratchGenDir, filename), buffer);
 
         console.log(`Pollinations Image generated and saved to: ${relativePath}`);
@@ -381,10 +381,9 @@ module.exports = {
 
         fs.writeFileSync(absolutePath, Buffer.from(base64Data, 'base64'));
 
-        // Sync to scratch directory
-        const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b-aa1e-adaeba8ce81d/scratch';
-        const scratchGenDir = path.join(SCRATCH_DIR, 'assets', 'generated');
-        if (!fs.existsSync(scratchGenDir)) fs.mkdirSync(scratchGenDir, { recursive: true });
+        // Mirror into portable DATA_DIR (not Antigravity brain path)
+        const scratchGenDir = path.join(DATA_DIR, 'generated');
+        ensureDir(scratchGenDir);
         fs.writeFileSync(path.join(scratchGenDir, filename), Buffer.from(base64Data, 'base64'));
 
         console.log(`AI Image generated and saved to: ${relativePath}`);

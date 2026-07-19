@@ -18,7 +18,7 @@ Al implementar features o proponer cambios, alinear con la semana activa del roa
 
 - Servidor: `npm start` → `node server.js` (puerto 3000). En PowerShell usar `npm.cmd` si la policy bloquea scripts.
 - Auth: PIN vía `STUDIO_PIN` en `.env` (default en código si vacío). No commitear `.env`.
-- DB: hoy puede vivir en scratch path + sync a `influ.sqlite` del workspace; preferir path portable (`DATA_DIR` / `__dirname`) según ROADMAP S1.6.
+- DB: portable en `data/influ.sqlite` (o `DATA_DIR` en `.env`). Migración automática desde legacy. Mirror a `./influ.sqlite` para git backup. Ver `paths.js`.
 - Tras mutar personas: **siempre** refrescar `state.personas` + `refreshPersonaLists()` / grids del dashboard.
 - UI en español; mensajes de error honestos (offline, rate limit, sin API key).
 - Commits: mensajes claros en inglés o español, enfocados en el “por qué”.

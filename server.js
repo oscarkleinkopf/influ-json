@@ -53,8 +53,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
-// Persisted scratch directory
-const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b-aa1e-adaeba8ce81d/scratch';
+// Portable data directory (ROADMAP 1.6) — was hardcoded Antigravity brain path
+const { DATA_DIR, ensureDir } = require('./paths');
+const SCRATCH_DIR = DATA_DIR;
+ensureDir(SCRATCH_DIR);
 
 // Git backup helper function
 function runGitBackup(callback) {
@@ -97,7 +99,9 @@ app.get('/api/status', (req, res) => {
     success: true,
     apiConnected: aiService.isApiConnected(),
     gitLinked: fs.existsSync(path.join(__dirname, '.git')),
-    pinRequired: !!process.env.STUDIO_PIN && process.env.STUDIO_PIN.trim() !== ''
+    pinRequired: !!process.env.STUDIO_PIN && process.env.STUDIO_PIN.trim() !== '',
+    dataDir: dbService.getDataDir ? dbService.getDataDir() : DATA_DIR,
+    dbPath: dbService.getDbPath ? dbService.getDbPath() : null
   });
 });
 

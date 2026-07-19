@@ -5,3 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 Thumbs.db
+
+# Working data dir (DB source of truth). Root influ.sqlite is mirrored for git backup.
+data/
+!data/.gitkeep
