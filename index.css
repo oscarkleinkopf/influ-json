@@ -1967,6 +1967,43 @@ input:checked + .slider:before {
   border-color: transparent;
 }
 
+.history-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(13, 10, 22, 0.75);
+  border: 1px solid var(--glass-border-focus);
+  color: #fff;
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 3010;
+  user-select: none;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.history-nav-btn:hover {
+  background: var(--accent-primary);
+  border-color: transparent;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.6);
+}
+
+.history-nav-prev {
+  left: 24px;
+}
+
+.history-nav-next {
+  right: 24px;
+}
+
 /* ===== RIGHT PANEL TABBED WORKSPACE ===== */
 .right-panel-tabbed-container {
   display: flex;
