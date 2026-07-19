@@ -174,39 +174,35 @@ app.post('/api/personas/:id/variants', async (req, res) => {
   let { prompt } = req.body;
   
   const persona = dbService.getPersonaById(req.params.id);
-  let referenceLocalPath = null;
-  if (persona) {
-    if (persona.detailedJSON) {
-      try {
-        const detailed = typeof persona.detailedJSON === 'object'
-          ? persona.detailedJSON
-          : (typeof persona.detailedJSON === 'string' ? JSON.parse(persona.detailedJSON) : {});
-        // unwrap if still string
-        const d = typeof detailed === 'string' ? JSON.parse(detailed) : detailed;
-        if (d && d.anchor_reference) {
-          referenceLocalPath = d.anchor_reference;
+  // ALWAYS prefer main portrait as face DNA (same for traditional + spicy)
+  // Do not use a previous spicy/variant image as anchor or faces diverge.
+  let referenceLocalPath = (persona && persona.image) ? persona.image : null;
+  if (persona && persona.detailedJSON) {
+    try {
+      let d = persona.detailedJSON;
+      if (typeof d === 'string') d = JSON.parse(d);
+      if (typeof d === 'string') d = JSON.parse(d);
+      if (!referenceLocalPath && d && d.anchor_reference) {
+        referenceLocalPath = d.anchor_reference;
+      }
+      // Server-side skin lock reinforcement
+      const f = (d && d.facial_features) || {};
+      const skinHex = f.skin_tone_hex;
+      const skinTone = f.skin_tone || '';
+      if (prompt && (skinHex || /clara|fair|porcelana|beige claro/i.test(skinTone))) {
+        const skinInfo = aiService.classifySkinToneFromRgb(aiService.hexToRgb(skinHex || '#f0d5c0'));
+        if (!/SKIN LOCK/i.test(prompt)) {
+          prompt += `. ${aiService.buildSkinLockFragment(skinTone || skinInfo.label, skinHex || '#f0d5c0', skinInfo)}`;
         }
-        // Server-side skin lock reinforcement for variants (spicy was drifting dark)
-        const f = (d && d.facial_features) || {};
-        const skinHex = f.skin_tone_hex;
-        const skinTone = f.skin_tone || '';
-        if (prompt && (skinHex || /clara|fair|porcelana|beige claro/i.test(skinTone))) {
-          const skinInfo = aiService.classifySkinToneFromRgb(aiService.hexToRgb(skinHex || '#f0d5c0'));
-          if (!/SKIN LOCK/i.test(prompt)) {
-            prompt += `. ${aiService.buildSkinLockFragment(skinTone || skinInfo.label, skinHex || '#f0d5c0', skinInfo)}`;
-          }
-        }
-      } catch (e) {}
-    }
-    if (!referenceLocalPath) {
-      referenceLocalPath = persona.image;
-    }
+      }
+    } catch (e) {}
   }
   
   let referenceUrl = null;
   if (referenceLocalPath && !referenceLocalPath.startsWith('http')) {
     try {
       referenceUrl = await aiService.uploadToTmpFiles(referenceLocalPath);
+      console.log(`[variant] Face anchor: ${referenceLocalPath}`);
     } catch (e) {
       console.warn('Failed to upload variant reference photo:', e);
     }
@@ -214,9 +210,26 @@ app.post('/api/personas/:id/variants', async (req, res) => {
   
   const photoreal = req.body.photoreal === true
     || req.body.mode === 'spicy'
-    || /latex|látex|catsuit|vinyl|PHOTOREALISM/i.test(prompt || '');
+    || req.body.mode === 'traditional'
+    || /latex|látex|catsuit|vinyl|PHOTOREALISM|IDENTITY LOCK/i.test(prompt || '');
+  const identityLock = req.body.identityLock === true || /IDENTITY LOCK/i.test(prompt || '');
 
-  aiService.generateInfluencerImage(prompt, referenceUrl, { photoreal })
+  // Deterministic seed from persona id if client didn't send one
+  let seed = req.body.seed;
+  if (seed == null && persona && persona.id) {
+    let h = 2166136261;
+    for (let i = 0; i < persona.id.length; i++) {
+      h ^= persona.id.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    seed = (h >>> 0) % 1000000;
+  }
+
+  aiService.generateInfluencerImage(prompt, referenceUrl, {
+    photoreal,
+    identityLock,
+    seed
+  })
     .then(imagePath => {
       if (imagePath) {
         const variant = dbService.saveVariant({
@@ -240,7 +253,10 @@ app.post('/api/personas/:id/variants', async (req, res) => {
               attitude: req.body.attitude,
               setting: req.body.setting,
               mode: req.body.mode || null,
-              photoreal
+              photoreal,
+              identityLock,
+              seed,
+              referenceLocalPath
             })
           });
         } catch (histErr) {
