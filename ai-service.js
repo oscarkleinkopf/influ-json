@@ -330,7 +330,7 @@ module.exports = {
     }
   },
 
-  async generateInfluencerImage(prompt, referenceUrl = null) {
+  async generateInfluencerImage(prompt, referenceUrl = null, options = {}) {
     // Reinforce skin lock if prompt already mentions light skin / hex, to fight model drift
     let finalPrompt = prompt || '';
     const hexMatch = finalPrompt.match(/#([a-fA-F0-9]{6})/);
@@ -345,14 +345,23 @@ module.exports = {
       finalPrompt += '. SKIN LOCK: fair light complexion only, NOT dark, NOT deep tan, NOT morena.';
     }
 
+    // Latex / spicy materials → force anti-CGI wording (red shiny catsuits often go plastic)
+    const wantsPhotoreal = options.photoreal === true
+      || /latex|látex|catsuit|vinyl|vinilo|spicy|PHOTOREALISM LOCK/i.test(finalPrompt);
+    if (wantsPhotoreal && !/NOT 3D render|not cgi|photorealistic raw/i.test(finalPrompt)) {
+      finalPrompt += '. PHOTOREAL: real smartphone photograph of a real human, real material texture, subtle sheen only, natural pores, NOT 3D render, NOT CGI plastic, NOT mirror chrome, NOT doll.';
+    }
+
     if (!ai) {
       console.log('Using Pollinations.ai free keyless generator for virtual portrait...');
 
       const fetchPollinations = async (refUrl) => {
-        let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${Math.floor(Math.random() * 100000)}`;
+        // enhance=true makes latex/spicy more "AI plastic"; prefer off for photoreal variants
+        const enhance = wantsPhotoreal ? 'false' : 'true';
+        let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=768&height=768&model=flux&nologo=true&enhance=${enhance}&seed=${Math.floor(Math.random() * 100000)}`;
         if (refUrl) {
-          // Higher strength to keep reference skin tone
-          url += `&image=${encodeURIComponent(refUrl)}&strength=0.72`;
+          // Slightly lower strength than before so clothing can change, face/skin stay real
+          url += `&image=${encodeURIComponent(refUrl)}&strength=${wantsPhotoreal ? '0.68' : '0.72'}`;
         }
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 45000);
