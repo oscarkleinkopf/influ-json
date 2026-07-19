@@ -17,7 +17,8 @@ let state = {
   portfolioSearchQuery: '',
   activeVariants: [],
   generationHistory: [],
-  historyFilter: 'all' // 'all', 'portrait', 'variant', 'ugc'
+  historyFilter: 'all', // 'all', 'portrait', 'variant', 'ugc'
+  scratchExtendedTraits: null
 };
 
 // Auth session token (stored in memory/sessionStorage)
@@ -326,8 +327,50 @@ function navigateToTab(tabId) {
   }
 }
 
+function applyGeneratedTraitsToForm(details) {
+  if (!details) return;
+  const f = details.facial_features || {};
+  const h = details.hair || {};
+  const a = details.aesthetic || {};
+  const p = details.photography || {};
+
+  const setInputValue = (id, val) => {
+    const el = document.getElementById(id);
+    if (el && val) el.value = val;
+  };
+
+  setInputValue('pSkinTone', f.skin_tone);
+  setInputValue('pSkinTexture', f.skin_texture);
+  setInputValue('pFaceShape', f.face_shape);
+  setInputValue('pEyeColor', f.eye_color);
+  setInputValue('pEyebrows', f.eyebrow_style);
+  setInputValue('pLips', f.lip_shape);
+  setInputValue('pSmileType', f.smile_type);
+
+  setInputValue('pHairColor', h.color);
+  setInputValue('pHairTexture', h.texture);
+  setInputValue('pHairLength', h.length);
+  setInputValue('pHair', h.style);
+
+  setInputValue('pStyle', a.overall_vibe);
+  setInputValue('pClothing', a.fashion_style);
+  setInputValue('pCamera', p.camera_lens);
+  setInputValue('pLighting', p.lighting_type);
+
+  state.scratchExtendedTraits = {
+    eye_shape: f.eye_shape || '',
+    jawline: f.jawline || '',
+    makeup_level: a.makeup_level || '',
+    color_grade: p.color_grade || '',
+    depth_of_field: p.depth_of_field || ''
+  };
+
+  compilePromptAndJSON();
+}
+
 function resetPersonaFormForNew() {
   state.selectedPersona = null;
+  state.scratchExtendedTraits = null;
   uploadedImagePath = null;
 
   // Toggle visibility
@@ -644,26 +687,48 @@ function getFullPersonaJSON() {
   base.identity.ethnicity_appearance = document.getElementById('pEthnicity')?.value || base.identity.ethnicity_appearance || p.ethnicity || 'Mixta';
   base.identity.body_type = document.getElementById('pBodyType')?.value || base.identity.body_type || p.body_type || 'Atlético y proporcionado';
   
-  // Advanced physical traits
+  // Advanced physical traits with canonical key alignment
   base.facial_features.face_shape = document.getElementById('pFaceShape')?.value || base.facial_features.face_shape || 'Ovalada';
   base.facial_features.skin_tone = document.getElementById('pSkinTone')?.value || base.facial_features.skin_tone || 'Piel clara';
   base.facial_features.skin_texture = document.getElementById('pSkinTexture')?.value || base.facial_features.skin_texture || 'Suave';
   base.facial_features.eye_color = document.getElementById('pEyeColor')?.value || base.facial_features.eye_color || 'Marrón';
-  base.facial_features.eyebrows = document.getElementById('pEyebrows')?.value || base.facial_features.eyebrows || 'Cejas naturales';
-  base.facial_features.lips = document.getElementById('pLips')?.value || base.facial_features.lips || 'Labios rosados';
+  
+  const eyebrowsVal = document.getElementById('pEyebrows')?.value || base.facial_features.eyebrow_style || base.facial_features.eyebrows || 'Cejas naturales';
+  base.facial_features.eyebrow_style = eyebrowsVal;
+  base.facial_features.eyebrows = eyebrowsVal;
+
+  const lipsVal = document.getElementById('pLips')?.value || base.facial_features.lip_shape || base.facial_features.lips || 'Labios rosados';
+  base.facial_features.lip_shape = lipsVal;
+  base.facial_features.lips = lipsVal;
+
   base.facial_features.smile_type = document.getElementById('pSmileType')?.value || base.facial_features.smile_type || 'Natural';
   
   base.hair.color = document.getElementById('pHairColor')?.value || base.hair.color || 'Castaño';
   base.hair.texture = document.getElementById('pHairTexture')?.value || base.hair.texture || 'Ondulado';
   base.hair.length = document.getElementById('pHairLength')?.value || base.hair.length || 'Largo';
-  base.hair.details = document.getElementById('pHair')?.value || base.hair.details || p.hair || '';
+
+  const hairStyleVal = document.getElementById('pHair')?.value || base.hair.style || base.hair.details || p.hair || '';
+  base.hair.style = hairStyleVal;
+  base.hair.details = hairStyleVal;
   
   base.aesthetic.overall_vibe = document.getElementById('pStyle')?.value || base.aesthetic.overall_vibe || p.style || 'Natural';
-  base.aesthetic.clothing_type = document.getElementById('pClothing')?.value || base.aesthetic.clothing_type || p.clothing || '';
+
+  const fashionVal = document.getElementById('pClothing')?.value || base.aesthetic.fashion_style || base.aesthetic.clothing_type || p.clothing || '';
+  base.aesthetic.fashion_style = fashionVal;
+  base.aesthetic.clothing_type = fashionVal;
   
   base.photography.camera_lens = document.getElementById('pCamera')?.value || base.photography.camera_lens || p.camera || 'iPhone';
   base.photography.lighting_type = document.getElementById('pLighting')?.value || base.photography.lighting_type || p.lighting || 'Luz natural';
   base.photography.background_setting = document.getElementById('pSetting')?.value || base.photography.background_setting || p.setting || 'Fondo neutro';
+
+  // Merge extended secondary traits if present
+  if (state.scratchExtendedTraits) {
+    if (state.scratchExtendedTraits.eye_shape) base.facial_features.eye_shape = state.scratchExtendedTraits.eye_shape;
+    if (state.scratchExtendedTraits.jawline) base.facial_features.jawline = state.scratchExtendedTraits.jawline;
+    if (state.scratchExtendedTraits.makeup_level) base.aesthetic.makeup_level = state.scratchExtendedTraits.makeup_level;
+    if (state.scratchExtendedTraits.color_grade) base.photography.color_grade = state.scratchExtendedTraits.color_grade;
+    if (state.scratchExtendedTraits.depth_of_field) base.photography.depth_of_field = state.scratchExtendedTraits.depth_of_field;
+  }
   
   // Clean internal metadata keys
   delete base.generation_prompt;
@@ -817,6 +882,40 @@ function setupPersonaEngine() {
   
   document.getElementById('btnSavePersona').addEventListener('click', savePersona);
   document.getElementById('btnDeletePersona').addEventListener('click', deletePersonaAction);
+
+  const btnGenTraits = document.getElementById('btnGenerateTraits');
+  if (btnGenTraits) {
+    btnGenTraits.addEventListener('click', async () => {
+      const name = document.getElementById('pName')?.value || 'Influencer';
+      const gender = document.getElementById('pGender')?.value || 'Female';
+      const age = document.getElementById('pAge')?.value || '25 años';
+      const ethnicity = document.getElementById('pEthnicity')?.value || 'Latina';
+      const style = document.getElementById('pStyle')?.value || 'Natural';
+
+      btnGenTraits.disabled = true;
+      btnGenTraits.textContent = '⏳ Generando...';
+
+      try {
+        const res = await authFetch('/api/ai/expand-persona-details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, gender, age, ethnicity, style })
+        });
+        const data = await res.json();
+        if (data.success && data.details) {
+          applyGeneratedTraitsToForm(data.details);
+        } else {
+          alert('No se pudieron generar rasgos únicos: ' + (data.message || 'Error desconocido'));
+        }
+      } catch (err) {
+        console.error('Error in expand-persona-details:', err);
+        alert('Error al generar rasgos únicos: ' + err.message);
+      } finally {
+        btnGenTraits.disabled = false;
+        btnGenTraits.textContent = '🎲 Generar Rasgos Únicos';
+      }
+    });
+  }
 
   const cardScratch = document.getElementById('cardCreateScratch');
   if (cardScratch) cardScratch.addEventListener('click', resetPersonaFormForNew);

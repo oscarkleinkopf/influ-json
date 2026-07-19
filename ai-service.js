@@ -737,5 +737,120 @@ Genera los 3 guiones UGC profesionales. La respuesta debe ser puramente JSON vá
       g: parseInt(result[2], 16),
       b: parseInt(result[3], 16)
     } : null;
+  },
+
+  async generateScratchPersonaDetails(params = {}) {
+    const { name = 'Influencer', gender = 'Female', age = '25 años', ethnicity = 'Latina', style = 'Natural' } = params;
+
+    if (ai) {
+      try {
+        const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const prompt = `Eres un diseñador experto de personajes e influencers virtuales hiperrealistas.
+Dado este personaje básico:
+- Nombre: ${name}
+- Género: ${gender}
+- Edad: ${age}
+- Etnia/Origen: ${ethnicity}
+- Estilo/Vibe general: ${style}
+
+Genera rasgos físicos detallados, realistas y coherentes en formato JSON.
+Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markdown extra:
+{
+  "facial_features": {
+    "skin_tone": "string",
+    "skin_texture": "string",
+    "face_shape": "string",
+    "eye_color": "string",
+    "eye_shape": "string",
+    "eyebrow_style": "string",
+    "lip_shape": "string",
+    "jawline": "string",
+    "smile_type": "string"
+  },
+  "hair": {
+    "color": "string",
+    "texture": "string",
+    "length": "string",
+    "style": "string"
+  },
+  "aesthetic": {
+    "overall_vibe": "string",
+    "fashion_style": "string",
+    "makeup_level": "string"
+  },
+  "photography": {
+    "camera_lens": "string",
+    "lighting_type": "string",
+    "color_grade": "string",
+    "depth_of_field": "string"
+  }
+}`;
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+      } catch (err) {
+        console.warn('Online scratch details generation failed, using offline fallback:', err.message);
+      }
+    }
+
+    return this.getOfflineScratchDetails(gender, ethnicity, style);
+  },
+
+  getOfflineScratchDetails(gender = 'Female', ethnicity = 'Latina', style = 'Natural') {
+    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    const isMale = String(gender).toLowerCase() === 'male';
+
+    const skinTones = ['Piel clara dorada', 'Tez morena cálida', 'Piel trigueña luminosa', 'Piel oliva suave', 'Piel canela radiante'];
+    const skinTextures = ['Piel suave con poros reales y pecas sutiles', 'Textura natural hiperrealista sin retoques', 'Piel fresca luminosa con micro-textura real'];
+    const faceShapes = ['Ovalada con pómulos marcados', 'Corazón con mentón suave', 'Cuadrada con mandíbula estructurada', 'Ovalada estilizada'];
+    const eyeColors = ['Marrón cálido con destellos miel', 'Avellana profundo', 'Verde oliva místico', 'Marrón oscuro expresivo'];
+    const eyeShapes = ['Almendrados y grandes', 'Ojos felinos definidos', 'Ojos profundos y expresivos'];
+    const eyebrows = ['Cejas pobladas y definidas', 'Cejas arqueadas naturales', 'Cejas rectas y bien cuidadas'];
+    const lips = isMale 
+      ? ['Labios definidos de grosor medio', 'Labios naturales simétricos'] 
+      : ['Labios carnosos con arco de cupido definido', 'Labios rosados naturales carnosos', 'Labios de volumen medio bien definidos'];
+
+    const hairColors = ['Castaño oscuro brillante', 'Marrón chocolate', 'Rubio miel natural', 'Negro azabache con brillo', 'Castaño claro dorado'];
+    const hairTextures = ['Ondulado natural con cuerpo', 'Liso sedoso', 'Rizado suave definido', 'Ligeramente despeinado con textura'];
+    const hairLengths = isMale 
+      ? ['Corto a los lados con volumen arriba', 'Corte texturizado de longitud media', 'Corto estilo degradado moderno'] 
+      : ['Largo por debajo de los hombros', 'Corte bob medio elegante', 'Largo en capas con movimiento'];
+    const hairStyles = isMale
+      ? ['Peinado hacia atrás relajado', 'Estilo desenfadado natural']
+      : ['Partido al medio suelto', 'Ondas playeras sueltas', 'Suelto sobre un hombro'];
+
+    return {
+      facial_features: {
+        skin_tone: pick(skinTones),
+        skin_texture: pick(skinTextures),
+        face_shape: pick(faceShapes),
+        eye_color: pick(eyeColors),
+        eye_shape: pick(eyeShapes),
+        eyebrow_style: pick(eyebrows),
+        lip_shape: pick(lips),
+        jawline: isMale ? 'Mandíbula firme y estructurada' : 'Mandíbula suave y definida',
+        smile_type: 'Sonrisa cálida, auténtica y natural'
+      },
+      hair: {
+        color: pick(hairColors),
+        texture: pick(hairTextures),
+        length: pick(hairLengths),
+        style: pick(hairStyles)
+      },
+      aesthetic: {
+        overall_vibe: `${style} & auténtico`,
+        fashion_style: isMale ? 'Casual moderno atemporal' : 'Casual chic atemporal',
+        makeup_level: isMale ? 'Sin maquillaje, piel al natural' : 'Maquillaje natural estilo "no-makeup look"'
+      },
+      photography: {
+        camera_lens: 'iPhone 15 Pro portrait mode (85mm focal)',
+        lighting_type: 'Luz de ventana suave y difusa',
+        color_grade: 'Tonos cálidos y cinematográficos',
+        depth_of_field: 'Desenfoque suave de fondo (bokeh)'
+      }
+    };
   }
 };
