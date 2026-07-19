@@ -1080,39 +1080,92 @@ input:checked + .slider:before {
   transform: translateX(22px);
 }
 
-/* Sync status popup banner */
-.sync-banner {
+/* Unified feedback toast (success / error / info / loading) — visible ≥3s on mutations */
+.sync-banner,
+.app-toast {
   position: fixed;
   bottom: 24px;
   right: 24px;
+  max-width: min(420px, calc(100vw - 32px));
   background: rgba(16, 185, 129, 0.95);
   border: 1px solid rgba(255,255,255,0.2);
   backdrop-filter: blur(8px);
   color: #fff;
-  padding: 12px 20px;
+  padding: 14px 20px;
   border-radius: var(--border-radius-md);
   font-size: 13px;
   font-weight: 600;
+  line-height: 1.4;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 12px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   transform: translateY(150%);
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s ease;
+  z-index: 4000;
 }
 
-.sync-banner.show {
+.sync-banner.show,
+.app-toast.show {
   transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.sync-banner.error {
-  background: rgba(239, 68, 68, 0.95);
+.sync-banner.error,
+.app-toast.type-error {
+  background: rgba(239, 68, 68, 0.96);
 }
 
-.sync-banner svg {
+.sync-banner.type-info,
+.app-toast.type-info {
+  background: rgba(99, 102, 241, 0.96);
+}
+
+.sync-banner.type-loading,
+.app-toast.type-loading {
+  background: rgba(30, 41, 59, 0.96);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.sync-banner.type-success,
+.app-toast.type-success {
+  background: rgba(16, 185, 129, 0.96);
+}
+
+.sync-banner svg,
+.app-toast svg {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.app-toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.app-toast-icon .toast-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: toast-spin 0.7s linear infinite;
+}
+
+@keyframes toast-spin {
+  to { transform: rotate(360deg); }
+}
+
+#syncBannerText {
+  flex: 1;
+  word-break: break-word;
 }
 
 /* ===== PHOTO UPLOAD & ANALYSIS PANEL ===== */

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.1.2">
+  <link rel="stylesheet" href="index.css?v=1.1.3">
 </head>
 <body>
   <div class="app-container">
@@ -1419,10 +1419,12 @@
     </div>
   </div>
 
-  <!-- Sync Status Banner -->
-  <div class="sync-banner" id="syncBanner">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-    <span id="syncBannerText">¡Cambios respaldados en GitHub!</span>
+  <!-- Unified app feedback toast (mutations: success / error / info / loading) -->
+  <div class="sync-banner app-toast" id="syncBanner" role="status" aria-live="polite">
+    <span class="app-toast-icon" id="syncBannerIcon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </span>
+    <span id="syncBannerText">Listo</span>
   </div>
 
   <!-- Login Screen Modal Overlay -->
@@ -1439,6 +1441,6 @@
     </div>
   </div>
   
-  <script src="app.js?v=1.1.2"></script>
+  <script src="app.js?v=1.1.3"></script>
 </body>
 </html>

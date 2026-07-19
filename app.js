@@ -1,4 +1,4 @@
-// State Management
+﻿// State Management
 let state = {
   personas: [],
   products: [],
@@ -129,10 +129,10 @@ function setupLogin() {
         hideLoginScreen();
         fetchData();
       } else {
-        alert('PIN incorrecto. Inténtalo de nuevo.');
+        toastError('PIN incorrecto. Inténtalo de nuevo.');
       }
     } catch (err) {
-      alert('Error de conexión al autenticar.');
+      toastError('Error de conexión al autenticar.');
     }
   });
 }
@@ -739,36 +739,114 @@ function renderPersonaGrids() {
   });
 }
 
-// Git Status Sync feedback
-function showSyncToast(success, message) {
-  syncBanner.className = 'sync-banner' + (success ? ' show' : ' show error');
-  syncBannerText.textContent = message;
-  
-  gitIndicator.className = 'git-indicator';
-  gitStatusText.textContent = 'Repositorio sincronizado';
-  
-  setTimeout(() => {
-    syncBanner.classList.remove('show');
-  }, 4000);
+// ─── Unified toast / feedback (ROADMAP 1.4) ─────────────────────────────
+// Every mutation should call showAppToast / toastSuccess / toastError.
+// Success & error stay visible at least MIN_TOAST_MS (3s).
+const MIN_TOAST_MS = 3000;
+const DEFAULT_TOAST_MS = 4000;
+let _toastHideTimer = null;
+let _toastShownAt = 0;
+
+const TOAST_ICONS = {
+  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+  error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+  loading: '<span class="toast-spinner" aria-hidden="true"></span>'
+};
+
+/**
+ * Unified app feedback toast.
+ * @param {string} message
+ * @param {{ type?: 'success'|'error'|'info'|'loading', duration?: number|null, gitOk?: boolean }} [opts]
+ *   duration: ms to auto-hide; null = stay until next toast (loading). success/error forced ≥ MIN_TOAST_MS.
+ *   gitOk: optional sidebar git indicator update (true=ok, false=error, omit=no change except loading)
+ */
+function showAppToast(message, opts = {}) {
+  const type = opts.type || 'info';
+  const banner = syncBanner || document.getElementById('syncBanner');
+  const textEl = syncBannerText || document.getElementById('syncBannerText');
+  const iconEl = document.getElementById('syncBannerIcon');
+  if (!banner || !textEl) {
+    console.warn('[toast]', type, message);
+    return;
+  }
+
+  if (_toastHideTimer) {
+    clearTimeout(_toastHideTimer);
+    _toastHideTimer = null;
+  }
+
+  textEl.textContent = message || '';
+  if (iconEl) iconEl.innerHTML = TOAST_ICONS[type] || TOAST_ICONS.info;
+
+  banner.className = `sync-banner app-toast show type-${type}` + (type === 'error' ? ' error' : '');
+  _toastShownAt = Date.now();
+
+  // Sidebar git chip
+  if (type === 'loading') {
+    if (gitIndicator) gitIndicator.className = 'git-indicator syncing';
+    if (gitStatusText) gitStatusText.textContent = 'Trabajando...';
+  } else if (opts.gitOk === true) {
+    if (gitIndicator) gitIndicator.className = 'git-indicator';
+    if (gitStatusText) gitStatusText.textContent = 'Repositorio sincronizado';
+  } else if (opts.gitOk === false) {
+    if (gitIndicator) gitIndicator.className = 'git-indicator';
+    if (gitStatusText) gitStatusText.textContent = 'Error de sincronización';
+  } else if (type === 'success' || type === 'error') {
+    if (gitIndicator) gitIndicator.className = 'git-indicator';
+    if (type === 'success' && gitStatusText) gitStatusText.textContent = 'Repositorio sincronizado';
+  }
+
+  // Auto-hide: loading stays; success/error at least MIN_TOAST_MS
+  if (type === 'loading' || opts.duration === null) return;
+
+  let ms = opts.duration != null ? opts.duration : DEFAULT_TOAST_MS;
+  if (type === 'success' || type === 'error') {
+    ms = Math.max(MIN_TOAST_MS, ms);
+  }
+  _toastHideTimer = setTimeout(() => {
+    banner.classList.remove('show');
+    _toastHideTimer = null;
+  }, ms);
 }
 
-function setGitSyncingState() {
-  gitIndicator.className = 'git-indicator syncing';
-  gitStatusText.textContent = 'Respaldando en GitHub...';
+function toastSuccess(message, opts = {}) {
+  showAppToast(message, { ...opts, type: 'success', gitOk: opts.gitOk !== false ? (opts.gitOk ?? true) : false });
+}
+function toastError(message, opts = {}) {
+  showAppToast(message, { ...opts, type: 'error', gitOk: false });
+}
+function toastInfo(message, opts = {}) {
+  showAppToast(message, { ...opts, type: 'info' });
+}
+function toastLoading(message) {
+  showAppToast(message, { type: 'loading', duration: null });
+}
+
+/** @deprecated use toastSuccess / toastError — kept for call sites */
+function showSyncToast(success, message) {
+  if (success) toastSuccess(message, { gitOk: true });
+  else toastError(message, { gitOk: false });
+}
+
+function setGitSyncingState(message) {
+  if (gitIndicator) gitIndicator.className = 'git-indicator syncing';
+  if (gitStatusText) gitStatusText.textContent = 'Respaldando en GitHub...';
+  toastLoading(message || 'Respaldando en GitHub...');
 }
 
 async function manualGitSync() {
-  setGitSyncingState();
+  setGitSyncingState('Sincronizando con GitHub...');
   try {
     const res = await authFetch('/api/sync', { method: 'POST' });
     const data = await res.json();
     if (data.success) {
-      showSyncToast(true, '¡Cambios respaldados en GitHub!');
+      toastSuccess('¡Cambios respaldados en GitHub!');
     } else {
-      showSyncToast(false, 'Error al sincronizar con GitHub.');
+      toastError('Error al sincronizar con GitHub.');
     }
   } catch (err) {
-    showSyncToast(false, 'Fallo de conexión al sincronizar.');
+    toastError('Fallo de conexión al sincronizar.');
   }
 }
 
@@ -1034,11 +1112,11 @@ function setupPersonaEngine() {
         if (data.success && data.details) {
           applyGeneratedTraitsToForm(data.details);
         } else {
-          alert('No se pudieron generar rasgos únicos: ' + (data.message || 'Error desconocido'));
+          toastError('No se pudieron generar rasgos únicos: ' + (data.message || 'Error desconocido'));
         }
       } catch (err) {
         console.error('Error in expand-persona-details:', err);
-        alert('Error al generar rasgos únicos: ' + err.message);
+        toastError('Error al generar rasgos únicos: ' + err.message);
       } finally {
         btnGenTraits.disabled = false;
         btnGenTraits.textContent = '🎲 Generar Rasgos Únicos';
@@ -1113,7 +1191,7 @@ function setupPersonaEngine() {
       const sheetPromptPreview = document.getElementById('sheetPromptPreview');
       if (sheetPromptPreview) {
         navigator.clipboard.writeText(sheetPromptPreview.textContent);
-        alert('📋 ¡Prompt copiado al portapapeles!');
+        toastSuccess('📋 Prompt copiado al portapapeles');
       }
     });
   }
@@ -1122,13 +1200,13 @@ function setupPersonaEngine() {
     const jsonArea = document.getElementById('jsonEditor');
     jsonArea.select();
     navigator.clipboard.writeText(jsonArea.value);
-    alert('¡Estructura JSON copiada al portapapeles!');
+    toastSuccess('Estructura JSON copiada al portapapeles');
   });
   
   document.getElementById('btnCopyChatbotPrompt').addEventListener('click', () => {
     const exportText = buildChatbotExportText({ includePrompt: true });
     navigator.clipboard.writeText(exportText);
-    alert('📋 ¡Prompt + Identidad Visual JSON copiados para tu Chatbot (ChatGPT/Gemini/Claude)!');
+    toastSuccess('📋 Prompt + JSON copiados para tu chatbot');
   });
 
   document.getElementById('btnSaveToGallery').addEventListener('click', async () => {
@@ -1143,11 +1221,11 @@ function setupPersonaEngine() {
       });
       const data = await res.json();
       if (data.success) {
-        alert('⭐ ¡Prompt y miniatura de referencia guardados en la Galería!');
+        toastSuccess('⭐ Prompt y miniatura guardados en la Galería');
         if (state.activeTab === 'gallery') renderGallery();
       }
     } catch (err) {
-      alert('Error al guardar en la galería.');
+      toastError('Error al guardar en la galería.');
     }
   });
 
@@ -1320,7 +1398,7 @@ async function savePersona() {
   
   const promptText = document.getElementById('promptPreview').textContent;
   const influencerName = name || 'Influencer';
-  showSyncToast(true, creatingNew
+  toastLoading(creatingNew
     ? `Creando influencer nuevo: ${influencerName}...`
     : `Generando retrato virtual consistente con ${influencerName}...`);
   
@@ -1547,10 +1625,12 @@ async function revertVersion(versionId) {
     if (data.success) {
       selectPersona(data.persona);
       await fetchVersionsHistory();
-      alert('¡Versión restaurada con éxito!');
+      toastSuccess('¡Versión restaurada con éxito!');
+    } else {
+      toastError('No se pudo restaurar la versión.');
     }
   } catch (err) {
-    alert('Error al restaurar la versión.');
+    toastError('Error al restaurar la versión.');
   }
 }
 
@@ -1607,10 +1687,12 @@ function setupCampaigns() {
         state.campaigns = data.campaigns;
         modal.style.display = 'none';
         renderCampaigns();
-        showSyncToast(true, 'Campaña creada y guardada en GitHub!');
+        toastSuccess('Campaña creada y guardada');
+      } else {
+        toastError('No se pudo crear la campaña.');
       }
     } catch (err) {
-      alert('Error de red al guardar campaña.');
+      toastError('Error de red al guardar campaña.');
     }
   });
 
@@ -1626,10 +1708,12 @@ function setupCampaigns() {
         state.selectedCampaign = null;
         document.getElementById('campaignDetailCard').style.display = 'none';
         renderCampaigns();
-        showSyncToast(true, 'Campaña eliminada correctamente.');
+        toastSuccess('Campaña eliminada correctamente.');
+      } else {
+        toastError('No se pudo eliminar la campaña.');
       }
     } catch (err) {
-      alert('Error al borrar la campaña.');
+      toastError('Error al borrar la campaña.');
     }
   });
 }
@@ -1716,13 +1800,13 @@ function setupScriptEngine() {
     const activeScript = state.scripts[state.selectedAngleIndex];
     const scriptText = `Ángulo: ${activeScript.angle}\n\n[GANCHO / HOOK]\n${activeScript.hook}\nCue: ${activeScript.hookCue}\n\n[DEMOSTRACIÓN / DEMO]\n${activeScript.demo}\nCue: ${activeScript.demoCue}\n\n[EL GIRO / TURN]\n${activeScript.turn}\nCue: ${activeScript.turnCue}\n\n[CTA]\n${activeScript.cta}\nCue: ${activeScript.ctaCue}`;
     navigator.clipboard.writeText(scriptText);
-    alert('¡Guión publicitario copiado al portapapeles!');
+    toastSuccess('Guión publicitario copiado al portapapeles');
   });
   
   // Full chatbot export (script + persona JSON + product + prompt)
   document.getElementById('btnExportScriptChatbot').addEventListener('click', () => {
     if (state.scripts.length === 0) {
-      alert('Primero genera los scripts de campaña.');
+      toastInfo('Primero genera los scripts de campaña.');
       return;
     }
     const activeScript = state.scripts[state.selectedAngleIndex];
@@ -1742,7 +1826,7 @@ function setupScriptEngine() {
     });
     
     navigator.clipboard.writeText(exportText);
-    alert('📋 ¡Guión + Identidad Visual JSON + Producto copiados para tu Chatbot!');
+    toastSuccess('📋 Guión + JSON + producto copiados para tu chatbot');
   });
 }
 
@@ -2028,7 +2112,7 @@ function setupUgcStudio() {
     });
     
     navigator.clipboard.writeText(exportText);
-    alert('📋 ¡Pack Completo (Guión + Identidad Visual JSON + Producto + Prompt) copiado para tu Chatbot!');
+    toastSuccess('📋 Pack completo copiado para tu chatbot');
   });
   
   // Video Pipeline Simulation Action
@@ -2102,7 +2186,7 @@ function startVideoPipelineSimulation() {
     if (progress >= 100) {
       document.getElementById('vtStep4').style.color = 'var(--success)';
       clearInterval(interval);
-      alert('🎥 Renderizado del video UGC finalizado. Timeline del clip listo para entrega.');
+      toastSuccess('🎥 Renderizado UGC finalizado. Timeline listo para entrega.');
     }
   }, 150);
 }
@@ -2246,7 +2330,7 @@ INVERSIÓN TOTAL: ${totalText} USD
 `;
 
   navigator.clipboard.writeText(proposal);
-  alert('¡Propuesta formateada copiada al portapapeles!');
+  toastSuccess('Propuesta formateada copiada al portapapeles');
 }
 
 // Prompt Gallery Logic
@@ -2304,7 +2388,7 @@ function loadPromptFromGallery(prompt) {
   const tabItem = document.querySelector('[data-tab="persona-engine"]');
   tabItem.click();
   
-  alert('¡Prompt cargado en el Persona Engine! Puedes copiarlo o aplicarle cambios.');
+  toastSuccess('Prompt cargado en el Persona Engine');
 }
 
 window.loadPromptFromGallery = loadPromptFromGallery;
@@ -2353,7 +2437,7 @@ function setupPhotoUpload() {
     btnLoadPhotoUrl.addEventListener('click', async () => {
       const url = photoUrlInput.value.trim();
       if (!url) {
-        alert('Por favor introduce un link de imagen.');
+        toastInfo('Por favor introduce un link de imagen.');
         return;
       }
       await handlePhotoUrl(url);
@@ -2365,7 +2449,7 @@ function setupPhotoUpload() {
         e.preventDefault();
         const url = photoUrlInput.value.trim();
         if (!url) {
-          alert('Por favor introduce un link de imagen.');
+          toastInfo('Por favor introduce un link de imagen.');
           return;
         }
         await handlePhotoUrl(url);
@@ -2377,7 +2461,7 @@ function setupPhotoUpload() {
   document.getElementById('btnCopyAnalysisJSON').addEventListener('click', () => {
     const output = document.getElementById('analysisJsonOutput').textContent;
     navigator.clipboard.writeText(output);
-    alert('¡JSON detallado copiado al portapapeles!');
+    toastSuccess('JSON detallado copiado al portapapeles');
   });
 
   document.getElementById('btnApplyAnalysis').addEventListener('click', applyAnalysisToForm);
@@ -2439,7 +2523,7 @@ async function handlePhotoUrl(url) {
 
 async function handlePhotoFile(file) {
   if (!file.type.startsWith('image/')) {
-    alert('Por favor selecciona un archivo de imagen válido.');
+    toastInfo('Selecciona un archivo de imagen válido.');
     return;
   }
 
@@ -3168,14 +3252,14 @@ function applyAnalysisToForm() {
   document.getElementById('pBodyType').value = i.body_type || 'Atlético y proporcionado';
 
   compilePromptAndJSON();
-  showSyncToast(true, '¡Datos del análisis aplicados al formulario!');
+  toastSuccess('Datos del análisis aplicados al formulario');
 }
 
 async function saveAnalysisAsPersona() {
   if (!analysisResult) return;
 
   const name = (analysisResult && analysisResult.identity && analysisResult.identity.name) || 'Influencer';
-  showSyncToast(true, `Generando retrato virtual consistente con ${name}...`);
+  toastLoading(`Generando retrato virtual consistente con ${name}...`);
   
   const promptText = buildPromptFromAnalysis(analysisResult);
   let portraitPath = uploadedImagePath;
@@ -3261,7 +3345,7 @@ async function saveAnalysisAsPersona() {
 
 async function deletePersonaAction() {
   if (!state.selectedPersona || !state.selectedPersona.id) {
-    alert('Primero selecciona un influencer guardado para poder eliminarlo.');
+    toastInfo('Primero selecciona un influencer guardado para eliminarlo.');
     return;
   }
   
@@ -3609,7 +3693,7 @@ window.deleteVariantAction = async function(variantId) {
 async function generateVariantAction() {
   const p = state.selectedPersona;
   if (!p) {
-    alert('Selecciona un influencer primero.');
+    toastInfo('Selecciona un influencer primero.');
     return;
   }
   
@@ -4024,7 +4108,7 @@ async function loadCharacterBible(sceneDescription = "") {
       setElText('bibleUsageNotes', b.usage_notes);
     } else {
       console.warn("Failed to load character bible details:", data ? data.message : "No data");
-      alert(`Error al generar biblia: ${data ? data.message : "Respuesta de servidor inválida"}`);
+      toastError(`Error al generar biblia: ${data ? data.message : "Respuesta de servidor inválida"}`);
     }
   } catch (err) {
     console.error("Error loading character bible:", err);
@@ -4129,7 +4213,7 @@ function initImportModal() {
       const importJsonOutput = document.getElementById('importJsonOutput');
       if (importJsonOutput && importJsonOutput.value) {
         navigator.clipboard.writeText(importJsonOutput.value);
-        alert('¡Estructura JSON copiada al portapapeles!');
+        toastSuccess('Estructura JSON copiada al portapapeles');
       }
     });
   }
@@ -4142,7 +4226,7 @@ function initImportModal() {
       const scriptTopic = scriptTopicInput.value.trim();
 
       if (files.length === 0 && !imageUrl) {
-        alert('Por favor, selecciona al menos una foto o proporciona una URL de referencia.');
+        toastInfo('Selecciona al menos una foto o una URL de referencia.');
         return;
       }
 
@@ -4150,6 +4234,7 @@ function initImportModal() {
       step1.style.display = 'none';
       loading.style.display = 'flex';
       preview.style.display = 'none';
+      toastLoading(customName ? `Analizando e importando "${customName}"...` : 'Analizando referencia e importando influencer...');
 
       const formData = new FormData();
       if (files.length > 0) {
@@ -4180,6 +4265,7 @@ function initImportModal() {
         }
 
         lastImportedPersona = data.persona;
+        toastSuccess(`Análisis listo: ${lastImportedPersona?.name || 'influencer'}. Revisa y confirma.`);
 
         // Persona is already persisted on analyze — refresh lists so it appears immediately
         try {
@@ -4247,7 +4333,7 @@ function initImportModal() {
 
       } catch (err) {
         console.error('Import analysis failed:', err);
-        alert(`Error al analizar influencer: ${err.message}`);
+        toastError(`Error al analizar influencer: ${err.message}`);
         // Return to step 1
         loading.style.display = 'none';
         step1.style.display = 'block';
@@ -4261,7 +4347,7 @@ function initImportModal() {
 
       const finalName = suggestedNameInput.value.trim();
       if (!finalName) {
-        alert('Por favor, indica un nombre para el influencer.');
+        toastInfo('Indica un nombre para el influencer.');
         return;
       }
 
@@ -4287,13 +4373,13 @@ function initImportModal() {
         });
         refreshPersonaLists();
 
-        alert(`¡Influencer "${finalName}" importado y creado con éxito!`);
+        toastSuccess(`¡Influencer "${finalName}" importado y creado con éxito!`);
         closeModal();
         navigateToTab('dashboard');
 
       } catch (err) {
         console.error('Failed to confirm and save persona:', err);
-        alert(`Error al confirmar la creación: ${err.message}`);
+        toastError(`Error al confirmar la creación: ${err.message}`);
       }
     });
   }

@@ -38,7 +38,7 @@ sin ampliar aún multi-tenant ni auth enterprise.
 | 1.1 | Auditoría create/import/save/delete/archive | Matriz de 8 flujos manuales documentada en `docs/qa-roster.md` |
 | 1.2 | Import: no depender solo del “Confirmar” para ver la persona | Tras analyze, ya está en portafolio (parcialmente hecho; validar + tests manuales) |
 | 1.3 | “Crear desde cero” siempre limpia `selectedPersona` | Guardar con nombre nuevo **nunca** renombra otra por accidente ✅ |
-| 1.4 | Toast/feedback unificado | Toda mutación muestra éxito/error visible ≥3s |
+| 1.4 | Toast/feedback unificado | Toda mutación muestra éxito/error visible ≥3s ✅ |
 | 1.5 | Contador del dashboard = filas reales filtradas | `statPersonasCount` coincide con tarjetas visibles |
 | 1.6 | DB path portable | `db.js` usa `path.join(__dirname, …)` o `DATA_DIR` env; quitar path hardcode al brain de Antigravity (con migración de archivo existente) |
 
@@ -157,6 +157,7 @@ sin ampliar aún multi-tenant ni auth enterprise.
 |-------|--------|-------|-------|
 | 2026-07-19 | 0 | Fix refresh post-import/create | commit `aeee817` |
 | 2026-07-19 | 1 | **1.3** Crear desde cero = forceCreate (no rename) | `isCreatingNewPersona` + db INSERT only without id; banner en UI |
+| 2026-07-19 | 1 | **1.4** Toast unificado ≥3s | `showAppToast` / success·error·info·loading; alerts de mutación → toast |
 |  | 2 |  |  |
 |  | 3 |  |  |
 |  | 4 |  |  |
