@@ -55,7 +55,8 @@ module.exports = {
       };
 
       const prompt = `
-        Analyze this reference photo of a person for an AI UGC Influencer model template. 
+        Analyze this reference photo of a person for an AI UGC Influencer model template.
+        CRITICAL: Match the real skin lightness from the photo. If the person is fair/light-skinned, set skin_tone and skin_tone_hex accordingly — do NOT darken or assume "Latina = morena".
         You MUST respond ONLY with a single JSON object matching this exact structure:
         {
           "identity": {
@@ -330,13 +331,28 @@ module.exports = {
   },
 
   async generateInfluencerImage(prompt, referenceUrl = null) {
+    // Reinforce skin lock if prompt already mentions light skin / hex, to fight model drift
+    let finalPrompt = prompt || '';
+    const hexMatch = finalPrompt.match(/#([a-fA-F0-9]{6})/);
+    if (hexMatch) {
+      const rgb = this.hexToRgb(`#${hexMatch[1]}`);
+      const skinInfo = this.classifySkinToneFromRgb(rgb);
+      if (skinInfo.band === 'very_light' || skinInfo.band === 'light' || skinInfo.band === 'light_warm') {
+        finalPrompt += `. ${this.buildSkinLockFragment(skinInfo.label, `#${hexMatch[1]}`, skinInfo)}`;
+      }
+    } else if (/clara|fair|porcelain|beige claro|porcelana|light skin/i.test(finalPrompt)
+            && !/NOT dark|no dark|avoid.*morena/i.test(finalPrompt)) {
+      finalPrompt += '. SKIN LOCK: fair light complexion only, NOT dark, NOT deep tan, NOT morena.';
+    }
+
     if (!ai) {
       console.log('Using Pollinations.ai free keyless generator for virtual portrait...');
 
       const fetchPollinations = async (refUrl) => {
-        let url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${Math.floor(Math.random() * 100000)}`;
+        let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${Math.floor(Math.random() * 100000)}`;
         if (refUrl) {
-          url += `&image=${encodeURIComponent(refUrl)}&strength=0.65`;
+          // Higher strength to keep reference skin tone
+          url += `&image=${encodeURIComponent(refUrl)}&strength=0.72`;
         }
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 45000);
@@ -392,7 +408,7 @@ module.exports = {
     try {
       const model = ai.getGenerativeModel({ model: 'imagen-3.0-generate-002' });
       const result = await model.generateImages({
-        prompt: prompt,
+        prompt: finalPrompt,
         numberOfImages: 1,
         outputMimeType: 'image/jpeg',
         aspectRatio: '1:1'
@@ -784,23 +800,226 @@ Genera los 3 guiones UGC profesionales. La respuesta debe ser puramente JSON vá
     ];
   },
 
-  async extractSpatialColorProperties(imagePath) {
-    // Return realistic default skin/hair/dominant colors as a robust fallback
-    return {
-      hair: '#3d2314',
-      skin: '#e6c29e',
-      dominant: '#e0d0c0'
-    };
-  },
-
   hexToRgb(hex) {
     if (!hex) return null;
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex).trim());
     return result ? {
       r: parseInt(result[1], 16),
       g: parseInt(result[2], 16),
       b: parseInt(result[3], 16)
     } : null;
+  },
+
+  rgbToHex(r, g, b) {
+    const c = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+    return `#${c(r)}${c(g)}${c(b)}`;
+  },
+
+  /**
+   * Classify skin from RGB. Used to avoid "Latina → morena" bias when skin is actually fair.
+   */
+  classifySkinToneFromRgb(rgb) {
+    if (!rgb) {
+      return {
+        label: 'Piel clara / beige claro',
+        lock: 'fair light beige skin, light complexion',
+        avoid: 'dark skin, deep tan, brown skin, morena, ebony',
+        band: 'light'
+      };
+    }
+    const { r, g, b } = rgb;
+    const brightness = (r + g + b) / 3;
+    const warmth = r - b;
+
+    // Fair / light first (was previously misclassified as "Tono Natural" → generators drift darker)
+    if (brightness >= 205) {
+      return {
+        label: 'Piel muy clara / porcelana',
+        lock: 'very fair porcelain light skin, pale beige-pink undertone',
+        avoid: 'dark skin, tan skin, brown skin, morena, deep bronze',
+        band: 'very_light'
+      };
+    }
+    if (brightness >= 175) {
+      return {
+        label: 'Piel clara / beige claro',
+        lock: 'fair light skin, light beige complexion, pale warm ivory',
+        avoid: 'dark skin, deep tan, morena, brown skin, ebony',
+        band: 'light'
+      };
+    }
+    if (brightness >= 155) {
+      return {
+        label: 'Piel clara cálida / arena clara',
+        lock: 'light warm fair skin, light golden beige (still fair, not dark)',
+        avoid: 'dark brown skin, deep morena, ebony',
+        band: 'light_warm'
+      };
+    }
+    if (brightness >= 130) {
+      if (warmth > 30) {
+        return {
+          label: 'Piel media cálida / oliva clara',
+          lock: 'light-medium warm olive skin',
+          avoid: 'very dark skin, ebony',
+          band: 'medium_light'
+        };
+      }
+      return {
+        label: 'Piel media neutra',
+        lock: 'medium neutral skin tone',
+        avoid: 'unnatural orange skin',
+        band: 'medium'
+      };
+    }
+    if (brightness >= 95) {
+      return {
+        label: 'Piel morena media / canela',
+        lock: 'medium brown / cinnamon skin tone',
+        avoid: 'pale porcelain skin if inconsistent with reference',
+        band: 'medium_dark'
+      };
+    }
+    return {
+      label: 'Piel morena oscura / profunda',
+      lock: 'deep brown / dark skin tone',
+      avoid: 'pale skin, whitewashed skin',
+      band: 'dark'
+    };
+  },
+
+  /**
+   * Real spatial sampling with sharp (was a stub returning fixed #e6c29e tan — caused dark drift).
+   * Prefers skin-like pixels in the face center region.
+   */
+  async extractSpatialColorProperties(imagePath) {
+    const sharp = require('sharp');
+    const absolutePath = path.isAbsolute(imagePath)
+      ? imagePath
+      : path.join(__dirname, imagePath);
+
+    const fallback = {
+      hair: '#3d2314',
+      skin: '#f0d5c0', // light default, NOT medium tan
+      dominant: '#e8e0d8',
+      skinClass: this.classifySkinToneFromRgb({ r: 240, g: 213, b: 192 })
+    };
+
+    try {
+      if (!fs.existsSync(absolutePath)) {
+        console.warn('[colors] Image not found for extraction:', absolutePath);
+        return fallback;
+      }
+
+      const size = 120;
+      const { data, info } = await sharp(absolutePath)
+        .rotate() // respect EXIF
+        .resize(size, size, { fit: 'cover', position: 'attention' })
+        .removeAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+
+      const w = info.width;
+      const h = info.height;
+      const channels = info.channels || 3;
+
+      const sampleRegion = (x1, y1, x2, y2, skinOnly = false) => {
+        let rSum = 0, gSum = 0, bSum = 0, count = 0;
+        const xs = Math.floor((x1 / 100) * w);
+        const xe = Math.floor((x2 / 100) * w);
+        const ys = Math.floor((y1 / 100) * h);
+        const ye = Math.floor((y2 / 100) * h);
+        for (let y = ys; y < ye; y++) {
+          for (let x = xs; x < xe; x++) {
+            const i = (y * w + x) * channels;
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            if (skinOnly) {
+              // Heuristic: skin-like (warm, not too green, not pure black/white)
+              const bright = (r + g + b) / 3;
+              if (r < 60 || bright > 245) continue;
+              if (r <= g + 2) continue; // skin usually R > G
+              if (g <= b - 15) continue; // avoid cool/blue shadows
+              if (r - b < 8) continue;
+            }
+            rSum += r; gSum += g; bSum += b; count++;
+          }
+        }
+        if (count === 0) return null;
+        return {
+          r: Math.round(rSum / count),
+          g: Math.round(gSum / count),
+          b: Math.round(bSum / count)
+        };
+      };
+
+      // Face/cheek zones (multiple windows); prefer skin-filtered samples
+      const skinZones = [
+        sampleRegion(38, 32, 62, 58, true),
+        sampleRegion(42, 40, 58, 62, true),
+        sampleRegion(35, 28, 65, 50, true)
+      ].filter(Boolean);
+
+      let skinRgb = null;
+      if (skinZones.length) {
+        skinRgb = {
+          r: Math.round(skinZones.reduce((s, z) => s + z.r, 0) / skinZones.length),
+          g: Math.round(skinZones.reduce((s, z) => s + z.g, 0) / skinZones.length),
+          b: Math.round(skinZones.reduce((s, z) => s + z.b, 0) / skinZones.length)
+        };
+      } else {
+        // Fallback: unfiltered center average
+        skinRgb = sampleRegion(40, 35, 60, 55, false) || { r: 240, g: 213, b: 192 };
+      }
+
+      const leftHair = sampleRegion(10, 15, 28, 45, false);
+      const rightHair = sampleRegion(72, 15, 90, 45, false);
+      const topHair = sampleRegion(35, 5, 65, 22, false);
+      const hairSamples = [leftHair, rightHair, topHair].filter(Boolean);
+      let hairRgb = { r: 61, g: 35, b: 20 };
+      if (hairSamples.length) {
+        hairRgb = {
+          r: Math.round(hairSamples.reduce((s, z) => s + z.r, 0) / hairSamples.length),
+          g: Math.round(hairSamples.reduce((s, z) => s + z.g, 0) / hairSamples.length),
+          b: Math.round(hairSamples.reduce((s, z) => s + z.b, 0) / hairSamples.length)
+        };
+      }
+
+      const tl = sampleRegion(0, 0, 18, 18, false);
+      const tr = sampleRegion(82, 0, 100, 18, false);
+      const domSamples = [tl, tr, skinRgb].filter(Boolean);
+      const dominantRgb = {
+        r: Math.round(domSamples.reduce((s, z) => s + z.r, 0) / domSamples.length),
+        g: Math.round(domSamples.reduce((s, z) => s + z.g, 0) / domSamples.length),
+        b: Math.round(domSamples.reduce((s, z) => s + z.b, 0) / domSamples.length)
+      };
+
+      const skinClass = this.classifySkinToneFromRgb(skinRgb);
+      const result = {
+        hair: this.rgbToHex(hairRgb.r, hairRgb.g, hairRgb.b),
+        skin: this.rgbToHex(skinRgb.r, skinRgb.g, skinRgb.b),
+        dominant: this.rgbToHex(dominantRgb.r, dominantRgb.g, dominantRgb.b),
+        skinClass,
+        skinRgb,
+        hairRgb
+      };
+      console.log(`[colors] Extracted from ${path.basename(absolutePath)}: skin=${result.skin} (${skinClass.label}), hair=${result.hair}`);
+      return result;
+    } catch (err) {
+      console.warn('[colors] extractSpatialColorProperties failed:', err.message);
+      return fallback;
+    }
+  },
+
+  /** Build prompt fragment that locks skin tone (prevents Latina→morena drift). */
+  buildSkinLockFragment(skinToneLabel, skinHex, skinClass) {
+    const cls = skinClass || this.classifySkinToneFromRgb(this.hexToRgb(skinHex));
+    const label = skinToneLabel || cls.label;
+    const hexPart = skinHex ? ` exact skin hex ${skinHex}` : '';
+    const lock = cls.lock || 'natural realistic skin';
+    const avoid = cls.avoid || 'unnatural skin color';
+    return `SKIN LOCK (critical): ${label}${hexPart}. ${lock}. Match reference skin lightness exactly. Avoid: ${avoid}, orange self-tanner cast, over-bronzed filter.`;
   },
 
   async generateScratchPersonaDetails(params = {}) {
