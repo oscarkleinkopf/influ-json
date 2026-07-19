@@ -561,9 +561,14 @@ async function downloadOrResolveImage(inputUrl) {
   let targetUrl = inputUrl;
   console.log(`Resolving reference image URL: ${targetUrl}`);
 
+  // Use Facebook bot User-Agent for social platforms so Instagram/TikTok return static OpenGraph meta tags
+  const isSocialPlatform = targetUrl.includes('instagram.com') || targetUrl.includes('tiktok.com') || targetUrl.includes('facebook.com');
+  const botUserAgent = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
+  const browserUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
   let response = await fetch(targetUrl, {
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      'User-Agent': isSocialPlatform ? botUserAgent : browserUserAgent
     }
   });
 
@@ -581,9 +586,12 @@ async function downloadOrResolveImage(inputUrl) {
     const twitterMatch = htmlText.match(/<meta\s+[^>]*name=["']twitter:image["']\s+[^>]*content=["']([^"']+)["']/i)
                       || htmlText.match(/<meta\s+[^>]*content=["']([^"']+)["']\s+[^>]*name=["']twitter:image["']/i);
 
-    const extractedImage = (ogMatch && ogMatch[1]) || (twitterMatch && twitterMatch[1]);
+    let extractedImage = (ogMatch && ogMatch[1]) || (twitterMatch && twitterMatch[1]);
     if (extractedImage) {
+      // Unescape HTML entities (e.g., &amp; -> &) which break CDN query parameters
+      extractedImage = extractedImage.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
       console.log(`Extracted OpenGraph/Twitter image URL from HTML page: ${extractedImage}`);
+      
       if (extractedImage.startsWith('http')) {
         targetUrl = extractedImage;
       } else {
@@ -593,7 +601,7 @@ async function downloadOrResolveImage(inputUrl) {
 
       response = await fetch(targetUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          'User-Agent': browserUserAgent
         }
       });
       if (!response.ok) {
@@ -601,7 +609,7 @@ async function downloadOrResolveImage(inputUrl) {
       }
       contentType = response.headers.get('content-type') || '';
     } else {
-      throw new Error('La URL es una página HTML pero no contiene etiquetas og:image ni twitter:image.');
+      throw new Error('La página no contiene una vista previa de imagen pública (og:image / twitter:image).');
     }
   }
 
@@ -681,13 +689,30 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
       }
     }
 
-    // 3. Fallback if no images were successfully loaded
+    // 3. Fallback if no images were successfully loaded (generate unique AI portrait)
     if (imagePaths.length === 0) {
-      console.log('No reference photos or URLs could be loaded. Applying default avatar fallback.');
+      console.log('No reference photos or URLs could be loaded. Generating unique AI portrait...');
       const isMale = req.body.gender === 'Male';
-      const defaultImg = isMale ? 'assets/influencer_male.png' : 'assets/influencer_female.png';
-      imagePaths.push(defaultImg);
-      filenames.push(path.basename(defaultImg));
+      const personaName = req.body.name || `Influencer_${Date.now().toString().slice(-4)}`;
+      const ageStr = req.body.age || '25 años';
+      const ethStr = req.body.ethnicity || 'Latina';
+
+      const genPrompt = `High resolution realistic portrait of a ${ageStr} ${ethStr} ${isMale ? 'male' : 'female'} influencer named ${personaName}, attractive natural face, realistic skin texture with visible pores, professional portrait lighting, neutral background, 8k resolution`;
+      try {
+        const generatedImg = await aiService.generateInfluencerImage(genPrompt);
+        if (generatedImg) {
+          imagePaths.push(generatedImg);
+          filenames.push(path.basename(generatedImg));
+        }
+      } catch (genErr) {
+        console.warn('Failed to generate fallback portrait with AI, using avatar default:', genErr.message);
+      }
+
+      if (imagePaths.length === 0) {
+        const defaultImg = isMale ? 'assets/influencer_male.png' : 'assets/influencer_female.png';
+        imagePaths.push(defaultImg);
+        filenames.push(path.basename(defaultImg));
+      }
     }
 
     // 3. Optimize each image with sharp and sync to scratch

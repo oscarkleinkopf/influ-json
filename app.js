@@ -815,28 +815,38 @@ INSTRUCCIONES PARA EL CHATBOT:
 
 const CLOTHING_OPTIONS_BY_GENDER = {
   Female: [
-    "Ropa deportiva: Calzas y top deportivo de licra negro",
+    "Catsuit de látex: Catsuit ajustado de látex negro de alto brillo de cuerpo entero (shiny black latex catsuit)",
+    "Catsuit de látex: Catsuit de látex rojo pasión entallado de alto brillo (shiny passion red latex catsuit)",
+    "Catsuit de látex: Catsuit de látex morado neón estilo futurista (shiny neon purple latex catsuit)",
+    "Ropa deportiva: Calzas y top deportivo de licra negro entallado",
     "Ropa de trabajo: Traje sastre gris con blazer entallado y blusa blanca",
     "Sport elegante: Camisa de lino blanca holgada con vaqueros claros",
     "Salida de noche: Vestido ajustado negro de satén con tirantes finos",
+    "Alta costura: Vestido de gala brillante de noche con hendidura alta",
     "Lencería sexy: Conjunto de lencería de encaje rojo con transparencias",
+    "Traje de baño / Biquini: Biquini de diseño moderno de dos piezas",
     "Casual cotidiano: Suéter de punto suave en tono crema cuello redondo",
     "Estilo playero: Vestido veraniego suelto de lino color beige",
     "Cozy / Casa: Sudadera con capucha minimalista gris melange oversized",
     "Cóctel / Fiesta: Mono largo de satén verde esmeralda con cinturón",
-    "Estilo urbano / Streetwear: Chaqueta de cuero negra sobre camiseta básica blanca"
+    "Estilo urbano / Streetwear: Chaqueta de cuero negra sobre camiseta básica blanca",
+    "Cyberpunk / Futuristic: Bodysuit de neopreno con apliques metálicos y luces neón",
+    "Boho Chic: Blusa de encaje blanco con falda larga bohemia de verano"
   ],
   Male: [
+    "Traje táctico / Latex Biker: Mono de cuero y vinilo negro entallado estructurado (black vinyl leather biker suit)",
     "Ropa deportiva: Sudadera con capucha de secado rápido y joggers negros",
     "Ropa de trabajo: Traje clásico azul marino con camisa blanca y corbata",
     "Sport elegante: Camisa de lino blanca y pantalones chinos beige",
     "Salida de noche: Camisa de seda negra desabrochada y pantalones oscuros",
     "Lencería sexy: Bóxers ajustados premium de diseñador color negro",
+    "Fitness / Atleta: Sin camiseta, torso trabajado con pantalones deportivos negros",
     "Casual cotidiano: Jersey de punto fino gris con cuello redondo",
     "Estilo playero: Camisa guayabera blanca y bermudas de lino beige",
     "Cozy / Casa: Sudadera con capucha minimalista azul marino oversized",
     "Saco casual: Blazer beige sobre camiseta básica blanca",
-    "Estilo urbano / Streetwear: Chaqueta de cuero negra sobre camiseta negra con vaqueros"
+    "Estilo urbano / Streetwear: Chaqueta de cuero negra sobre camiseta negra con vaqueros",
+    "Techwear / Cyberpunk: Chaqueta impermeable oscura con arneses y straps estilo futurista"
   ]
 };
 
@@ -3121,21 +3131,182 @@ async function deletePersonaAction() {
   }
 }
 
-// ─── Influencer Variants (Poses, Wardrobe, Attitude) Manager ───
+// ─── Influencer Variants (Poses, Wardrobe, Attitude) Manager & Spicy Mode ───
+
+const VARIANT_PRESETS = {
+  traditional: {
+    poses: [
+      { label: "Selfie primer plano (rostro)", value: "Selfie de primer plano de rostro (selfie portrait)" },
+      { label: "Plano medio-corto (selfie)", value: "Plano medio-corto de brazo extendido (candid hand-held selfie)" },
+      { label: "Selfie de espejo (cuerpo entero)", value: "Espejo de cuerpo entero sosteniendo el celular (full body mirror selfie)" },
+      { label: "Cuerpo entero (Modelando de pie)", value: "Pose estilizada de cuerpo entero de pie modelando (full body standing fashion model pose)" },
+      { label: "Plano medio americano (caminando)", value: "Plano medio americano caminando relajada (candid snapshot walking)" },
+      { label: "Sentada (perfil)", value: "Sentada de medio lado sonriendo a la cámara (sitting profile view)" },
+      { label: "Sentada en el suelo (casual)", value: "Sentada en el suelo de forma relajada y casual (candid floor seating pose)" },
+      { label: "Apoyada en pared (confiada)", value: "Apoyada sutilmente en una pared con postura confiada (leaning against wall pose)" },
+      { label: "Jugando con el cabello", value: "Jugando con el cabello de forma espontánea (playing with hair candid pose)" }
+    ],
+    attitudes: [
+      { label: "Sonriente y alegre", value: "sonriendo alegremente de forma muy natural (happy approachable smile)" },
+      { label: "Seria y elegante", value: "mirada fija seria y elegante de alta costura (serious high-fashion expression)" },
+      { label: "Guiñando un ojo", value: "guiñando un ojo de forma juguetona e ingeniosa (playful confident wink)" },
+      { label: "Pensativa / Distante", value: "pensativa mirando hacia el horizonte (thoughtful distant gaze)" },
+      { label: "Risa espontánea / Divertida", value: "risa espontánea y divertida (candid laughing moment)" }
+    ],
+    clothing: {
+      Female: [
+        { label: "Ropa deportiva: Calzas y top deportivo de licra negro", value: "Ropa deportiva: Calzas y top deportivo de licra negro entallado" },
+        { label: "Ropa de trabajo: Traje sastre gris con blazer entallado", value: "Ropa de trabajo: Traje sastre gris con blazer entallado y blusa blanca" },
+        { label: "Sport elegante: Camisa de lino blanca con vaqueros", value: "Sport elegante: Camisa de lino blanca holgada con vaqueros claros" },
+        { label: "Salida de noche: Vestido ajustado negro de satén", value: "Salida de noche: Vestido ajustado negro de satén con tirantes finos" },
+        { label: "Casual cotidiano: Suéter de punto crema", value: "Casual cotidiano: Suéter de punto suave en tono crema cuello redondo" },
+        { label: "Estilo playero: Vestido veraniego de lino beige", value: "Estilo playero: Vestido veraniego suelto de lino color beige" },
+        { label: "Cozy / Casa: Sudadera minimalista gris oversized", value: "Cozy / Casa: Sudadera con capucha minimalista gris melange oversized" },
+        { label: "Cóctel / Fiesta: Mono largo de satén verde esmeralda", value: "Cóctel / Fiesta: Mono largo de satén verde esmeralda con cinturón" },
+        { label: "Estilo urbano / Streetwear: Chaqueta de cuero negra", value: "Estilo urbano / Streetwear: Chaqueta de cuero negra sobre camiseta básica blanca" },
+        { label: "Boho Chic: Blusa de encaje blanco con falda larga", value: "Boho Chic: Blusa de encaje blanco con falda larga bohemia de verano" }
+      ],
+      Male: [
+        { label: "Ropa deportiva: Sudadera de secado rápido y joggers", value: "Ropa deportiva: Sudadera con capucha de secado rápido y joggers negros" },
+        { label: "Ropa de trabajo: Traje clásico azul marino con camisa blanca", value: "Ropa de trabajo: Traje clásico azul marino con camisa blanca y corbata" },
+        { label: "Sport elegante: Camisa de lino blanca y chinos beige", value: "Sport elegante: Camisa de lino blanca y pantalones chinos beige" },
+        { label: "Salida de noche: Camisa de seda negra desabrochada", value: "Salida de noche: Camisa de seda negra desabrochada y pantalones oscuros" },
+        { label: "Casual cotidiano: Jersey de punto fino gris", value: "Casual cotidiano: Jersey de punto fino gris con cuello redondo" },
+        { label: "Estilo playero: Camisa guayabera blanca y bermudas", value: "Estilo playero: Camisa guayabera blanca y bermudas de lino beige" },
+        { label: "Cozy / Casa: Sudadera minimalista azul marino", value: "Cozy / Casa: Sudadera con capucha minimalista azul marino oversized" },
+        { label: "Saco casual: Blazer beige sobre camiseta básica blanca", value: "Saco casual: Blazer beige sobre camiseta básica blanca" },
+        { label: "Estilo urbano / Streetwear: Chaqueta de cuero negra", value: "Estilo urbano / Streetwear: Chaqueta de cuero negra sobre camiseta negra con vaqueros" }
+      ]
+    },
+    settings: [
+      { label: "Cafetería (interior)", value: "Fondo de cafetería moderna iluminada de día (modern bright cafe interior)" },
+      { label: "Gimnasio (neón)", value: "Gimnasio moderno con luces de neón tenues (modern dark fitness studio)" },
+      { label: "Parque (naturaleza)", value: "Parque natural soleado con follaje verde desenfocado (sunny green park)" },
+      { label: "Calle urbana (noche)", value: "Calle de ciudad de noche con luces bokeh desenfocadas (urban neon street night)" },
+      { label: "Habitación lujosa", value: "Habitación de hotel lujosa y luminosa (luxury bright hotel room)" },
+      { label: "Playa paradisíaca (atardecer)", value: "Playa paradisíaca de arena blanca al atardecer dorado (tropical beach sunset)" },
+      { label: "Terraza Penthouse (vista urbana)", value: "Terraza de penthouse de lujo con vista panorámica a la ciudad (penthouse rooftop skyline view)" },
+      { label: "Bosque nevado (invierno)", value: "Bosque de pinos nevado de invierno (snowy pine forest background)" }
+    ]
+  },
+  spicy: {
+    poses: [
+      { label: "De pie dominante con tacones aguja", value: "Pose estilizada de pie dominante con tacones aguja de cuerpo entero (full body dominant model pose with high heels)" },
+      { label: "Mirada provocativa sobre el hombro", value: "Mirando por encima del hombro con pose seductora y provocativa (seductive over-the-shoulder look with high heels)" },
+      { label: "Recostada en cama de satén", value: "Recostada de forma elegante sobre una cama con sábanas de satén (reclining gracefully on satin luxury bed)" },
+      { label: "Arrodillada en cojines de terciopelo", value: "Arrodillada sobre cojines de terciopelo de forma sugerente (knelt down on plush velvet cushions pose)" },
+      { label: "Sentada cruzando piernas en tacones", value: "Sentada cruzando las piernas luciendo tacones de aguja (sitting crossing legs wearing high stiletto heels)" },
+      { label: "Apoyada en pared oscura", value: "Apoyada en una pared oscura con pose provocativa (leaning against dark wall with alluring pose)" },
+      { label: "Macro beauty portrait seductor", value: "Primer plano dramático seductor de labios y mirada (dramatic close-up beauty shot with captivating gaze)" }
+    ],
+    attitudes: [
+      { label: "Seductora y provocativa", value: "expresión seductora, intensa y provocativa (alluring seductive intense expression)" },
+      { label: "Dominante e intensa", value: "mirada fija dominante y confiada (dominant confident fierce gaze)" },
+      { label: "Guiño coqueto y juguetón", value: "guiño de ojo coqueto y juguetón (playful flirty wink)" },
+      { label: "Misteriosa y cautivadora", value: "mirada misteriosa y cautivadora directa a cámara (captivating mysterious gaze)" }
+    ],
+    clothing: {
+      Female: [
+        { label: "Catsuit de látex negro brillante con tacones", value: "Catsuit ajustado de látex negro de alto brillo de cuerpo entero con tacones aguja (shiny black latex catsuit with high stiletto heels)" },
+        { label: "Catsuit de látex rojo pasión con tacones", value: "Catsuit de látex rojo pasión entallado de alto brillo con tacones (shiny passion red latex catsuit with high heels)" },
+        { label: "Catsuit de látex morado neón futurista", value: "Catsuit de látex morado neón estilo futurista con brillo espejado (shiny neon purple latex catsuit)" },
+        { label: "Corsé de vinilo negro con ligueros y medias", value: "Corsé de vinilo negro brillante ajustado con ligueros y medias de rejilla (black vinyl corset with garter belt and stockings)" },
+        { label: "Traje de cuero negro estilo dominatrix", value: "Conjunto de top y pantalones de cuero negro ajustado con botas de cuero altas (form-fitting black leather corset and trousers with knee-high leather boots)" },
+        { label: "Lencería sexy de encaje transparente con tacones", value: "Conjunto de lencería sexy de encaje rojo transparente con tacones aguja (sexy sheer red lace lingerie with high heels)" },
+        { label: "Biquini micro metalizado neón con plataformas", value: "Biquini micro metalizado brillante con zapatos de plataforma (micro metallic neon bikini with platform heels)" },
+        { label: "Bodysuit Sci-Fi Cyberpunk de látex", value: "Bodysuit futurista Sci-Fi de látex con apliques neón (futuristic Sci-Fi cyber latex bodysuit with glowing accents)" },
+        { label: "Corsé medieval fantástico de cuero", value: "Corsé fantástico medieval de cuero con hebillas metálicas y botas altas (fantasy medieval leather warrior corset with high boots)" },
+        { label: "Vestido de gala de látex negro de alta costura", value: "Vestido largo de látex negro entallado con hendidura alta y tacones (high fashion black latex dress with side slit and heels)" }
+      ],
+      Male: [
+        { label: "Traje táctico / Vinyl Biker", value: "Mono de cuero y vinilo negro entallado estructurado con botas tácticas (black vinyl leather biker suit with tactical boots)" },
+        { label: "Torso descubierto de atleta", value: "Torso descubierto marcado de atleta con pantalones ajustados de cuero (bare chest fitness athlete with fitted leather trousers)" },
+        { label: "Lencería sexy / Bóxers de diseñador", value: "Bóxers ajustados premium de cuero/satén color negro (premium black satin designer boxers)" },
+        { label: "Techwear Cyberpunk con arneses", value: "Arnés de cuero oscuro sobre torso con pantalones techwear futuristas (dark leather harness on chest with techwear trousers)" }
+      ]
+    },
+    settings: [
+      { label: "Calabozo / Dungeon gótico (velas & cadenas)", value: "Calabozo gótico de piedra con iluminación tenue de velas y cadenas de hierro sutiles (gothic dungeon interior with dim candlelight, stone walls, and subtle iron chains)" },
+      { label: "Castillo medieval (Gran salón de trono)", value: "Gran salón de trono de castillo medieval con arcos de piedra y cortinados de terciopelo (medieval castle throne room with stone arches and velvet drapes)" },
+      { label: "Nave espacial Sci-Fi (Sala de mando neón)", value: "Interior de nave espacial futurista con paneles de control neón y luces ambientales (futuristic spaceship interior with neon control panels and glowing ambient lighting)" },
+      { label: "Penthouse nocturno (Cama King de satén)", value: "Dormitorio de penthouse de gran lujo de noche con sábanas de satén y vista panorámica a la ciudad (luxury penthouse bedroom at night with satin sheets and city lights)" },
+      { label: "Boudoir victoriano (Terciopelo rojo)", value: "Salón boudoir victoriano lujoso con muebles de terciopelo rojo e iluminación cálida (Victorian boudoir lounge with plush red velvet furniture)" },
+      { label: "Club VIP subterráneo (Neón morado)", value: "Interior de club VIP nocturno subterráneo con retroiluminación neón morada y ambiente tenue (dark VIP lounge club with purple neon backlighting)" },
+      { label: "Garaje Biker industrial (Motocicletas & cuero)", value: "Garaje industrial nocturno con motocicletas retro, detalles metálicos y luces tenues (industrial motorcycle garage with leather & metal background)" }
+    ]
+  }
+};
+
+window.setVariantMode = function(mode) {
+  state.variantMode = mode;
+
+  const btnTrad = document.getElementById('btnModeTraditional');
+  const btnSpicy = document.getElementById('btnModeSpicy');
+
+  if (btnTrad) btnTrad.classList.toggle('active', mode === 'traditional');
+  if (btnSpicy) btnSpicy.classList.toggle('active', mode === 'spicy');
+
+  populateVariantDropdowns();
+};
+
+function populateVariantDropdowns() {
+  const mode = state.variantMode || 'traditional';
+  const preset = VARIANT_PRESETS[mode] || VARIANT_PRESETS.traditional;
+  const p = state.selectedPersona;
+  const gender = p ? p.gender : (document.getElementById('pGender')?.value || 'Female');
+
+  // 1. Poses
+  const poseSelect = document.getElementById('vPose');
+  if (poseSelect) {
+    poseSelect.innerHTML = '';
+    preset.poses.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.value;
+      opt.textContent = item.label;
+      poseSelect.appendChild(opt);
+    });
+  }
+
+  // 2. Attitudes
+  const attSelect = document.getElementById('vAttitude');
+  if (attSelect) {
+    attSelect.innerHTML = '';
+    preset.attitudes.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.value;
+      opt.textContent = item.label;
+      attSelect.appendChild(opt);
+    });
+  }
+
+  // 3. Clothing
+  const clothSelect = document.getElementById('vClothing');
+  if (clothSelect) {
+    clothSelect.innerHTML = '';
+    const clothList = preset.clothing[gender] || preset.clothing.Female;
+    clothList.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.value;
+      opt.textContent = item.label;
+      clothSelect.appendChild(opt);
+    });
+  }
+
+  // 4. Settings
+  const setSelect = document.getElementById('vSetting');
+  if (setSelect) {
+    setSelect.innerHTML = '';
+    preset.settings.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.value;
+      opt.textContent = item.label;
+      setSelect.appendChild(opt);
+    });
+  }
+}
 
 function updateVariantClothingDropdown(gender) {
-  const select = document.getElementById('vClothing');
-  if (!select) return;
-  
-  select.innerHTML = '';
-  const options = CLOTHING_OPTIONS_BY_GENDER[gender] || CLOTHING_OPTIONS_BY_GENDER.Female;
-  
-  options.forEach(opt => {
-    const o = document.createElement('option');
-    o.value = opt;
-    o.textContent = opt;
-    select.appendChild(o);
-  });
+  populateVariantDropdowns();
 }
 
 async function loadVariantsForPersona(personaId) {

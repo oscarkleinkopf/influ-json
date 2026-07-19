@@ -303,17 +303,41 @@ module.exports = {
   async generateInfluencerImage(prompt, referenceUrl = null) {
     if (!ai) {
       console.log('Using Pollinations.ai free keyless generator for virtual portrait...');
-      try {
+
+      const fetchPollinations = async (refUrl) => {
         let url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${Math.floor(Math.random() * 100000)}`;
-        if (referenceUrl) {
-          url += `&image=${encodeURIComponent(referenceUrl)}&strength=0.65`;
+        if (refUrl) {
+          url += `&image=${encodeURIComponent(refUrl)}&strength=0.65`;
         }
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Pollinations HTTP error: ${res.status}`);
-        
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 45000);
+        try {
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timer);
+          if (!res.ok) throw new Error(`Pollinations HTTP error: ${res.status}`);
+          return res;
+        } catch (err) {
+          clearTimeout(timer);
+          throw err;
+        }
+      };
+
+      try {
+        let res;
+        if (referenceUrl) {
+          try {
+            res = await fetchPollinations(referenceUrl);
+          } catch (refErr) {
+            console.warn(`Pollinations image-to-image failed (${refErr.message}), falling back to text prompt generation...`);
+            res = await fetchPollinations(null);
+          }
+        } else {
+          res = await fetchPollinations(null);
+        }
+
         const arrayBuffer = await res.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        
+
         const filename = `gen_flux_${Date.now()}.jpg`;
         const relativePath = `assets/generated/${filename}`;
         const absolutePath = path.join(__dirname, relativePath);
@@ -322,7 +346,7 @@ module.exports = {
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
         fs.writeFileSync(absolutePath, buffer);
-        
+
         // Sync to scratch directory
         const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b-aa1e-adaeba8ce81d/scratch';
         const scratchGenDir = path.join(SCRATCH_DIR, 'assets', 'generated');
@@ -338,8 +362,6 @@ module.exports = {
     }
 
     try {
-      // In Gemini API, Image generation uses the 'imagen-3.0-generate-002' model (or latest Imagen model)
-      // Check if Imagen API is supported on the client
       const model = ai.getGenerativeModel({ model: 'imagen-3.0-generate-002' });
       const result = await model.generateImages({
         prompt: prompt,
@@ -358,7 +380,7 @@ module.exports = {
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
         fs.writeFileSync(absolutePath, Buffer.from(base64Data, 'base64'));
-        
+
         // Sync to scratch directory
         const SCRATCH_DIR = 'C:/Users/oscar/.gemini/antigravity/brain/7d7c6673-5ef4-440b-aa1e-adaeba8ce81d/scratch';
         const scratchGenDir = path.join(SCRATCH_DIR, 'assets', 'generated');
@@ -377,15 +399,11 @@ module.exports = {
 
   async uploadToTmpFiles(localPath) {
     try {
-      const absolutePath = path.resolve(localPath);
-      if (!fs.existsSync(absolutePath)) {
-        console.warn(`File does not exist: ${absolutePath}`);
+      if (!localPath || localPath.includes('influencer_female.png') || localPath.includes('influencer_male.png')) {
         return null;
       }
-
-      // Check if it is a directory
-      if (fs.lstatSync(absolutePath).isDirectory()) {
-        console.warn(`Path is a directory, cannot upload: ${absolutePath}`);
+      const absolutePath = path.resolve(localPath);
+      if (!fs.existsSync(absolutePath) || fs.lstatSync(absolutePath).isDirectory()) {
         return null;
       }
 
@@ -394,10 +412,15 @@ module.exports = {
       const formData = new FormData();
       formData.append('file', fileBlob, path.basename(absolutePath));
 
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+
       const res = await fetch('https://tmpfiles.org/api/v1/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
+        signal: controller.signal
       });
+      clearTimeout(timer);
 
       if (!res.ok) throw new Error(`tmpfiles.org API responded with status ${res.status}`);
       const data = await res.json();
@@ -408,7 +431,7 @@ module.exports = {
       }
       return null;
     } catch (e) {
-      console.error('Error uploading local image to tmpfiles.org:', e);
+      console.warn('Skipping tmpfiles.org upload (fallback to prompt-only generation):', e.message);
       return null;
     }
   },
