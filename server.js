@@ -121,8 +121,10 @@ app.get('/api/personas', (req, res) => {
 });
 
 app.post('/api/personas', (req, res) => {
-  const isNew = !req.body.id;
-  const persona = dbService.savePersona(req.body);
+  const body = req.body || {};
+  const forceCreate = body.forceCreate === true || body.forceCreate === 1 || body.forceCreate === 'true';
+  const isNew = forceCreate || !body.id;
+  const persona = dbService.savePersona(body);
   if (isNew && persona && persona.id) {
     try {
       dbService.updateGenerationPersonaId('new_persona', persona.id);
@@ -131,7 +133,14 @@ app.post('/api/personas', (req, res) => {
     }
   }
   runGitBackup((gitSuccess, msg) => {
-    res.json({ success: true, personas: dbService.getAllPersonas(), persona, gitSynced: gitSuccess, gitMessage: msg });
+    res.json({
+      success: true,
+      personas: dbService.getAllPersonas(),
+      persona,
+      created: isNew,
+      gitSynced: gitSuccess,
+      gitMessage: msg
+    });
   });
 });
 
