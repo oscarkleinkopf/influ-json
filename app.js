@@ -3831,49 +3831,48 @@ const VARIANT_PRESETS = {
     ]
   },
   spicy: {
+    // Photoreal first: avoid “mirror CGI latex / dungeon fantasy” defaults that kill realism
     poses: [
-      { label: "De pie dominante con tacones aguja", value: "Pose estilizada de pie dominante con tacones aguja de cuerpo entero (full body dominant model pose with high heels)" },
-      { label: "Mirada provocativa sobre el hombro", value: "Mirando por encima del hombro con pose seductora y provocativa (seductive over-the-shoulder look with high heels)" },
-      { label: "Recostada en cama de satén", value: "Recostada de forma elegante sobre una cama con sábanas de satén (reclining gracefully on satin luxury bed)" },
-      { label: "Arrodillada en cojines de terciopelo", value: "Arrodillada sobre cojines de terciopelo de forma sugerente (knelt down on plush velvet cushions pose)" },
-      { label: "Sentada cruzando piernas en tacones", value: "Sentada cruzando las piernas luciendo tacones de aguja (sitting crossing legs wearing high stiletto heels)" },
-      { label: "Apoyada en pared oscura", value: "Apoyada en una pared oscura con pose provocativa (leaning against dark wall with alluring pose)" },
-      { label: "Macro beauty portrait seductor", value: "Primer plano dramático seductor de labios y mirada (dramatic close-up beauty shot with captivating gaze)" }
+      { label: "De pie confiada (cuerpo entero)", value: "standing full-body confident pose, natural weight on one leg, smartphone photo (realistic full body standing pose)" },
+      { label: "Mirada sobre el hombro", value: "looking over the shoulder toward camera, natural seductive pose (candid over-the-shoulder smartphone photo)" },
+      { label: "Recostada en cama (natural)", value: "reclining naturally on bed, relaxed body, real fabric folds (candid bedroom photo)" },
+      { label: "Sentada cruzando piernas", value: "sitting crossing legs on edge of bed or chair, natural posture (realistic seated pose)" },
+      { label: "Apoyada en pared (candid)", value: "leaning casually against a wall, natural body language (candid wall lean photo)" },
+      { label: "Primer plano beauty realista", value: "close-up beauty portrait with natural skin texture, real pores (photoreal close-up)" }
     ],
     attitudes: [
-      { label: "Seductora y provocativa", value: "expresión seductora, intensa y provocativa (alluring seductive intense expression)" },
-      { label: "Dominante e intensa", value: "mirada fija dominante y confiada (dominant confident fierce gaze)" },
-      { label: "Guiño coqueto y juguetón", value: "guiño de ojo coqueto y juguetón (playful flirty wink)" },
-      { label: "Misteriosa y cautivadora", value: "mirada misteriosa y cautivadora directa a cámara (captivating mysterious gaze)" }
+      { label: "Seductora natural", value: "subtle seductive expression, soft confident gaze (natural alluring expression)" },
+      { label: "Confianza intensa", value: "intense confident gaze at camera, slight smile (confident intense look)" },
+      { label: "Coqueta / juguetona", value: "playful flirty expression, natural smile (playful flirty look)" },
+      { label: "Misteriosa suave", value: "soft mysterious gaze, relaxed face (soft mysterious expression)" }
     ],
     clothing: {
       Female: [
-        { label: "Catsuit de látex negro brillante con tacones", value: "Catsuit ajustado de látex negro de alto brillo de cuerpo entero con tacones aguja (shiny black latex catsuit with high stiletto heels)" },
-        { label: "Catsuit de látex rojo pasión con tacones", value: "Catsuit de látex rojo pasión entallado de alto brillo con tacones (shiny passion red latex catsuit with high heels)" },
-        { label: "Catsuit de látex morado neón futurista", value: "Catsuit de látex morado neón estilo futurista con brillo espejado (shiny neon purple latex catsuit)" },
-        { label: "Corsé de vinilo negro con ligueros y medias", value: "Corsé de vinilo negro brillante ajustado con ligueros y medias de rejilla (black vinyl corset with garter belt and stockings)" },
-        { label: "Traje de cuero negro estilo dominatrix", value: "Conjunto de top y pantalones de cuero negro ajustado con botas de cuero altas (form-fitting black leather corset and trousers with knee-high leather boots)" },
-        { label: "Lencería sexy de encaje transparente con tacones", value: "Conjunto de lencería sexy de encaje rojo transparente con tacones aguja (sexy sheer red lace lingerie with high heels)" },
-        { label: "Biquini micro metalizado neón con plataformas", value: "Biquini micro metalizado brillante con zapatos de plataforma (micro metallic neon bikini with platform heels)" },
-        { label: "Bodysuit Sci-Fi Cyberpunk de látex", value: "Bodysuit futurista Sci-Fi de látex con apliques neón (futuristic Sci-Fi cyber latex bodysuit with glowing accents)" },
-        { label: "Corsé medieval fantástico de cuero", value: "Corsé fantástico medieval de cuero con hebillas metálicas y botas altas (fantasy medieval leather warrior corset with high boots)" },
-        { label: "Vestido de gala de látex negro de alta costura", value: "Vestido largo de látex negro entallado con hendidura alta y tacones (high fashion black latex dress with side slit and heels)" }
+        { label: "Lencería roja de encaje (realista)", value: "real red lace lingerie set, sheer fabric with real textile weave, natural fit on body, not plastic (photoreal red lace lingerie)" },
+        { label: "Body de satén rojo", value: "fitted red satin bodysuit, soft fabric sheen (not mirror gloss), real cloth wrinkles (photoreal red satin bodysuit)" },
+        { label: "Vestido rojo corto ajustado", value: "short fitted red cocktail dress, real fabric texture, natural drape (photoreal red mini dress)" },
+        { label: "Catsuit negro de látex sutil", value: "black latex catsuit with subtle real latex sheen (matte-gloss mix, NOT chrome mirror, NOT CGI plastic), realistic material (photoreal black latex catsuit)" },
+        { label: "Catsuit rojo de látex sutil", value: "passion red latex catsuit with subtle realistic latex sheen (NOT mirror chrome, NOT 3D render), real folds and skin contact (photoreal red latex catsuit)" },
+        { label: "Corsé de cuero negro + medias", value: "black leather corset with garter belt and sheer stockings, real leather grain (photoreal leather corset set)" },
+        { label: "Conjunto de seda negra", value: "black silk slip lingerie, soft natural fabric, realistic sheen (photoreal black silk lingerie)" },
+        { label: "Bikini rojo clásico", value: "classic red two-piece bikini, real fabric, natural body (photoreal red bikini)" },
+        { label: "Robeseductor de satén", value: "open red satin robe over lingerie, soft fabric, candid boudoir photo (photoreal satin robe)" }
       ],
       Male: [
-        { label: "Traje táctico / Vinyl Biker", value: "Mono de cuero y vinilo negro entallado estructurado con botas tácticas (black vinyl leather biker suit with tactical boots)" },
-        { label: "Torso descubierto de atleta", value: "Torso descubierto marcado de atleta con pantalones ajustados de cuero (bare chest fitness athlete with fitted leather trousers)" },
-        { label: "Lencería sexy / Bóxers de diseñador", value: "Bóxers ajustados premium de cuero/satén color negro (premium black satin designer boxers)" },
-        { label: "Techwear Cyberpunk con arneses", value: "Arnés de cuero oscuro sobre torso con pantalones techwear futuristas (dark leather harness on chest with techwear trousers)" }
+        { label: "Torso descubierto + pantalón oscuro", value: "bare chest with realistic skin texture, dark fitted trousers, natural lighting (photoreal)" },
+        { label: "Bóxers premium negros", value: "black designer boxer briefs, real cotton/satin fabric (photoreal)" },
+        { label: "Cuero negro realista", value: "black leather jacket open on chest, real leather grain (photoreal)" },
+        { label: "Arnés sutil + pantalón", value: "subtle dark leather harness over bare chest, fitted trousers, not costume CGI (photoreal)" }
       ]
     },
     settings: [
-      { label: "Calabozo / Dungeon gótico (velas & cadenas)", value: "Calabozo gótico de piedra con iluminación tenue de velas y cadenas de hierro sutiles (gothic dungeon interior with dim candlelight, stone walls, and subtle iron chains)" },
-      { label: "Castillo medieval (Gran salón de trono)", value: "Gran salón de trono de castillo medieval con arcos de piedra y cortinados de terciopelo (medieval castle throne room with stone arches and velvet drapes)" },
-      { label: "Nave espacial Sci-Fi (Sala de mando neón)", value: "Interior de nave espacial futurista con paneles de control neón y luces ambientales (futuristic spaceship interior with neon control panels and glowing ambient lighting)" },
-      { label: "Penthouse nocturno (Cama King de satén)", value: "Dormitorio de penthouse de gran lujo de noche con sábanas de satén y vista panorámica a la ciudad (luxury penthouse bedroom at night with satin sheets and city lights)" },
-      { label: "Boudoir victoriano (Terciopelo rojo)", value: "Salón boudoir victoriano lujoso con muebles de terciopelo rojo e iluminación cálida (Victorian boudoir lounge with plush red velvet furniture)" },
-      { label: "Club VIP subterráneo (Neón morado)", value: "Interior de club VIP nocturno subterráneo con retroiluminación neón morada y ambiente tenue (dark VIP lounge club with purple neon backlighting)" },
-      { label: "Garaje Biker industrial (Motocicletas & cuero)", value: "Garaje industrial nocturno con motocicletas retro, detalles metálicos y luces tenues (industrial motorcycle garage with leather & metal background)" }
+      { label: "Dormitorio moderno (noche suave)", value: "modern bedroom at night, warm practical lamps, real interior photo (no fantasy dungeon)" },
+      { label: "Boudoir hotel (luz cálida)", value: "luxury hotel bedroom, warm practical lighting, real architecture (photoreal hotel boudoir)" },
+      { label: "Penthouse nocturno (ventana ciudad)", value: "penthouse bedroom at night with city lights through window, realistic interior" },
+      { label: "Sala low-key (lámpara lateral)", value: "dim modern living room with single warm side lamp, realistic shadows" },
+      { label: "Baño hotel (espejo, luz suave)", value: "hotel bathroom mirror selfie lighting, soft realistic bathroom interior" },
+      { label: "Terraza nocturna (ciudad bokeh)", value: "night rooftop terrace with soft city bokeh lights, real outdoor night photo" },
+      { label: "Studio foto low-key (realista)", value: "simple dark photography studio with soft key light, photoreal fashion set (not sci-fi)" }
     ]
   }
 };
@@ -4123,14 +4122,28 @@ async function generateVariantAction() {
   const isOutdoor = /playa|beach|parque|park|terraza|rooftop|calle|street|piscina|pool|bosque|forest/i.test(setting);
   const lightClause = isOutdoor
     ? 'natural outdoor daylight, consistent fair skin under sun (no over-bronze filter)'
-    : 'natural soft lighting, keep exact skin lightness (no underexposure darkening skin)';
+    : 'soft realistic practical lighting, keep exact skin lightness (no underexposure darkening skin)';
 
-  const variantPrompt = `Amateur casual UGC style photo, ${pose}. Medium shot showing face and body. A ${age} ${ethnicity} ${genderWord.toLowerCase()} influencer ${attitude}. ${hair} hair, ${skinClause}, ${eyeColor} eyes, ${faceShape} face.${hairHex} Body: ${bodyBits || 'proportioned natural silhouette'}. Wearing ${clothing}. Background is ${setting}. ${lightClause}, raw photo format, shot on mobile camera, same person consistent facial identity AND skin lightness, realistic skin texture on face neck and arms. SKIN LOCK (critical): ${skin.tone}${skin.hex ? ' ' + skin.hex : ''} — match reference person skin tone exactly.`;
+  const isSpicy = (state.variantMode || 'traditional') === 'spicy';
+  // Photoreal lock: latex/red glossy outfits easily go CGI without this
+  const realismClause = isSpicy
+    ? 'PHOTOREALISM LOCK (critical): authentic smartphone photo of a real person, real fabric/material with natural micro-wrinkles, subtle real sheen only (NOT mirror chrome, NOT plastic CGI, NOT 3D render, NOT Unreal Engine, NOT doll skin, NOT airbrushed beauty filter). Visible natural skin pores, realistic body proportions, candid UGC authenticity, shot on iPhone, raw unedited look.'
+    : 'photorealistic raw smartphone photo, natural skin texture, realistic fabric.';
+
+  const variantPrompt = `Photorealistic amateur UGC smartphone photo, ${pose}. Medium shot showing face and body. A ${age} ${ethnicity} ${genderWord.toLowerCase()} real human influencer ${attitude}. ${hair} hair, ${skinClause}, ${eyeColor} eyes, ${faceShape} face.${hairHex} Body: ${bodyBits || 'proportioned natural silhouette'}. Wearing ${clothing}. Background is ${setting}. ${lightClause}. ${realismClause} Same person consistent facial identity AND skin lightness. SKIN LOCK (critical): ${skin.tone}${skin.hex ? ' ' + skin.hex : ''} — match reference person skin tone exactly. Avoid: 3d render, plastic latex shine, cartoon, anime, mannequin, wax figure, overly glossy skin.`;
   
   try {
     const res = await authFetch(`/api/personas/${p.id}/variants`, {
       method: 'POST',
-      body: JSON.stringify({ pose, attitude, clothing, setting, prompt: variantPrompt })
+      body: JSON.stringify({
+        pose,
+        attitude,
+        clothing,
+        setting,
+        prompt: variantPrompt,
+        photoreal: true,
+        mode: state.variantMode || 'traditional'
+      })
     });
     const data = await res.json();
     if (data.success) {

@@ -212,7 +212,11 @@ app.post('/api/personas/:id/variants', async (req, res) => {
     }
   }
   
-  aiService.generateInfluencerImage(prompt, referenceUrl)
+  const photoreal = req.body.photoreal === true
+    || req.body.mode === 'spicy'
+    || /latex|látex|catsuit|vinyl|PHOTOREALISM/i.test(prompt || '');
+
+  aiService.generateInfluencerImage(prompt, referenceUrl, { photoreal })
     .then(imagePath => {
       if (imagePath) {
         const variant = dbService.saveVariant({
@@ -227,10 +231,17 @@ app.post('/api/personas/:id/variants', async (req, res) => {
         try {
           dbService.saveGeneration({
             persona_id: req.params.id,
-            prompt: req.body.prompt,
+            prompt,
             image_path: imagePath,
             generation_type: 'variant',
-            metadata: JSON.stringify({ pose: req.body.pose, clothing: req.body.clothing, attitude: req.body.attitude, setting: req.body.setting })
+            metadata: JSON.stringify({
+              pose: req.body.pose,
+              clothing: req.body.clothing,
+              attitude: req.body.attitude,
+              setting: req.body.setting,
+              mode: req.body.mode || null,
+              photoreal
+            })
           });
         } catch (histErr) {
           console.warn('Failed to save variant generation history:', histErr.message);
