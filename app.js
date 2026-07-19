@@ -162,27 +162,87 @@ function setupTabs() {
   });
 }
 
+/** Normalize archived flag (sqlite may return 0/1, true/false, or null). */
+function isArchivedPersona(p) {
+  return p && (p.archived === 1 || p.archived === true || p.archived === '1');
+}
+
+/** Always re-render portfolio + select grids from current state.personas. */
+function refreshPersonaLists() {
+  try {
+    updateDashboardStats();
+  } catch (e) {
+    console.warn('updateDashboardStats failed:', e);
+  }
+  try {
+    renderPersonaGrids();
+  } catch (e) {
+    console.warn('renderPersonaGrids failed:', e);
+  }
+}
+
+/**
+ * Reload personas/products/stats from the server and refresh UI.
+ * @param {{ id?: string, name?: string }|null} selectTarget - persona to select after load
+ */
+async function reloadPersonasFromServer(selectTarget = null) {
+  const res = await authFetch('/api/data');
+  const data = await res.json();
+  state.personas = Array.isArray(data.personas) ? data.personas : [];
+  state.products = Array.isArray(data.products) ? data.products : state.products;
+  state.generationStats = data.generationStats || { total: 0 };
+
+  refreshPersonaLists();
+
+  let toSelect = null;
+  if (selectTarget) {
+    toSelect = state.personas.find(p =>
+      (selectTarget.id && p.id === selectTarget.id) ||
+      (selectTarget.name && p.name && p.name.toLowerCase() === String(selectTarget.name).toLowerCase())
+    );
+  }
+  if (!toSelect && state.selectedPersona?.id) {
+    toSelect = state.personas.find(p => p.id === state.selectedPersona.id) || null;
+  }
+
+  if (toSelect) {
+    try {
+      selectPersona(toSelect);
+    } catch (e) {
+      console.warn('selectPersona failed after reload:', e);
+      refreshPersonaLists();
+    }
+  }
+
+  return state.personas;
+}
+
 // Fetch Initial Data
 async function fetchData() {
   try {
     const res = await authFetch('/api/data');
     const data = await res.json();
     
-    state.personas = data.personas;
-    state.products = data.products;
+    state.personas = Array.isArray(data.personas) ? data.personas : [];
+    state.products = Array.isArray(data.products) ? data.products : [];
     state.generationStats = data.generationStats || { total: 0 };
     
-    // Set defaults
+    // Always paint lists first so a selectPersona error cannot hide the portfolio
+    refreshPersonaLists();
+
     if (state.personas.length > 0) {
-      selectPersona(state.personas[0]);
+      try {
+        selectPersona(state.personas[0]);
+      } catch (e) {
+        console.warn('Initial selectPersona failed:', e);
+        refreshPersonaLists();
+      }
     }
     if (state.products.length > 0) state.selectedProduct = state.products[0];
     
-    updateDashboardStats();
-    renderPersonaGrids();
-    populateActiveUgcData();
-    generateMockScripts();
-    updateLicensingCalculator();
+    try { populateActiveUgcData(); } catch (e) { console.warn(e); }
+    try { generateMockScripts(); } catch (e) { console.warn(e); }
+    try { updateLicensingCalculator(); } catch (e) { console.warn(e); }
   } catch (err) {
     console.error('Error fetching initial data:', err);
   }
@@ -190,20 +250,24 @@ async function fetchData() {
 
 // Dashboard Update
 function updateDashboardStats() {
-  const activeCount = state.personas.filter(p => !p.archived || p.archived === 0).length;
-  document.getElementById('statPersonasCount').textContent = activeCount;
-  document.getElementById('statProductsCount').textContent = state.products.length;
+  const activeCount = state.personas.filter(p => !isArchivedPersona(p)).length;
+  const statEl = document.getElementById('statPersonasCount');
+  if (statEl) statEl.textContent = activeCount;
+  const prodStat = document.getElementById('statProductsCount');
+  if (prodStat) prodStat.textContent = state.products.length;
   
   // Total generations count from stats state
   const totalGens = state.generationStats?.total || 0;
-  document.getElementById('statGenerationsCount').textContent = totalGens;
+  const genStat = document.getElementById('statGenerationsCount');
+  if (genStat) genStat.textContent = totalGens;
 
   // Let's approximate scripts count or use campaigns
   let scriptsCount = 0;
   try {
     scriptsCount = state.campaigns.length * 10;
   } catch(e) {}
-  document.getElementById('statScriptsCount').textContent = scriptsCount || 10;
+  const scriptStat = document.getElementById('statScriptsCount');
+  if (scriptStat) scriptStat.textContent = scriptsCount || 10;
   
   const personaGrid = document.getElementById('dashboardPersonaGrid');
   if (!personaGrid) return;
@@ -214,9 +278,9 @@ function updateDashboardStats() {
   
   // Filter by active/archived state
   if (state.portfolioFilter === 'active') {
-    filtered = filtered.filter(p => !p.archived || p.archived === 0);
+    filtered = filtered.filter(p => !isArchivedPersona(p));
   } else if (state.portfolioFilter === 'archived') {
-    filtered = filtered.filter(p => p.archived === 1);
+    filtered = filtered.filter(p => isArchivedPersona(p));
   }
   
   // Search query filter
@@ -250,13 +314,13 @@ function updateDashboardStats() {
     const card = document.createElement('div');
     const isSelected = state.selectedPersona?.id === p.id;
     card.className = `portfolio-card ${isSelected ? 'selected' : ''}`;
-    if (p.archived === 1) card.classList.add('archived-style');
+    if (isArchivedPersona(p)) card.classList.add('archived-style');
 
     card.innerHTML = `
       <div class="portfolio-card-img-wrapper">
-        <img src="${p.image}" alt="${p.name}">
+        <img src="${p.image || 'assets/influencer_female.png'}" alt="${p.name || 'Influencer'}" onerror="this.src='assets/influencer_female.png'">
         <span class="portfolio-badge badge-style">${p.style || 'Lifestyle'}</span>
-        ${p.archived === 1 ? '<span class="portfolio-badge badge-archived">Archivado</span>' : ''}
+        ${isArchivedPersona(p) ? '<span class="portfolio-badge badge-archived">Archivado</span>' : ''}
       </div>
       <div class="portfolio-card-info">
         <div class="portfolio-card-title-row">
@@ -267,7 +331,7 @@ function updateDashboardStats() {
         <div class="portfolio-card-actions">
           <button class="btn btn-primary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
           <button class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
-          <button class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${p.archived === 1 ? 'Desarchivar' : 'Archivar'}</button>
+          <button class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
         </div>
       </div>
     `;
@@ -479,17 +543,34 @@ function selectPersona(persona) {
   populateActiveUgcData();
   updateLicensingCalculator();
   
-  // Update inputs in Persona Form
-  document.getElementById('pName').value = persona.name;
-  document.getElementById('pGender').value = persona.gender;
-  document.getElementById('pAge').value = persona.age;
-  document.getElementById('pEthnicity').value = persona.ethnicity || 'Latina';
-  document.getElementById('pStyle').value = persona.style;
-  document.getElementById('pHair').value = persona.hair;
-  document.getElementById('pLighting').value = persona.lighting;
-  document.getElementById('pCamera').value = persona.camera;
+  // Update inputs in Persona Form (safe for missing nodes / non-matching <select> values)
+  const setInputValue = (id, val) => {
+    const el = document.getElementById(id);
+    if (!el || val == null) return;
+    if (el.tagName === 'SELECT') {
+      const str = String(val);
+      const hasOption = Array.from(el.options).some(o => o.value === str);
+      if (!hasOption && str) {
+        const opt = document.createElement('option');
+        opt.value = str;
+        opt.textContent = str;
+        el.appendChild(opt);
+      }
+      el.value = str;
+    } else {
+      el.value = val;
+    }
+  };
+  setInputValue('pName', persona.name);
+  setInputValue('pGender', persona.gender);
+  setInputValue('pAge', persona.age);
+  setInputValue('pEthnicity', persona.ethnicity || 'Latina');
+  setInputValue('pStyle', persona.style);
+  setInputValue('pHair', persona.hair);
+  setInputValue('pLighting', persona.lighting);
+  setInputValue('pCamera', persona.camera);
   updateClothingDropdown(persona.clothing);
-  document.getElementById('pSetting').value = persona.setting;
+  setInputValue('pSetting', persona.setting);
 
   // Extract detailed features from detailedJSON if available
   let detailed = {};
@@ -499,17 +580,17 @@ function selectPersona(persona) {
     } catch(e) {}
   }
   
-  document.getElementById('pSkinTone').value = detailed.facial_features?.skin_tone || 'Piel clara ligeramente bronceada';
-  document.getElementById('pSkinTexture').value = detailed.facial_features?.skin_texture || 'Piel suave con poros y pecas muy sutiles';
-  document.getElementById('pEyebrows').value = detailed.facial_features?.eyebrows || detailed.facial_features?.eyebrow_style || 'Cejas castañas oscuras y pobladas';
-  document.getElementById('pLips').value = detailed.facial_features?.lips || (detailed.facial_features?.lip_color ? `${detailed.facial_features.lip_color} ${detailed.facial_features.lip_shape || ''}` : '') || 'Labios rosados naturales carnosos';
-  document.getElementById('pHairColor').value = detailed.hair?.color || 'Castaño oscuro natural';
-  document.getElementById('pHairTexture').value = detailed.hair?.texture || 'Ondulado natural con cuerpo';
-  document.getElementById('pHairLength').value = detailed.hair?.length || 'Largo, por debajo de los hombros';
-  document.getElementById('pEyeColor').value = detailed.facial_features?.eye_color || 'Marrón cálido con destellos miel';
-  document.getElementById('pFaceShape').value = detailed.facial_features?.face_shape || 'Ovalada con mandíbula definida';
-  document.getElementById('pSmileType').value = detailed.facial_features?.smile_type || 'Sonrisa cálida, accesible y natural';
-  document.getElementById('pBodyType').value = detailed.identity?.body_type || 'Atlético y proporcionado';
+  setInputValue('pSkinTone', detailed.facial_features?.skin_tone || 'Piel clara ligeramente bronceada');
+  setInputValue('pSkinTexture', detailed.facial_features?.skin_texture || 'Piel suave con poros y pecas muy sutiles');
+  setInputValue('pEyebrows', detailed.facial_features?.eyebrows || detailed.facial_features?.eyebrow_style || 'Cejas castañas oscuras y pobladas');
+  setInputValue('pLips', detailed.facial_features?.lips || (detailed.facial_features?.lip_color ? `${detailed.facial_features.lip_color} ${detailed.facial_features.lip_shape || ''}` : '') || 'Labios rosados naturales carnosos');
+  setInputValue('pHairColor', detailed.hair?.color || 'Castaño oscuro natural');
+  setInputValue('pHairTexture', detailed.hair?.texture || 'Ondulado natural con cuerpo');
+  setInputValue('pHairLength', detailed.hair?.length || 'Largo, por debajo de los hombros');
+  setInputValue('pEyeColor', detailed.facial_features?.eye_color || 'Marrón cálido con destellos miel');
+  setInputValue('pFaceShape', detailed.facial_features?.face_shape || 'Ovalada con mandíbula definida');
+  setInputValue('pSmileType', detailed.facial_features?.smile_type || 'Sonrisa cálida, accesible y natural');
+  setInputValue('pBodyType', detailed.identity?.body_type || 'Atlético y proporcionado');
   
   // Variant manager sync
   const activeNameEl = document.getElementById('activeInfluencerName');
@@ -520,7 +601,7 @@ function selectPersona(persona) {
   // Archive button label and styling
   const archiveBtn = document.getElementById('btnArchivePersona');
   if (archiveBtn) {
-    if (persona.archived === 1) {
+    if (isArchivedPersona(persona)) {
       archiveBtn.textContent = '📦 Desarchivar';
       archiveBtn.style.background = 'rgba(40, 167, 69, 0.15)';
       archiveBtn.style.color = '#28a745';
@@ -533,7 +614,7 @@ function selectPersona(persona) {
     }
   }
 
-  compilePromptAndJSON();
+  try { compilePromptAndJSON(); } catch (e) { console.warn('compilePromptAndJSON:', e); }
 
   // Populate and show Editorial Profile Sheet
   const profileSheet = document.getElementById('personaProfileSheet');
@@ -551,35 +632,36 @@ function selectPersona(persona) {
   if (sheetImg) {
     sheetImg.src = persona.image || (persona.gender === 'Male' ? 'assets/influencer_male.png' : 'assets/nano_banana_influencer.png');
   }
-  
-  document.getElementById('sheetName').textContent = persona.name;
-  document.getElementById('sheetHandle').textContent = persona.handle || `@${persona.name.toLowerCase().replace(/\s+/g, '')}_ugc`;
-  
-  document.getElementById('sheetGenderBadge').textContent = persona.gender === 'Male' ? 'Masculino' : 'Femenino';
-  document.getElementById('sheetAgeBadge').textContent = persona.age;
-  document.getElementById('sheetEthnicityBadge').textContent = persona.ethnicity || 'Latina';
+
+  const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text ?? ''; };
+  setText('sheetName', persona.name);
+  setText('sheetHandle', persona.handle || `@${(persona.name || 'influencer').toLowerCase().replace(/\s+/g, '')}_ugc`);
+  setText('sheetGenderBadge', persona.gender === 'Male' ? 'Masculino' : 'Femenino');
+  setText('sheetAgeBadge', persona.age);
+  setText('sheetEthnicityBadge', persona.ethnicity || 'Latina');
   
   const sheetArchivedBadge = document.getElementById('sheetArchivedBadge');
   if (sheetArchivedBadge) {
-    sheetArchivedBadge.style.display = (persona.archived === 1) ? 'inline-block' : 'none';
+    sheetArchivedBadge.style.display = isArchivedPersona(persona) ? 'inline-block' : 'none';
   }
 
-  document.getElementById('sheetSkinTone').textContent = document.getElementById('pSkinTone').value;
-  document.getElementById('sheetSkinTexture').textContent = document.getElementById('pSkinTexture').value;
-  document.getElementById('sheetEyes').textContent = `${document.getElementById('pEyeColor').value} / ${document.getElementById('pEyebrows').value}`;
-  document.getElementById('sheetHairDetails').textContent = `${document.getElementById('pHairColor').value} (${document.getElementById('pHairTexture').value}, ${document.getElementById('pHairLength').value})`;
-  document.getElementById('sheetStyle').textContent = persona.style || document.getElementById('pStyle').value;
-  document.getElementById('sheetCamera').textContent = document.getElementById('pCamera').value;
-  document.getElementById('sheetLighting').textContent = document.getElementById('pLighting').value;
-  document.getElementById('sheetSetting').textContent = persona.setting;
+  const getVal = (id) => document.getElementById(id)?.value || '';
+  setText('sheetSkinTone', getVal('pSkinTone'));
+  setText('sheetSkinTexture', getVal('pSkinTexture'));
+  setText('sheetEyes', `${getVal('pEyeColor')} / ${getVal('pEyebrows')}`);
+  setText('sheetHairDetails', `${getVal('pHairColor')} (${getVal('pHairTexture')}, ${getVal('pHairLength')})`);
+  setText('sheetStyle', persona.style || getVal('pStyle'));
+  setText('sheetCamera', getVal('pCamera'));
+  setText('sheetLighting', getVal('pLighting'));
+  setText('sheetSetting', persona.setting);
   
   const promptText = document.getElementById('promptPreview')?.textContent || '';
-  document.getElementById('sheetPromptPreview').textContent = promptText;
+  setText('sheetPromptPreview', promptText);
 
   // Update profile sheet archive button text/state
   const sheetArchiveBtn = document.getElementById('btnSheetArchive');
   if (sheetArchiveBtn) {
-    if (persona.archived === 1) {
+    if (isArchivedPersona(persona)) {
       sheetArchiveBtn.textContent = '📦 Desarchivar';
       sheetArchiveBtn.style.background = 'rgba(40, 167, 69, 0.1)';
       sheetArchiveBtn.style.color = '#28a745';
@@ -592,8 +674,10 @@ function selectPersona(persona) {
     }
   }
 
-  loadGenerationHistory(persona.id);
-  loadCharacterBible("");
+  if (persona.id) {
+    loadGenerationHistory(persona.id);
+    loadCharacterBible("");
+  }
 }
 
 // Render Select grids in tabs
@@ -603,16 +687,16 @@ function renderPersonaGrids() {
   selectGrid.innerHTML = '';
   
   const isArchivedMode = state.personaFilter === 'archived';
-  const filtered = state.personas.filter(p => isArchivedMode ? (p.archived === 1) : (!p.archived || p.archived === 0));
+  const filtered = state.personas.filter(p => isArchivedMode ? isArchivedPersona(p) : !isArchivedPersona(p));
   
   filtered.forEach(p => {
     const card = document.createElement('div');
     card.className = `persona-card ${state.selectedPersona?.id === p.id ? 'selected' : ''}`;
     card.innerHTML = `
-      <img src="${p.image}" alt="${p.name}">
+      <img src="${p.image || 'assets/influencer_female.png'}" alt="${p.name || 'Influencer'}" onerror="this.src='assets/influencer_female.png'">
       <div class="persona-card-info">
-        <div class="persona-card-name">${p.name}</div>
-        <div class="persona-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance}</div>
+        <div class="persona-card-name">${p.name || 'Sin nombre'}</div>
+        <div class="persona-card-tag">${p.age || ''} • ${p.ethnicity || p.ethnicity_appearance || ''}</div>
       </div>
     `;
     card.addEventListener('click', () => selectPersona(p));
@@ -1236,19 +1320,37 @@ async function savePersona() {
     });
     const data = await res.json();
     if (data.success) {
-      state.personas = data.personas;
+      state.personas = Array.isArray(data.personas) ? data.personas : state.personas;
       uploadedImagePath = null; // Clear upload path after successful save
-      // Select newly saved persona
-      const saved = state.personas.find(p => p.name.toLowerCase() === name.toLowerCase());
+
+      // Prefer server-returned persona (id), then name match
+      const saved = data.persona
+        || state.personas.find(p => p.name && p.name.toLowerCase() === name.toLowerCase());
+
+      // Always repaint lists even if selectPersona fails
+      refreshPersonaLists();
       if (saved) {
-        selectPersona(saved);
+        try {
+          selectPersona(saved);
+        } catch (e) {
+          console.warn('selectPersona after save failed:', e);
+          refreshPersonaLists();
+        }
       }
-      
-      // Refresh stats
-      const dataRes = await authFetch('/api/data');
-      const dataJson = await dataRes.json();
-      state.generationStats = dataJson.generationStats || { total: 0 };
-      updateDashboardStats();
+
+      try {
+        const dataRes = await authFetch('/api/data');
+        const dataJson = await dataRes.json();
+        state.personas = Array.isArray(dataJson.personas) ? dataJson.personas : state.personas;
+        state.generationStats = dataJson.generationStats || { total: 0 };
+        refreshPersonaLists();
+        if (saved?.id) {
+          const again = state.personas.find(p => p.id === saved.id);
+          if (again) state.selectedPersona = again;
+        }
+      } catch (e) {
+        console.warn('Post-save /api/data refresh failed:', e);
+      }
       
       if (data.gitSynced) {
         showSyncToast(true, '¡Persona guardada y respaldada en GitHub con su retrato virtual!');
@@ -1939,23 +2041,25 @@ function startVideoPipelineSimulation() {
 function populateActiveUgcData() {
   const creator = state.selectedPersona || { name: "Sofia", image: "assets/influencer_female.png", imageUGC: "assets/influencer_female_serum.png", handle: "@sofia_ai_ugc" };
   const prod = state.selectedProduct || { name: "Glow Serum Organics" };
+  const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
+  const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
   
-  document.getElementById('ugcActiveAvatar').src = creator.image;
-  document.getElementById('ugcActiveName').textContent = creator.name;
-  document.getElementById('ugcActiveMeta').textContent = `${creator.age} • ${creator.ethnicity || creator.ethnicity_appearance}`;
+  setSrc('ugcActiveAvatar', creator.image || 'assets/influencer_female.png');
+  setText('ugcActiveName', creator.name || 'Influencer');
+  setText('ugcActiveMeta', `${creator.age || ''} • ${creator.ethnicity || creator.ethnicity_appearance || ''}`);
   
   const prodImg = creator.gender === 'Male' ? 'assets/product_bottle.png' : 'assets/product_serum.png';
-  document.getElementById('ugcActiveProductImg').src = prodImg;
-  document.getElementById('ugcActiveProduct').textContent = prod.name;
-  document.getElementById('cdProduct').textContent = prod.name;
-  document.getElementById('ugcActiveProductMeta').textContent = prod.benefit || "Piel brillante en 5 minutos";
+  setSrc('ugcActiveProductImg', prodImg);
+  setText('ugcActiveProduct', prod.name);
+  setText('cdProduct', prod.name);
+  setText('ugcActiveProductMeta', prod.benefit || "Piel brillante en 5 minutos");
   
   // Mockup elements
-  document.getElementById('mockupImage').src = creator.imageUGC || "assets/influencer_female_serum.png";
-  document.getElementById('mockupAvatar').src = creator.image;
-  document.getElementById('mockupHandle').textContent = creator.handle || `@${creator.name.toLowerCase()}_ai_ugc`;
+  setSrc('mockupImage', creator.imageUGC || "assets/influencer_female_serum.png");
+  setSrc('mockupAvatar', creator.image || 'assets/influencer_female.png');
+  setText('mockupHandle', creator.handle || `@${(creator.name || 'influencer').toLowerCase()}_ai_ugc`);
   
-  updateActiveScriptView();
+  try { updateActiveScriptView(); } catch (e) { console.warn(e); }
 }
 
 function updateUgcMockupCaption() {
@@ -3051,14 +3155,16 @@ async function saveAnalysisAsPersona() {
     });
     const data = await res.json();
     if (data.success) {
-      state.personas = data.personas;
+      state.personas = Array.isArray(data.personas) ? data.personas : state.personas;
       uploadedImagePath = null; // Clear upload path after successful save
-      const saved = state.personas.find(p => p.name.toLowerCase() === personaData.name.toLowerCase());
-      if (saved) state.selectedPersona = saved;
+      const saved = data.persona
+        || state.personas.find(p => p.name && p.name.toLowerCase() === personaData.name.toLowerCase());
+      refreshPersonaLists();
+      if (saved) {
+        try { selectPersona(saved); } catch (e) { console.warn(e); refreshPersonaLists(); }
+      }
 
-      updateDashboardStats();
-      renderPersonaGrids();
-      populateActiveUgcData();
+      try { populateActiveUgcData(); } catch (e) { console.warn(e); }
       applyAnalysisToForm();
 
       // Automatically save prompt to gallery
@@ -3486,7 +3592,7 @@ async function archivePersonaAction() {
   const p = state.selectedPersona;
   if (!p) return;
   
-  const isArchiving = p.archived !== 1;
+  const isArchiving = !isArchivedPersona(p);
   const confirmMsg = isArchiving 
     ? `¿Estás seguro de que deseas archivar a "${p.name}"? Se ocultará del panel principal de campañas.`
     : `¿Deseas desarchivar a "${p.name}" y regresarla a la lista de activos?`;
@@ -4006,6 +4112,16 @@ function initImportModal() {
 
         lastImportedPersona = data.persona;
 
+        // Persona is already persisted on analyze — refresh lists so it appears immediately
+        try {
+          state.personas = await reloadPersonasFromServer({
+            id: lastImportedPersona?.id,
+            name: lastImportedPersona?.name
+          });
+        } catch (refreshErr) {
+          console.warn('Could not refresh persona list after import analyze:', refreshErr);
+        }
+
         // Transition to preview step
         loading.style.display = 'none';
         preview.style.display = 'block';
@@ -4081,39 +4197,30 @@ function initImportModal() {
       }
 
       try {
-        // If the user modified the suggested name, save it back to update
-        if (finalName !== lastImportedPersona.name) {
-          lastImportedPersona.name = finalName;
-          lastImportedPersona.handle = `@${finalName.toLowerCase().replace(/\s+/g, '')}_ugc`;
-          
-          const saveRes = await authFetch('/api/personas', {
-            method: 'POST',
-            body: JSON.stringify(lastImportedPersona)
-          });
-          const saveJson = await saveRes.json();
-          if (saveJson.success) {
-            state.personas = saveJson.personas;
-          }
+        // Always persist final name/handle on confirm (covers rename and first-time visibility)
+        lastImportedPersona.name = finalName;
+        lastImportedPersona.handle = `@${finalName.toLowerCase().replace(/\s+/g, '')}_ugc`;
+
+        const saveRes = await authFetch('/api/personas', {
+          method: 'POST',
+          body: JSON.stringify(lastImportedPersona)
+        });
+        const saveJson = await saveRes.json();
+        if (saveJson.success) {
+          state.personas = Array.isArray(saveJson.personas) ? saveJson.personas : state.personas;
+          if (saveJson.persona) lastImportedPersona = saveJson.persona;
         }
+
+        // Force full UI refresh so the new influencer is visible in portfolio + select grid
+        await reloadPersonasFromServer({
+          id: lastImportedPersona?.id,
+          name: finalName
+        });
+        refreshPersonaLists();
 
         alert(`¡Influencer "${finalName}" importado y creado con éxito!`);
         closeModal();
-
-        // Refresh all lists and stats
-        const res = await authFetch('/api/data');
-        const data = await res.json();
-        
-        state.personas = data.personas;
-        state.products = data.products;
-        state.generationStats = data.generationStats || { total: 0 };
-        
-        // Select the newly created persona
-        const found = state.personas.find(p => p.id === lastImportedPersona.id || p.name === finalName);
-        if (found) {
-          selectPersona(found);
-        } else if (state.personas.length > 0) {
-          selectPersona(state.personas[0]);
-        }
+        navigateToTab('dashboard');
 
       } catch (err) {
         console.error('Failed to confirm and save persona:', err);
