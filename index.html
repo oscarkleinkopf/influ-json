@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.1.4">
+  <link rel="stylesheet" href="index.css?v=1.1.5">
 </head>
 <body>
   <div class="app-container">
@@ -608,10 +608,37 @@
                     <input type="text" id="pSmileType" value="Sonrisa cálida, accesible y natural">
                   </div>
                 </div>
-                <div class="form-row" style="margin-top: 10px;">
-                  <div>
-                    <label for="pBodyType">Complexión Corporal</label>
-                    <input type="text" id="pBodyType" value="Atlético y proporcionado">
+                <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
+                  <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 10px; font-family: var(--font-display);">🧍 Cuerpo completo (no solo rostro)</h4>
+                  <div class="form-row">
+                    <div>
+                      <label for="pBodyType">Complexión / silueta</label>
+                      <input type="text" id="pBodyType" value="Atlético y proporcionado" placeholder="Ej: Curvilíneo, esbelto, fit...">
+                    </div>
+                    <div>
+                      <label for="pHeight">Estatura aparente</label>
+                      <input type="text" id="pHeight" value="Estatura media (~1.65 m)" placeholder="Ej: Alta, media, petite">
+                    </div>
+                  </div>
+                  <div class="form-row" style="margin-top: 10px;">
+                    <div>
+                      <label for="pProportions">Proporciones (hombros / cintura / cadera)</label>
+                      <input type="text" id="pProportions" value="Hombros equilibrados, cintura definida, caderas suaves y proporcionales">
+                    </div>
+                    <div>
+                      <label for="pPosture">Postura</label>
+                      <input type="text" id="pPosture" value="Erguida y relajada, hombros sueltos, cuello alargado">
+                    </div>
+                  </div>
+                  <div class="form-row" style="margin-top: 10px;">
+                    <div>
+                      <label for="pFitness">Tono / fitness</label>
+                      <input type="text" id="pFitness" value="Tono natural ligero, sin musculatura exagerada">
+                    </div>
+                    <div>
+                      <label for="pBodySkin">Piel corporal (cuello, brazos, hombros)</label>
+                      <input type="text" id="pBodySkin" value="Mismo tono de piel que el rostro en cuello, hombros y brazos; textura natural continua">
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1445,6 +1472,6 @@
     </div>
   </div>
   
-  <script src="app.js?v=1.1.4"></script>
+  <script src="app.js?v=1.1.5"></script>
 </body>
 </html>

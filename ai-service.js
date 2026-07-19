@@ -66,6 +66,19 @@ module.exports = {
             "body_type": "e.g. Atlético / Proporcionado",
             "persona_archetype": "e.g. Lifestyle & Bienestar"
           },
+          "body": {
+            "body_type": "e.g. Curvilíneo / reloj de arena, Atlético, Esbelto",
+            "height_appearance": "e.g. Estatura media ~1.65m",
+            "proportions": "shoulders, waist, hips relationship",
+            "posture": "how they hold shoulders/neck/spine",
+            "fitness_level": "muscle tone level",
+            "shoulders": "shoulder width/shape",
+            "waist_hip_balance": "waist vs hips",
+            "limbs": "arm/leg proportions",
+            "hands": "hand appearance",
+            "skin_continuity": "skin tone continuity face→neck→arms",
+            "visible_framing": "prefer medium shot with torso visible"
+          },
           "facial_features": {
             "face_shape": "Description",
             "skin_tone": "Description",
@@ -113,8 +126,8 @@ module.exports = {
             "depth_of_field": "Description",
             "background_setting": "Description",
             "background_blur": "Description",
-            "composition": "Description",
-            "framing": "Description",
+            "composition": "Prefer medium shot with face + upper body, not face-only crop",
+            "framing": "e.g. Plano medio mostrando hombros y torso",
             "mood": "Description",
             "post_processing": "Description"
           },
@@ -123,10 +136,11 @@ module.exports = {
             "color": "Color of clothing in photo",
             "material": "Material of clothing in photo",
             "neckline": "Neckline shape",
-            "fit": "Fit shape",
+            "fit": "How clothing fits THIS body type",
             "visible_brand_logos": "Ninguno"
           }
         }
+        IMPORTANT: Infer FULL BODY attributes (silhouette, height, proportions, posture) even from a selfie — do not leave body empty or face-only.
         Do not output any markdown code blocks, preambles, or additional text. Output pure valid JSON only.
       `;
 
@@ -178,6 +192,19 @@ module.exports = {
             "body_type": "e.g. Atlético / Proporcionado",
             "persona_archetype": "e.g. Lifestyle & Bienestar"
           },
+          "body": {
+            "body_type": "silhouette type",
+            "height_appearance": "apparent height",
+            "proportions": "shoulders/waist/hips",
+            "posture": "posture description",
+            "fitness_level": "tone level",
+            "shoulders": "shoulder description",
+            "waist_hip_balance": "waist vs hips",
+            "limbs": "arm/leg proportions",
+            "hands": "hand appearance",
+            "skin_continuity": "skin tone face to body",
+            "visible_framing": "medium shot with torso preferred"
+          },
           "facial_features": {
             "face_shape": "Description",
             "skin_tone": "Description",
@@ -225,8 +252,8 @@ module.exports = {
             "depth_of_field": "Description",
             "background_setting": "Description",
             "background_blur": "Description",
-            "composition": "Description",
-            "framing": "Description",
+            "composition": "medium shot face + upper body",
+            "framing": "Plano medio con torso visible",
             "mood": "Description",
             "post_processing": "Description"
           },
@@ -235,10 +262,11 @@ module.exports = {
             "color": "Color of clothing in photo",
             "material": "Material of clothing in photo",
             "neckline": "Neckline shape",
-            "fit": "Fit shape",
+            "fit": "How clothing fits THIS body",
             "visible_brand_logos": "Ninguno"
           }
         }
+        IMPORTANT: Infer FULL BODY attributes across photos (silhouette, height, proportions, posture) — not face-only.
         Do not output any markdown code blocks, preambles, or additional text. Output pure valid JSON only.
       `;
 
@@ -477,12 +505,18 @@ module.exports = {
     const colorGrade    = p.color_grade || "tono cálido natural";
     const depthOfField  = p.depth_of_field || "bokeh suave";
 
-    const bodyType = detailed.identity?.body_type || "atlético / proporcionado";
+    const body = detailed.body || {};
+    const bodyType = body.body_type || detailed.identity?.body_type || "atlético / proporcionado";
+    const heightApp = body.height_appearance || "estatura media";
+    const proportions = body.proportions || "proporciones armónicas hombros-cintura-cadera";
+    const posture = body.posture || "postura erguida y relajada";
+    const fitness = body.fitness_level || "tono natural ligero";
+    const bodySkin = body.skin_continuity || "mismo tono de piel en rostro, cuello y brazos";
 
     const referenceUrl = options.referenceUrl || "";
     const scene = (sceneDescription && sceneDescription.trim() !== "") 
         ? sceneDescription.trim() 
-        : "en un entorno luminoso y natural, mirada directa a cámara, expresión auténtica";
+        : "en un entorno luminoso y natural, mirada directa a cámara, expresión auténtica, plano medio con hombros y torso visibles";
 
     // ============================================================
     // MODO ONLINE (Gemini)
@@ -519,13 +553,19 @@ Piel: ${skinTone} con ${skinTexture}
 Ojos: ${eyeColor} (${eyeShape}) | Cejas: ${eyebrows}
 Labios: ${lips} | Mandíbula: ${jawline}
 Cabello: ${hairLength} ${hairTexture} ${hairColor}, estilo ${hairStyle}
-Cuerpo: ${bodyType}
+CUERPO COMPLETO (obligatorio, no solo rostro):
+- Complexión: ${bodyType}
+- Estatura: ${heightApp}
+- Proporciones: ${proportions}
+- Postura: ${posture}
+- Fitness: ${fitness}
+- Piel corporal: ${bodySkin}
 Estética: ${overallVibe}, ${fashionStyle}, ${makeupLevel}
 Fotografía: ${camera}, ${lighting}, ${colorGrade}, ${depthOfField}
 
 Escena deseada: ${scene}
 
-Genera la Character Bible con fuerte énfasis en realismo de piel y textura natural.`;
+Genera la Character Bible con fuerte énfasis en: (1) realismo de piel, (2) identidad facial, (3) silueta y cuerpo consistentes en plano medio.`;
 
             const result = await model.generateContent([systemPrompt, userPrompt]);
             const text = result.response.text().trim();
@@ -542,20 +582,22 @@ Genera la Character Bible con fuerte énfasis en realismo de piel y textura natu
     // ============================================================
 
     // --- Character Lock (más detallado) ---
-    const characterLock = `${charName} is a ${age} ${ethnicity} ${gender.toLowerCase()} with a ${faceShape} face. 
-Key features: ${skinTone} skin with visible natural pores, subtle skin texture and ${skinTexture}. 
+    const characterLock = `${charName} is a ${age} ${ethnicity} ${gender.toLowerCase()} with a ${faceShape} face AND a consistent full-body silhouette. 
+Key facial features: ${skinTone} skin with visible natural pores, subtle skin texture and ${skinTexture}. 
 Eyes: ${eyeColor}, ${eyeShape} shape, with ${eyebrows}. 
 Lips: ${lips}. Jawline: ${jawline}. 
 Hair: ${hairLength}, ${hairTexture}, ${hairColor} with ${hairStyle} style. 
-Body: ${bodyType}. Overall aesthetic: ${overallVibe}, ${fashionStyle} style with ${makeupLevel}.`;
+FULL BODY LOCK: ${bodyType}; height ${heightApp}; proportions ${proportions}; posture ${posture}; fitness ${fitness}; ${bodySkin}. 
+Overall aesthetic: ${overallVibe}, ${fashionStyle} style with ${makeupLevel}. Never face-only — keep shoulders, torso and posture consistent.`;
 
-    // --- Positive Prompt (enfocado en realismo de piel) ---
-    const positivePrompt = `Raw unedited UGC smartphone photograph of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} influencer. 
+    // --- Positive Prompt (cara + cuerpo) ---
+    const positivePrompt = `Raw unedited UGC smartphone photograph of ${charName}, a ${age} ${ethnicity} ${gender.toLowerCase()} influencer, medium shot showing face and upper body. 
 She has a ${faceShape} face with ${skinTone} skin showing natural pores, subtle skin texture, fine details and ${skinTexture}. 
 Her eyes are ${eyeColor} with ${eyeShape} shape, ${eyebrows}, and she has ${lips}. 
 Hair is ${hairLength}, ${hairTexture}, ${hairColor} with ${hairStyle}. 
+Body: ${bodyType}, ${heightApp}, ${proportions}, ${posture}, ${fitness}. ${bodySkin}. 
 She is ${scene}. 
-Captured with ${camera}, ${lighting}, ${colorGrade} color grade, ${depthOfField}, realistic skin texture, natural imperfections, authentic candid moment, high detail, unedited smartphone quality.`;
+Captured with ${camera}, ${lighting}, ${colorGrade} color grade, ${depthOfField}, realistic skin texture on face neck and arms, natural imperfections, authentic candid moment, high detail, unedited smartphone quality, consistent facial AND body identity.`;
 
     // --- Negative Prompt (mejorado) ---
     const negativePrompt = "plastic skin, airbrushed, overly smooth skin, waxy texture, heavy makeup, beauty filter, instagram filter, cartoon, 3d render, illustration, anime, deformed face, bad anatomy, extra fingers, blurry, low resolution, watermark, text, logo, duplicate, artificial skin, perfect skin, mannequin look";
@@ -775,7 +817,7 @@ Dado este personaje básico:
 - Etnia/Origen: ${ethnicity}
 - Estilo/Vibe general: ${style}
 
-Genera rasgos físicos detallados, realistas y coherentes en formato JSON.
+Genera rasgos físicos detallados de CARA Y CUERPO COMPLETO (silueta, estatura, proporciones, postura), realistas y coherentes en formato JSON.
 Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markdown extra:
 {
   "facial_features": {
@@ -788,6 +830,16 @@ Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markd
     "lip_shape": "string",
     "jawline": "string",
     "smile_type": "string"
+  },
+  "body": {
+    "body_type": "string",
+    "height_appearance": "string",
+    "proportions": "string",
+    "posture": "string",
+    "fitness_level": "string",
+    "shoulders": "string",
+    "waist_hip_balance": "string",
+    "skin_continuity": "string"
   },
   "hair": {
     "color": "string",
@@ -804,7 +856,8 @@ Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markd
     "camera_lens": "string",
     "lighting_type": "string",
     "color_grade": "string",
-    "depth_of_field": "string"
+    "depth_of_field": "string",
+    "framing": "Plano medio con torso visible"
   }
 }`;
         const result = await model.generateContent(prompt);
@@ -844,6 +897,13 @@ Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markd
       ? ['Peinado hacia atrás relajado', 'Estilo desenfadado natural']
       : ['Partido al medio suelto', 'Ondas playeras sueltas', 'Suelto sobre un hombro'];
 
+    const bodyTypes = isMale
+      ? ['Atlético proporcionado', 'Delgado y alto', 'Fit con hombros marcados', 'Complexión media natural']
+      : ['Atlético y proporcionado', 'Esbelto con curvas suaves', 'Curvilíneo / reloj de arena', 'Complexión media natural'];
+    const heights = isMale
+      ? ['Estatura media-alta (~1.78 m)', 'Estatura media (~1.75 m)', 'Aparente alto (~1.82 m)']
+      : ['Estatura media (~1.65 m)', 'Estatura media-alta (~1.70 m)', 'Aparente petite-media (~1.60 m)'];
+
     return {
       facial_features: {
         skin_tone: pick(skinTones),
@@ -855,6 +915,21 @@ Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markd
         lip_shape: pick(lips),
         jawline: isMale ? 'Mandíbula firme y estructurada' : 'Mandíbula suave y definida',
         smile_type: 'Sonrisa cálida, auténtica y natural'
+      },
+      body: {
+        body_type: pick(bodyTypes),
+        height_appearance: pick(heights),
+        proportions: isMale
+          ? 'Hombros más anchos que la cintura, torso en V suave, piernas largas'
+          : 'Hombros equilibrados, cintura definida, caderas suaves y proporcionales',
+        posture: 'Erguida y relajada, hombros sueltos, cuello alargado',
+        fitness_level: isMale ? 'Tono atlético ligero, sin volumen exagerado' : 'Tono natural ligero, sin musculatura exagerada',
+        shoulders: isMale ? 'Hombros firmes y naturales' : 'Hombros suaves y naturales',
+        waist_hip_balance: isMale ? 'Cintura más estrecha que hombros' : 'Cintura y caderas en proporción armónica',
+        limbs: 'Brazos y piernas proporcionados al torso',
+        hands: 'Manos naturales',
+        skin_continuity: 'Mismo tono de piel en rostro, cuello, hombros y brazos',
+        visible_framing: 'Plano medio con hombros y torso visibles'
       },
       hair: {
         color: pick(hairColors),
@@ -871,7 +946,8 @@ Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markd
         camera_lens: 'iPhone 15 Pro portrait mode (85mm focal)',
         lighting_type: 'Luz de ventana suave y difusa',
         color_grade: 'Tonos cálidos y cinematográficos',
-        depth_of_field: 'Desenfoque suave de fondo (bokeh)'
+        depth_of_field: 'Desenfoque suave de fondo (bokeh)',
+        framing: 'Plano medio con torso visible'
       }
     };
   }

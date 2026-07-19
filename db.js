@@ -35,6 +35,55 @@ function getDataDir() {
   return DATA_DIR;
 }
 
+/**
+ * Normalize detailedJSON: unwrap double-encoded strings and char-index corruption.
+ * Always returns a plain object (never a string).
+ */
+function parseDetailedJSON(raw) {
+  let v = raw;
+  let guard = 0;
+  while (typeof v === 'string' && guard < 5) {
+    const t = v.trim();
+    if (!t) return {};
+    try {
+      v = JSON.parse(t);
+      guard++;
+    } catch (_) {
+      break;
+    }
+  }
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
+
+  // Detect accidental string→object via Object.keys / stringify of a string
+  const keys = Object.keys(v);
+  if (keys.length > 40 && keys.every(k => /^\d+$/.test(k))) {
+    try {
+      const rejoined = keys
+        .map(Number)
+        .sort((a, b) => a - b)
+        .map(k => v[String(k)])
+        .join('');
+      return parseDetailedJSON(rejoined);
+    } catch (_) {
+      return {};
+    }
+  }
+  return v;
+}
+
+/** Serialize for SQLite TEXT column — never double-stringify. */
+function serializeDetailedJSON(raw) {
+  const obj = parseDetailedJSON(raw == null ? {} : raw);
+  return JSON.stringify(obj);
+}
+
+/** Attach parsed detailedJSON object on persona rows (keeps string in detailedJSON_raw if needed). */
+function hydratePersona(row) {
+  if (!row) return row;
+  const parsed = parseDetailedJSON(row.detailedJSON);
+  return { ...row, detailedJSON: parsed };
+}
+
 // Initialize tables
 db.exec(`
   CREATE TABLE IF NOT EXISTS personas (
@@ -326,6 +375,48 @@ function runMigrations() {
     console.log("Successfully seeded Nano Banana influencer into database.");
   }
 
+  // Repair double-encoded detailedJSON + ensure body section exists when missing
+  try {
+    const rows = db.prepare('SELECT id, name, detailedJSON FROM personas').all();
+    const update = db.prepare('UPDATE personas SET detailedJSON = ? WHERE id = ?');
+    let repaired = 0;
+    for (const row of rows) {
+      const raw = row.detailedJSON;
+      const needsUnwrap = typeof raw === 'string' && raw.trim().startsWith('"');
+      const parsed = parseDetailedJSON(raw);
+      if (!parsed || Object.keys(parsed).length === 0) continue;
+
+      // Ensure body block from identity.body_type if absent
+      if (!parsed.body || typeof parsed.body !== 'object') {
+        parsed.body = {
+          body_type: parsed.identity?.body_type || 'Atlético / Proporcionado',
+          height_appearance: 'Estatura media aparente',
+          proportions: 'Silueta proporcionada, hombros equilibrados, cintura natural',
+          posture: 'Postura erguida y relajada',
+          fitness_level: 'Tono natural ligero, sin musculatura exagerada',
+          shoulders: 'Hombros suaves y naturales',
+          waist_hip_balance: 'Cintura y caderas en proporción armónica',
+          limbs: 'Brazos y piernas proporcionados al torso',
+          hands: 'Manos naturales con dedos finos',
+          skin_continuity: 'Mismo tono de piel en rostro, cuello, hombros y brazos',
+          visible_framing: 'Cuerpo visible en plano medio / medio cuerpo, no solo close-up facial'
+        };
+        if (parsed.identity) parsed.identity.body_type = parsed.body.body_type;
+      }
+
+      const next = serializeDetailedJSON(parsed);
+      if (next !== raw || needsUnwrap) {
+        update.run(next, row.id);
+        repaired++;
+      }
+    }
+    if (repaired > 0) {
+      console.log(`[db] Normalized detailedJSON (body + encoding) for ${repaired} persona(s).`);
+    }
+  } catch (repairErr) {
+    console.warn('[db] detailedJSON repair skipped:', repairErr.message);
+  }
+
   syncDbToWorkspace();
 }
 
@@ -340,16 +431,19 @@ module.exports = {
   
   // Personas CRUD
   getAllPersonas() {
-    return db.prepare('SELECT * FROM personas ORDER BY created_at DESC').all();
+    return db.prepare('SELECT * FROM personas ORDER BY created_at DESC').all().map(hydratePersona);
   },
   
   getPersonaById(id) {
-    return db.prepare('SELECT * FROM personas WHERE id = ?').get(id);
+    return hydratePersona(db.prepare('SELECT * FROM personas WHERE id = ?').get(id));
   },
 
   getPersonaByName(name) {
-    return db.prepare('SELECT * FROM personas WHERE LOWER(name) = LOWER(?)').get(name);
+    return hydratePersona(db.prepare('SELECT * FROM personas WHERE LOWER(name) = LOWER(?)').get(name));
   },
+
+  parseDetailedJSON,
+  serializeDetailedJSON,
   
   savePersona(p) {
     const { v4: uuidv4 } = require('uuid');
@@ -397,7 +491,7 @@ module.exports = {
         p.image || existing.image,
         p.imageUGC || existing.imageUGC,
         p.handle || existing.handle,
-        JSON.stringify(p.detailedJSON || {}),
+        serializeDetailedJSON(p.detailedJSON),
         existing.id
       );
       syncDbToWorkspace();
@@ -426,7 +520,7 @@ module.exports = {
       p.image || (p.gender === 'Male' ? 'assets/influencer_male.png' : 'assets/influencer_female.png'),
       p.imageUGC || (p.gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/influencer_female_serum.png'),
       p.handle || `@${handleBase}_ai_ugc`,
-      JSON.stringify(p.detailedJSON || {})
+      serializeDetailedJSON(p.detailedJSON)
     );
     syncDbToWorkspace();
     return this.getPersonaById(id);

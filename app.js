@@ -479,6 +479,7 @@ function applyGeneratedTraitsToForm(details) {
   const h = details.hair || {};
   const a = details.aesthetic || {};
   const p = details.photography || {};
+  const b = details.body || {};
 
   const setInputValue = (id, val) => {
     const el = document.getElementById(id);
@@ -503,15 +504,27 @@ function applyGeneratedTraitsToForm(details) {
   setInputValue('pCamera', p.camera_lens);
   setInputValue('pLighting', p.lighting_type);
 
+  // Full body traits
+  setInputValue('pBodyType', b.body_type);
+  setInputValue('pHeight', b.height_appearance);
+  setInputValue('pProportions', b.proportions || b.waist_hip_balance);
+  setInputValue('pPosture', b.posture);
+  setInputValue('pFitness', b.fitness_level);
+  setInputValue('pBodySkin', b.skin_continuity);
+
   state.scratchExtendedTraits = {
     eye_shape: f.eye_shape || '',
     jawline: f.jawline || '',
     makeup_level: a.makeup_level || '',
     color_grade: p.color_grade || '',
-    depth_of_field: p.depth_of_field || ''
+    depth_of_field: p.depth_of_field || '',
+    body_type: b.body_type || '',
+    proportions: b.proportions || '',
+    height_appearance: b.height_appearance || ''
   };
 
   compilePromptAndJSON();
+  toastSuccess('Rasgos de cara y cuerpo aplicados al formulario');
 }
 
 function resetPersonaFormForNew() {
@@ -594,6 +607,12 @@ function resetPersonaFormForNew() {
   document.getElementById('pFaceShape').value = 'ovalada';
   document.getElementById('pSmileType').value = 'sonrisa cálida y natural';
   document.getElementById('pBodyType').value = 'Atlético y proporcionado';
+  const setIf = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  setIf('pHeight', 'Estatura media (~1.65 m)');
+  setIf('pProportions', 'Hombros equilibrados, cintura definida, caderas suaves y proporcionales');
+  setIf('pPosture', 'Erguida y relajada, hombros sueltos, cuello alargado');
+  setIf('pFitness', 'Tono natural ligero, sin musculatura exagerada');
+  setIf('pBodySkin', 'Mismo tono de piel que el rostro en cuello, hombros y brazos; textura natural continua');
 
   // Force re-compilation of prompts
   compilePromptAndJSON();
@@ -687,11 +706,11 @@ function selectPersona(persona) {
   updateClothingDropdown(persona.clothing);
   setInputValue('pSetting', persona.setting);
 
-  // Extract detailed features from detailedJSON if available
+  // Extract detailed features from detailedJSON if available (unwrap double-encoding)
   let detailed = {};
   if (persona.detailedJSON) {
     try {
-      detailed = typeof persona.detailedJSON === 'string' ? JSON.parse(persona.detailedJSON) : persona.detailedJSON;
+      detailed = parseDetailedJSON(persona.detailedJSON);
     } catch(e) {}
   }
   
@@ -705,7 +724,12 @@ function selectPersona(persona) {
   setInputValue('pEyeColor', detailed.facial_features?.eye_color || 'Marrón cálido con destellos miel');
   setInputValue('pFaceShape', detailed.facial_features?.face_shape || 'Ovalada con mandíbula definida');
   setInputValue('pSmileType', detailed.facial_features?.smile_type || 'Sonrisa cálida, accesible y natural');
-  setInputValue('pBodyType', detailed.identity?.body_type || 'Atlético y proporcionado');
+  setInputValue('pBodyType', detailed.body?.body_type || detailed.identity?.body_type || 'Atlético y proporcionado');
+  setInputValue('pHeight', detailed.body?.height_appearance || 'Estatura media (~1.65 m)');
+  setInputValue('pProportions', detailed.body?.proportions || 'Hombros equilibrados, cintura definida, caderas suaves y proporcionales');
+  setInputValue('pPosture', detailed.body?.posture || 'Erguida y relajada, hombros sueltos, cuello alargado');
+  setInputValue('pFitness', detailed.body?.fitness_level || 'Tono natural ligero, sin musculatura exagerada');
+  setInputValue('pBodySkin', detailed.body?.skin_continuity || 'Mismo tono de piel que el rostro en cuello, hombros y brazos; textura natural continua');
   
   // Variant manager sync
   const activeNameEl = document.getElementById('activeInfluencerName');
@@ -931,38 +955,98 @@ async function manualGitSync() {
 }
 
 // ─── Shared Export Helper: assembles the richest JSON for the active persona ───
+/** Unwrap double-encoded detailedJSON and reject char-index corruption. */
+function parseDetailedJSON(raw) {
+  let v = raw;
+  let guard = 0;
+  while (typeof v === 'string' && guard < 5) {
+    const t = v.trim();
+    if (!t) return {};
+    try {
+      v = JSON.parse(t);
+      guard++;
+    } catch (_) {
+      break;
+    }
+  }
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
+  const keys = Object.keys(v);
+  // Reject Object.keys(string) disaster: {"0":"{","1":"\"",...}
+  if (keys.length > 40 && keys.every(k => /^\d+$/.test(k))) {
+    try {
+      const rejoined = keys.map(Number).sort((a, b) => a - b).map(k => v[String(k)]).join('');
+      return parseDetailedJSON(rejoined);
+    } catch (_) {
+      return {};
+    }
+  }
+  return v;
+}
+
+function isRealPersonaObject(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+  const keys = Object.keys(obj);
+  if (!keys.length) return false;
+  if (keys.length > 40 && keys.every(k => /^\d+$/.test(k))) return false;
+  // Prefer structures with identity / facial / body
+  return !!(obj.identity || obj.facial_features || obj.body || obj.hair || keys.length <= 30);
+}
+
 function getFullPersonaJSON() {
   let base = {};
   
   // 1. Start with the richest source (analysisResult or stored detailedJSON)
-  if (typeof analysisResult !== 'undefined' && analysisResult && Object.keys(analysisResult).length > 2) {
+  // IMPORTANT: only treat as object if it's a real persona object (not a string / char-map)
+  if (typeof analysisResult !== 'undefined' && analysisResult && isRealPersonaObject(analysisResult)) {
     base = JSON.parse(JSON.stringify(analysisResult));
   } else if (state.selectedPersona && state.selectedPersona.detailedJSON) {
     try {
-      const stored = typeof state.selectedPersona.detailedJSON === 'string'
-        ? JSON.parse(state.selectedPersona.detailedJSON)
-        : state.selectedPersona.detailedJSON;
-      if (stored && Object.keys(stored).length > 2) {
+      const stored = parseDetailedJSON(state.selectedPersona.detailedJSON);
+      if (isRealPersonaObject(stored)) {
         base = JSON.parse(JSON.stringify(stored));
       }
     } catch (e) {}
   }
   
-  // 2. Ensure nested structures exist
+  // 2. Ensure nested structures exist (face + full body)
   if (!base.identity) base.identity = {};
   if (!base.facial_features) base.facial_features = {};
   if (!base.hair) base.hair = {};
   if (!base.aesthetic) base.aesthetic = {};
   if (!base.photography) base.photography = {};
+  if (!base.body) base.body = {};
+  if (!base.clothing) base.clothing = {};
   
   // 3. Overwrite with live form values
   const p = state.selectedPersona || {};
+  const bodyType = document.getElementById('pBodyType')?.value || base.body.body_type || base.identity.body_type || p.body_type || 'Atlético y proporcionado';
+  const height = document.getElementById('pHeight')?.value || base.body.height_appearance || 'Estatura media (~1.65 m)';
+  const proportions = document.getElementById('pProportions')?.value || base.body.proportions || 'Hombros equilibrados, cintura definida, caderas suaves y proporcionales';
+  const posture = document.getElementById('pPosture')?.value || base.body.posture || 'Erguida y relajada';
+  const fitness = document.getElementById('pFitness')?.value || base.body.fitness_level || 'Tono natural ligero';
+  const bodySkin = document.getElementById('pBodySkin')?.value || base.body.skin_continuity || 'Mismo tono de piel en rostro, cuello, hombros y brazos';
   
   base.identity.name = document.getElementById('pName')?.value || base.identity.name || p.name || 'Influencer';
   base.identity.gender = document.getElementById('pGender')?.value || base.identity.gender || p.gender || 'Female';
   base.identity.apparent_age = document.getElementById('pAge')?.value || base.identity.apparent_age || p.age || '25 años';
   base.identity.ethnicity_appearance = document.getElementById('pEthnicity')?.value || base.identity.ethnicity_appearance || p.ethnicity || 'Mixta';
-  base.identity.body_type = document.getElementById('pBodyType')?.value || base.identity.body_type || p.body_type || 'Atlético y proporcionado';
+  base.identity.body_type = bodyType;
+  
+  // Body block — first-class, not a single face-adjacent field
+  base.body = {
+    ...base.body,
+    body_type: bodyType,
+    height_appearance: height,
+    proportions,
+    posture,
+    fitness_level: fitness,
+    shoulders: base.body.shoulders || 'Hombros suaves y naturales',
+    waist_hip_balance: base.body.waist_hip_balance || proportions,
+    limbs: base.body.limbs || 'Brazos y piernas proporcionados al torso',
+    hands: base.body.hands || 'Manos naturales',
+    skin_continuity: bodySkin,
+    visible_framing: base.body.visible_framing || 'Cuerpo visible en plano medio / medio cuerpo (no solo close-up de cara)'
+  };
   
   // Advanced physical traits with canonical key alignment
   base.facial_features.face_shape = document.getElementById('pFaceShape')?.value || base.facial_features.face_shape || 'Ovalada';
@@ -979,6 +1063,8 @@ function getFullPersonaJSON() {
   base.facial_features.lips = lipsVal;
 
   base.facial_features.smile_type = document.getElementById('pSmileType')?.value || base.facial_features.smile_type || 'Natural';
+  const marks = document.getElementById('pDistinctiveMarks')?.value;
+  if (marks) base.facial_features.distinctive_marks = marks;
   
   base.hair.color = document.getElementById('pHairColor')?.value || base.hair.color || 'Castaño';
   base.hair.texture = document.getElementById('pHairTexture')?.value || base.hair.texture || 'Ondulado';
@@ -993,10 +1079,18 @@ function getFullPersonaJSON() {
   const fashionVal = document.getElementById('pClothing')?.value || base.aesthetic.fashion_style || base.aesthetic.clothing_type || p.clothing || '';
   base.aesthetic.fashion_style = fashionVal;
   base.aesthetic.clothing_type = fashionVal;
+  if (!base.clothing.type) base.clothing.type = fashionVal;
   
   base.photography.camera_lens = document.getElementById('pCamera')?.value || base.photography.camera_lens || p.camera || 'iPhone';
   base.photography.lighting_type = document.getElementById('pLighting')?.value || base.photography.lighting_type || p.lighting || 'Luz natural';
   base.photography.background_setting = document.getElementById('pSetting')?.value || base.photography.background_setting || p.setting || 'Fondo neutro';
+  // Prefer framing that shows body, not only face
+  if (!base.photography.framing || /close|cara|face only|extreme close/i.test(base.photography.framing)) {
+    base.photography.framing = base.photography.framing || 'Plano medio / medio cuerpo (hombros, torso y postura visibles)';
+  }
+  if (!base.photography.composition) {
+    base.photography.composition = 'Sujeto a medio cuerpo, identidad facial + silueta corporal consistentes';
+  }
 
   // Merge extended secondary traits if present
   if (state.scratchExtendedTraits) {
@@ -1005,6 +1099,12 @@ function getFullPersonaJSON() {
     if (state.scratchExtendedTraits.makeup_level) base.aesthetic.makeup_level = state.scratchExtendedTraits.makeup_level;
     if (state.scratchExtendedTraits.color_grade) base.photography.color_grade = state.scratchExtendedTraits.color_grade;
     if (state.scratchExtendedTraits.depth_of_field) base.photography.depth_of_field = state.scratchExtendedTraits.depth_of_field;
+    if (state.scratchExtendedTraits.body_type) {
+      base.body.body_type = state.scratchExtendedTraits.body_type;
+      base.identity.body_type = state.scratchExtendedTraits.body_type;
+    }
+    if (state.scratchExtendedTraits.proportions) base.body.proportions = state.scratchExtendedTraits.proportions;
+    if (state.scratchExtendedTraits.height_appearance) base.body.height_appearance = state.scratchExtendedTraits.height_appearance;
   }
   
   // Clean internal metadata keys
@@ -1399,56 +1499,80 @@ function compilePromptAndJSON() {
   const lips = document.getElementById('pLips').value;
   const faceShape = document.getElementById('pFaceShape').value;
   const smileType = document.getElementById('pSmileType').value;
-  const bodyType = document.getElementById('pBodyType').value;
+  const bodyType = document.getElementById('pBodyType')?.value || 'Atlético y proporcionado';
+  const height = document.getElementById('pHeight')?.value || 'Estatura media';
+  const proportions = document.getElementById('pProportions')?.value || '';
+  const posture = document.getElementById('pPosture')?.value || '';
+  const fitness = document.getElementById('pFitness')?.value || '';
+  const bodySkin = document.getElementById('pBodySkin')?.value || '';
   
   // Get hex codes from detailedJSON for color precision
   let skinHex = '', hairHex = '';
   try {
-    const dj = state.selectedPersona?.detailedJSON;
-    const parsed = dj ? (typeof dj === 'string' ? JSON.parse(dj) : dj) : {};
+    const parsed = parseDetailedJSON(state.selectedPersona?.detailedJSON);
     skinHex = parsed.facial_features?.skin_tone_hex || '';
     hairHex = parsed.hair?.color_hex || '';
   } catch(e) {}
   const hexHint = (skinHex || hairHex) ? ` Exact skin color ${skinHex || 'natural'}, exact hair color ${hairHex || 'natural'}.` : '';
 
-  // Prompt builder - UGC style with high-fidelity facial anchoring
-  const prompt = `Amateur casual UGC style, ${camera}. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with ${hairColor} ${hairTexture} ${hairLength} hair, ${skinTone} skin, ${eyeColor} eyes, ${eyebrows}, ${lips}, ${faceShape} face, ${smileType}, ${bodyType} body build.${hexHint} Wearing ${clothing}. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture, realistic imperfections. Same person in all shots, consistent facial identity.`;
+  // Prompt: face + FULL BODY (silueta, postura, proporciones) — not face-only
+  const bodyClause = [
+    bodyType && `${bodyType} body build`,
+    height && height,
+    proportions && `body proportions: ${proportions}`,
+    posture && `posture: ${posture}`,
+    fitness && fitness,
+    bodySkin && bodySkin
+  ].filter(Boolean).join(', ');
+
+  const prompt = `Amateur casual UGC style, ${camera}, medium shot showing face AND upper body. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with ${hairColor} ${hairTexture} ${hairLength} hair, ${skinTone} skin, ${eyeColor} eyes, ${eyebrows}, ${lips}, ${faceShape} face, ${smileType}. Full-body identity: ${bodyClause}.${hexHint} Wearing ${clothing} that fits the body type naturally. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture on face neck and arms, realistic imperfections. Same person in all shots, consistent facial AND body identity, visible shoulders torso posture and silhouette.`;
   document.getElementById('promptPreview').textContent = prompt;
   
-  // JSON builder compilation
-  const jsonConfig = {
-    identity: {
-      name: name,
-      gender: gender,
-      age: age,
-      ethnicity_appearance: ethnicity,
-      body_type: bodyType
-    },
-    facial_features: {
-      face_shape: faceShape,
-      skin_tone: skinTone,
-      skin_texture: skinTexture,
-      eye_color: eyeColor,
-      eyebrows: eyebrows,
-      lips: lips,
-      smile_type: smileType
-    },
-    hair: {
-      color: hairColor,
-      texture: hairTexture,
-      length: hairLength,
-      details: hair
-    },
-    aesthetic: {
-      style_vibe: style,
-      clothing_type: clothing
-    },
-    photography: {
-      camera_lens: camera,
-      lighting_type: lighting,
-      background_setting: setting
-    }
-  };
+  // JSON: prefer full getFullPersonaJSON (includes body block); fallback compact
+  let jsonConfig;
+  try {
+    jsonConfig = getFullPersonaJSON();
+  } catch (e) {
+    jsonConfig = {
+      identity: {
+        name, gender, age, ethnicity_appearance: ethnicity, body_type: bodyType
+      },
+      body: {
+        body_type: bodyType,
+        height_appearance: height,
+        proportions,
+        posture,
+        fitness_level: fitness,
+        skin_continuity: bodySkin,
+        visible_framing: 'Plano medio con cuerpo visible'
+      },
+      facial_features: {
+        face_shape: faceShape,
+        skin_tone: skinTone,
+        skin_texture: skinTexture,
+        eye_color: eyeColor,
+        eyebrows,
+        lips,
+        smile_type: smileType
+      },
+      hair: {
+        color: hairColor,
+        texture: hairTexture,
+        length: hairLength,
+        details: hair
+      },
+      aesthetic: {
+        style_vibe: style,
+        clothing_type: clothing
+      },
+      photography: {
+        camera_lens: camera,
+        lighting_type: lighting,
+        background_setting: setting,
+        framing: 'Plano medio / medio cuerpo'
+      }
+    };
+  }
   
   document.getElementById('jsonEditor').value = JSON.stringify(jsonConfig, null, 2);
   
@@ -3286,16 +3410,27 @@ function buildPromptFromAnalysis(data) {
   const h = data.hair || {};
   const c = data.clothing || {};
   const a = data.aesthetic || {};
+  const b = data.body || {};
 
   const skinHex = f.skin_tone_hex ? ` Exact skin color ${f.skin_tone_hex}.` : '';
   const hairHex = h.color_hex ? ` Exact hair color ${h.color_hex}.` : '';
+  const bodyType = b.body_type || i.body_type || '';
+  const bodyBits = [
+    bodyType && `${bodyType} body`,
+    b.height_appearance,
+    b.proportions && `proportions: ${b.proportions}`,
+    b.posture && `posture: ${b.posture}`,
+    b.fitness_level,
+    b.skin_continuity
+  ].filter(Boolean).join(', ');
 
-  return `Amateur casual UGC style photo, ${p.camera_lens || 'iPhone front camera selfie'}. A ${i.apparent_age || '25'} ${i.ethnicity_appearance || ''} ${i.gender || 'female'} influencer with ${h.color || ''} ${h.texture || ''} hair, ${f.skin_tone || ''} skin, ${f.eye_color || ''} eyes, ${f.eyebrow_style || ''}, ${f.lip_shape || ''}, ${f.face_shape || ''} face. ` +
+  return `Amateur casual UGC style photo, ${p.camera_lens || 'iPhone front camera'}, medium shot with face AND upper body visible. A ${i.apparent_age || '25'} ${i.ethnicity_appearance || ''} ${i.gender || 'female'} influencer with ${h.color || ''} ${h.texture || ''} hair, ${f.skin_tone || ''} skin, ${f.eye_color || ''} eyes, ${f.eyebrow_style || ''}, ${f.lip_shape || ''}, ${f.face_shape || ''} face. ` +
+    `Full-body identity: ${bodyBits || 'proportioned natural body silhouette'}. ` +
     `${skinHex}${hairHex} ` +
-    `Wearing ${c.type || ''} in ${c.color || ''}. ` +
+    `Wearing ${c.type || ''} in ${c.color || ''} that fits the body naturally. ` +
     `Background: ${p.background_setting || 'casual indoor room'}. ` +
     `${p.lighting_type || 'daylight from window'}, ${p.color_grade || 'natural unedited colors'}, ` +
-    `raw mobile snapshot quality, natural skin texture with realistic details, no filters, unedited mobile photo. Same person in all shots, consistent facial identity.`;
+    `raw mobile snapshot quality, natural skin texture on face neck and arms, no filters, unedited mobile photo. Same person in all shots, consistent facial AND body identity, visible shoulders torso and posture.`;
 }
 
 function applyAnalysisToForm() {
@@ -3329,10 +3464,17 @@ function applyAnalysisToForm() {
   document.getElementById('pEyeColor').value = f.eye_color || 'Marrón';
   document.getElementById('pFaceShape').value = f.face_shape || 'Ovalada';
   document.getElementById('pSmileType').value = f.smile_type || 'Natural';
-  document.getElementById('pBodyType').value = i.body_type || 'Atlético y proporcionado';
+  const b = analysisResult.body || {};
+  document.getElementById('pBodyType').value = b.body_type || i.body_type || 'Atlético y proporcionado';
+  const setIf = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  setIf('pHeight', b.height_appearance || 'Estatura media (~1.65 m)');
+  setIf('pProportions', b.proportions || 'Hombros equilibrados, cintura definida, caderas suaves');
+  setIf('pPosture', b.posture || 'Erguida y relajada');
+  setIf('pFitness', b.fitness_level || 'Tono natural ligero');
+  setIf('pBodySkin', b.skin_continuity || 'Mismo tono de piel en rostro, cuello y brazos');
 
   compilePromptAndJSON();
-  toastSuccess('Datos del análisis aplicados al formulario');
+  toastSuccess('Datos del análisis aplicados al formulario (incluye cuerpo)');
 }
 
 async function saveAnalysisAsPersona() {
