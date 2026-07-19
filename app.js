@@ -594,6 +594,7 @@ function resetPersonaFormForNew() {
   document.getElementById('pCamera').value = 'iPhone 15 Pro front camera selfie';
 
   updateClothingDropdown();
+  updateSettingDropdown('Sala de estar moderna y neutral');
 
   // Clear detailed inputs
   document.getElementById('pSkinTone').value = 'piel clara natural';
@@ -704,6 +705,7 @@ function selectPersona(persona) {
   setInputValue('pLighting', persona.lighting);
   setInputValue('pCamera', persona.camera);
   updateClothingDropdown(persona.clothing);
+  updateSettingDropdown(persona.setting);
   setInputValue('pSetting', persona.setting);
 
   // Extract detailed features from detailedJSON if available (unwrap double-encoding)
@@ -1213,7 +1215,9 @@ const CLOTHING_OPTIONS_BY_GENDER = {
     "Salida de noche: Vestido ajustado negro de satén con tirantes finos",
     "Alta costura: Vestido de gala brillante de noche con hendidura alta",
     "Lencería sexy: Conjunto de lencería de encaje rojo con transparencias",
-    "Traje de baño / Biquini: Biquini de diseño moderno de dos piezas",
+    "Traje de baño: Bikini de dos piezas clásico (classic two-piece bikini)",
+    "Traje de baño: Trikini / cut-out de una pieza (one-piece trikini with side cut-outs)",
+    "Traje de baño: Traje de baño completo / entero (modest full one-piece swimsuit)",
     "Casual cotidiano: Suéter de punto suave en tono crema cuello redondo",
     "Estilo playero: Vestido veraniego suelto de lino color beige",
     "Cozy / Casa: Sudadera con capucha minimalista gris melange oversized",
@@ -1230,6 +1234,8 @@ const CLOTHING_OPTIONS_BY_GENDER = {
     "Salida de noche: Camisa de seda negra desabrochada y pantalones oscuros",
     "Lencería sexy: Bóxers ajustados premium de diseñador color negro",
     "Fitness / Atleta: Sin camiseta, torso trabajado con pantalones deportivos negros",
+    "Traje de baño: Short de baño / bañador clásico (classic swim trunks)",
+    "Traje de baño: Slip de natación deportivo (athletic swim brief)",
     "Casual cotidiano: Jersey de punto fino gris con cuello redondo",
     "Estilo playero: Camisa guayabera blanca y bermudas de lino beige",
     "Cozy / Casa: Sudadera con capucha minimalista azul marino oversized",
@@ -1238,6 +1244,21 @@ const CLOTHING_OPTIONS_BY_GENDER = {
     "Techwear / Cyberpunk: Chaqueta impermeable oscura con arneses y straps estilo futurista"
   ]
 };
+
+/** Common locations for persona form (includes beach). */
+const SETTING_OPTIONS = [
+  "Sala de estar moderna y neutral",
+  "Playa de arena blanca al mediodía, mar azul al fondo (bright tropical beach midday)",
+  "Playa al atardecer dorado con olas suaves (golden hour beach sunset)",
+  "Piscina exterior soleada con agua turquesa (sunny outdoor pool)",
+  "Terraza costera con vista al mar (coastal terrace ocean view)",
+  "Cafetería moderna iluminada de día",
+  "Parque natural soleado con follaje verde",
+  "Calle urbana de día con bokeh suave",
+  "Habitación de hotel luminosa y minimalista",
+  "Gimnasio moderno con luz natural",
+  "Cocina moderna con luz de ventana"
+];
 
 function updateClothingDropdown(selectedVal = null) {
   const gender = document.getElementById('pGender').value;
@@ -1266,6 +1287,82 @@ function updateClothingDropdown(selectedVal = null) {
   }
 }
 
+function updateSettingDropdown(selectedVal = null) {
+  const select = document.getElementById('pSetting');
+  if (!select || select.tagName !== 'SELECT') return;
+
+  const previous = selectedVal || select.value;
+  select.innerHTML = '';
+  SETTING_OPTIONS.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt;
+    o.textContent = opt;
+    select.appendChild(o);
+  });
+  if (previous && !SETTING_OPTIONS.includes(previous)) {
+    const customOpt = document.createElement('option');
+    customOpt.value = previous;
+    customOpt.textContent = `Personalizado: ${previous}`;
+    customOpt.selected = true;
+    select.appendChild(customOpt);
+  } else if (previous) {
+    select.value = previous;
+  }
+}
+
+/**
+ * Resolve skin for generation prompts. Never trust weak labels like "Tono Natural"
+ * when DB/hex already say fair/light — that caused spicy variants to darken.
+ */
+function resolveSkinForPrompt(detailedLive, persona) {
+  const stored = parseDetailedJSON(persona?.detailedJSON);
+  const liveF = detailedLive?.facial_features || {};
+  const storedF = stored.facial_features || {};
+
+  let tone = liveF.skin_tone || storedF.skin_tone || '';
+  let hex = liveF.skin_tone_hex || storedF.skin_tone_hex || '';
+  let lock = liveF.skin_lock || storedF.skin_lock || '';
+  let avoid = liveF.skin_avoid || storedF.skin_avoid || '';
+
+  // Weak/legacy labels → prefer stored clara if available
+  if (!tone || /^tono natural$/i.test(tone.trim()) || /^natural$/i.test(tone.trim())) {
+    if (storedF.skin_tone && !/^tono natural$/i.test(storedF.skin_tone)) {
+      tone = storedF.skin_tone;
+    }
+    if (storedF.skin_tone_hex) hex = storedF.skin_tone_hex;
+  }
+
+  // Classify from hex if we have it
+  let band = null;
+  if (hex) {
+    const m = String(hex).replace('#', '');
+    if (m.length === 6) {
+      const r = parseInt(m.slice(0, 2), 16);
+      const g = parseInt(m.slice(2, 4), 16);
+      const b = parseInt(m.slice(4, 6), 16);
+      const brightness = (r + g + b) / 3;
+      if (brightness >= 205) band = 'very_light';
+      else if (brightness >= 175) band = 'light';
+      else if (brightness >= 155) band = 'light_warm';
+      else if (brightness >= 130) band = 'medium_light';
+      else if (brightness >= 95) band = 'medium_dark';
+      else band = 'dark';
+    }
+  }
+
+  const isLight = band === 'very_light' || band === 'light' || band === 'light_warm'
+    || /clara|porcelana|fair|beige claro|arena clara|porcelain|light|ivory|pálid/i.test(tone);
+
+  if (isLight && (!tone || /^tono natural$/i.test(tone))) {
+    tone = 'Piel clara / beige claro';
+  }
+  if (isLight && !hex) hex = '#f0d5c0';
+  if (isLight && !lock) lock = 'fair light beige complexion, pale warm ivory';
+  if (isLight && !avoid) avoid = 'dark skin, deep tan, morena, brown skin, ebony, bronzed filter';
+
+  return { tone, hex, lock, avoid, isLight, band };
+}
+
 // Persona Engine Tab Logic
 function setupPersonaEngine() {
   const formInputs = document.querySelectorAll('#personaForm input, #personaForm select');
@@ -1278,6 +1375,10 @@ function setupPersonaEngine() {
     updateClothingDropdown();
     compilePromptAndJSON();
   });
+
+  // Init clothing + setting lists (includes beach / swimwear)
+  updateClothingDropdown();
+  updateSettingDropdown();
   
   document.getElementById('btnSavePersona').addEventListener('click', savePersona);
   document.getElementById('btnDeletePersona').addEventListener('click', deletePersonaAction);
@@ -3691,6 +3792,9 @@ const VARIANT_PRESETS = {
         { label: "Ropa de trabajo: Traje sastre gris con blazer entallado", value: "Ropa de trabajo: Traje sastre gris con blazer entallado y blusa blanca" },
         { label: "Sport elegante: Camisa de lino blanca con vaqueros", value: "Sport elegante: Camisa de lino blanca holgada con vaqueros claros" },
         { label: "Salida de noche: Vestido ajustado negro de satén", value: "Salida de noche: Vestido ajustado negro de satén con tirantes finos" },
+        { label: "Bikini (dos piezas)", value: "Traje de baño: Bikini de dos piezas clásico (classic two-piece bikini)" },
+        { label: "Trikini / cut-out", value: "Traje de baño: Trikini de una pieza con cut-outs laterales (one-piece trikini)" },
+        { label: "Traje de baño completo / entero", value: "Traje de baño: Traje de baño completo de una pieza (full one-piece swimsuit)" },
         { label: "Casual cotidiano: Suéter de punto crema", value: "Casual cotidiano: Suéter de punto suave en tono crema cuello redondo" },
         { label: "Estilo playero: Vestido veraniego de lino beige", value: "Estilo playero: Vestido veraniego suelto de lino color beige" },
         { label: "Cozy / Casa: Sudadera minimalista gris oversized", value: "Cozy / Casa: Sudadera con capucha minimalista gris melange oversized" },
@@ -3703,6 +3807,8 @@ const VARIANT_PRESETS = {
         { label: "Ropa de trabajo: Traje clásico azul marino con camisa blanca", value: "Ropa de trabajo: Traje clásico azul marino con camisa blanca y corbata" },
         { label: "Sport elegante: Camisa de lino blanca y chinos beige", value: "Sport elegante: Camisa de lino blanca y pantalones chinos beige" },
         { label: "Salida de noche: Camisa de seda negra desabrochada", value: "Salida de noche: Camisa de seda negra desabrochada y pantalones oscuros" },
+        { label: "Short de baño / bañador", value: "Traje de baño: Short de baño clásico (classic swim trunks)" },
+        { label: "Slip de natación", value: "Traje de baño: Slip de natación deportivo (athletic swim brief)" },
         { label: "Casual cotidiano: Jersey de punto fino gris", value: "Casual cotidiano: Jersey de punto fino gris con cuello redondo" },
         { label: "Estilo playero: Camisa guayabera blanca y bermudas", value: "Estilo playero: Camisa guayabera blanca y bermudas de lino beige" },
         { label: "Cozy / Casa: Sudadera minimalista azul marino", value: "Cozy / Casa: Sudadera con capucha minimalista azul marino oversized" },
@@ -3716,7 +3822,10 @@ const VARIANT_PRESETS = {
       { label: "Parque (naturaleza)", value: "Parque natural soleado con follaje verde desenfocado (sunny green park)" },
       { label: "Calle urbana (noche)", value: "Calle de ciudad de noche con luces bokeh desenfocadas (urban neon street night)" },
       { label: "Habitación lujosa", value: "Habitación de hotel lujosa y luminosa (luxury bright hotel room)" },
+      { label: "Playa (mediodía soleado)", value: "Playa de arena blanca al mediodía, mar azul al fondo (bright tropical beach midday)" },
       { label: "Playa paradisíaca (atardecer)", value: "Playa paradisíaca de arena blanca al atardecer dorado (tropical beach sunset)" },
+      { label: "Piscina exterior soleada", value: "Piscina exterior soleada con agua turquesa (sunny outdoor pool)" },
+      { label: "Terraza costera (vista mar)", value: "Terraza costera con vista al mar (coastal terrace ocean view)" },
       { label: "Terraza Penthouse (vista urbana)", value: "Terraza de penthouse de lujo con vista panorámica a la ciudad (penthouse rooftop skyline view)" },
       { label: "Bosque nevado (invierno)", value: "Bosque de pinos nevado de invierno (snowy pine forest background)" }
     ]
@@ -3979,20 +4088,44 @@ async function generateVariantAction() {
   const statusText = document.getElementById('variantGenStatusText');
   statusCard.style.display = 'flex';
   statusText.textContent = `Renderizando pose virtual con ${p.name} / Flux...`;
+  toastLoading(`Generando variante de ${p.name} con lock de tez...`);
   
-  // Compile the dynamic prompt based on influencer visual identity + pose properties
+  // Compile identity + strong skin lock (spicy was drifting darker with "Tono Natural" + Latina)
   const detailed = getFullPersonaJSON();
+  const skin = resolveSkinForPrompt(detailed, p);
   const genderWord = p.gender === 'Male' ? 'Masculino' : 'Femenino';
   const age = detailed.identity?.apparent_age || p.age || '25 años';
-  const ethnicity = detailed.identity?.ethnicity_appearance || p.ethnicity || 'Latina';
+  let ethnicity = detailed.identity?.ethnicity_appearance || p.ethnicity || 'Latina';
+  if (skin.isLight && /latina/i.test(ethnicity) && !/clara|fair|light/i.test(ethnicity)) {
+    ethnicity = `${ethnicity} de tez clara`;
+  }
   const hair = detailed.hair ? `${detailed.hair.color || ''} ${detailed.hair.texture || ''} ${detailed.hair.length || ''}` : p.hair;
-  const skinTone = detailed.facial_features?.skin_tone || '';
   const eyeColor = detailed.facial_features?.eye_color || '';
   const faceShape = detailed.facial_features?.face_shape || '';
-  const skinHex = detailed.facial_features?.skin_tone_hex ? ` Exact skin color ${detailed.facial_features.skin_tone_hex}.` : '';
   const hairHex = detailed.hair?.color_hex ? ` Exact hair color ${detailed.hair.color_hex}.` : '';
-  
-  const variantPrompt = `Amateur casual UGC style, ${pose}. A ${age} ${ethnicity} ${genderWord.toLowerCase()} influencer ${attitude}. ${hair} hair, ${skinTone} skin, ${eyeColor} eyes, ${faceShape} face.${skinHex}${hairHex} Wearing ${clothing}. Background is ${setting}. Natural indoor light, raw photo format, shot on mobile camera, same person consistent facial identity, realistic skin texture.`;
+  const body = detailed.body || {};
+  const bodyBits = [
+    body.body_type || detailed.identity?.body_type,
+    body.height_appearance,
+    body.proportions,
+    body.posture
+  ].filter(Boolean).join(', ');
+
+  const skinClause = [
+    `${skin.tone} skin`,
+    skin.hex && `exact skin hex ${skin.hex}`,
+    skin.lock,
+    skin.avoid && `avoid: ${skin.avoid}`,
+    skin.isLight && 'NOT dark, NOT deep tan, NOT morena'
+  ].filter(Boolean).join(', ');
+
+  // Lighting: beach/outdoor should not force "indoor light"
+  const isOutdoor = /playa|beach|parque|park|terraza|rooftop|calle|street|piscina|pool|bosque|forest/i.test(setting);
+  const lightClause = isOutdoor
+    ? 'natural outdoor daylight, consistent fair skin under sun (no over-bronze filter)'
+    : 'natural soft lighting, keep exact skin lightness (no underexposure darkening skin)';
+
+  const variantPrompt = `Amateur casual UGC style photo, ${pose}. Medium shot showing face and body. A ${age} ${ethnicity} ${genderWord.toLowerCase()} influencer ${attitude}. ${hair} hair, ${skinClause}, ${eyeColor} eyes, ${faceShape} face.${hairHex} Body: ${bodyBits || 'proportioned natural silhouette'}. Wearing ${clothing}. Background is ${setting}. ${lightClause}, raw photo format, shot on mobile camera, same person consistent facial identity AND skin lightness, realistic skin texture on face neck and arms. SKIN LOCK (critical): ${skin.tone}${skin.hex ? ' ' + skin.hex : ''} — match reference person skin tone exactly.`;
   
   try {
     const res = await authFetch(`/api/personas/${p.id}/variants`, {
@@ -4004,12 +4137,15 @@ async function generateVariantAction() {
       state.activeVariants = data.variants;
       renderVariantVaultGrid();
       statusText.textContent = '✓ Pose agregada exitosamente!';
+      toastSuccess(`Variante de ${p.name} lista (tez bloqueada: ${skin.tone})`);
       setTimeout(() => statusCard.style.display = 'none', 3000);
     } else {
       statusText.textContent = 'Error al generar la pose.';
+      toastError(data.message || 'Error al generar la pose.');
     }
   } catch (err) {
     statusText.textContent = 'La generación falló o el servidor está offline.';
+    toastError('La generación falló o el servidor está offline.');
     setTimeout(() => statusCard.style.display = 'none', 4000);
   }
 }

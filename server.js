@@ -170,16 +170,31 @@ app.get('/api/personas/:id/variants', (req, res) => {
 });
 
 app.post('/api/personas/:id/variants', async (req, res) => {
-  const { pose, clothing, attitude, setting, prompt } = req.body;
+  const { pose, clothing, attitude, setting } = req.body;
+  let { prompt } = req.body;
   
   const persona = dbService.getPersonaById(req.params.id);
   let referenceLocalPath = null;
   if (persona) {
     if (persona.detailedJSON) {
       try {
-        const detailed = typeof persona.detailedJSON === 'string' ? JSON.parse(persona.detailedJSON) : persona.detailedJSON;
-        if (detailed && detailed.anchor_reference) {
-          referenceLocalPath = detailed.anchor_reference;
+        const detailed = typeof persona.detailedJSON === 'object'
+          ? persona.detailedJSON
+          : (typeof persona.detailedJSON === 'string' ? JSON.parse(persona.detailedJSON) : {});
+        // unwrap if still string
+        const d = typeof detailed === 'string' ? JSON.parse(detailed) : detailed;
+        if (d && d.anchor_reference) {
+          referenceLocalPath = d.anchor_reference;
+        }
+        // Server-side skin lock reinforcement for variants (spicy was drifting dark)
+        const f = (d && d.facial_features) || {};
+        const skinHex = f.skin_tone_hex;
+        const skinTone = f.skin_tone || '';
+        if (prompt && (skinHex || /clara|fair|porcelana|beige claro/i.test(skinTone))) {
+          const skinInfo = aiService.classifySkinToneFromRgb(aiService.hexToRgb(skinHex || '#f0d5c0'));
+          if (!/SKIN LOCK/i.test(prompt)) {
+            prompt += `. ${aiService.buildSkinLockFragment(skinTone || skinInfo.label, skinHex || '#f0d5c0', skinInfo)}`;
+          }
         }
       } catch (e) {}
     }
