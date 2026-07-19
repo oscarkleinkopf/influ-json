@@ -594,13 +594,18 @@ async function downloadOrResolveImage(inputUrl) {
   // If page is HTML (e.g. Instagram/TikTok profile or web page), extract og:image or twitter:image
   if (contentType.includes('text/html')) {
     const htmlText = await response.text();
-    const ogMatch = htmlText.match(/<meta\s+[^>]*property=["']og:image["']\s+[^>]*content=["']([^"']+)["']/i) 
-                 || htmlText.match(/<meta\s+[^>]*content=["']([^"']+)["']\s+[^>]*property=["']og:image["']/i);
-    const twitterMatch = htmlText.match(/<meta\s+[^>]*name=["']twitter:image["']\s+[^>]*content=["']([^"']+)["']/i)
-                      || htmlText.match(/<meta\s+[^>]*content=["']([^"']+)["']\s+[^>]*name=["']twitter:image["']/i);
+    const ogMatch = htmlText.match(/<meta\s+[^>]*property=["']og:image(?::secure_url)?["']\s+[^>]*content=["']([^"']+)["']/i) 
+                 || htmlText.match(/<meta\s+[^>]*content=["']([^"']+)["']\s+[^>]*property=["']og:image(?::secure_url)?["']/i);
+    const twitterMatch = htmlText.match(/<meta\s+[^>]*name=["']twitter:image(?::src)?["']\s+[^>]*content=["']([^"']+)["']/i)
+                      || htmlText.match(/<meta\s+[^>]*content=["']([^"']+)["']\s+[^>]*name=["']twitter:image(?::src)?["']/i);
+    // Instagram often embeds display_url / image_versions2 in inline JSON
+    const displayUrlMatch = htmlText.match(/"display_url"\s*:\s*"(https:[^"]+)"/i)
+                         || htmlText.match(/"thumbnail_src"\s*:\s*"(https:[^"]+)"/i)
+                         || htmlText.match(/"og_image"\s*:\s*"(https:[^"]+)"/i);
 
-    let extractedImage = (ogMatch && ogMatch[1]) || (twitterMatch && twitterMatch[1]);
+    let extractedImage = (ogMatch && ogMatch[1]) || (twitterMatch && twitterMatch[1]) || (displayUrlMatch && displayUrlMatch[1]);
     if (extractedImage) {
+      extractedImage = extractedImage.replace(/\\u0026/g, '&').replace(/\\\//g, '/');
       // Unescape HTML entities (e.g., &amp; -> &) which break CDN query parameters
       extractedImage = extractedImage.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
       console.log(`Extracted OpenGraph/Twitter image URL from HTML page: ${extractedImage}`);
@@ -703,14 +708,18 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
     }
 
     // 3. Fallback if no images were successfully loaded (generate unique AI portrait)
+    // IMPORTANT: do NOT bias toward darker "Latina/morena" skin when we have no reference.
+    let generatedWithoutReference = false;
     if (imagePaths.length === 0) {
-      console.log('No reference photos or URLs could be loaded. Generating unique AI portrait...');
+      console.log('No reference photos or URLs could be loaded. Generating unique AI portrait with FAIR-SKIN default lock...');
+      generatedWithoutReference = true;
       const isMale = req.body.gender === 'Male';
       const personaName = req.body.name || `Influencer_${Date.now().toString().slice(-4)}`;
       const ageStr = req.body.age || '25 años';
       const ethStr = req.body.ethnicity || 'Latina';
 
-      const genPrompt = `High resolution realistic portrait of a ${ageStr} ${ethStr} ${isMale ? 'male' : 'female'} influencer named ${personaName}, attractive natural face, realistic skin texture with visible pores, professional portrait lighting, neutral background, 8k resolution`;
+      // Fair-skin lock by default when reference missing — "Latina" alone makes models go darker
+      const genPrompt = `High resolution realistic portrait of a ${ageStr} fair light-skinned ${ethStr} ${isMale ? 'male' : 'female'} influencer named ${personaName}, fair light beige porcelain-warm skin (#f0d5c0), NOT dark, NOT deep tan, NOT morena, attractive natural face, realistic skin texture with visible pores, professional portrait lighting, neutral background, 8k resolution. SKIN LOCK: fair light complexion only.`;
       try {
         const generatedImg = await aiService.generateInfluencerImage(genPrompt);
         if (generatedImg) {
@@ -768,14 +777,26 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
     if (!analysis) {
       console.log('Using local heuristic analysis for imported influencer (Fallback)...');
       const primaryPath = imagePaths[0];
-      let colors = { hair: '#3d2314', skin: '#d2b48c', dominant: '#e0d0c0' };
+      // Light default skin (NOT medium tan #d2b48c / #e6c29e which caused morena drift)
+      let colors = {
+        hair: '#3d2314',
+        skin: '#f0d5c0',
+        dominant: '#e8e0d8',
+        skinClass: aiService.classifySkinToneFromRgb({ r: 240, g: 213, b: 192 })
+      };
       try {
-        colors = await aiService.extractSpatialColorProperties(primaryPath);
+        // Prefer REAL reference under assets/references; skip sampling AI-generated fallbacks when possible
+        const isGeneratedFallback = /assets[\\/]+generated[\\/]+/i.test(primaryPath);
+        if (!isGeneratedFallback || !generatedWithoutReference) {
+          colors = await aiService.extractSpatialColorProperties(primaryPath);
+        } else {
+          console.warn('[import] Skipping color sample from AI-generated fallback image; using fair-skin defaults.');
+        }
       } catch (ce) {
         console.warn('Spatial color extraction failed:', ce.message);
       }
 
-      // Local heuristic classifier
+      // Local heuristic classifier for hair
       let hairClass = 'Castaño Oscuro';
       const hairRgb = aiService.hexToRgb(colors.hair);
       if (hairRgb) {
@@ -786,12 +807,17 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
         else if (Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && r > 160) hairClass = 'Canoso';
       }
 
-      let skinClass = 'Tono Natural';
-      const skinRgb = aiService.hexToRgb(colors.skin);
-      if (skinRgb) {
-        const { r, g, b } = skinRgb;
-        if (r > 230 && g > 200 && b > 180) skinClass = 'Piel Clara';
-        else if (r < 130 && g < 100 && b < 80) skinClass = 'Piel Oscura / Morena';
+      const skinRgb = colors.skinRgb || aiService.hexToRgb(colors.skin);
+      const skinInfo = colors.skinClass || aiService.classifySkinToneFromRgb(skinRgb);
+      const skinClass = skinInfo.label || 'Piel clara / beige claro';
+      const skinHex = colors.skin || '#f0d5c0';
+
+      // Ethnicity: if skin is light, prefer "Latina de tez clara" so models don't auto-darken
+      let ethnicity = req.body.ethnicity || 'Latina';
+      if (skinInfo.band === 'very_light' || skinInfo.band === 'light' || skinInfo.band === 'light_warm') {
+        if (/latina/i.test(ethnicity) && !/clara|fair|light/i.test(ethnicity)) {
+          ethnicity = 'Latina de tez clara / Mediterránea clara';
+        }
       }
 
       analysis = {
@@ -799,7 +825,7 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
           name: req.body.name || `Influencer_${Date.now().toString().slice(-4)}`,
           gender: req.body.gender || "Female",
           apparent_age: req.body.age || "26 años",
-          ethnicity_appearance: req.body.ethnicity || "Latina",
+          ethnicity_appearance: ethnicity,
           body_type: "Atlético / Proporcionado",
           persona_archetype: "Lifestyle & Bienestar"
         },
@@ -813,13 +839,15 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
           waist_hip_balance: "Cintura y caderas en proporción armónica",
           limbs: "Brazos y piernas proporcionados al torso",
           hands: "Manos naturales con dedos finos",
-          skin_continuity: "Mismo tono de piel en rostro, cuello, hombros y brazos",
+          skin_continuity: `Mismo tono de piel (${skinClass}) en rostro, cuello, hombros y brazos`,
           visible_framing: "Plano medio con hombros y torso visibles (no solo close-up facial)"
         },
         facial_features: {
           face_shape: "ovalada",
           skin_tone: skinClass,
-          skin_tone_hex: colors.skin,
+          skin_tone_hex: skinHex,
+          skin_lock: skinInfo.lock,
+          skin_avoid: skinInfo.avoid,
           skin_texture: "piel real con textura suave y poros naturales",
           eye_color: "marrón oscuro",
           eye_shape: "almendrados",

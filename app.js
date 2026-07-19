@@ -1507,13 +1507,34 @@ function compilePromptAndJSON() {
   const bodySkin = document.getElementById('pBodySkin')?.value || '';
   
   // Get hex codes from detailedJSON for color precision
-  let skinHex = '', hairHex = '';
+  let skinHex = '', hairHex = '', skinLock = '', skinAvoid = '';
   try {
     const parsed = parseDetailedJSON(state.selectedPersona?.detailedJSON);
     skinHex = parsed.facial_features?.skin_tone_hex || '';
     hairHex = parsed.hair?.color_hex || '';
+    skinLock = parsed.facial_features?.skin_lock || '';
+    skinAvoid = parsed.facial_features?.skin_avoid || '';
   } catch(e) {}
-  const hexHint = (skinHex || hairHex) ? ` Exact skin color ${skinHex || 'natural'}, exact hair color ${hairHex || 'natural'}.` : '';
+
+  // Strong skin lock — "Latina" alone makes generators darken skin; lock lightness + hex
+  const isLightSkin = /clara|porcelana|fair|beige claro|arena clara|porcelain|light|ivory|pálid/i.test(skinTone)
+    || (skinHex && (() => {
+      const m = skinHex.replace('#', '');
+      if (m.length !== 6) return false;
+      const r = parseInt(m.slice(0, 2), 16), g = parseInt(m.slice(2, 4), 16), b = parseInt(m.slice(4, 6), 16);
+      return (r + g + b) / 3 >= 155;
+    })());
+  const ethnicitySafe = isLightSkin && /latina/i.test(ethnicity) && !/clara|fair|light/i.test(ethnicity)
+    ? `${ethnicity} de tez clara`
+    : ethnicity;
+  const skinClause = [
+    `${skinTone} skin`,
+    skinHex && `exact skin hex ${skinHex}`,
+    skinLock || (isLightSkin ? 'fair light complexion' : ''),
+    isLightSkin ? 'NOT dark skin, NOT deep tan, NOT morena, NOT bronzed filter' : '',
+    skinAvoid && `avoid: ${skinAvoid}`
+  ].filter(Boolean).join(', ');
+  const hexHint = hairHex ? ` Exact hair color ${hairHex}.` : '';
 
   // Prompt: face + FULL BODY (silueta, postura, proporciones) — not face-only
   const bodyClause = [
@@ -1525,7 +1546,7 @@ function compilePromptAndJSON() {
     bodySkin && bodySkin
   ].filter(Boolean).join(', ');
 
-  const prompt = `Amateur casual UGC style, ${camera}, medium shot showing face AND upper body. A ${age} ${ethnicity} ${gender.toLowerCase()} influencer with ${hairColor} ${hairTexture} ${hairLength} hair, ${skinTone} skin, ${eyeColor} eyes, ${eyebrows}, ${lips}, ${faceShape} face, ${smileType}. Full-body identity: ${bodyClause}.${hexHint} Wearing ${clothing} that fits the body type naturally. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture on face neck and arms, realistic imperfections. Same person in all shots, consistent facial AND body identity, visible shoulders torso posture and silhouette.`;
+  const prompt = `Amateur casual UGC style, ${camera}, medium shot showing face AND upper body. A ${age} ${ethnicitySafe} ${gender.toLowerCase()} influencer with ${hairColor} ${hairTexture} ${hairLength} hair, ${skinClause}, ${eyeColor} eyes, ${eyebrows}, ${lips}, ${faceShape} face, ${smileType}. Full-body identity: ${bodyClause}.${hexHint} Wearing ${clothing} that fits the body type naturally. Background is a ${setting}. ${lighting}, raw photo format, unedited, shot on smartphone camera, natural skin texture on face neck and arms, realistic imperfections. Same person in all shots, consistent facial AND body identity AND skin lightness, visible shoulders torso posture and silhouette. SKIN LOCK (critical): keep the same light/dark level as ${skinTone}${skinHex ? ' ' + skinHex : ''}.`;
   document.getElementById('promptPreview').textContent = prompt;
   
   // JSON: prefer full getFullPersonaJSON (includes body block); fallback compact
@@ -3054,14 +3075,17 @@ function extractSpatialColorProperties(imageDataUrl) {
 }
 
 function classifySkinToneColor(c) {
+  // Aligned with server-side bands — prefer "clara" before medium to avoid morena drift
   const brightness = (c.r + c.g + c.b) / 3;
-  if (brightness > 210) return 'Tez muy clara / porcelana';
-  if (brightness > 185) return 'Tez clara / beige o arena dorada';
-  if (brightness > 140) {
-    if (c.r - c.b > 25) return 'Tez morena clara / oliva cálida';
+  const warmth = c.r - c.b;
+  if (brightness >= 205) return 'Tez muy clara / porcelana';
+  if (brightness >= 175) return 'Tez clara / beige claro';
+  if (brightness >= 155) return 'Tez clara cálida / arena clara';
+  if (brightness >= 130) {
+    if (warmth > 30) return 'Tez media cálida / oliva clara';
     return 'Tez media neutra';
   }
-  if (brightness > 90) return 'Tez bronceada media / canela';
+  if (brightness >= 90) return 'Tez bronceada media / canela';
   return 'Tez morena oscura / ébano';
 }
 
@@ -3412,7 +3436,8 @@ function buildPromptFromAnalysis(data) {
   const a = data.aesthetic || {};
   const b = data.body || {};
 
-  const skinHex = f.skin_tone_hex ? ` Exact skin color ${f.skin_tone_hex}.` : '';
+  const skinTone = f.skin_tone || 'Piel clara';
+  const skinHexVal = f.skin_tone_hex || '';
   const hairHex = h.color_hex ? ` Exact hair color ${h.color_hex}.` : '';
   const bodyType = b.body_type || i.body_type || '';
   const bodyBits = [
@@ -3424,13 +3449,27 @@ function buildPromptFromAnalysis(data) {
     b.skin_continuity
   ].filter(Boolean).join(', ');
 
-  return `Amateur casual UGC style photo, ${p.camera_lens || 'iPhone front camera'}, medium shot with face AND upper body visible. A ${i.apparent_age || '25'} ${i.ethnicity_appearance || ''} ${i.gender || 'female'} influencer with ${h.color || ''} ${h.texture || ''} hair, ${f.skin_tone || ''} skin, ${f.eye_color || ''} eyes, ${f.eyebrow_style || ''}, ${f.lip_shape || ''}, ${f.face_shape || ''} face. ` +
+  const isLight = /clara|porcelana|fair|beige claro|arena clara|porcelain|light|ivory/i.test(skinTone);
+  let ethnicity = i.ethnicity_appearance || '';
+  if (isLight && /latina/i.test(ethnicity) && !/clara|fair|light/i.test(ethnicity)) {
+    ethnicity = `${ethnicity} de tez clara`;
+  }
+  const skinLock = f.skin_lock || (isLight ? 'fair light complexion' : '');
+  const skinAvoid = f.skin_avoid || (isLight ? 'dark skin, deep tan, morena, bronzed filter' : '');
+  const skinClause = [
+    `${skinTone} skin`,
+    skinHexVal && `exact skin hex ${skinHexVal}`,
+    skinLock,
+    skinAvoid && `avoid: ${skinAvoid}`
+  ].filter(Boolean).join(', ');
+
+  return `Amateur casual UGC style photo, ${p.camera_lens || 'iPhone front camera'}, medium shot with face AND upper body visible. A ${i.apparent_age || '25'} ${ethnicity} ${i.gender || 'female'} influencer with ${h.color || ''} ${h.texture || ''} hair, ${skinClause}, ${f.eye_color || ''} eyes, ${f.eyebrow_style || ''}, ${f.lip_shape || ''}, ${f.face_shape || ''} face. ` +
     `Full-body identity: ${bodyBits || 'proportioned natural body silhouette'}. ` +
-    `${skinHex}${hairHex} ` +
+    `${hairHex} ` +
     `Wearing ${c.type || ''} in ${c.color || ''} that fits the body naturally. ` +
     `Background: ${p.background_setting || 'casual indoor room'}. ` +
     `${p.lighting_type || 'daylight from window'}, ${p.color_grade || 'natural unedited colors'}, ` +
-    `raw mobile snapshot quality, natural skin texture on face neck and arms, no filters, unedited mobile photo. Same person in all shots, consistent facial AND body identity, visible shoulders torso and posture.`;
+    `raw mobile snapshot quality, natural skin texture on face neck and arms, no filters, unedited mobile photo. Same person in all shots, consistent facial AND body identity AND skin lightness, visible shoulders torso and posture. SKIN LOCK (critical): keep ${skinTone}${skinHexVal ? ' ' + skinHexVal : ''}.`;
 }
 
 function applyAnalysisToForm() {
