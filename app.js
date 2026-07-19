@@ -3170,16 +3170,17 @@ function renderVariantVaultGrid() {
   state.activeVariants.forEach(v => {
     const card = document.createElement('div');
     card.className = 'variant-card';
-    card.style = 'position: relative; border-radius: var(--border-radius-md); overflow: hidden; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); transition: transform 0.2s ease, box-shadow 0.2s ease;';
+    card.style = 'position: relative; border-radius: var(--border-radius-md); overflow: hidden; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer;';
     card.innerHTML = `
-      <img src="${v.image_path}" style="width: 100%; aspect-ratio: 1; object-fit: cover; display: block;">
-      <div style="padding: 10px; background: rgba(0,0,0,0.7); position: absolute; bottom: 0; left: 0; right: 0; transform: translateY(100%); transition: transform 0.2s ease;" class="variant-hover-actions">
+      <img src="${v.image_path}" style="width: 100%; aspect-ratio: 1; object-fit: cover; display: block;" title="Haz clic para ver la imagen en tamaño grande">
+      <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; opacity: 0; transition: opacity 0.2s ease;" class="variant-zoom-icon">🔍</div>
+      <div style="padding: 10px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); position: absolute; bottom: 0; left: 0; right: 0; transform: translateY(100%); transition: transform 0.2s ease;" class="variant-hover-actions">
         <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          ${v.pose.split('(')[0]}
+          ${(v.pose || '').split('(')[0]}
         </div>
         <div style="display: flex; gap: 4px;">
-          <button class="btn btn-sm btn-primary" style="flex: 1; font-size: 9px; padding: 4px 6px;" onclick="setMainVariantAction('${v.image_path}')">⭐ Perfil</button>
-          <button class="btn btn-sm btn-secondary" style="flex: 1; font-size: 9px; padding: 4px 6px; background: rgba(220,53,69,0.3); color:#ff6b6b;" onclick="deleteVariantAction('${v.id}')">🗑️ Borrar</button>
+          <button type="button" class="btn btn-sm btn-primary" style="flex: 1; font-size: 9px; padding: 4px 6px;" onclick="event.stopPropagation(); setMainVariantAction('${v.image_path}')">⭐ Perfil</button>
+          <button type="button" class="btn btn-sm btn-secondary" style="flex: 1; font-size: 9px; padding: 4px 6px; background: rgba(220,53,69,0.3); color:#ff6b6b;" onclick="event.stopPropagation(); deleteVariantAction('${v.id}')">🗑️ Borrar</button>
         </div>
       </div>
     `;
@@ -3187,13 +3188,30 @@ function renderVariantVaultGrid() {
     // Setup mouse hover styles in JS
     card.addEventListener('mouseenter', () => {
       card.querySelector('.variant-hover-actions').style.transform = 'translateY(0)';
+      card.querySelector('.variant-zoom-icon').style.opacity = '1';
       card.style.transform = 'scale(1.02)';
       card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
     });
     card.addEventListener('mouseleave', () => {
       card.querySelector('.variant-hover-actions').style.transform = 'translateY(100%)';
+      card.querySelector('.variant-zoom-icon').style.opacity = '0';
       card.style.transform = 'none';
       card.style.boxShadow = 'none';
+    });
+
+    // Click to view enlarged image in history modal
+    card.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') return;
+      
+      const promptDetails = `Pose: ${v.pose || 'N/A'}\nVestuario: ${v.clothing || 'N/A'}\nActitud: ${v.attitude || 'N/A'}\nEntorno: ${v.setting || 'N/A'}`;
+      
+      openHistoryModal({
+        id: v.id,
+        image_path: v.image_path,
+        generation_type: 'variant',
+        created_at: v.created_at || new Date().toISOString(),
+        prompt: promptDetails
+      });
     });
     
     grid.appendChild(card);
@@ -3468,47 +3486,123 @@ function setHistoryFilter(filter) {
   renderGenerationHistory();
 }
 
-function openHistoryModal(gen) {
+let currentModalList = [];
+let currentModalIndex = 0;
+
+function getFilteredGenerationHistory() {
+  const filter = state.historyFilter || 'all';
+  if (filter === 'all') return state.generationHistory || [];
+  return (state.generationHistory || []).filter(g => g.generation_type === filter);
+}
+
+function openHistoryModal(gen, list = null) {
+  const modal = document.getElementById('historyModal');
+  if (!modal) return;
+
+  if (list && Array.isArray(list) && list.length > 0) {
+    currentModalList = list;
+  } else {
+    const historyList = getFilteredGenerationHistory();
+    if (historyList.some(item => (item.id && gen.id && item.id === gen.id) || item.image_path === gen.image_path)) {
+      currentModalList = historyList;
+    } else if (state.activeVariants.some(item => (item.id && gen.id && item.id === gen.id) || item.image_path === gen.image_path)) {
+      currentModalList = state.activeVariants;
+    } else {
+      currentModalList = [gen];
+    }
+  }
+
+  const idx = currentModalList.findIndex(item => (item.id && gen.id && item.id === gen.id) || item.image_path === gen.image_path);
+  currentModalIndex = idx >= 0 ? idx : 0;
+
+  renderCurrentModalItem();
+  modal.style.display = 'flex';
+}
+
+function renderCurrentModalItem() {
+  if (!currentModalList || currentModalList.length === 0) return;
+
+  if (currentModalIndex < 0) currentModalIndex = currentModalList.length - 1;
+  if (currentModalIndex >= currentModalList.length) currentModalIndex = 0;
+
+  const item = currentModalList[currentModalIndex];
   const modal = document.getElementById('historyModal');
   const img = document.getElementById('historyModalImage');
   const typeBadge = document.getElementById('historyModalType');
   const dateEl = document.getElementById('historyModalDate');
   const promptEl = document.getElementById('historyModalPrompt');
   const deleteBtn = document.getElementById('historyModalDelete');
+  const btnPrev = document.getElementById('btnHistoryPrev');
+  const btnNext = document.getElementById('btnHistoryNext');
 
-  if (!modal) return;
+  if (!modal || !item) return;
 
-  img.src = gen.image_path;
-  
+  img.src = item.image_path;
+
   let typeLabel = 'Retrato Principal';
-  if (gen.generation_type === 'variant') typeLabel = 'Pose / Variante';
-  if (gen.generation_type === 'ugc') typeLabel = 'UGC Producto';
-  
-  typeBadge.textContent = typeLabel;
-  typeBadge.className = `history-type-badge ${gen.generation_type === 'variant' ? 'badge-variant' : gen.generation_type === 'ugc' ? 'badge-ugc' : 'badge-style'}`;
+  const genType = item.generation_type || (item.pose ? 'variant' : 'portrait');
+  if (genType === 'variant') typeLabel = 'Pose / Variante';
+  if (genType === 'ugc') typeLabel = 'UGC Producto';
 
-  const dateStr = new Date(gen.created_at).toLocaleString('es-ES', {
+  typeBadge.textContent = typeLabel;
+  typeBadge.className = `history-type-badge ${genType === 'variant' ? 'badge-variant' : genType === 'ugc' ? 'badge-ugc' : 'badge-style'}`;
+
+  const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('es-ES', {
     dateStyle: 'medium',
     timeStyle: 'short'
-  });
-  dateEl.textContent = `Generado el: ${dateStr}`;
-  promptEl.textContent = gen.prompt || 'Sin prompt detallado.';
+  }) : 'Reciente';
+
+  const promptText = item.prompt || (item.pose ? `Pose: ${item.pose}\nVestuario: ${item.clothing || 'N/A'}\nActitud: ${item.attitude || 'N/A'}\nEntorno: ${item.setting || 'N/A'}` : 'Sin prompt detallado.');
+
+  const counterStr = currentModalList.length > 1 ? ` (${currentModalIndex + 1} de ${currentModalList.length})` : '';
+  dateEl.textContent = `Generado el: ${dateStr}${counterStr}`;
+  promptEl.textContent = promptText;
+
+  if (btnPrev) btnPrev.style.display = currentModalList.length > 1 ? 'flex' : 'none';
+  if (btnNext) btnNext.style.display = currentModalList.length > 1 ? 'flex' : 'none';
 
   // Clone delete button to strip old event listeners
-  const newDeleteBtn = deleteBtn.cloneNode(true);
-  deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+  if (deleteBtn) {
+    const newDeleteBtn = deleteBtn.cloneNode(true);
+    deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
 
-  newDeleteBtn.addEventListener('click', () => {
-    deleteGenerationAction(gen.id);
-  });
-
-  modal.style.display = 'flex';
+    newDeleteBtn.addEventListener('click', () => {
+      if (item.pose) {
+        deleteVariantAction(item.id);
+      } else {
+        deleteGenerationAction(item.id);
+      }
+    });
+  }
 }
+
+window.navigateHistoryModal = function(direction) {
+  currentModalIndex += direction;
+  renderCurrentModalItem();
+};
 
 function closeHistoryModal() {
   const modal = document.getElementById('historyModal');
   if (modal) modal.style.display = 'none';
 }
+
+// Global Keyboard Navigation Listener for Modal Carousel
+window.addEventListener('keydown', (e) => {
+  const modal = document.getElementById('historyModal');
+  if (!modal || modal.style.display === 'none') return;
+
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    window.navigateHistoryModal(-1);
+  } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    window.navigateHistoryModal(1);
+  } else if (e.key === 'Escape') {
+    closeHistoryModal();
+  }
+});
 
 async function deleteGenerationAction(id) {
   if (!confirm('¿Estás seguro de que deseas eliminar esta imagen de tu historial?')) return;

@@ -1248,6 +1248,7 @@
   
   <!-- History Image Modal -->
   <div class="history-modal-overlay" id="historyModal" style="display: none;">
+    <button type="button" class="history-nav-btn history-nav-prev" id="btnHistoryPrev" onclick="navigateHistoryModal(-1)" title="Anterior (Flecha izquierda)">&#8249;</button>
     <div class="history-modal-content">
       <button class="history-modal-close" onclick="closeHistoryModal()">&times;</button>
       <img id="historyModalImage" src="" alt="Generated image">
@@ -1258,6 +1259,7 @@
         <button class="btn btn-danger" id="historyModalDelete" style="margin-top: 12px; font-size: 12px; padding: 6px 16px;">🗑️ Eliminar</button>
       </div>
     </div>
+    <button type="button" class="history-nav-btn history-nav-next" id="btnHistoryNext" onclick="navigateHistoryModal(1)" title="Siguiente (Flecha derecha)">&#8250;</button>
   </div>
 
   <!-- Import Influencer Modal (Fase 2) -->
