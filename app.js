@@ -785,14 +785,30 @@ function selectPersona(persona) {
   }
 
   const getVal = (id) => document.getElementById(id)?.value || '';
-  setText('sheetSkinTone', getVal('pSkinTone'));
-  setText('sheetSkinTexture', getVal('pSkinTexture'));
-  setText('sheetEyes', `${getVal('pEyeColor')} / ${getVal('pEyebrows')}`);
-  setText('sheetHairDetails', `${getVal('pHairColor')} (${getVal('pHairTexture')}, ${getVal('pHairLength')})`);
-  setText('sheetStyle', persona.style || getVal('pStyle'));
-  setText('sheetCamera', getVal('pCamera'));
-  setText('sheetLighting', getVal('pLighting'));
-  setText('sheetSetting', persona.setting);
+  // Prefer live form values; fall back to detailedJSON.body / identity
+  let detailed = {};
+  try {
+    detailed = parseDetailedJSON(persona.detailedJSON);
+  } catch (_) {}
+  const body = detailed.body || {};
+
+  setText('sheetSkinTone', getVal('pSkinTone') || detailed.facial_features?.skin_tone || '—');
+  setText('sheetSkinTexture', getVal('pSkinTexture') || detailed.facial_features?.skin_texture || '—');
+  setText('sheetEyes', `${getVal('pEyeColor') || detailed.facial_features?.eye_color || '—'} / ${getVal('pEyebrows') || detailed.facial_features?.eyebrow_style || '—'}`);
+  setText('sheetHairDetails', `${getVal('pHairColor') || detailed.hair?.color || '—'} (${getVal('pHairTexture') || detailed.hair?.texture || '—'}, ${getVal('pHairLength') || detailed.hair?.length || '—'})`);
+  setText('sheetStyle', persona.style || getVal('pStyle') || detailed.aesthetic?.overall_vibe || '—');
+  setText('sheetCamera', getVal('pCamera') || detailed.photography?.camera_lens || '—');
+  setText('sheetLighting', getVal('pLighting') || detailed.photography?.lighting_type || '—');
+  setText('sheetSetting', persona.setting || getVal('pSetting') || detailed.photography?.background_setting || '—');
+
+  // Body block in ficha (was missing — only face fields were shown)
+  setText('sheetBodyType', getVal('pBodyType') || body.body_type || detailed.identity?.body_type || '—');
+  setText('sheetHeight', getVal('pHeight') || body.height_appearance || '—');
+  setText('sheetProportions', getVal('pProportions') || body.proportions || body.waist_hip_balance || '—');
+  setText('sheetPosture', getVal('pPosture') || body.posture || '—');
+  setText('sheetFitness', getVal('pFitness') || body.fitness_level || '—');
+  setText('sheetBodySkin', getVal('pBodySkin') || body.skin_continuity || '—');
+  setText('sheetBodyFraming', body.visible_framing || detailed.photography?.framing || 'Plano medio con torso visible');
   
   const promptText = document.getElementById('promptPreview')?.textContent || '';
   setText('sheetPromptPreview', promptText);
