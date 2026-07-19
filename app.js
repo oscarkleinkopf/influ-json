@@ -3847,11 +3847,12 @@ async function deletePersonaAction() {
 const VARIANT_PRESETS = {
   traditional: {
     poses: [
-      { label: "Selfie primer plano (rostro)", value: "Selfie de primer plano de rostro (selfie portrait)" },
-      { label: "Plano medio-corto (selfie)", value: "Plano medio-corto de brazo extendido (candid hand-held selfie)" },
-      { label: "Selfie de espejo (cuerpo entero)", value: "Espejo de cuerpo entero sosteniendo el celular (full body mirror selfie)" },
-      { label: "Cuerpo entero (Modelando de pie)", value: "Pose estilizada de cuerpo entero de pie modelando (full body standing fashion model pose)" },
-      { label: "Plano medio americano (caminando)", value: "Plano medio americano caminando relajada (candid snapshot walking)" },
+      { label: "Selfie primer plano (rostro)", value: "Selfie de primer plano de rostro (selfie portrait close-up)" },
+      { label: "Plano medio-corto (selfie)", value: "Plano medio-corto de brazo extendido (candid hand-held selfie medium shot)" },
+      { label: "Selfie de espejo (cuerpo entero)", value: "full body mirror selfie head to toe holding phone, entire body visible feet to head (full-body mirror selfie)" },
+      { label: "Cuerpo entero (Modelando de pie)", value: "full body standing fashion model pose head to toe, camera far back, entire figure visible including feet and shoes (full-body standing pose)" },
+      { label: "Cuerpo entero (caminando hacia cámara)", value: "full body walking toward camera head to toe, wide vertical shot, feet and head in frame (full-body walking)" },
+      { label: "Plano medio americano (caminando)", value: "Plano medio americano caminando relajada (candid snapshot walking medium shot)" },
       { label: "Sentada (perfil)", value: "Sentada de medio lado sonriendo a la cámara (sitting profile view)" },
       { label: "Sentada en el suelo (casual)", value: "Sentada en el suelo de forma relajada y casual (candid floor seating pose)" },
       { label: "Apoyada en pared (confiada)", value: "Apoyada sutilmente en una pared con postura confiada (leaning against wall pose)" },
@@ -4173,10 +4174,25 @@ async function generateVariantAction() {
   const skin = resolveSkinForPrompt(detailed, p);
   const id = buildIdentityLockBlock(p, detailed, skin);
 
+  // Detect shot type from pose label/value — high img2img strength was freezing portrait crop
+  const poseText = `${pose}`;
+  let framing = 'medium';
+  if (/full\s*body|full-body|cuerpo entero|head to toe|mirror selfie|standing full|wide shot|plano entero|de pie modelando|model pose/i.test(poseText)) {
+    framing = 'fullbody';
+  } else if (/primer plano|close-up|selfie portrait|macro beauty|face only|headshot|rostro/i.test(poseText)) {
+    framing = 'portrait';
+  }
+
   const isOutdoor = /playa|beach|parque|park|terraza|rooftop|calle|street|piscina|pool|bosque|forest/i.test(setting);
   const lightClause = isOutdoor
     ? 'natural outdoor daylight, same skin lightness as reference (no over-bronze)'
     : 'soft realistic practical lighting, same skin lightness as reference';
+
+  const framingClause = framing === 'fullbody'
+    ? 'FRAMING LOCK (critical): FULL BODY head-to-toe in frame, camera far back, vertical wide shot, feet and head both visible, environment around subject. NOT close-up, NOT headshot, NOT waist crop, NOT portrait-only.'
+    : framing === 'portrait'
+      ? 'FRAMING: close-medium portrait on face and shoulders.'
+      : 'FRAMING: medium shot, head to mid-thigh, upper body and hips visible.';
 
   // Identity FIRST, then scene/outfit — order matters for img2img models
   const variantPrompt = [
@@ -4186,14 +4202,15 @@ async function generateVariantAction() {
     `Hair: ${id.hairBits || p.hair || 'same hair as reference'}.${id.hairHex}`,
     `Skin: ${id.skinClause}. SKIN LOCK: ${skin.tone}${skin.hex ? ' ' + skin.hex : ''}.`,
     `Body: ${id.bodyBits || 'same body proportions as reference'}.`,
-    `Do NOT change face shape, eye spacing, nose, lips, jaw, age, or identity — only change pose, outfit, and background.`,
+    `Do NOT change face shape, eye spacing, nose, lips, jaw, age, or identity — only change pose, outfit, background, and camera distance.`,
     `Expression/attitude: ${attitude}.`,
     `Pose: ${pose}.`,
     `Wearing: ${clothing}.`,
     `Background/location: ${setting}.`,
     lightClause + '.',
-    'Photorealistic amateur UGC smartphone photo, medium shot, real fabric, natural skin pores, raw unedited iPhone look.',
-    'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, mirror chrome latex.'
+    framingClause,
+    'Photorealistic amateur UGC smartphone photo, real fabric, natural skin pores, raw unedited iPhone look.',
+    'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, mirror chrome latex, accidental close-up when full body requested.'
   ].join(' ');
   
   try {
@@ -4207,6 +4224,7 @@ async function generateVariantAction() {
         prompt: variantPrompt,
         photoreal: true,
         identityLock: true,
+        framing,
         mode,
         seed: personaSeed(p.id)
       })
@@ -4215,8 +4233,12 @@ async function generateVariantAction() {
     if (data.success) {
       state.activeVariants = data.variants;
       renderVariantVaultGrid();
-      statusText.textContent = '✓ Pose agregada (misma identidad)!';
-      toastSuccess(`Variante lista — cara anclada a ${p.name}`);
+      statusText.textContent = framing === 'fullbody'
+        ? '✓ Cuerpo entero generado!'
+        : '✓ Pose agregada (misma identidad)!';
+      toastSuccess(framing === 'fullbody'
+        ? `Cuerpo entero de ${p.name} listo`
+        : `Variante lista — cara anclada a ${p.name}`);
       setTimeout(() => statusCard.style.display = 'none', 3000);
     } else {
       statusText.textContent = 'Error al generar la pose.';
@@ -4224,7 +4246,7 @@ async function generateVariantAction() {
     }
   } catch (err) {
     statusText.textContent = 'La generación falló o el servidor está offline.';
-    toastError('La generación falló o el servidor está offline.');
+    toastError(err.message || 'La generación falló o el servidor está offline.');
     setTimeout(() => statusCard.style.display = 'none', 4000);
   }
 }
