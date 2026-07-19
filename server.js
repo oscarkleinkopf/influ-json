@@ -803,6 +803,19 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
           body_type: "Atlético / Proporcionado",
           persona_archetype: "Lifestyle & Bienestar"
         },
+        body: {
+          body_type: "Atlético / Proporcionado",
+          height_appearance: "Estatura media (~1.65 m)",
+          proportions: "Hombros equilibrados, cintura definida, caderas suaves y proporcionales",
+          posture: "Erguida y relajada, hombros sueltos, cuello alargado",
+          fitness_level: "Tono natural ligero, sin musculatura exagerada",
+          shoulders: "Hombros suaves y naturales",
+          waist_hip_balance: "Cintura y caderas en proporción armónica",
+          limbs: "Brazos y piernas proporcionados al torso",
+          hands: "Manos naturales con dedos finos",
+          skin_continuity: "Mismo tono de piel en rostro, cuello, hombros y brazos",
+          visible_framing: "Plano medio con hombros y torso visibles (no solo close-up facial)"
+        },
         facial_features: {
           face_shape: "ovalada",
           skin_tone: skinClass,
@@ -850,8 +863,8 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
           depth_of_field: "bokeh suave",
           background_setting: "interior de casa minimalista",
           background_blur: "ligero",
-          composition: "retrato medio",
-          framing: "plano medio corto",
+          composition: "plano medio con cara y torso visibles",
+          framing: "plano medio (hombros y torso, no solo cara)",
           mood: "relajado y positivo",
           post_processing: "estilo orgánico"
         },
@@ -860,7 +873,7 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
           color: "blanco",
           material: "algodón",
           neckline: "cuello redondo",
-          fit: "regular",
+          fit: "regular, se adapta a la silueta proporcionada",
           visible_brand_logos: "Ninguno"
         }
       };
