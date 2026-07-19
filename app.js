@@ -4,6 +4,8 @@ let state = {
   products: [],
   campaigns: [],
   selectedPersona: null,
+  /** When true, save always creates a NEW persona (never renames/updates another by id or name). */
+  isCreatingNewPersona: false,
   selectedProduct: null,
   selectedCampaign: null,
   scripts: [],
@@ -433,9 +435,19 @@ function applyGeneratedTraitsToForm(details) {
 }
 
 function resetPersonaFormForNew() {
+  // Explicit create mode: save must INSERT a new row, never UPDATE another persona
+  state.isCreatingNewPersona = true;
   state.selectedPersona = null;
   state.scratchExtendedTraits = null;
   uploadedImagePath = null;
+
+  // Clear selection highlight on portfolio / select grids
+  try { refreshPersonaLists(); } catch (e) { /* grids may not be ready */ }
+
+  // Ensure we are on Persona Engine so the form is visible
+  if (state.activeTab !== 'persona-engine') {
+    navigateToTab('persona-engine');
+  }
 
   // Toggle visibility
   const profileSheet = document.getElementById('personaProfileSheet');
@@ -455,7 +467,23 @@ function resetPersonaFormForNew() {
   const btnSave = document.getElementById('btnSavePersona');
   if (btnSave) {
     btnSave.textContent = "Crear Influencer";
+    btnSave.dataset.createMode = '1';
   }
+
+  // Banner so the user knows this will not overwrite an existing influencer
+  let createBanner = document.getElementById('createModeBanner');
+  if (!createBanner) {
+    createBanner = document.createElement('div');
+    createBanner.id = 'createModeBanner';
+    createBanner.style.cssText = 'margin:0 0 16px 0;padding:10px 14px;border-radius:10px;border:1px solid rgba(99,102,241,0.35);background:rgba(99,102,241,0.12);color:#c7d2fe;font-size:12px;line-height:1.4;';
+    if (personaForm && personaForm.parentElement) {
+      personaForm.parentElement.insertBefore(createBanner, personaForm);
+    } else if (personaForm) {
+      personaForm.prepend(createBanner);
+    }
+  }
+  createBanner.style.display = 'block';
+  createBanner.textContent = '✨ Modo crear nuevo: al guardar se creará un influencer aparte. No se renombrará ni sobrescribirá ninguno existente.';
 
   // Clear basic inputs & suggest trendy name
   const trendyNames = ["Clara", "Sofía", "Valentina", "Martina", "Elena", "Paula", "Lucía", "Mateo", "Lucas", "Adrián", "Javier", "Thiago"];
@@ -525,8 +553,14 @@ function resetPersonaFormForNew() {
 
 // Select Persona
 function selectPersona(persona) {
+  if (!persona) return;
+  // Selecting an existing persona always exits pure "create new" mode
+  state.isCreatingNewPersona = false;
   state.selectedPersona = persona;
   uploadedImagePath = null; // Clear upload session when selecting another persona
+
+  const createBanner = document.getElementById('createModeBanner');
+  if (createBanner) createBanner.style.display = 'none';
   
   // Reset editor title and save button text
   const editorTitle = document.getElementById('editorHeaderTitle');
@@ -536,6 +570,7 @@ function selectPersona(persona) {
   const btnSave = document.getElementById('btnSavePersona');
   if (btnSave) {
     btnSave.textContent = "Guardar Persona en influ-JSON";
+    delete btnSave.dataset.createMode;
   }
 
   updateDashboardStats();
@@ -1264,7 +1299,12 @@ function compilePromptAndJSON() {
 }
 
 async function savePersona() {
-  const name = document.getElementById('pName').value;
+  const name = (document.getElementById('pName').value || '').trim();
+  if (!name) {
+    showSyncToast(false, 'Indica un nombre para el influencer antes de guardar.');
+    return;
+  }
+
   const gender = document.getElementById('pGender').value;
   const age = document.getElementById('pAge').value;
   const ethnicity = document.getElementById('pEthnicity').value;
@@ -1274,10 +1314,15 @@ async function savePersona() {
   const camera = document.getElementById('pCamera').value;
   const clothing = document.getElementById('pClothing').value;
   const setting = document.getElementById('pSetting').value;
+
+  // Create mode is sticky until selectPersona / successful create selects the new one
+  const creatingNew = state.isCreatingNewPersona === true || !state.selectedPersona?.id;
   
   const promptText = document.getElementById('promptPreview').textContent;
-  const influencerName = document.getElementById('pName').value || 'Influencer';
-  showSyncToast(true, `Generando retrato virtual consistente con ${influencerName}...`);
+  const influencerName = name || 'Influencer';
+  showSyncToast(true, creatingNew
+    ? `Creando influencer nuevo: ${influencerName}...`
+    : `Generando retrato virtual consistente con ${influencerName}...`);
   
   let portraitPath = null;
   try {
@@ -1285,8 +1330,9 @@ async function savePersona() {
       method: 'POST',
       body: JSON.stringify({ 
         prompt: promptText, 
-        referenceLocalPath: uploadedImagePath || state.selectedPersona?.image,
-        personaId: state.selectedPersona?.id || 'new_persona',
+        // Never borrow another persona's face when creating new
+        referenceLocalPath: uploadedImagePath || (creatingNew ? null : state.selectedPersona?.image),
+        personaId: creatingNew ? 'new_persona' : (state.selectedPersona?.id || 'new_persona'),
         generationType: 'portrait'
       })
     });
@@ -1298,8 +1344,14 @@ async function savePersona() {
     console.warn('Image generation failed or offline. Using reference or existing image.');
   }
 
-  const finalImage = portraitPath || uploadedImagePath || state.selectedPersona?.image || (gender === 'Male' ? 'assets/influencer_male.png' : 'assets/nano_banana_influencer.png');
-  const finalImageUGC = portraitPath || uploadedImagePath || state.selectedPersona?.imageUGC || (gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/nano_banana_ugc.png');
+  const finalImage = portraitPath
+    || uploadedImagePath
+    || (creatingNew ? null : state.selectedPersona?.image)
+    || (gender === 'Male' ? 'assets/influencer_male.png' : 'assets/nano_banana_influencer.png');
+  const finalImageUGC = portraitPath
+    || uploadedImagePath
+    || (creatingNew ? null : state.selectedPersona?.imageUGC)
+    || (gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/nano_banana_ugc.png');
 
   const personaData = {
     name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting,
@@ -1307,8 +1359,12 @@ async function savePersona() {
     imageUGC: finalImageUGC,
     detailedJSON: getFullPersonaJSON()
   };
-  
-  if (state.selectedPersona?.id) {
+
+  // Critical: only attach id when UPDATING an existing selection (not create mode)
+  if (creatingNew) {
+    personaData.forceCreate = true;
+    // Explicitly omit id so server always INSERTs
+  } else if (state.selectedPersona?.id) {
     personaData.id = state.selectedPersona.id;
   }
   
@@ -1321,13 +1377,17 @@ async function savePersona() {
     const data = await res.json();
     if (data.success) {
       state.personas = Array.isArray(data.personas) ? data.personas : state.personas;
-      uploadedImagePath = null; // Clear upload path after successful save
+      uploadedImagePath = null;
+      state.isCreatingNewPersona = false;
 
-      // Prefer server-returned persona (id), then name match
+      const createBanner = document.getElementById('createModeBanner');
+      if (createBanner) createBanner.style.display = 'none';
+
+      // Prefer server-returned persona (id), then exact id match
       const saved = data.persona
+        || (data.persona?.id && state.personas.find(p => p.id === data.persona.id))
         || state.personas.find(p => p.name && p.name.toLowerCase() === name.toLowerCase());
 
-      // Always repaint lists even if selectPersona fails
       refreshPersonaLists();
       if (saved) {
         try {
@@ -1346,17 +1406,26 @@ async function savePersona() {
         refreshPersonaLists();
         if (saved?.id) {
           const again = state.personas.find(p => p.id === saved.id);
-          if (again) state.selectedPersona = again;
+          if (again) {
+            state.selectedPersona = again;
+            state.isCreatingNewPersona = false;
+          }
         }
       } catch (e) {
         console.warn('Post-save /api/data refresh failed:', e);
       }
       
       if (data.gitSynced) {
-        showSyncToast(true, '¡Persona guardada y respaldada en GitHub con su retrato virtual!');
+        showSyncToast(true, creatingNew
+          ? `¡Influencer "${name}" creado como ficha nueva!`
+          : '¡Persona guardada y respaldada en GitHub con su retrato virtual!');
       } else {
-        showSyncToast(false, 'Guardado localmente. Error en Git.');
+        showSyncToast(false, creatingNew
+          ? `Influencer "${name}" creado localmente. Error en Git.`
+          : 'Guardado localmente. Error en Git.');
       }
+    } else {
+      showSyncToast(false, data.message || 'No se pudo guardar la persona.');
     }
   } catch (err) {
     showSyncToast(false, 'Error de servidor al guardar.');

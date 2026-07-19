@@ -338,8 +338,16 @@ module.exports = {
   
   savePersona(p) {
     const { v4: uuidv4 } = require('uuid');
-    const existing = db.prepare('SELECT * FROM personas WHERE id = ? OR LOWER(name) = LOWER(?)').get(p.id || '', p.name);
-    
+    // forceCreate: always INSERT a new row (used by "Crear desde cero").
+    // Never match/update by name alone — that caused accidental renames of other influencers.
+    const forceCreate = p.forceCreate === true || p.forceCreate === 1 || p.forceCreate === 'true';
+    const hasId = p.id && String(p.id).trim() !== '';
+
+    let existing = null;
+    if (!forceCreate && hasId) {
+      existing = db.prepare('SELECT * FROM personas WHERE id = ?').get(p.id);
+    }
+
     if (existing) {
       // Save version history before update
       const versionId = uuidv4();
@@ -355,7 +363,7 @@ module.exports = {
         JSON.stringify(existing)
       );
 
-      // Update
+      // Update only the row with this id (name change is intentional rename of THIS persona)
       db.prepare(`
         UPDATE personas
         SET name = ?, gender = ?, age = ?, ethnicity = ?, style = ?, hair = ?, lighting = ?, camera = ?, clothing = ?, setting = ?, image = ?, imageUGC = ?, handle = ?, detailedJSON = ?
@@ -379,31 +387,34 @@ module.exports = {
       );
       syncDbToWorkspace();
       return this.getPersonaById(existing.id);
-    } else {
-      const id = p.id || uuidv4();
-      db.prepare(`
-        INSERT INTO personas (id, name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting, image, imageUGC, handle, detailedJSON)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        id,
-        p.name,
-        p.gender,
-        p.age,
-        p.ethnicity,
-        p.style,
-        p.hair,
-        p.lighting,
-        p.camera,
-        p.clothing,
-        p.setting,
-        p.image || (p.gender === 'Male' ? 'assets/influencer_male.png' : 'assets/influencer_female.png'),
-        p.imageUGC || (p.gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/influencer_female_serum.png'),
-        p.handle || `@${p.name.toLowerCase()}_ai_ugc`,
-        JSON.stringify(p.detailedJSON || {})
-      );
-      syncDbToWorkspace();
-      return this.getPersonaById(id);
     }
+
+    // INSERT new persona (forceCreate, missing id, or unknown id)
+    const id = forceCreate || !hasId ? uuidv4() : p.id;
+    const safeName = (p.name && String(p.name).trim()) || `Influencer_${Date.now().toString().slice(-4)}`;
+    const handleBase = safeName.toLowerCase().replace(/\s+/g, '');
+    db.prepare(`
+      INSERT INTO personas (id, name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting, image, imageUGC, handle, detailedJSON)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      safeName,
+      p.gender,
+      p.age,
+      p.ethnicity,
+      p.style,
+      p.hair,
+      p.lighting,
+      p.camera,
+      p.clothing,
+      p.setting,
+      p.image || (p.gender === 'Male' ? 'assets/influencer_male.png' : 'assets/influencer_female.png'),
+      p.imageUGC || (p.gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/influencer_female_serum.png'),
+      p.handle || `@${handleBase}_ai_ugc`,
+      JSON.stringify(p.detailedJSON || {})
+    );
+    syncDbToWorkspace();
+    return this.getPersonaById(id);
   },
 
   getVersionsForPersona(personaId) {
