@@ -250,11 +250,86 @@ async function fetchData() {
   }
 }
 
+/**
+ * Portfolio filter used by dashboard grid AND the Influencers stat (ROADMAP 1.5).
+ * Count of cards rendered must always equal this array's length.
+ */
+function getFilteredPortfolioPersonas() {
+  let filtered = Array.isArray(state.personas) ? [...state.personas] : [];
+
+  if (state.portfolioFilter === 'active') {
+    filtered = filtered.filter(p => !isArchivedPersona(p));
+  } else if (state.portfolioFilter === 'archived') {
+    filtered = filtered.filter(p => isArchivedPersona(p));
+  }
+
+  const q = (state.portfolioSearchQuery || '').toLowerCase().trim();
+  if (q) {
+    filtered = filtered.filter(p => {
+      const hay = [
+        p.name,
+        p.style,
+        p.ethnicity,
+        p.ethnicity_appearance,
+        p.gender,
+        p.handle,
+        p.age
+      ].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+
+  return filtered;
+}
+
+function clearPortfolioSearch() {
+  state.portfolioSearchQuery = '';
+  const input = document.getElementById('portfolioSearch');
+  if (input) input.value = '';
+  updateDashboardStats();
+}
+
 // Dashboard Update
 function updateDashboardStats() {
-  const activeCount = state.personas.filter(p => !isArchivedPersona(p)).length;
+  const all = Array.isArray(state.personas) ? state.personas : [];
+  const activeTotal = all.filter(p => !isArchivedPersona(p)).length;
+  const archivedTotal = all.filter(p => isArchivedPersona(p)).length;
+  const filtered = getFilteredPortfolioPersonas();
+  const visibleCount = filtered.length;
+
+  // 1.5: big number = cards currently visible (filter + search), not a silent total
   const statEl = document.getElementById('statPersonasCount');
-  if (statEl) statEl.textContent = activeCount;
+  if (statEl) statEl.textContent = visibleCount;
+
+  const statLabel = document.getElementById('statPersonasLabel');
+  if (statLabel) {
+    if (state.portfolioFilter === 'archived') statLabel.textContent = 'Archivados';
+    else if (state.portfolioFilter === 'active') statLabel.textContent = 'Activos';
+    else statLabel.textContent = 'Influencers';
+  }
+
+  const statHint = document.getElementById('statPersonasHint');
+  if (statHint) {
+    const hasSearch = !!(state.portfolioSearchQuery || '').trim();
+    if (hasSearch || state.portfolioFilter !== 'all') {
+      statHint.textContent = `${activeTotal} activos · ${all.length} total`;
+    } else {
+      statHint.textContent = `${activeTotal} activos · ${archivedTotal} archivados`;
+    }
+  }
+
+  const meta = document.getElementById('portfolioResultMeta');
+  if (meta) {
+    const filterLabel = state.portfolioFilter === 'active' ? 'activos'
+      : state.portfolioFilter === 'archived' ? 'archivados' : 'todos';
+    const q = (state.portfolioSearchQuery || '').trim();
+    if (q) {
+      meta.textContent = `${visibleCount} visibles · filtro “${filterLabel}” · búsqueda “${q}”`;
+    } else {
+      meta.textContent = `${visibleCount} visibles · filtro “${filterLabel}” · ${all.length} en roster`;
+    }
+  }
+
   const prodStat = document.getElementById('statProductsCount');
   if (prodStat) prodStat.textContent = state.products.length;
   
@@ -275,33 +350,38 @@ function updateDashboardStats() {
   if (!personaGrid) return;
   personaGrid.innerHTML = '';
   
-  // Apply search query and filters
-  let filtered = [...state.personas];
-  
-  // Filter by active/archived state
-  if (state.portfolioFilter === 'active') {
-    filtered = filtered.filter(p => !isArchivedPersona(p));
-  } else if (state.portfolioFilter === 'archived') {
-    filtered = filtered.filter(p => isArchivedPersona(p));
-  }
-  
-  // Search query filter
-  if (state.portfolioSearchQuery) {
-    const q = state.portfolioSearchQuery.toLowerCase();
-    filtered = filtered.filter(p => 
-      p.name.toLowerCase().includes(q) || 
-      (p.style && p.style.toLowerCase().includes(q)) ||
-      (p.ethnicity && p.ethnicity.toLowerCase().includes(q)) ||
-      (p.gender && p.gender.toLowerCase().includes(q))
-    );
-  }
-  
   if (filtered.length === 0) {
+    const hasSearch = !!(state.portfolioSearchQuery || '').trim();
+    const hasFilter = state.portfolioFilter !== 'all';
     personaGrid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 40px; font-size: 14px;">
-        🔍 No se encontraron influencers que coincidan con la búsqueda o filtro.
+      <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 40px 20px; font-size: 14px;">
+        <div style="font-size: 28px; margin-bottom: 10px;">🔍</div>
+        <div style="margin-bottom: 8px; color: #fff; font-weight: 600;">0 influencers en esta vista</div>
+        <div style="margin-bottom: 16px; font-size: 13px;">
+          ${hasSearch || hasFilter
+            ? 'No hay coincidencias con la búsqueda o el filtro actual.'
+            : 'Aún no hay influencers en el roster.'}
+        </div>
+        ${hasSearch || hasFilter ? `
+          <button type="button" class="btn btn-secondary btn-sm" id="btnClearPortfolioFilters" style="margin: 0 4px;">
+            Limpiar búsqueda y ver todos
+          </button>
+        ` : ''}
       </div>
     `;
+    const clearBtn = document.getElementById('btnClearPortfolioFilters');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        state.portfolioFilter = 'all';
+        const bAll = document.getElementById('btnPortfolioAll');
+        const bAct = document.getElementById('btnPortfolioActive');
+        const bArc = document.getElementById('btnPortfolioArchived');
+        if (bAll) bAll.classList.add('active');
+        if (bAct) bAct.classList.remove('active');
+        if (bArc) bArc.classList.remove('active');
+        clearPortfolioSearch();
+      });
+    }
     return;
   }
   
