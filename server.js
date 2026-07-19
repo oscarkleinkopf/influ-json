@@ -225,10 +225,16 @@ app.post('/api/personas/:id/variants', async (req, res) => {
     seed = (h >>> 0) % 1000000;
   }
 
+  const framing = req.body.framing
+    || (/full\s*body|cuerpo entero|head to toe|mirror selfie|standing full/i.test(`${pose} ${prompt}`)
+      ? 'fullbody'
+      : (/primer plano|close-up|portrait|rostro|headshot/i.test(`${pose} ${prompt}`) ? 'portrait' : 'medium'));
+
   aiService.generateInfluencerImage(prompt, referenceUrl, {
     photoreal,
     identityLock,
-    seed
+    seed,
+    framing
   })
     .then(imagePath => {
       if (imagePath) {
@@ -256,6 +262,7 @@ app.post('/api/personas/:id/variants', async (req, res) => {
               photoreal,
               identityLock,
               seed,
+              framing,
               referenceLocalPath
             })
           });
@@ -270,7 +277,12 @@ app.post('/api/personas/:id/variants', async (req, res) => {
       }
     })
     .catch(err => {
-      res.status(500).json({ success: false, message: err.message });
+      const status = err.status === 429 ? 429 : 500;
+      res.status(status).json({
+        success: false,
+        message: err.message || 'La generación de la pose falló.',
+        rateLimited: /429|rate limit|límite/i.test(err.message || '')
+      });
     });
 });
 

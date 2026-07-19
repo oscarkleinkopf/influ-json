@@ -330,6 +330,29 @@ module.exports = {
     }
   },
 
+  /**
+   * framing: 'portrait' | 'medium' | 'fullbody'
+   * fullbody needs taller canvas + lower img2img strength or portrait refs force close-ups
+   */
+  resolveFraming(options = {}, prompt = '') {
+    const f = options.framing || options.shotType || '';
+    const text = `${f} ${prompt}`;
+    if (/full\s*body|full-body|cuerpo entero|head to toe|head-to-toe|mirror selfie.*full|standing full|wide shot|plano entero/i.test(text)) {
+      return 'fullbody';
+    }
+    if (/close-up|primer plano|selfie portrait|macro beauty|face only|headshot/i.test(text)) {
+      return 'portrait';
+    }
+    if (f === 'fullbody' || f === 'portrait' || f === 'medium') return f;
+    return 'medium';
+  },
+
+  framingDimensions(framing) {
+    if (framing === 'fullbody') return { width: 768, height: 1344 }; // ~9:16, space for head-to-toe
+    if (framing === 'portrait') return { width: 768, height: 960 };
+    return { width: 768, height: 1024 }; // medium / 3:4
+  },
+
   async generateInfluencerImage(prompt, referenceUrl = null, options = {}) {
     // Reinforce skin lock if prompt already mentions light skin / hex, to fight model drift
     let finalPrompt = prompt || '';
@@ -356,34 +379,54 @@ module.exports = {
       finalPrompt += ' Keep the exact same face as the reference image; only outfit, pose and background may change.';
     }
 
+    const framing = this.resolveFraming(options, finalPrompt);
+    const { width, height } = this.framingDimensions(framing);
+    if (framing === 'fullbody') {
+      finalPrompt += ' FRAMING LOCK (critical): FULL BODY head-to-toe visible in frame, camera pulled back, wide vertical shot, entire person from feet to hair, environment visible around subject. NOT a close-up, NOT a headshot, NOT cropped at waist, NOT portrait-only.';
+    } else if (framing === 'medium') {
+      finalPrompt += ' FRAMING: medium shot, head to mid-thigh or waist, upper body clearly visible.';
+    } else {
+      finalPrompt += ' FRAMING: portrait / close-medium on face and shoulders.';
+    }
+
     // Stable seed per persona when provided (consistency across traditional/spicy)
     const seed = Number.isFinite(options.seed)
       ? options.seed
       : Math.floor(Math.random() * 100000);
 
-    if (!ai) {
-      console.log('Using Pollinations.ai free keyless generator for virtual portrait...');
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-      const fetchPollinations = async (refUrl) => {
+    if (!ai) {
+      console.log(`Using Pollinations.ai free keyless generator (${framing} ${width}x${height})...`);
+
+      const fetchPollinations = async (refUrl, strengthOverride = null) => {
         // Off enhance for identity variants — enhance makes faces diverge between modes
         const enhance = (wantsPhotoreal || identityLock) ? 'false' : 'true';
-        // Higher image strength = stick closer to reference face (Pollinations img2img)
-        // Identity lock needs stronger face adherence so spicy ≠ different person
+        // Face lock vs full-body tradeoff:
+        // High strength (~0.82) freezes composition → stays portrait if ref is portrait.
+        // Full body needs LOWER strength so camera can pull back while prompt keeps face.
         let strength = 0.72;
-        if (identityLock) strength = 0.82;
-        else if (wantsPhotoreal) strength = 0.75;
+        if (framing === 'fullbody' && identityLock) strength = 0.58;
+        else if (framing === 'fullbody') strength = 0.55;
+        else if (identityLock) strength = 0.78;
+        else if (wantsPhotoreal) strength = 0.72;
+        if (strengthOverride != null) strength = strengthOverride;
 
-        let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=768&height=768&model=flux&nologo=true&enhance=${enhance}&seed=${seed}`;
+        let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=${width}&height=${height}&model=flux&nologo=true&enhance=${enhance}&seed=${seed}`;
         if (refUrl) {
           url += `&image=${encodeURIComponent(refUrl)}&strength=${strength}`;
         }
-        console.log(`[gen] pollinations seed=${seed} strength=${refUrl ? strength : 'n/a'} identityLock=${identityLock} enhance=${enhance}`);
+        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${refUrl ? strength : 'n/a'} identityLock=${identityLock}`);
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 45000);
+        const timer = setTimeout(() => controller.abort(), 55000);
         try {
           const res = await fetch(url, { signal: controller.signal });
           clearTimeout(timer);
-          if (!res.ok) throw new Error(`Pollinations HTTP error: ${res.status}`);
+          if (!res.ok) {
+            const err = new Error(`Pollinations HTTP error: ${res.status}`);
+            err.status = res.status;
+            throw err;
+          }
           return res;
         } catch (err) {
           clearTimeout(timer);
@@ -397,20 +440,30 @@ module.exports = {
           try {
             res = await fetchPollinations(referenceUrl);
           } catch (refErr) {
-            // Retry once with slightly lower strength before text-only (text-only = face drift)
-            console.warn(`Pollinations img2img failed (${refErr.message}), retrying once...`);
+            const is429 = /429/.test(refErr.message) || refErr.status === 429;
+            const waitMs = is429 ? 4000 : 1500;
+            console.warn(`Pollinations img2img failed (${refErr.message}), waiting ${waitMs}ms then retry...`);
+            await sleep(waitMs);
             try {
-              const retryOpts = { ...options, seed };
-              // inline retry with strength 0.78 via temporary prompt note
-              let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=768&height=768&model=flux&nologo=true&enhance=false&seed=${seed}&image=${encodeURIComponent(referenceUrl)}&strength=0.78`;
-              const controller = new AbortController();
-              const timer = setTimeout(() => controller.abort(), 45000);
-              res = await fetch(url, { signal: controller.signal });
-              clearTimeout(timer);
-              if (!res.ok) throw new Error(`Pollinations HTTP error: ${res.status}`);
+              // Full body: even lower strength on retry to escape portrait crop
+              const retryStrength = framing === 'fullbody' ? 0.50 : 0.70;
+              res = await fetchPollinations(referenceUrl, retryStrength);
             } catch (retryErr) {
-              console.warn(`Pollinations retry failed (${retryErr.message}), falling back to text-only (face may drift).`);
-              res = await fetchPollinations(null);
+              const is429b = /429/.test(retryErr.message) || retryErr.status === 429;
+              if (is429b) {
+                console.warn('Pollinations rate limited (429). Waiting 8s for final attempt...');
+                await sleep(8000);
+                try {
+                  res = await fetchPollinations(referenceUrl, framing === 'fullbody' ? 0.48 : 0.65);
+                } catch (finalErr) {
+                  console.warn(`Final img2img failed (${finalErr.message}). Text-only as last resort.`);
+                  await sleep(2000);
+                  res = await fetchPollinations(null);
+                }
+              } else {
+                console.warn(`Pollinations retry failed (${retryErr.message}), text-only fallback.`);
+                res = await fetchPollinations(null);
+              }
             }
           }
         } else {
@@ -434,11 +487,16 @@ module.exports = {
         ensureDir(scratchGenDir);
         fs.writeFileSync(path.join(scratchGenDir, filename), buffer);
 
-        console.log(`Pollinations Image generated and saved to: ${relativePath}`);
+        console.log(`Pollinations Image generated and saved to: ${relativePath} (${framing})`);
         return relativePath;
       } catch (err) {
         console.error('Pollinations generation error:', err);
-        return null;
+        const msg = /429/.test(err.message)
+          ? 'Límite de generación (rate limit). Espera ~30s e intenta de nuevo.'
+          : (err.message || 'La generación falló');
+        const e = new Error(msg);
+        e.status = err.status || (/429/.test(err.message) ? 429 : 500);
+        throw e;
       }
     }
 
