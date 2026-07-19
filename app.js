@@ -785,11 +785,7 @@ function selectPersona(persona) {
   }
 
   const getVal = (id) => document.getElementById(id)?.value || '';
-  // Prefer live form values; fall back to detailedJSON.body / identity
-  let detailed = {};
-  try {
-    detailed = parseDetailedJSON(persona.detailedJSON);
-  } catch (_) {}
+  // Prefer live form values; fall back to detailedJSON.body / identity (detailed already parsed above)
   const body = detailed.body || {};
 
   setText('sheetSkinTone', getVal('pSkinTone') || detailed.facial_features?.skin_tone || '—');
