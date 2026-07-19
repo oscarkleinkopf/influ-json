@@ -4467,6 +4467,8 @@ function initImportModal() {
 
 window.closeHistoryModal = closeHistoryModal;
 window.setPortfolioFilter = setPortfolioFilter;
+window.clearPortfolioSearch = clearPortfolioSearch;
+window.getFilteredPortfolioPersonas = getFilteredPortfolioPersonas;
 window.setHistoryFilter = setHistoryFilter;
 window.loadCharacterBible = loadCharacterBible;
 window.initImportModal = initImportModal;
