@@ -4,6 +4,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 const { DATA_DIR, ensureDir } = require('./paths');
 const imageProvider = require('./image-provider');
+const genQueue = require('./gen-queue');
 
 // Load environment variables
 dotenv.config();
@@ -355,6 +356,14 @@ module.exports = {
   },
 
   async generateInfluencerImage(prompt, referenceUrl = null, options = {}) {
+    // F3: serialize all free gens (1 at a time + gap) unless caller opts out
+    if (options.skipQueue !== true) {
+      const label = options.queueLabel || options.framing || 'image';
+      return genQueue.enqueue(label, () =>
+        this.generateInfluencerImage(prompt, referenceUrl, { ...options, skipQueue: true })
+      );
+    }
+
     // Optional paid face-lock (Replicate etc.) — only if explicitly configured.
     // Free path (Pollinations) must always remain functional for zero-cost entrepreneurs.
     if (options.preferFaceLock !== false && imageProvider.isPaidFaceLockEnabled()) {
@@ -446,11 +455,13 @@ module.exports = {
           if (!res.ok) {
             const err = new Error(`Pollinations HTTP error: ${res.status}`);
             err.status = res.status;
+            if (res.status === 429) genQueue.markRateLimited();
             throw err;
           }
           return res;
         } catch (err) {
           clearTimeout(timer);
+          if (err && err.status === 429) genQueue.markRateLimited();
           throw err;
         }
       };
@@ -525,11 +536,17 @@ module.exports = {
         return relativePath;
       } catch (err) {
         console.error('Pollinations generation error:', err);
-        const msg = /429/.test(err.message)
-          ? 'Límite de generación (rate limit). Espera ~30s e intenta de nuevo.'
+        if (err && (err.status === 429 || /429/.test(err.message || ''))) {
+          genQueue.markRateLimited();
+        }
+        const status = getGenQueueStatusSafe();
+        const retry = status.rateLimitActive ? status.retryAfterSeconds : 30;
+        const msg = /429/.test(err.message || '') || err.status === 429
+          ? `Límite de Pollinations (gratis). Espera ~${retry || 30}s y vuelve a intentar (1 generación a la vez).`
           : (err.message || 'La generación falló');
         const e = new Error(msg);
-        e.status = err.status || (/429/.test(err.message) ? 429 : 500);
+        e.status = err.status || (/429/.test(err.message || '') ? 429 : 500);
+        e.retryAfterSeconds = retry || 30;
         throw e;
       }
     }
@@ -805,6 +822,7 @@ She is ${scene}. Shot on ${camera} with ${lighting}, natural skin, authentic ama
     const f = detailed.facial_features || {};
     const h = detailed.hair || {};
     const a = detailed.aesthetic || {};
+    const p = detailed.personality || {};
 
     const faceShape   = f.face_shape || "ovalada";
     const skinTone    = f.skin_tone || "tono natural";
@@ -814,6 +832,9 @@ She is ${scene}. Shot on ${camera} with ${lighting}, natural skin, authentic ama
     const hairTexture = h.texture || "ondulado natural";
     const hairStyle   = h.style || "suelto con movimiento";
     const overallVibe   = a.overall_vibe || "natural y accesible";
+    const mbti = p.mbti || "ENFP - El Entusiasta Creativo";
+    const commStyle = p.communication_style || "Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia";
+    const taboos = Array.isArray(p.taboos) ? p.taboos.join(', ') : (p.taboos || "No promociona fast fashion, No usa lenguaje agresivo");
 
     // ============================================================
     // MODO ONLINE (Gemini)
@@ -845,6 +866,9 @@ Responde ÚNICAMENTE con un JSON válido que sea un arreglo de 3 objetos de guio
 Nombre: ${charName} | Edad: ${age} | Género: ${gender} | Etnia: ${ethnicity}
 Rasgos físicos clave: rostro ${faceShape}, piel ${skinTone} con ${skinTexture}, cabello ${hairLength} ${hairTexture} ${hairColor} con estilo ${hairStyle}.
 Estética general: ${overallVibe}
+Personalidad (MBTI): ${mbti}
+Estilo de comunicación y tono de voz: ${commStyle}
+Tabúes / Restricciones de marca: ${taboos}
 
 Producto / Tema a promocionar: ${scriptTopic}
 
@@ -1177,7 +1201,13 @@ Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markd
     "eyebrow_style": "string",
     "lip_shape": "string",
     "jawline": "string",
-    "smile_type": "string"
+    "smile_type": "string",
+    "distinctive_marks": "string"
+  },
+  "personality": {
+    "mbti": "string",
+    "communication_style": "string",
+    "taboos": ["string"]
   },
   "body": {
     "body_type": "string",
@@ -1262,7 +1292,13 @@ Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markd
         eyebrow_style: pick(eyebrows),
         lip_shape: pick(lips),
         jawline: isMale ? 'Mandíbula firme y estructurada' : 'Mandíbula suave y definida',
-        smile_type: 'Sonrisa cálida, auténtica y natural'
+        smile_type: 'Sonrisa cálida, auténtica y natural',
+        distinctive_marks: pick(['Peca sutil en el pómulo izquierdo', 'Pequeño lunar cerca de los labios', 'Lunar natural en el cuello', 'Ligeras pecas en el puente de la nariz'])
+      },
+      personality: {
+        mbti: pick(['ENFP - El Entusiasta Creativo', 'ENFJ - El Líder Carismático', 'INFJ - El Consejero Inspirador', 'ESFP - El Animador Espontáneo', 'INTJ - El Estratega Visionario']),
+        communication_style: pick(['Cálido y cercano, usa emojis moderados y hace preguntas a la audiencia', 'Elegante y sofisticado, habla de forma articulada con tono inspirador', 'Juguetón y fresco, utiliza modismos modernos y tono desenfadado']),
+        taboos: ['No promociona fast fashion', 'No usa lenguaje agresivo', 'No habla de temas políticos controversiales']
       },
       body: {
         body_type: pick(bodyTypes),
