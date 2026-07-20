@@ -482,6 +482,20 @@
                 </div>
                 <div class="prompt-text" id="sheetPromptPreview" style="font-size: 11px; max-height: 80px; overflow-y: auto; line-height: 1.5; color: #ccc;">Cargando...</div>
               </div>
+
+              <!-- F5: Free chatbot packs (zero cost) -->
+              <div class="glass-card" style="margin-top: 16px; padding: 14px; background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.2);">
+                <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 6px; letter-spacing: 0.4px;">🆓 Packs gratis para chatbots</h4>
+                <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+                  Copia un pack y pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Reutiliza el <strong>character_lock</strong> para no pagar face-lock.
+                </p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 11px; padding: 8px 10px; text-align: left;">🧍 Cuerpo entero</button>
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 11px; padding: 8px 10px; text-align: left;">Bikini / playa</button>
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px; text-align: left;">Spicy (realista)</button>
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px; text-align: left;">Producto en mano</button>
+                </div>
+              </div>
             </div>
             
             <form id="personaForm" class="editor-form-group" style="display: none;">
@@ -730,6 +744,15 @@
                 </div>
               </div>
               <div class="prompt-text" id="promptPreview">Cargando prompt...</div>
+              <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
+                <div style="font-size: 10px; text-transform: uppercase; color: #34d399; font-weight: 700; margin-bottom: 8px;">🆓 Packs gratis (F5) — pegar en chatbot free</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 10px; padding: 6px 10px;">🧍 Cuerpo entero</button>
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 10px; padding: 6px 10px;">Bikini / playa</button>
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 10px; padding: 6px 10px;">Spicy</button>
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 10px; padding: 6px 10px;">Producto en mano</button>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -1496,6 +1519,6 @@
     </div>
   </div>
   
-  <script src="app.js?v=1.1.14"></script>
+  <script src="app.js?v=1.1.15"></script>
 </body>
 </html>

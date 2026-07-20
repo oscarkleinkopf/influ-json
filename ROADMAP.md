@@ -54,7 +54,7 @@
 | F2 | Documentar “flujo emprendedor gratis” en README corto | Un novato entiende: Studio + copiar JSON a chatbot |
 | F3 | Variantes: rate-limit UX + cola simple (1 gen a la vez) | No spamear Pollinations; toast “espera 30s” |
 | F4 | Side-by-side ancla vs última gen (gratis) | Usuario juzga consistencia sin API de scoring |
-| F5 | Prompt packs free (chatbot): cuerpo entero / bikini / spicy / producto en mano | 4 plantillas que reusan `character_lock` |
+| F5 | Prompt packs free (chatbot): cuerpo entero / bikini / spicy / producto en mano | 4 plantillas que reusan `character_lock` ✅ |
 | F6 | Happy path 60s en dashboard | Nuevo → guardar → 1 gen → copiar JSON |
 
 **No hacer en esta fase:** multi-tenant, billing, OAuth, video full, requerir Gemini key.
@@ -107,6 +107,7 @@
 |-------|--------|-------|
 | 2026-07-19 | 1.3–1.6, body JSON, skin lock, spicy, full-body framing | Ver commits main |
 | 2026-07-20 | Filosofía cero costo; character_lock export; image-provider free-first | Replicate documentado, no implementado |
+| 2026-07-20 | **F5** Packs gratis chatbot (fullbody / bikini / spicy / product) | UI en ficha + prompt console; `buildFreeChatbotPack` |
 
 ---
 
