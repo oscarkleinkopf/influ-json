@@ -1,4 +1,4 @@
-﻿// State Management
+// State Management
 let state = {
   personas: [],
   products: [],
@@ -494,6 +494,15 @@ function applyGeneratedTraitsToForm(details) {
   setInputValue('pEyebrows', f.eyebrow_style);
   setInputValue('pLips', f.lip_shape);
   setInputValue('pSmileType', f.smile_type);
+  setInputValue('pDistinctiveMarks', f.distinctive_marks);
+  
+  if (details.personality) {
+    setInputValue('pMbti', details.personality.mbti);
+    setInputValue('pCommunicationStyle', details.personality.communication_style);
+    if (details.personality.taboos) {
+      setInputValue('pTaboos', Array.isArray(details.personality.taboos) ? details.personality.taboos.join(', ') : details.personality.taboos);
+    }
+  }
 
   setInputValue('pHairColor', h.color);
   setInputValue('pHairTexture', h.texture);
@@ -615,6 +624,10 @@ function resetPersonaFormForNew() {
   setIf('pPosture', 'Erguida y relajada, hombros sueltos, cuello alargado');
   setIf('pFitness', 'Tono natural ligero, sin musculatura exagerada');
   setIf('pBodySkin', 'Mismo tono de piel que el rostro en cuello, hombros y brazos; textura natural continua');
+  setIf('pDistinctiveMarks', 'Peca sutil en el pómulo izquierdo, pequeño lunar natural en el cuello');
+  setIf('pMbti', 'ENFP - El Entusiasta Creativo');
+  setIf('pCommunicationStyle', 'Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia');
+  setIf('pTaboos', 'No promociona fast fashion, No usa lenguaje agresivo, No habla de temas políticos controversiales');
 
   // Force re-compilation of prompts
   compilePromptAndJSON();
@@ -727,6 +740,12 @@ function selectPersona(persona) {
   setInputValue('pEyeColor', detailed.facial_features?.eye_color || 'Marrón cálido con destellos miel');
   setInputValue('pFaceShape', detailed.facial_features?.face_shape || 'Ovalada con mandíbula definida');
   setInputValue('pSmileType', detailed.facial_features?.smile_type || 'Sonrisa cálida, accesible y natural');
+  setInputValue('pDistinctiveMarks', detailed.facial_features?.distinctive_marks || 'Peca sutil en el pómulo izquierdo, pequeño lunar natural en el cuello');
+  setInputValue('pMbti', detailed.personality?.mbti || 'ENFP - El Entusiasta Creativo');
+  setInputValue('pCommunicationStyle', detailed.personality?.communication_style || 'Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia');
+  const taboos = detailed.personality?.taboos;
+  setInputValue('pTaboos', taboos ? (Array.isArray(taboos) ? taboos.join(', ') : taboos) : 'No promociona fast fashion, No usa lenguaje agresivo, No habla de temas políticos controversiales');
+  
   setInputValue('pBodyType', detailed.body?.body_type || detailed.identity?.body_type || 'Atlético y proporcionado');
   setInputValue('pHeight', detailed.body?.height_appearance || 'Estatura media (~1.65 m)');
   setInputValue('pProportions', detailed.body?.proportions || 'Hombros equilibrados, cintura definida, caderas suaves y proporcionales');
@@ -1106,6 +1125,16 @@ function getFullPersonaJSON() {
   if (!base.photography.composition) {
     base.photography.composition = 'Sujeto a medio cuerpo, identidad facial + silueta corporal consistentes';
   }
+  if (!base.personality) base.personality = {};
+  base.personality.mbti = document.getElementById('pMbti')?.value || base.personality.mbti || 'ENFP - El Entusiasta Creativo';
+  base.personality.communication_style = document.getElementById('pCommunicationStyle')?.value || base.personality.communication_style || 'Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia';
+  
+  const taboosInput = document.getElementById('pTaboos')?.value || '';
+  if (taboosInput) {
+    base.personality.taboos = taboosInput.split(',').map(s => s.trim()).filter(Boolean);
+  } else if (!base.personality.taboos) {
+    base.personality.taboos = ['No promociona fast fashion', 'No usa lenguaje agresivo', 'No habla de temas políticos controversiales'];
+  }
 
   // Merge extended secondary traits if present
   if (state.scratchExtendedTraits) {
@@ -1143,6 +1172,7 @@ function getFullPersonaJSON() {
       jawline: base.facial_features.jawline || null,
       skin_tone: skinTone,
       skin_tone_hex: skinHex,
+      distinctive_marks: base.facial_features.distinctive_marks || null,
       hair_color: base.hair.color,
       hair_color_hex: base.hair.color_hex || null,
       hair_texture: base.hair.texture,
@@ -1188,6 +1218,9 @@ function buildChatbotExportText({ includePrompt = true, includeScript = false, i
   
   // Section 0: Free-tier character integrity (optimized for ChatGPT / Gemini / Claude / Meta free)
   sections.push(`Eres un generador de contenido UGC para un influencer virtual de un pequeño emprendedor (flujo CERO COSTO: sin APIs de face-lock de pago).
+
+• Respeta la personalidad (${personaJSON.personality?.mbti || ''}), el tono de voz ("${personaJSON.personality?.communication_style || ''}") y evita los tabúes de la marca: [${(personaJSON.personality?.taboos || []).join(', ')}].
+• En la imagen/video, mantén las marcas distintivas únicas: ${personaJSON.facial_features?.distinctive_marks || 'Ninguna específica'}.
 
 REGLA DE ORO: Es SIEMPRE la misma persona. El JSON es la única fuente de verdad de identidad.
 
