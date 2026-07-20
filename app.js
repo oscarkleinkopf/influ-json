@@ -1121,7 +1121,55 @@ function getFullPersonaJSON() {
     if (state.scratchExtendedTraits.height_appearance) base.body.height_appearance = state.scratchExtendedTraits.height_appearance;
   }
   
-  // Clean internal metadata keys
+  // Character lock card — for free chatbots (ChatGPT/Gemini/Claude/Meta) without paid face-lock APIs
+  const skinTone = base.facial_features.skin_tone || '';
+  const skinHex = base.facial_features.skin_tone_hex || '';
+  base.character_lock = {
+    version: 1,
+    free_tier: true,
+    purpose: 'Mantener la misma persona en chatbots gratuitos y en Pollinations sin APIs de face-lock de pago',
+    must_match_every_image: {
+      name: base.identity.name,
+      gender: base.identity.gender,
+      age: base.identity.apparent_age,
+      ethnicity: base.identity.ethnicity_appearance,
+      face_shape: base.facial_features.face_shape,
+      eye_color: base.facial_features.eye_color,
+      eye_shape: base.facial_features.eye_shape || null,
+      eyebrows: base.facial_features.eyebrow_style || base.facial_features.eyebrows,
+      nose: base.facial_features.nose_shape || null,
+      lips: base.facial_features.lip_shape || base.facial_features.lips,
+      jawline: base.facial_features.jawline || null,
+      skin_tone: skinTone,
+      skin_tone_hex: skinHex,
+      hair_color: base.hair.color,
+      hair_color_hex: base.hair.color_hex || null,
+      hair_texture: base.hair.texture,
+      hair_length: base.hair.length,
+      body_type: base.body?.body_type || base.identity.body_type,
+      height: base.body?.height_appearance || null,
+      proportions: base.body?.proportions || null,
+      posture: base.body?.posture || null
+    },
+    may_vary_per_image: [
+      'pose',
+      'expression_within_character',
+      'clothing',
+      'setting_background',
+      'camera_angle',
+      'product_in_hand'
+    ],
+    never_do: [
+      'Cambiar tono de piel o etnia aparente',
+      'Cambiar forma de rostro, ojos, nariz o mandíbula',
+      'Edad muy distinta',
+      'Cuerpo con proporciones distintas',
+      'Estilo 3D/CGI/anime si el JSON pide UGC real'
+    ],
+    free_chatbot_system: `Eres un generador de UGC. Debes mantener SIEMPRE la misma persona definida en character_lock.must_match_every_image. Solo puedes variar: ${['pose', 'ropa', 'fondo', 'expresión suave', 'producto'].join(', ')}. Si el usuario pide bikini, spicy o cuerpo entero, cambia ropa/pose/encuadre pero NUNCA la cara ni la tez (${skinTone}${skinHex ? ' ' + skinHex : ''}). Estilo: foto amateur de smartphone, no cine.`
+  };
+
+  // Clean internal metadata keys (keep character_lock)
   delete base.generation_prompt;
   delete base.anchor_reference;
   
@@ -1130,15 +1178,39 @@ function getFullPersonaJSON() {
 
 function buildChatbotExportText({ includePrompt = true, includeScript = false, includeProduct = false, scriptData = null, productData = null } = {}) {
   const personaJSON = getFullPersonaJSON();
+  const lock = personaJSON.character_lock || {};
+  const must = lock.must_match_every_image || {};
   const formattedJson = JSON.stringify(personaJSON, null, 2);
+  const lockCard = JSON.stringify(lock, null, 2);
   
   let sections = [];
   
-  // Section 1: Persona identity instructions
-  sections.push(`Eres un generador de contenido UGC (User Generated Content) para un influencer virtual. Utiliza la siguiente especificación de identidad visual JSON para mantener la consistencia física y de la cámara en TODA imagen generada. Cada campo describe un atributo visual específico del modelo — respétalos todos para lograr coherencia entre imágenes.
+  // Section 0: Free-tier character integrity (optimized for ChatGPT / Gemini / Claude / Meta free)
+  sections.push(`Eres un generador de contenido UGC para un influencer virtual de un pequeño emprendedor (flujo CERO COSTO: sin APIs de face-lock de pago).
+
+REGLA DE ORO: Es SIEMPRE la misma persona. El JSON es la única fuente de verdad de identidad.
 
 ═══════════════════════════════════════════
-  IDENTIDAD VISUAL DEL MODELO (JSON)
+  CHARACTER LOCK (gratis — copiar a cualquier chatbot)
+═══════════════════════════════════════════
+${lockCard}
+
+RESUMEN OBLIGATORIO (no negociable en ninguna imagen):
+• Nombre: ${must.name || '—'}
+• Edad / género / etnia: ${must.age || '—'} · ${must.gender || '—'} · ${must.ethnicity || '—'}
+• Rostro: ${must.face_shape || '—'} | ojos ${must.eye_color || '—'} | cejas ${must.eyebrows || '—'} | labios ${must.lips || '—'}
+• Piel: ${must.skin_tone || '—'}${must.skin_tone_hex ? ' (' + must.skin_tone_hex + ')' : ''} — NO oscurecer ni aclarar
+• Cabello: ${must.hair_color || '—'} · ${must.hair_texture || '—'} · ${must.hair_length || '—'}
+• Cuerpo: ${must.body_type || '—'} · ${must.height || '—'} · ${must.proportions || '—'}
+
+PUEDE CAMBIAR: pose, ropa (bikini/spicy/etc.), fondo, expresión suave, producto en mano.
+NO PUEDE CAMBIAR: cara, tez, peinado base, proporciones corporales, edad aparente.
+═══════════════════════════════════════════`);
+
+  // Section 1: Full visual identity JSON
+  sections.push(`
+═══════════════════════════════════════════
+  IDENTIDAD VISUAL COMPLETA (JSON)
 ═══════════════════════════════════════════
 ${formattedJson}
 ═══════════════════════════════════════════`);
@@ -1192,14 +1264,15 @@ ${prompt}
 ═══════════════════════════════════════════`);
   }
 
-  // Final instructions
+  // Final instructions — free chatbot oriented
   sections.push(`
-INSTRUCCIONES PARA EL CHATBOT:
-• Genera imágenes que coincidan EXACTAMENTE con las características del JSON de identidad visual.
-• Mantén consistencia entre cada imagen generada (mismo rostro, cabello, tono de piel).
-• El estilo debe ser UGC casual y natural, como tomado por el influencer con su propio teléfono.
-• NO uses vocabulario como "cinematic", "8K", "photorealistic" — el estilo debe ser amateur y real.
-• Si hay un guión de campaña, genera las imágenes correspondientes a cada escena del guión.`);
+INSTRUCCIONES PARA CHATBOTS GRATUITOS (ChatGPT / Gemini / Claude / Meta / etc.):
+1. Pega este texto completo al inicio del chat (o como instrucción de sistema si el producto lo permite).
+2. Cada petición de imagen debe reutilizar character_lock.must_match_every_image al pie de la letra.
+3. Si pides cuerpo entero, bikini o modo spicy: cambia SOLO ropa/pose/fondo; la cara y la tez son fijas.
+4. Estilo UGC: foto de celular amateur, no "cinematic 8K studio".
+5. Si el modelo se desvía (otra cara u otra tez), re-pega el bloque CHARACTER LOCK y repite la petición.
+6. Este flujo es deliberadamente gratis: no requiere Replicate, InstantID ni GPU de pago.`);
 
   return sections.join('\n');
 }

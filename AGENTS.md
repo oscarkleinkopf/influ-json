@@ -5,45 +5,58 @@
 **influ-JSON**: estudio local de producción UGC con influencers virtuales (roster en SQLite, Persona Engine, scripts, UGC Studio, licensing).  
 Stack: Node/Express, better-sqlite3, front monolítico (`index.html` + `app.js` + `index.css`).
 
-## Prioridad de producto (no negociar sin Oscar)
+## Filosofía de producto (crítica)
 
-1. **Mecánica** (fiabilidad del loop)  
-2. **Usabilidad** (happy path claro)  
-3. **Seguridad** (mínima; enterprise después)
+**Cero costo primero.** Pequeños emprendedores deben poder crear y mantener influencers **sin pagar** APIs de imagen ni face-lock hasta hacer crecer la marca.
 
-Documento maestro: **[ROADMAP.md](./ROADMAP.md)** — roadmap de 4 semanas.  
-Al implementar features o proponer cambios, alinear con la semana activa del roadmap. No ampliar multi-tenant, OAuth ni video pipeline salvo petición explícita.
+| Siempre free | Opcional futuro (no romper free) |
+|--------------|----------------------------------|
+| Pollinations + offline | Replicate InstantID/PuLID |
+| JSON `character_lock` → chatbots gratis | ComfyUI self-host |
+| Studio local + SQLite | Cualquier proveedor de pago |
+
+- **No** hagas que el path básico requiera `REPLICATE_API_TOKEN` o tarjeta.  
+- Si implementas face-lock de pago: flag opt-in + fallback a Pollinations.  
+- Documento maestro: **[ROADMAP.md](./ROADMAP.md)**.
+
+## Prioridad de trabajo
+
+1. **Mecánica free** (Pollinations, skin/body lock, variantes, full-body)  
+2. **Integridad vía JSON** (export chatbot, `character_lock`)  
+3. **Usabilidad**  
+4. **Seguridad mínima**  
+5. **Replicate opcional** (solo cuando free esté sólido)
 
 ## Convenciones técnicas
 
-- Servidor: `npm start` → `node server.js` (puerto 3000). En PowerShell usar `npm.cmd` si la policy bloquea scripts.
-- Auth: PIN vía `STUDIO_PIN` en `.env` (default en código si vacío). No commitear `.env`.
-- DB: portable en `data/influ.sqlite` (o `DATA_DIR` en `.env`). Migración automática desde legacy. Mirror a `./influ.sqlite` para git backup. Ver `paths.js`.
-- Tras mutar personas: **siempre** refrescar `state.personas` + `refreshPersonaLists()` / grids del dashboard.
-- UI en español; mensajes de error honestos (offline, rate limit, sin API key).
-- Commits: mensajes claros en inglés o español, enfocados en el “por qué”.
+- Servidor: `npm start` → `node server.js` (puerto 3000). En PowerShell: `npm.cmd` si hace falta.  
+- Auth: `STUDIO_PIN` en `.env`. No commitear `.env`.  
+- DB: `data/influ.sqlite` o `DATA_DIR` — ver `paths.js`.  
+- Imagen: `image-provider.js` (default `pollinations`).  
+- Tras mutar personas: refrescar `state.personas` + grids.  
+- UI en español; errores honestos (429, offline).  
 
 ## Happy path a proteger
 
 ```
-Crear/importar influencer → aparece en portafolio → generar UGC → ver historial → exportar pack
+Crear/importar → portafolio → gen Pollinations o copiar JSON a chatbot free → export pack
 ```
 
-Cualquier cambio que rompa “aparece en portafolio al instante” es regresión P0.
+Regresión P0: “guardé y no aparece”, o free path roto por una feature de pago.
 
 ## Archivos calientes
 
 | Archivo | Rol |
 |---------|-----|
-| `server.js` | API Express, import, static |
-| `db.js` | SQLite schema + CRUD |
-| `app.js` | Todo el front state/UI |
-| `ai-service.js` | Gemini / Pollinations / offline |
-| `auth.js` | PIN + session |
-| `ROADMAP.md` | Plan 4 semanas |
+| `server.js` | API Express |
+| `db.js` | SQLite |
+| `app.js` | Front + `character_lock` + export chatbot |
+| `ai-service.js` | Pollinations / Gemini opcional |
+| `image-provider.js` | Free vs paid face-lock (paid = stub futuro) |
+| `ROADMAP.md` | Plan y filosofía |
 
-## Al retomar trabajo
+## Al retomar
 
-1. Leer `ROADMAP.md` (log de progreso + semana actual).  
-2. No empezar features del parking lot.  
-3. Preferir entregables pequeños con criterio de hecho verificable.
+1. Leer `ROADMAP.md` (fase free actual).  
+2. No implementar Replicate a menos que el usuario lo pida y free esté estable.  
+3. Entregables pequeños y verificables.  
