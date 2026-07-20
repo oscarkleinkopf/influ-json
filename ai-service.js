@@ -348,10 +348,8 @@ module.exports = {
   },
 
   framingDimensions(framing) {
-    // IMPORTANT: extreme tall ratios stretch faces when the reference is square/portrait.
-    // Stay near 1:1 for face shots; only mild 3:4 for full-body.
-    if (framing === 'fullbody') return { width: 768, height: 1024 }; // 3:4 — head-to-toe without stretch
-    // portrait + medium: square avoids elongated face from img2img aspect mismatch
+    // Square for face/medium (no stretch). Slightly taller 3:4 for full-body only.
+    if (framing === 'fullbody') return { width: 768, height: 1152 }; // enough height for feet→head
     return { width: 768, height: 768 };
   },
 
@@ -386,9 +384,10 @@ module.exports = {
     // Always fight vertical stretch / funhouse proportions from aspect changes
     finalPrompt += ' PROPORTIONS LOCK: natural real human anatomy, correct head-to-body ratio, NOT elongated, NOT stretched vertically, NOT distorted face, NOT long face, NOT warped limbs.';
     if (framing === 'fullbody') {
-      finalPrompt += ' FRAMING LOCK (critical): FULL BODY head-to-toe visible, camera stepped back, entire person from shoes to hair in frame, natural proportions. NOT a close-up, NOT headshot, NOT waist crop. Keep face identity from reference without stretching.';
+      // Put framing as a hard lead-in (prepend) so models don't stay in portrait crop
+      finalPrompt = `FULL BODY PHOTOGRAPH, vertical frame, subject fully visible from shoes to top of hair, camera 3 meters back, wide environmental shot. ${finalPrompt} FRAMING LOCK (critical): show COMPLETE body head-to-toe, feet on ground, legs, torso, arms, head all inside the frame with margin. NOT a close-up portrait, NOT face-only, NOT cropped at chest or waist.`;
     } else if (framing === 'medium') {
-      finalPrompt += ' FRAMING: medium shot, head to mid-thigh or waist, natural proportions, square-friendly composition.';
+      finalPrompt += ' FRAMING: medium shot, head to mid-thigh or waist, natural proportions, square composition.';
     } else {
       finalPrompt += ' FRAMING: natural portrait on face and shoulders, square composition, unstretched face.';
     }
@@ -407,20 +406,22 @@ module.exports = {
         // Off enhance for identity variants — enhance makes faces diverge between modes
         const enhance = (wantsPhotoreal || identityLock) ? 'false' : 'true';
         // Face lock vs full-body tradeoff:
-        // High strength (~0.82) freezes composition → stays portrait if ref is portrait.
-        // Full body needs LOWER strength so camera can pull back while prompt keeps face.
+        // Portrait refs + high strength ALWAYS stay close-up. Full body must use LOW strength
+        // (or no ref) so the camera can pull back; face is held by IDENTITY text + seed.
         let strength = 0.72;
-        if (framing === 'fullbody' && identityLock) strength = 0.58;
-        else if (framing === 'fullbody') strength = 0.55;
+        if (framing === 'fullbody') strength = 0.32; // allow composition change from portrait ref
         else if (identityLock) strength = 0.78;
         else if (wantsPhotoreal) strength = 0.72;
         if (strengthOverride != null) strength = strengthOverride;
 
         let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=${width}&height=${height}&model=flux&nologo=true&enhance=${enhance}&seed=${seed}`;
-        if (refUrl) {
+        // Full-body: skip img2img ref by default (portrait ref freezes headshot crop).
+        // Caller can force ref with options.forceReference === true
+        const useRef = refUrl && (framing !== 'fullbody' || options.forceReference === true);
+        if (useRef) {
           url += `&image=${encodeURIComponent(refUrl)}&strength=${strength}`;
         }
-        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${refUrl ? strength : 'n/a'} identityLock=${identityLock}`);
+        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${useRef ? strength : 'text-only'} identityLock=${identityLock} ref=${!!useRef}`);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 55000);
         try {
@@ -440,7 +441,10 @@ module.exports = {
 
       try {
         let res;
-        if (referenceUrl) {
+        // Full body: generate text-first (composition free), face via prompt/seed.
+        // Portrait/medium: use reference for face lock.
+        const preferRef = referenceUrl && framing !== 'fullbody';
+        if (preferRef) {
           try {
             res = await fetchPollinations(referenceUrl);
           } catch (refErr) {
@@ -449,16 +453,14 @@ module.exports = {
             console.warn(`Pollinations img2img failed (${refErr.message}), waiting ${waitMs}ms then retry...`);
             await sleep(waitMs);
             try {
-              // Full body: even lower strength on retry to escape portrait crop
-              const retryStrength = framing === 'fullbody' ? 0.50 : 0.70;
-              res = await fetchPollinations(referenceUrl, retryStrength);
+              res = await fetchPollinations(referenceUrl, 0.70);
             } catch (retryErr) {
               const is429b = /429/.test(retryErr.message) || retryErr.status === 429;
               if (is429b) {
                 console.warn('Pollinations rate limited (429). Waiting 8s for final attempt...');
                 await sleep(8000);
                 try {
-                  res = await fetchPollinations(referenceUrl, framing === 'fullbody' ? 0.48 : 0.65);
+                  res = await fetchPollinations(referenceUrl, 0.65);
                 } catch (finalErr) {
                   console.warn(`Final img2img failed (${finalErr.message}). Text-only as last resort.`);
                   await sleep(2000);
@@ -471,7 +473,19 @@ module.exports = {
             }
           }
         } else {
-          res = await fetchPollinations(null);
+          // fullbody path (or no ref): text-to-image with strong face description
+          try {
+            res = await fetchPollinations(null);
+          } catch (txtErr) {
+            const is429 = /429/.test(txtErr.message) || txtErr.status === 429;
+            if (is429) {
+              console.warn('Rate limited on fullbody text gen, waiting 6s...');
+              await sleep(6000);
+              res = await fetchPollinations(null);
+            } else {
+              throw txtErr;
+            }
+          }
         }
 
         const arrayBuffer = await res.arrayBuffer();

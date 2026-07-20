@@ -4174,12 +4174,12 @@ async function generateVariantAction() {
   const skin = resolveSkinForPrompt(detailed, p);
   const id = buildIdentityLockBlock(p, detailed, skin);
 
-  // Detect shot type from pose label/value — high img2img strength was freezing portrait crop
+  // Detect shot type — portrait reference + high img2img strength freezes close-up crop
   const poseText = `${pose}`;
   let framing = 'medium';
-  if (/full\s*body|full-body|cuerpo entero|head to toe|mirror selfie|standing full|wide shot|plano entero|de pie modelando|model pose/i.test(poseText)) {
+  if (/full\s*body|full-body|cuerpo entero|head to toe|head-to-toe|mirror selfie|standing full|wide shot|plano entero|de pie modelando|model pose|walking toward|feet to head|shoes to/i.test(poseText)) {
     framing = 'fullbody';
-  } else if (/primer plano|close-up|selfie portrait|macro beauty|face only|headshot|rostro/i.test(poseText)) {
+  } else if (/primer plano|close-up|selfie portrait|macro beauty|face only|headshot|rostro(?!.*cuerpo)/i.test(poseText)) {
     framing = 'portrait';
   }
 
@@ -4188,30 +4188,40 @@ async function generateVariantAction() {
     ? 'natural outdoor daylight, same skin lightness as reference (no over-bronze)'
     : 'soft realistic practical lighting, same skin lightness as reference';
 
-  const framingClause = framing === 'fullbody'
-    ? 'FRAMING LOCK (critical): FULL BODY head-to-toe in frame, camera far back, vertical wide shot, feet and head both visible, environment around subject. NOT close-up, NOT headshot, NOT waist crop, NOT portrait-only.'
+  // Full body: FRAMING FIRST (models ignore trailing framing after long identity blocks)
+  const framingLead = framing === 'fullbody'
+    ? 'FULL BODY PHOTO, vertical 3:4, subject completely visible from shoes to hair, camera stepped back 3 meters, environment around feet and head, wide shot.'
     : framing === 'portrait'
-      ? 'FRAMING: close-medium portrait on face and shoulders.'
-      : 'FRAMING: medium shot, head to mid-thigh, upper body and hips visible.';
+      ? 'Natural square portrait photo, face and shoulders, unstretched face.'
+      : 'Medium shot photo, head to mid-thigh, square-friendly composition.';
 
-  // Identity FIRST, then scene/outfit — order matters for img2img models
+  const framingClause = framing === 'fullbody'
+    ? 'FRAMING LOCK: head-to-toe in frame, feet on ground, full legs torso arms head visible with margin. NOT close-up, NOT headshot, NOT waist crop.'
+    : framing === 'portrait'
+      ? 'FRAMING: close-medium on face and shoulders.'
+      : 'FRAMING: medium shot, head to mid-thigh.';
+
+  // For fullbody we lean on detailed face TEXT (no portrait img2img) so composition can open up
   const variantPrompt = [
-    `IDENTITY LOCK (critical — same person as reference photo of ${id.name}):`,
-    `This is the EXACT same ${id.age} ${id.ethnicity} ${id.genderWord} human as the reference image.`,
-    `Identical face: ${id.faceBits || 'same facial structure as reference'}.`,
-    `Hair: ${id.hairBits || p.hair || 'same hair as reference'}.${id.hairHex}`,
+    framingLead,
+    framingClause,
+    `IDENTITY LOCK (same person as ${id.name} — match face DNA even if camera is far):`,
+    `A real ${id.age} ${id.ethnicity} ${id.genderWord} human influencer named ${id.name}.`,
+    `Face (must match): ${id.faceBits || 'consistent facial structure'}.`,
+    `Hair: ${id.hairBits || p.hair || 'consistent hair'}.${id.hairHex}`,
     `Skin: ${id.skinClause}. SKIN LOCK: ${skin.tone}${skin.hex ? ' ' + skin.hex : ''}.`,
-    `Body: ${id.bodyBits || 'same body proportions as reference'}.`,
-    `Do NOT change face shape, eye spacing, nose, lips, jaw, age, or identity — only change pose, outfit, background, and camera distance.`,
+    `Body: ${id.bodyBits || 'natural proportional body'}.`,
     `Expression/attitude: ${attitude}.`,
     `Pose: ${pose}.`,
     `Wearing: ${clothing}.`,
     `Background/location: ${setting}.`,
     lightClause + '.',
-    framingClause,
     'Photorealistic amateur UGC smartphone photo, real fabric, natural skin pores, raw unedited iPhone look.',
-    'PROPORTIONS: natural anatomy, correct head size, NOT elongated face, NOT stretched body, NOT distorted.',
-    'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, mirror chrome latex, elongated face, vertical stretch, accidental close-up when full body requested.'
+    'PROPORTIONS: natural anatomy, correct head size relative to body, NOT elongated face, NOT stretched body.',
+    framing === 'fullbody'
+      ? 'CRITICAL: show the entire person head to toe — if only the face is visible the image is WRONG.'
+      : 'Keep identity consistent.',
+    'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, elongated face, vertical stretch, accidental close-up portrait when full body requested.'
   ].join(' ');
   
   try {
