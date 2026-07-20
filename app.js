@@ -4210,7 +4210,8 @@ async function generateVariantAction() {
     lightClause + '.',
     framingClause,
     'Photorealistic amateur UGC smartphone photo, real fabric, natural skin pores, raw unedited iPhone look.',
-    'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, mirror chrome latex, accidental close-up when full body requested.'
+    'PROPORTIONS: natural anatomy, correct head size, NOT elongated face, NOT stretched body, NOT distorted.',
+    'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, mirror chrome latex, elongated face, vertical stretch, accidental close-up when full body requested.'
   ].join(' ');
   
   try {

@@ -348,9 +348,11 @@ module.exports = {
   },
 
   framingDimensions(framing) {
-    if (framing === 'fullbody') return { width: 768, height: 1344 }; // ~9:16, space for head-to-toe
-    if (framing === 'portrait') return { width: 768, height: 960 };
-    return { width: 768, height: 1024 }; // medium / 3:4
+    // IMPORTANT: extreme tall ratios stretch faces when the reference is square/portrait.
+    // Stay near 1:1 for face shots; only mild 3:4 for full-body.
+    if (framing === 'fullbody') return { width: 768, height: 1024 }; // 3:4 — head-to-toe without stretch
+    // portrait + medium: square avoids elongated face from img2img aspect mismatch
+    return { width: 768, height: 768 };
   },
 
   async generateInfluencerImage(prompt, referenceUrl = null, options = {}) {
@@ -381,12 +383,14 @@ module.exports = {
 
     const framing = this.resolveFraming(options, finalPrompt);
     const { width, height } = this.framingDimensions(framing);
+    // Always fight vertical stretch / funhouse proportions from aspect changes
+    finalPrompt += ' PROPORTIONS LOCK: natural real human anatomy, correct head-to-body ratio, NOT elongated, NOT stretched vertically, NOT distorted face, NOT long face, NOT warped limbs.';
     if (framing === 'fullbody') {
-      finalPrompt += ' FRAMING LOCK (critical): FULL BODY head-to-toe visible in frame, camera pulled back, wide vertical shot, entire person from feet to hair, environment visible around subject. NOT a close-up, NOT a headshot, NOT cropped at waist, NOT portrait-only.';
+      finalPrompt += ' FRAMING LOCK (critical): FULL BODY head-to-toe visible, camera stepped back, entire person from shoes to hair in frame, natural proportions. NOT a close-up, NOT headshot, NOT waist crop. Keep face identity from reference without stretching.';
     } else if (framing === 'medium') {
-      finalPrompt += ' FRAMING: medium shot, head to mid-thigh or waist, upper body clearly visible.';
+      finalPrompt += ' FRAMING: medium shot, head to mid-thigh or waist, natural proportions, square-friendly composition.';
     } else {
-      finalPrompt += ' FRAMING: portrait / close-medium on face and shoulders.';
+      finalPrompt += ' FRAMING: natural portrait on face and shoulders, square composition, unstretched face.';
     }
 
     // Stable seed per persona when provided (consistency across traditional/spicy)
