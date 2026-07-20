@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const { DATA_DIR, ensureDir } = require('./paths');
+const imageProvider = require('./image-provider');
 
 // Load environment variables
 dotenv.config();
@@ -354,6 +355,21 @@ module.exports = {
   },
 
   async generateInfluencerImage(prompt, referenceUrl = null, options = {}) {
+    // Optional paid face-lock (Replicate etc.) — only if explicitly configured.
+    // Free path (Pollinations) must always remain functional for zero-cost entrepreneurs.
+    if (options.preferFaceLock !== false && imageProvider.isPaidFaceLockEnabled()) {
+      try {
+        const paid = await imageProvider.generateWithOptionalFaceLock({
+          prompt,
+          referenceUrl,
+          options
+        });
+        if (paid) return paid;
+      } catch (paidErr) {
+        console.warn('[gen] Paid face-lock failed, falling back to free Pollinations:', paidErr.message);
+      }
+    }
+
     // Reinforce skin lock if prompt already mentions light skin / hex, to fight model drift
     let finalPrompt = prompt || '';
     const hexMatch = finalPrompt.match(/#([a-fA-F0-9]{6})/);

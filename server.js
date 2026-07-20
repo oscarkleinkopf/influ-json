@@ -95,13 +95,24 @@ app.post('/api/auth/login', (req, res) => {
 
 // API Connection Status
 app.get('/api/status', (req, res) => {
+  let imageProviders = null;
+  try {
+    imageProviders = require('./image-provider').getProviderCapabilities();
+  } catch (_) { /* optional module */ }
   res.json({
     success: true,
     apiConnected: aiService.isApiConnected(),
     gitLinked: fs.existsSync(path.join(__dirname, '.git')),
     pinRequired: !!process.env.STUDIO_PIN && process.env.STUDIO_PIN.trim() !== '',
     dataDir: dbService.getDataDir ? dbService.getDataDir() : DATA_DIR,
-    dbPath: dbService.getDbPath ? dbService.getDbPath() : null
+    dbPath: dbService.getDbPath ? dbService.getDbPath() : null,
+    // Free-first: Pollinations always on; Replicate only if explicitly configured later
+    imageProviders,
+    freeTier: {
+      imageGen: 'pollinations',
+      characterIntegrity: 'json_character_lock + free_chatbots',
+      paidFaceLock: 'optional_future_replicate'
+    }
   });
 });
 
