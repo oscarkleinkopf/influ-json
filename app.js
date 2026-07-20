@@ -1801,8 +1801,6 @@ function setupPersonaEngine() {
     toastSuccess('📋 Prompt + JSON copiados para tu chatbot');
   });
 
-  setupFreeChatbotPacks();
-
   document.getElementById('btnSaveToGallery').addEventListener('click', async () => {
     const prompt = document.getElementById('promptPreview').textContent;
     const gender = document.getElementById('pGender').value;
