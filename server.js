@@ -192,6 +192,27 @@ app.get('/api/personas/:id/variants', (req, res) => {
   res.json(dbService.getVariantsForPersona(req.params.id));
 });
 
+// Persona Anchor Pack endpoint (4 official face anchor reference photos)
+app.get('/api/personas/:id/anchor-pack', (req, res) => {
+  try {
+    const persona = dbService.getPersonaById(req.params.id);
+    const variants = dbService.getVariantsForPersona(req.params.id) || [];
+    const history = dbService.getGenerationsForPersona(req.params.id) || [];
+
+    const anchors = history.filter(h => h.generation_type === 'anchor_pack');
+
+    res.json({
+      success: true,
+      personaId: req.params.id,
+      personaName: persona ? persona.name : 'Influencer',
+      mainImage: persona ? persona.image : null,
+      anchors: anchors.length > 0 ? anchors : variants.slice(0, 4)
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/personas/:id/variants', async (req, res) => {
   const { pose, clothing, attitude, setting } = req.body;
   let { prompt } = req.body;
@@ -369,6 +390,63 @@ app.post('/api/products', (req, res) => {
   runGitBackup((gitSuccess, msg) => {
     res.json({ success: true, products: dbService.getAllProducts(), product, gitSynced: gitSuccess, gitMessage: msg });
   });
+});
+
+// Bulk Import Products (Shopify / AliExpress Dropshipping CSV / JSON)
+app.post('/api/products/import', (req, res) => {
+  try {
+    const { products } = req.body;
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ success: false, error: 'Formato inválido. Debe enviar un array de productos.' });
+    }
+    const imported = dbService.bulkImportProducts(products);
+    runGitBackup((gitSuccess, msg) => {
+      res.json({
+        success: true,
+        count: imported.length,
+        products: dbService.getAllProducts(),
+        gitSynced: gitSuccess,
+        gitMessage: msg
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+app.get('/api/workspaces', (req, res) => {
+  res.json(dbService.getAllWorkspaces());
+});
+
+app.post('/api/workspaces', (req, res) => {
+  const workspaces = dbService.createWorkspace(req.body);
+  runGitBackup((gitSuccess, msg) => {
+    res.json({ success: true, workspaces, gitSynced: gitSuccess, gitMessage: msg });
+  });
+});
+
+// Commercial License & Intellectual Property Compliance (Idea 4)
+app.get('/api/personas/:id/commercial-license', (req, res) => {
+  try {
+    const persona = dbService.getPersonaById(req.params.id);
+    if (!persona) return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
+
+    const license = {
+      licenseId: `LIC-INFLU-${persona.id.substring(0, 8).toUpperCase()}`,
+      issuedAt: new Date().toISOString(),
+      personaName: persona.name,
+      ethnicity: persona.ethnicity || 'Latina',
+      age: persona.age || '25 años',
+      status: 'VERIFIED_VIRTUAL_INFLUENCER_IP',
+      rightsHolder: req.query.brand || 'Dropshipping Master Brand LLC',
+      platformsCompliant: ['Meta Business Manager', 'TikTok Shop', 'Instagram Ads', 'YouTube Shorts'],
+      disclosureRequired: 'Synthetic Interpreter Disclosure (NY State Compliant)',
+      masterSeed: Array.from(String(persona.id)).reduce((a, b) => a + b.charCodeAt(0), 0)
+    };
+
+    res.json({ success: true, license });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Campaigns endpoints
@@ -765,59 +843,77 @@ app.post('/api/upload-reference-url', async (req, res) => {
 async function triggerBackgroundVariants(persona) {
   if (!persona || !persona.id) return;
 
-  const variantSpecs = [
+  const anchorSpecs = [
     {
-      pose: 'Pose casual de frente con sonrisa cálida',
-      clothing: 'Atuendo casual (chaqueta denim o top cómodo)',
-      attitude: 'Cálida, amigable, accesible',
-      setting: 'Cafetería acogedora o sala iluminada por el sol',
-      mode: 'traditional',
+      anchorType: 'front_portrait',
+      title: 'Retrato de Frente',
+      pose: 'Retrato de frente mirando directamente a cámara',
+      clothing: persona.clothing || 'Atuendo casual cómodo',
+      attitude: 'Expresión neutra y natural',
+      setting: 'Estudio de fotografía minimalista',
+      mode: 'anchor',
       framing: 'portrait'
     },
     {
-      pose: 'Pose de cuerpo entero de pie, postura natural',
-      clothing: 'Blazer casual o conjunto streetwear moderno',
-      attitude: 'Confiada, relajada, profesional',
-      setting: 'Estudio minimalista moderno con fondo neutro suave',
-      mode: 'traditional',
-      framing: 'fullbody'
+      anchorType: 'profile_45',
+      title: 'Perfil 45 Grados',
+      pose: 'Retrato en ángulo de 3/4 a 45 grados de perfil',
+      clothing: persona.clothing || 'Atuendo casual cómodo',
+      attitude: 'Mirada en 3/4 suave',
+      setting: 'Estudio de fotografía minimalista',
+      mode: 'anchor',
+      framing: 'portrait'
     },
     {
-      pose: 'Pose relajada en la playa o piscina con luz solar',
-      clothing: 'Traje de baño de verano elegante',
-      attitude: 'Atractiva, confiada, veraniega',
-      setting: 'Playa tropical o terraza de piscina de lujo con luz de día',
-      mode: 'spicy',
+      anchorType: 'expression_wink',
+      title: 'Expresión y Sonrisa',
+      pose: 'Plano medio con sonrisa abierta y guiño de ojo espontáneo',
+      clothing: persona.clothing || 'Atuendo casual cómodo',
+      attitude: 'Alegre, divertida, expresiva',
+      setting: 'Ambiente de luz natural',
+      mode: 'anchor',
       framing: 'medium'
     },
     {
-      pose: 'Pose de retrato glamour en sofá o sillón',
-      clothing: 'Vestido elegante de satén',
-      attitude: 'Seductora, sofisticada, atmosférica',
-      setting: 'Habitación de hotel de lujo con iluminación cálida de ambiente',
-      mode: 'spicy',
-      framing: 'portrait'
+      anchorType: 'fullbody_studio',
+      title: 'Cuerpo Completo',
+      pose: 'Fotografía de cuerpo completo de pie en estudio',
+      clothing: persona.clothing || 'Atuendo casual completo',
+      attitude: 'Postura erguida y profesional',
+      setting: 'Fondo de estudio neutro con luz uniforme',
+      mode: 'anchor',
+      framing: 'fullbody'
     }
   ];
 
-  for (let i = 0; i < variantSpecs.length; i++) {
-    const spec = variantSpecs[i];
-    const label = `variant_${spec.mode}_${i + 1}_${persona.name || persona.id}`;
+  for (let i = 0; i < anchorSpecs.length; i++) {
+    const spec = anchorSpecs[i];
+    const label = `anchor_${spec.anchorType}_${persona.name || persona.id}`;
 
     genQueue.enqueue(label, async () => {
-      const eth = persona.ethnicity || 'Latina';
-      const age = persona.age || '25 años';
-      const name = persona.name || 'Influencer';
-
-      const prompt = `Realistic photograph of ${name}, a ${age} ${eth} influencer. Pose: ${spec.pose}. Outfit: ${spec.clothing}. Attitude: ${spec.attitude}. Setting: ${spec.setting}. IDENTITY LOCK: preserve face characteristics from reference image.`;
+      const prompt = aiService.buildUnifiedMasterPrompt({
+        name: persona.name || 'Influencer',
+        age: persona.age || '25 años',
+        gender: persona.gender || 'Female',
+        ethnicity: persona.ethnicity || 'Latina',
+        hair: persona.hair || 'dark brown wavy hair',
+        skinTone: persona.skinTone || 'fair light',
+        skinHex: persona.skinHex || '#f0d5c0',
+        framing: spec.framing,
+        clothing: spec.clothing,
+        pose: spec.pose,
+        setting: spec.setting,
+        photoreal: true,
+        identityLock: true
+      });
 
       const referenceUrl = persona.image || null;
-      const seedHash = Array.from(String(persona.id)).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const seed = Math.floor(Math.random() * 1000000);
 
       const imagePath = await aiService.generateInfluencerImage(prompt, referenceUrl, {
         photoreal: true,
         identityLock: true,
-        seed: seedHash + i * 13,
+        seed,
         framing: spec.framing
       });
 
@@ -835,14 +931,14 @@ async function triggerBackgroundVariants(persona) {
           persona_id: persona.id,
           prompt,
           image_path: imagePath,
-          generation_type: 'variant',
-          metadata: JSON.stringify(spec)
+          generation_type: 'anchor_pack',
+          metadata: JSON.stringify({ ...spec, seed })
         });
 
-        console.log(`[background-variants] Generated variant ${i + 1}/4 (${spec.mode}) for ${persona.name}: ${imagePath}`);
+        console.log(`[anchor-pack] Generated anchor ${i + 1}/4 (${spec.anchorType}) for ${persona.name}: ${imagePath}`);
       }
     }).catch(err => {
-      console.warn(`[background-variants] Failed to generate variant ${i + 1} for ${persona.name}:`, err.message);
+      console.warn(`[anchor-pack] Failed to generate anchor ${i + 1} for ${persona.name}:`, err.message);
     });
   }
 }
