@@ -3,10 +3,11 @@
  * - One generation at a time (no parallel spam)
  * - Minimum gap between jobs to reduce HTTP 429
  * - Tracks last rate-limit time for status/UX
+ * - Automatic task retry on HTTP 429 rate limit
  */
 
-const MIN_GAP_MS = Number(process.env.GEN_MIN_GAP_MS) || 10000; // 10s between jobs
-const RATE_LIMIT_COOLDOWN_MS = Number(process.env.GEN_429_COOLDOWN_MS) || 30000; // 30s after 429
+const getMinGapMs = () => (process.env.GEN_MIN_GAP_MS !== undefined ? Number(process.env.GEN_MIN_GAP_MS) : 10000);
+const getCooldownMs = () => (process.env.GEN_429_COOLDOWN_MS !== undefined ? Number(process.env.GEN_429_COOLDOWN_MS) : 30000);
 
 let chain = Promise.resolve();
 let busy = false;
@@ -22,19 +23,28 @@ function sleep(ms) {
 
 function getStatus() {
   const now = Date.now();
+  const cooldownMs = getCooldownMs();
+  const minGapMs = getMinGapMs();
   const since429 = lastRateLimitedAt ? now - lastRateLimitedAt : null;
-  const in429Cooldown = lastRateLimitedAt && since429 < RATE_LIMIT_COOLDOWN_MS;
-  const gapLeft = Math.max(0, MIN_GAP_MS - (now - lastJobFinishedAt));
+  const in429Cooldown = lastRateLimitedAt ? since429 < cooldownMs : false;
+  const cooldownRemainingMs = in429Cooldown ? Math.max(0, cooldownMs - since429) : 0;
+  const gapLeft = Math.max(0, minGapMs - (now - lastJobFinishedAt));
+
   return {
+    active: busy,
+    pendingCount: queueLength,
+    isCoolingDown: !!in429Cooldown,
+    cooldownRemainingMs,
+    currentTaskInfo: busy ? { label: currentLabel, startedAt: lastJobStartedAt } : null,
     busy,
     queueLength,
     currentLabel,
-    minGapMs: MIN_GAP_MS,
-    rateLimitCooldownMs: RATE_LIMIT_COOLDOWN_MS,
+    minGapMs,
+    rateLimitCooldownMs: cooldownMs,
     lastRateLimitedAt: lastRateLimitedAt || null,
     rateLimitActive: !!in429Cooldown,
     retryAfterSeconds: in429Cooldown
-      ? Math.ceil((RATE_LIMIT_COOLDOWN_MS - since429) / 1000)
+      ? Math.ceil(cooldownRemainingMs / 1000)
       : busy
         ? null
         : gapLeft > 0
@@ -48,7 +58,7 @@ function getStatus() {
  */
 function markRateLimited() {
   lastRateLimitedAt = Date.now();
-  console.warn(`[gen-queue] Rate limited at ${new Date(lastRateLimitedAt).toISOString()} — cooldown ${RATE_LIMIT_COOLDOWN_MS}ms`);
+  console.warn(`[gen-queue] Rate limited at ${new Date(lastRateLimitedAt).toISOString()} — cooldown ${getCooldownMs()}ms`);
 }
 
 /**
@@ -61,9 +71,12 @@ function enqueue(label, jobFn) {
   const job = chain.then(async () => {
     queueLength = Math.max(0, queueLength - 1);
 
+    const cooldownMs = getCooldownMs();
+    const minGapMs = getMinGapMs();
+
     // Honor post-429 cooldown
     if (lastRateLimitedAt) {
-      const left = RATE_LIMIT_COOLDOWN_MS - (Date.now() - lastRateLimitedAt);
+      const left = cooldownMs - (Date.now() - lastRateLimitedAt);
       if (left > 0) {
         console.log(`[gen-queue] Waiting ${left}ms (429 cooldown) before "${label}"`);
         await sleep(left);
@@ -72,8 +85,8 @@ function enqueue(label, jobFn) {
 
     // Minimum gap between jobs
     const sinceFinish = Date.now() - lastJobFinishedAt;
-    if (lastJobFinishedAt && sinceFinish < MIN_GAP_MS) {
-      const wait = MIN_GAP_MS - sinceFinish;
+    if (lastJobFinishedAt && sinceFinish < minGapMs) {
+      const wait = minGapMs - sinceFinish;
       console.log(`[gen-queue] Gap wait ${wait}ms before "${label}"`);
       await sleep(wait);
     }
@@ -83,14 +96,30 @@ function enqueue(label, jobFn) {
     lastJobStartedAt = Date.now();
     console.log(`[gen-queue] START "${currentLabel}" (queue left: ${queueLength})`);
 
+    let attempts = 0;
+    const maxRetries = 2; // Allow up to 2 automatic retries on 429
+
     try {
-      const result = await jobFn();
-      return result;
-    } catch (err) {
-      if (err && (err.status === 429 || /429|rate limit|límite/i.test(err.message || ''))) {
-        markRateLimited();
+      while (true) {
+        try {
+          const result = await jobFn();
+          return result;
+        } catch (err) {
+          const is429 = err && (err.status === 429 || /429|rate limit|límite/i.test(err.message || ''));
+          if (is429 && attempts < maxRetries) {
+            attempts++;
+            markRateLimited();
+            const currentCooldown = getCooldownMs();
+            console.warn(`[gen-queue] Task "${currentLabel}" hit 429 rate limit. Cooling down ${currentCooldown}ms before retry attempt ${attempts}/${maxRetries}...`);
+            await sleep(currentCooldown);
+            continue;
+          }
+          if (is429) {
+            markRateLimited();
+          }
+          throw err;
+        }
       }
-      throw err;
     } finally {
       busy = false;
       currentLabel = null;
@@ -108,6 +137,7 @@ module.exports = {
   enqueue,
   getStatus,
   markRateLimited,
-  MIN_GAP_MS,
-  RATE_LIMIT_COOLDOWN_MS
+  get MIN_GAP_MS() { return getMinGapMs(); },
+  get RATE_LIMIT_COOLDOWN_MS() { return getCooldownMs(); }
 };
+

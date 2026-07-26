@@ -1416,9 +1416,20 @@
       <div id="importStep1">
         <div class="editor-form-group">
           <div style="margin-bottom: 18px;">
-            <label for="importImages" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px;">📷 Seleccionar Fotos (Recomendado: 3 a 6 fotos de rostro)</label>
-            <input type="file" id="importImages" multiple accept="image/*" 
-              style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-secondary); font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label style="font-weight: 600; font-size: 12px; margin: 0;">📷 Fotos de Referencia (Máximo 4)</label>
+              <span class="import-counter-badge" id="importCounterBadge">0/4 cargadas</span>
+            </div>
+            
+            <div class="import-dropzone" id="importDropzone">
+              <input type="file" id="importImages" multiple accept="image/*" style="display: none;">
+              <span class="import-dropzone-icon">📥</span>
+              <p style="font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 4px 0;">Arrastra fotos aquí o haz clic para buscar</p>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Sube de 1 a 4 fotos de rostro (JPG, PNG, WEBP)</p>
+            </div>
+
+            <!-- Dynamic Thumbnail Preview Strip -->
+            <div class="import-thumbnail-strip" id="importThumbnailStrip"></div>
             <div id="importFilesFeedback" style="display: none; margin-top: 6px; font-size: 11px; color: var(--accent-primary); font-weight: 500;"></div>
           </div>
 
