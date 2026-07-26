@@ -414,6 +414,30 @@ module.exports = {
       finalPrompt += ' Keep the exact same face as the reference image; only outfit, pose and background may change.';
     }
 
+    // 1. Detect Beach / Outdoor Setting Override & strip conflicting indoor defaults
+    const isBeachRequest = /playa|beach|mar|ocean|seaside|costa|shore|piscina|pool|solead[ao]|mediodia|midday sun/i.test(finalPrompt);
+    if (isBeachRequest) {
+      finalPrompt = finalPrompt
+        .replace(/Background is a [^.]*interior[^.]*/gi, 'Background is a sunny tropical beach')
+        .replace(/Background is a [^.]*casa[^.]*/gi, 'Background is a sunny tropical beach')
+        .replace(/interior de casa minimalista/gi, 'outdoor sunny tropical beach')
+        .replace(/habitación/gi, 'outdoor beach');
+
+      finalPrompt = `OUTDOOR SUNNY BEACH PHOTOGRAPH, direct bright midday sunlight, clear blue sky, turquoise ocean shoreline, golden sand. ${finalPrompt} SETTING LOCK (critical): bright sunny outdoor tropical beach at midday, sunny sky, turquoise sea and sand, NOT indoors, NOT a bedroom, NOT a house.`;
+    }
+
+    // 2. Detect Bikini / Swimwear Outfit Override & strip conflicting casual/sports tops
+    const isBikiniRequest = /bikini|swimsuit|swimwear|traje de baño|trajedebaño/i.test(finalPrompt);
+    if (isBikiniRequest) {
+      finalPrompt = finalPrompt
+        .replace(/Wearing camiseta casual[^.]*/gi, 'Wearing a stylish two-piece beach bikini')
+        .replace(/Wearing top deportivo[^.]*/gi, 'Wearing a stylish two-piece beach bikini')
+        .replace(/camiseta casual/gi, 'two-piece beach bikini swimsuit')
+        .replace(/top deportivo/gi, 'two-piece beach bikini swimsuit');
+
+      finalPrompt += `. OUTFIT LOCK: stylish two-piece beach bikini swimsuit, high quality beach swimwear, summer beach outfit, NOT sports bra, NOT underwear, NOT gym clothes, NOT t-shirt.`;
+    }
+
     const framing = this.resolveFraming(options, finalPrompt);
     const { width, height } = this.framingDimensions(framing);
     // Always fight vertical stretch / funhouse proportions from aspect changes
