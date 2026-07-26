@@ -344,6 +344,81 @@ module.exports = {
   },
 
   /**
+   * 7-Layer Unified Master Prompt Generator
+   * Consolidates framing, identity, outfit, pose, product, setting, and style locks without contradictions.
+   */
+  buildUnifiedMasterPrompt(params = {}) {
+    const {
+      name = 'Influencer',
+      age = '25 años',
+      gender = 'Female',
+      ethnicity = 'Latina',
+      hair = 'dark brown wavy hair',
+      skinTone = 'fair light',
+      skinHex = '#f0d5c0',
+      eyeColor = 'brown eyes',
+      faceShape = 'oval face',
+      smileType = 'natural warm smile',
+      framing = 'medium',
+      clothing = '',
+      pose = '',
+      product = '',
+      setting = '',
+      lighting = 'natural daylight',
+      photoreal = true,
+      identityLock = true
+    } = params;
+
+    // Layer 1: Framing Lead-in
+    let framingLeadIn = 'MEDIUM SHOT PHOTOGRAPH, showing face and upper body.';
+    if (framing === 'fullbody' || /full\s*body|full-body|cuerpo entero|cuerpo completo|head to toe/i.test(`${framing} ${pose} ${setting}`)) {
+      framingLeadIn = 'FULL BODY PHOTOGRAPH, head-to-toe wide angle shot, subject fully visible from shoes to top of hair, standing, camera 3 meters back, wide environmental shot.';
+    } else if (framing === 'portrait' || /close-up|primer plano|portrait|headshot/i.test(`${framing} ${pose}`)) {
+      framingLeadIn = 'CLOSE-UP BEAUTY PORTRAIT PHOTOGRAPH, head and shoulders framing, sharp facial detail.';
+    }
+
+    // Layer 2: Subject & Identity
+    const identityClause = `A ${age} ${ethnicity} ${gender.toLowerCase()} influencer named ${name} with ${hair}, skin tone ${skinTone} (${skinHex}), ${eyeColor}, ${faceShape}, ${smileType}.`;
+
+    // Layer 3: Outfit & Styling (detect swimwear/bikini or user custom vs default)
+    let outfitClause = `Wearing ${clothing || 'casual stylish outfit'}.`;
+    if (/bikini|swimsuit|swimwear|traje de baño|trajedebaño/i.test(`${clothing} ${pose} ${setting}`)) {
+      outfitClause = `Wearing a stylish two-piece beach bikini swimsuit, high quality summer beach swimwear.`;
+    }
+
+    // Layer 4: Pose & Expression
+    const poseClause = pose ? `Posing: ${pose}.` : `Posing naturally and comfortably toward camera.`;
+
+    // Layer 5: Product / Props (if provided)
+    const productClause = product ? `Holding product: ${product} naturally in hand.` : '';
+
+    // Layer 6: Setting & Lighting
+    let settingClause = `Background is ${setting || 'a bright modern indoor room'}. Lighting: ${lighting}.`;
+    if (/playa|beach|mar|ocean|seaside|costa|shore|piscina|pool|solead[ao]|mediodia|midday sun/i.test(`${setting} ${pose} ${clothing}`)) {
+      settingClause = `Background is a bright sunny outdoor tropical beach at midday, clear blue sky, turquoise ocean shoreline, golden sand. Direct bright midday sunlight.`;
+    }
+
+    // Layer 7: Technical & Style Locks
+    const photorealClause = photoreal ? `Shot on smartphone camera, natural skin texture on face and body, raw photo format, unedited. NOT 3D render, NOT CGI plastic, NOT doll.` : `Realistic photo.`;
+    const anatomyLock = `PROPORTIONS LOCK: natural real human anatomy, correct head-to-body ratio, NOT elongated, NOT stretched vertically, NOT distorted face.`;
+    const skinLock = `SKIN LOCK (critical): keep exact light/dark complexion as ${skinTone} (${skinHex}), NOT dark, NOT deep tan, NOT morena.`;
+    const identityFaceLock = identityLock ? `IDENTITY LOCK: preserve identical facial features from reference image.` : '';
+
+    return [
+      framingLeadIn,
+      identityClause,
+      outfitClause,
+      poseClause,
+      productClause,
+      settingClause,
+      photorealClause,
+      anatomyLock,
+      skinLock,
+      identityFaceLock
+    ].filter(Boolean).join(' ');
+  },
+
+  /**
    * framing: 'portrait' | 'medium' | 'fullbody'
    * fullbody needs taller canvas + lower img2img strength or portrait refs force close-ups
    */
