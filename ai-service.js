@@ -344,8 +344,8 @@ module.exports = {
   },
 
   /**
-   * 7-Layer Unified Master Prompt Generator
-   * Consolidates framing, identity, outfit, pose, product, setting, and style locks without contradictions.
+   * Universal Master Prompt Engine (100% Generic & Dynamic)
+   * Consolidates framing, identity, outfit, pose, product, setting, and style locks for ANY persona & ANY prompt.
    */
   buildUnifiedMasterPrompt(params = {}) {
     const {
@@ -369,36 +369,48 @@ module.exports = {
       identityLock = true
     } = params;
 
-    // Layer 1: Framing Lead-in
+    const fullText = `${framing} ${pose} ${clothing} ${setting} ${product}`;
+
+    // 1. Universal Framing Lead-in
     let framingLeadIn = 'MEDIUM SHOT PHOTOGRAPH, showing face and upper body.';
-    if (framing === 'fullbody' || /full\s*body|full-body|cuerpo entero|cuerpo completo|head to toe/i.test(`${framing} ${pose} ${setting}`)) {
+    if (/full\s*body|full-body|cuerpo entero|cuerpo completo|de cuerpo entero|de cuerpo completo|head to toe|standing full|wide shot|plano entero/i.test(fullText)) {
       framingLeadIn = 'FULL BODY PHOTOGRAPH, head-to-toe wide angle shot, subject fully visible from shoes to top of hair, standing, camera 3 meters back, wide environmental shot.';
-    } else if (framing === 'portrait' || /close-up|primer plano|portrait|headshot/i.test(`${framing} ${pose}`)) {
+    } else if (/close-up|primer plano|portrait|headshot|retrato/i.test(fullText)) {
       framingLeadIn = 'CLOSE-UP BEAUTY PORTRAIT PHOTOGRAPH, head and shoulders framing, sharp facial detail.';
     }
 
-    // Layer 2: Subject & Identity
+    // 2. Identity Baseline
     const identityClause = `A ${age} ${ethnicity} ${gender.toLowerCase()} influencer named ${name} with ${hair}, skin tone ${skinTone} (${skinHex}), ${eyeColor}, ${faceShape}, ${smileType}.`;
 
-    // Layer 3: Outfit & Styling (detect swimwear/bikini or user custom vs default)
-    let outfitClause = `Wearing ${clothing || 'casual stylish outfit'}.`;
-    if (/bikini|swimsuit|swimwear|traje de baño|trajedebaño/i.test(`${clothing} ${pose} ${setting}`)) {
+    // 3. Universal Outfit Parsing
+    let outfitClause = clothing ? `Wearing ${clothing}.` : `Wearing casual stylish outfit.`;
+    if (/bikini|swimsuit|swimwear|traje de baño|trajedebaño/i.test(fullText)) {
       outfitClause = `Wearing a stylish two-piece beach bikini swimsuit, high quality summer beach swimwear.`;
+    } else if (/oficina|office|blazer|traje ejecutivo|business suit|ropas de oficina/i.test(fullText)) {
+      outfitClause = `Wearing professional office business attire, elegant blazer suit.`;
+    } else if (/deportiv[ao]|gym|fitness|workout|sports bra/i.test(fullText)) {
+      outfitClause = `Wearing stylish athletic gym sportswear outfit.`;
     }
 
-    // Layer 4: Pose & Expression
+    // 4. Pose & Action
     const poseClause = pose ? `Posing: ${pose}.` : `Posing naturally and comfortably toward camera.`;
 
-    // Layer 5: Product / Props (if provided)
+    // 5. Product / Props
     const productClause = product ? `Holding product: ${product} naturally in hand.` : '';
 
-    // Layer 6: Setting & Lighting
-    let settingClause = `Background is ${setting || 'a bright modern indoor room'}. Lighting: ${lighting}.`;
-    if (/playa|beach|mar|ocean|seaside|costa|shore|piscina|pool|solead[ao]|mediodia|midday sun/i.test(`${setting} ${pose} ${clothing}`)) {
+    // 6. Universal Setting & Environment Parsing
+    let settingClause = setting ? `Background is ${setting}. Lighting: ${lighting}.` : `Background is a bright modern indoor room. Lighting: ${lighting}.`;
+    if (/playa|beach|mar|ocean|seaside|costa|shore|piscina|pool|solead[ao]|mediodia/i.test(fullText)) {
       settingClause = `Background is a bright sunny outdoor tropical beach at midday, clear blue sky, turquoise ocean shoreline, golden sand. Direct bright midday sunlight.`;
+    } else if (/café|cafe|coffee shop|oficina|office|escritorio|desk|negocios/i.test(fullText)) {
+      settingClause = `Background is a cozy modern cafe interior with coffee shop wooden table, warm ambient indoor lighting, professional atmosphere.`;
+    } else if (/gimnasio|gym|fitness studio/i.test(fullText)) {
+      settingClause = `Background is a modern fitness gym studio with clean equipment.`;
+    } else if (/parque|park|jardín|garden|naturaleza|nature|bosque|forest/i.test(fullText)) {
+      settingClause = `Background is a lush green outdoor natural park with trees and soft sunlight.`;
     }
 
-    // Layer 7: Technical & Style Locks
+    // 7. Technical & Style Locks
     const photorealClause = photoreal ? `Shot on smartphone camera, natural skin texture on face and body, raw photo format, unedited. NOT 3D render, NOT CGI plastic, NOT doll.` : `Realistic photo.`;
     const anatomyLock = `PROPORTIONS LOCK: natural real human anatomy, correct head-to-body ratio, NOT elongated, NOT stretched vertically, NOT distorted face.`;
     const skinLock = `SKIN LOCK (critical): keep exact light/dark complexion as ${skinTone} (${skinHex}), NOT dark, NOT deep tan, NOT morena.`;
@@ -489,28 +501,37 @@ module.exports = {
       finalPrompt += ' Keep the exact same face as the reference image; only outfit, pose and background may change.';
     }
 
-    // 1. Detect Beach / Outdoor Setting Override & strip conflicting indoor defaults
-    const isBeachRequest = /playa|beach|mar|ocean|seaside|costa|shore|piscina|pool|solead[ao]|mediodia|midday sun/i.test(finalPrompt);
-    if (isBeachRequest) {
-      finalPrompt = finalPrompt
-        .replace(/Background is a [^.]*interior[^.]*/gi, 'Background is a sunny tropical beach')
-        .replace(/Background is a [^.]*casa[^.]*/gi, 'Background is a sunny tropical beach')
-        .replace(/interior de casa minimalista/gi, 'outdoor sunny tropical beach')
-        .replace(/habitación/gi, 'outdoor beach');
+    // 1. Detect Setting & Outfit Overrides from user prompt dynamically
+    let detectedSetting = null;
+    let detectedOutfit = null;
 
-      finalPrompt = `OUTDOOR SUNNY BEACH PHOTOGRAPH, direct bright midday sunlight, clear blue sky, turquoise ocean shoreline, golden sand. ${finalPrompt} SETTING LOCK (critical): bright sunny outdoor tropical beach at midday, sunny sky, turquoise sea and sand, NOT indoors, NOT a bedroom, NOT a house.`;
+    if (/café|cafe|coffee shop|oficina|office|escritorio|desk|negocios|business/i.test(finalPrompt)) {
+      detectedSetting = 'COZY MODERN CAFE INTERIOR, elegant coffee shop table, warm ambient indoor lighting, professional atmosphere';
+      if (/oficina|office|ejecutiva|business|ropas de oficina/i.test(finalPrompt)) {
+        detectedOutfit = 'professional office business attire, elegant blazer and trousers';
+      }
+    } else if (/playa|beach|mar|ocean|seaside|costa|shore|piscina|pool/i.test(finalPrompt)) {
+      detectedSetting = 'OUTDOOR SUNNY TROPICAL BEACH, direct bright midday sunlight, clear blue sky, turquoise ocean, golden sand';
     }
 
-    // 2. Detect Bikini / Swimwear Outfit Override & strip conflicting casual/sports tops
-    const isBikiniRequest = /bikini|swimsuit|swimwear|traje de baño|trajedebaño/i.test(finalPrompt);
-    if (isBikiniRequest) {
-      finalPrompt = finalPrompt
-        .replace(/Wearing camiseta casual[^.]*/gi, 'Wearing a stylish two-piece beach bikini')
-        .replace(/Wearing top deportivo[^.]*/gi, 'Wearing a stylish two-piece beach bikini')
-        .replace(/camiseta casual/gi, 'two-piece beach bikini swimsuit')
-        .replace(/top deportivo/gi, 'two-piece beach bikini swimsuit');
+    if (/bikini|swimsuit|swimwear|traje de baño|trajedebaño/i.test(finalPrompt)) {
+      detectedOutfit = 'stylish two-piece beach bikini swimsuit, high quality swimwear';
+    }
 
-      finalPrompt += `. OUTFIT LOCK: stylish two-piece beach bikini swimsuit, high quality beach swimwear, summer beach outfit, NOT sports bra, NOT underwear, NOT gym clothes, NOT t-shirt.`;
+    // Clean any old hardcoded lock fragments or conflicting default backgrounds/clothing from finalPrompt
+    finalPrompt = finalPrompt
+      .replace(/OUTDOOR SUNNY BEACH PHOTOGRAPH[^.]*\./gi, '')
+      .replace(/SETTING LOCK \(critical\):[^.]*\./gi, '')
+      .replace(/OUTFIT LOCK:[^.]*\./gi, '')
+      .replace(/Background is a [^.]*interior[^.]*/gi, '')
+      .replace(/Background is a [^.]*casa[^.]*/gi, '');
+
+    if (detectedSetting) {
+      finalPrompt = `${detectedSetting}. ${finalPrompt} SETTING LOCK: ${detectedSetting}.`;
+    }
+
+    if (detectedOutfit) {
+      finalPrompt = `${finalPrompt} OUTFIT LOCK: wearing ${detectedOutfit}.`;
     }
 
     const framing = this.resolveFraming(options, finalPrompt);
