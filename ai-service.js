@@ -413,7 +413,16 @@ module.exports = {
     // 7. Technical & Style Locks
     const photorealClause = photoreal ? `Shot on smartphone camera, natural skin texture on face and body, raw photo format, unedited. NOT 3D render, NOT CGI plastic, NOT doll.` : `Realistic photo.`;
     const anatomyLock = `PROPORTIONS LOCK: natural real human anatomy, correct head-to-body ratio, NOT elongated, NOT stretched vertically, NOT distorted face.`;
-    const skinLock = `SKIN LOCK (critical): keep exact light/dark complexion as ${skinTone} (${skinHex}), NOT dark, NOT deep tan, NOT morena.`;
+    
+    // Dynamic Skin Lock for ANY ethnicity and complexion
+    let skinLock = `SKIN LOCK (critical): keep exact complexion matching ${skinTone} (${skinHex}).`;
+    if (/fair|light|blanca|clara/i.test(skinTone)) {
+      skinLock += ` NOT deep tan, NOT sunburned.`;
+    } else if (/dark|afro|black|morena|oscura|brown/i.test(skinTone + ' ' + ethnicity)) {
+      skinLock += ` preserve rich dark melanin skin tone, NOT pale, NOT washed out.`;
+    } else if (/olive|tan|trigueña|bronceada/i.test(skinTone + ' ' + ethnicity)) {
+      skinLock += ` preserve warm golden olive complexion, NOT pale.`;
+    }
     const identityFaceLock = identityLock ? `IDENTITY LOCK: preserve identical facial features from reference image.` : '';
 
     return [
