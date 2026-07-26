@@ -487,7 +487,7 @@ app.post('/api/ai/generate-scripts', (req, res) => {
 });
 
 app.post('/api/ai/generate-image', async (req, res) => {
-  const { prompt, referenceLocalPath } = req.body;
+  const { prompt, referenceLocalPath, options, framing } = req.body;
   
   let referenceUrl = null;
   if (referenceLocalPath && !referenceLocalPath.startsWith('http')) {
@@ -498,7 +498,10 @@ app.post('/api/ai/generate-image', async (req, res) => {
     }
   }
 
-  aiService.generateInfluencerImage(prompt, referenceUrl)
+  const genOptions = options || {};
+  if (framing) genOptions.framing = framing;
+
+  aiService.generateInfluencerImage(prompt, referenceUrl, genOptions)
     .then(imagePath => {
       // Save to generation history
       try {

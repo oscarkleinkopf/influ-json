@@ -350,7 +350,7 @@ module.exports = {
   resolveFraming(options = {}, prompt = '') {
     const f = options.framing || options.shotType || '';
     const text = `${f} ${prompt}`;
-    if (/full\s*body|full-body|cuerpo entero|head to toe|head-to-toe|mirror selfie.*full|standing full|wide shot|plano entero/i.test(text)) {
+    if (/full\s*body|full-body|cuerpo entero|cuerpo completo|de cuerpo entero|de cuerpo completo|bikini completo|head to toe|head-to-toe|mirror selfie.*full|standing full|wide shot|plano entero/i.test(text)) {
       return 'fullbody';
     }
     if (/close-up|primer plano|selfie portrait|macro beauty|face only|headshot/i.test(text)) {
@@ -361,8 +361,8 @@ module.exports = {
   },
 
   framingDimensions(framing) {
-    // Square for face/medium (no stretch). Slightly taller 3:4 for full-body only.
-    if (framing === 'fullbody') return { width: 768, height: 1152 }; // enough height for feet→head
+    // Square for face/medium (no stretch). Taller 3:4 ratio (768x1024) for full-body.
+    if (framing === 'fullbody') return { width: 768, height: 1024 }; // 3:4 ratio for full body without face distortion
     return { width: 768, height: 768 };
   },
 
