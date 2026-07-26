@@ -237,19 +237,14 @@ app.post('/api/personas/:id/variants', async (req, res) => {
     || /latex|látex|catsuit|vinyl|PHOTOREALISM|IDENTITY LOCK/i.test(prompt || '');
   const identityLock = req.body.identityLock === true || /IDENTITY LOCK/i.test(prompt || '');
 
-  // Deterministic seed from persona id if client didn't send one
+  // Dynamic seed per generation request to prevent Pollinations cache duplication
   let seed = req.body.seed;
-  if (seed == null && persona && persona.id) {
-    let h = 2166136261;
-    for (let i = 0; i < persona.id.length; i++) {
-      h ^= persona.id.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    seed = (h >>> 0) % 1000000;
+  if (seed == null) {
+    seed = Math.floor(Math.random() * 1000000);
   }
 
   const framing = req.body.framing
-    || (/full\s*body|cuerpo entero|head to toe|mirror selfie|standing full/i.test(`${pose} ${prompt}`)
+    || (/full\s*body|full-body|cuerpo entero|cuerpo completo|de cuerpo entero|de cuerpo completo|bikini completo|head to toe|mirror selfie|standing full/i.test(`${pose} ${prompt}`)
       ? 'fullbody'
       : (/primer plano|close-up|portrait|rostro|headshot/i.test(`${pose} ${prompt}`) ? 'portrait' : 'medium'));
 
@@ -500,6 +495,9 @@ app.post('/api/ai/generate-image', async (req, res) => {
 
   const genOptions = options || {};
   if (framing) genOptions.framing = framing;
+  if (genOptions.seed == null) {
+    genOptions.seed = Math.floor(Math.random() * 1000000);
+  }
 
   aiService.generateInfluencerImage(prompt, referenceUrl, genOptions)
     .then(imagePath => {
