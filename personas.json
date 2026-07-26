@@ -103,6 +103,16 @@
     "archived": 0,
     "variants": [
       {
+        "id": "6f57dc9a-250b-47bf-9e51-3c564ae80bb2",
+        "persona_id": "ce965967-f3a1-48a5-b3d1-d6ba17f37f52",
+        "pose": "full body mirror selfie head to toe holding phone, entire body visible feet to head (full-body mirror selfie)",
+        "clothing": "Ropa de trabajo: Traje sastre gris con blazer entallado y blusa blanca",
+        "attitude": "pensativa mirando hacia el horizonte (thoughtful distant gaze)",
+        "setting": "Fondo de cafetería moderna iluminada de día (modern bright cafe interior)",
+        "image_path": "assets/generated/gen_flux_1785035121440.jpg",
+        "created_at": "2026-07-26 03:05:21"
+      },
+      {
         "id": "74b51707-60d1-4589-961e-f31c485ee648",
         "persona_id": "ce965967-f3a1-48a5-b3d1-d6ba17f37f52",
         "pose": "Plano medio-corto de brazo extendido (candid hand-held selfie medium shot)",
