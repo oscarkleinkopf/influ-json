@@ -103,6 +103,16 @@
     "archived": 0,
     "variants": [
       {
+        "id": "1eaa0a48-d0af-479f-9af7-a727b55485a7",
+        "persona_id": "ce965967-f3a1-48a5-b3d1-d6ba17f37f52",
+        "pose": "full body standing fashion model pose head to toe, camera far back, entire figure visible including feet and shoes (full-body standing pose)",
+        "clothing": "Traje de baño: Bikini de dos piezas clásico (classic two-piece bikini)",
+        "attitude": "guiñando un ojo de forma juguetona e ingeniosa (playful confident wink)",
+        "setting": "Playa de arena blanca al mediodía, mar azul al fondo (bright tropical beach midday)",
+        "image_path": "assets/generated/gen_flux_1785032536566.jpg",
+        "created_at": "2026-07-26 02:22:16"
+      },
+      {
         "id": "9e7d5ce3-2f51-4f85-b78f-bec8c63d8672",
         "persona_id": "ce965967-f3a1-48a5-b3d1-d6ba17f37f52",
         "pose": "full body standing fashion model pose head to toe, camera far back, entire figure visible including feet and shoes (full-body standing pose)",

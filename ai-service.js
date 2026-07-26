@@ -361,9 +361,8 @@ module.exports = {
   },
 
   framingDimensions(framing) {
-    // Square for face/medium (no stretch). Taller 3:4 ratio (768x1024) for full-body.
-    if (framing === 'fullbody') return { width: 768, height: 1024 }; // 3:4 ratio for full body without face distortion
-    return { width: 768, height: 768 };
+    // Standard 1:1 1024x1024 square for all Pollinations calls to prevent server-side pixel stretching
+    return { width: 1024, height: 1024 };
   },
 
   async generateInfluencerImage(prompt, referenceUrl = null, options = {}) {
@@ -420,8 +419,13 @@ module.exports = {
     // Always fight vertical stretch / funhouse proportions from aspect changes
     finalPrompt += ' PROPORTIONS LOCK: natural real human anatomy, correct head-to-body ratio, NOT elongated, NOT stretched vertically, NOT distorted face, NOT long face, NOT warped limbs.';
     if (framing === 'fullbody') {
-      // Put framing as a hard lead-in (prepend) so models don't stay in portrait crop
-      finalPrompt = `FULL BODY PHOTOGRAPH, vertical frame, subject fully visible from shoes to top of hair, camera 3 meters back, wide environmental shot. ${finalPrompt} FRAMING LOCK (critical): show COMPLETE body head-to-toe, feet on ground, legs, torso, arms, head all inside the frame with margin. NOT a close-up portrait, NOT face-only, NOT cropped at chest or waist.`;
+      // Strip conflicting medium shot or portrait phrases hardcoded in prompt preview
+      finalPrompt = finalPrompt
+        .replace(/medium shot showing face AND upper body\.?/gi, 'full body shot showing complete outfit and body head-to-toe.')
+        .replace(/medium shot/gi, 'wide full body shot')
+        .replace(/natural portrait on face and shoulders/gi, 'full body environmental photograph');
+
+      finalPrompt = `FULL BODY PHOTOGRAPH, head-to-toe wide angle shot, subject fully visible from shoes to top of hair, standing, camera 3 meters back, wide environmental shot. ${finalPrompt} FRAMING LOCK (critical): show COMPLETE body head-to-toe, feet on ground, legs, torso, arms, head all inside the frame with margin. NOT a close-up portrait, NOT face-only, NOT cropped at chest or waist.`;
     } else if (framing === 'medium') {
       finalPrompt += ' FRAMING: medium shot, head to mid-thigh or waist, natural proportions, square composition.';
     } else {
