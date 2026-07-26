@@ -2882,9 +2882,171 @@ function setupUgcStudio() {
     navigator.clipboard.writeText(exportText);
     toastSuccess('📋 Pack completo copiado para tu chatbot');
   });
+
+  // Download Master JSON Pack
+  const btnDownloadJson = document.getElementById('btnDownloadJsonPack');
+  if (btnDownloadJson) {
+    btnDownloadJson.addEventListener('click', () => {
+      const personaJSON = getFullPersonaJSON();
+      const filename = `${(personaJSON.name || 'influencer').toLowerCase().replace(/\s+/g, '_')}_master_pack.json`;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(personaJSON, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", filename);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      if (typeof toastSuccess === 'function') {
+        toastSuccess(`📥 Pack JSON descargado: ${filename}`);
+      }
+    });
+  }
+
+  // Commercial License Generator Action
+  const btnLicense = document.getElementById('btnGenerateCommercialLicense');
+  if (btnLicense) {
+    btnLicense.addEventListener('click', async () => {
+      const p = state.selectedPersona || state.personas[0];
+      if (!p) return typeof toastError === 'function' ? toastError('Seleccione un influencer primero.') : alert('Seleccione un influencer primero.');
+
+      try {
+        const res = await fetch(`/api/personas/${p.id}/commercial-license`);
+        const data = await res.json();
+        if (data.success) {
+          const lic = data.license;
+          const licText = `══════════════════════════════════════════════════════════
+  CERTIFICADO DE LICENCIA COMERCIAL Y PROPIEDAD INTELECTUAL
+  VERIFIED VIRTUAL INFLUENCER COMMERCIAL LICENSE
+══════════════════════════════════════════════════════════
+
+• ID Licencia: ${lic.licenseId}
+• Fecha de Emisión: ${new Date(lic.issuedAt).toLocaleDateString()}
+• Influencer Virtual: ${lic.personaName} (${lic.ethnicity}, ${lic.age})
+• Titular de Derechos: ${lic.rightsHolder}
+• Estado de IP: VERIFIED_VIRTUAL_INFLUENCER_IP
+• Semilla Maestra DNA: ${lic.masterSeed}
+
+PLATAFORMAS COMPATIBLES:
+• ${lic.platformsCompliant.join('\n• ')}
+
+CUMPLIMIENTO NORMATIVO:
+• ${lic.disclosureRequired}
+
+Este certificado avala que los derechos comerciales de explotación de imagen, nombre y contenido del Influencer Virtual pertenecen al titular autorizado sin reclamos de terceros.
+══════════════════════════════════════════════════════════`;
+          navigator.clipboard.writeText(licText);
+          if (typeof toastSuccess === 'function') {
+            toastSuccess(`📄 Certificado de Licencia Comercial ${lic.licenseId} copiado al portapapeles`);
+          }
+        }
+      } catch (e) {
+        if (typeof toastError === 'function') toastError('Error emitiendo licencia comercial: ' + e.message);
+      }
+    });
+  }
   
+  // Commercial UGC Presets
+  document.querySelectorAll('.ugc-preset-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const presetType = e.currentTarget.getAttribute('data-preset');
+      applyUgcCommercialPreset(presetType);
+    });
+  });
+
+  // Render Creative Ad Action
+  const btnAd = document.getElementById('btnRenderAdCreative');
+  if (btnAd) {
+    btnAd.addEventListener('click', () => {
+      const format = document.getElementById('adFormatSelect')?.value || '1:1';
+      const hookText = document.getElementById('adHookSelect')?.value || '';
+      const p = state.selectedPersona || state.personas[0];
+      const prod = state.selectedProduct || { name: 'Producto' };
+
+      const promptText = window.aiService.buildUnifiedMasterPrompt({
+        name: p ? p.name : 'Influencer',
+        age: p ? p.age : '25 años',
+        gender: p ? p.gender : 'Female',
+        ethnicity: p ? p.ethnicity : 'Latina',
+        clothing: 'atuendo publicitario elegante',
+        setting: 'estudio comercial iluminado',
+        product: prod.name,
+        framing: format === '9:16' ? 'fullbody' : 'medium'
+      }) + `. AD HOOK TEXT: "${hookText}". COMMERCIAL AD CREATIVE FOR ${format.toUpperCase()}.`;
+
+      const promptPreviewEl = document.getElementById('promptPreview');
+      if (promptPreviewEl) promptPreviewEl.textContent = promptText;
+
+      const captionEl = document.getElementById('ugcPostCaption');
+      if (captionEl) captionEl.value = `🎯 ANUNCIO ${format} — ${prod.name}\n\n"${hookText}"\n\n👉 ¡Consíguelo hoy con envío rápido! #ad #dropshipping #${prod.name.toLowerCase().replace(/\s+/g, '')}`;
+
+      generateAIImageAction();
+      if (typeof toastSuccess === 'function') {
+        toastSuccess(`🎨 Anuncio publicitario ${format} compilado y enviado a generación`);
+      }
+    });
+  }
+
   // Video Pipeline Simulation Action
   document.getElementById('btnGenerateUgcVideo').addEventListener('click', startVideoPipelineSimulation);
+}
+
+function applyUgcCommercialPreset(presetType) {
+  const p = state.selectedPersona || state.personas[0];
+  const prod = state.selectedProduct || { name: 'Producto Estrella' };
+
+  let captionText = '';
+  let customSetting = '';
+  let customClothing = '';
+  let customPose = '';
+
+  if (presetType === 'skincare') {
+    captionText = `✨ Mi rutina infaltable de mañana con ${prod.name}. ¡Piel luminosa en 5 minutos sin usar filtros! 🧴💖 #skincare #skinroutine #glowup`;
+    customSetting = 'baño luminoso con espejo o tocador elegante';
+    customClothing = 'albornoz blanco cómodo de spa o top de seda';
+    customPose = 'sosteniendo frasco de suero facial sonriendo frente al espejo';
+  } else if (presetType === 'fitness') {
+    captionText = `💪 Día de pierna y energía al máximo. El atuendo y la disciplina nunca fallan con ${prod.name} 👟🔥 #gymrat #fitness #athleisure`;
+    customSetting = 'espejo de gimnasio moderno con luces tenue';
+    customClothing = 'conjunto deportivo elegante athleisure';
+    customPose = 'pose de espejo sosteniendo botella de entrenamiento';
+  } else if (presetType === 'tech') {
+    captionText = `💻 Organizando mi semana de producción con ${prod.name}. La productividad cuando usas la herramienta adecuada es otro nivel 🚀 #tech #productivity #desksetups`;
+    customSetting = 'escritorio minimalista moderno con laptop y café';
+    customClothing = 'blazer casual elegante ejecutiva';
+    customPose = 'sosteniendo smartphone o audífonos de trabajo en escritorio';
+  } else if (presetType === 'wellness') {
+    captionText = `🌿 Empezando el día con energía natural y mi smoothie con ${prod.name}. ¡Salud por los buenos hábitos! 🍹✨ #wellness #healthy #smoothie`;
+    customSetting = 'cocina moderna iluminada por luz natural de mañana';
+    customClothing = 'ropa casual cómoda de hogar';
+    customPose = 'sosteniendo vaso de cristal con smoothie fresco';
+  }
+
+  const captionEl = document.getElementById('ugcPostCaption');
+  if (captionEl) {
+    captionEl.value = captionText;
+    if (typeof updateUgcMockupCaption === 'function') updateUgcMockupCaption();
+  }
+
+  const promptPreviewEl = document.getElementById('promptPreview');
+  if (promptPreviewEl && window.aiService && p) {
+    const promptText = window.aiService.buildUnifiedMasterPrompt({
+      name: p.name,
+      age: p.age || '25 años',
+      gender: p.gender || 'Female',
+      ethnicity: p.ethnicity || 'Latina',
+      hair: p.hair || 'dark brown wavy hair',
+      skinTone: p.skinTone || 'fair light',
+      skinHex: p.skinHex || '#f0d5c0',
+      setting: customSetting,
+      clothing: customClothing,
+      pose: customPose,
+      product: prod.name
+    });
+    promptPreviewEl.textContent = promptText;
+  }
+  if (typeof toastSuccess === 'function') {
+    toastSuccess(`✨ Plantilla ${presetType.toUpperCase()} cargada en el Studio`);
+  }
 }
 
 async function generateAIImageAction() {

@@ -1125,6 +1125,24 @@
               </div>
               
               <div>
+                <label style="font-family: var(--font-display); font-weight: 600; margin-bottom: 8px; display: block;">Plantillas Comerciales UGC (1-Clic)</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="skincare" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    🧴 Skincare & Suero
+                  </button>
+                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="fitness" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    👗 Fit & Athleisure
+                  </button>
+                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="tech" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    📱 Tech & Gadgets
+                  </button>
+                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="wellness" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    🍹 Wellness & Smoothie
+                  </button>
+                </div>
+              </div>
+              
+              <div>
                 <label>Guión / Subtítulo del Post</label>
                 <textarea id="ugcPostCaption" rows="3" style="font-family: var(--font-body); font-size: 13px; line-height: 1.4;"></textarea>
               </div>
@@ -1136,12 +1154,41 @@
                     🤖 Generar Imagen AI con Prompt
                   </button>
                   <button class="btn btn-secondary" id="btnExportUgcChatbot" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    📋 Exportar Pack Completo para Chatbot
+                    📋 Copiar Prompt para Chatbots Gratis
+                  </button>
+                  <button class="btn btn-secondary" id="btnDownloadJsonPack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    📥 Descargar Pack Maestro JSON (.json)
+                  </button>
+                  <button class="btn btn-secondary" id="btnGenerateCommercialLicense" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    📄 Emitir Certificado de Licencia Comercial (TikTok / Meta)
                   </button>
                   <div class="analysis-status-card" id="ugcGenStatusCard" style="display: none; padding: 12px;">
                     <div class="analysis-spinner" style="width: 24px; height: 24px;"></div>
                     <span id="ugcGenStatusText" style="font-size: 12px; margin-left: 8px;">Generando imagen...</span>
                   </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🎯 Generador de Anuncios Publicitarios (Meta / TikTok Ads)</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
+                  <label style="font-size: 12px;">Formato del Anuncio</label>
+                  <select id="adFormatSelect" style="font-size: 12px; padding: 8px;">
+                    <option value="9:16">📱 Vertical 9:16 (TikTok / Reels / Stories)</option>
+                    <option value="1:1" selected>Square 1:1 (Meta Feed / Instagram)</option>
+                  </select>
+                  
+                  <label style="font-size: 12px; margin-top: 6px;">Gancho Comercial (Overlay Text Hook)</label>
+                  <select id="adHookSelect" style="font-size: 12px; padding: 8px;">
+                    <option value="Probé esto por 7 días y los resultados me sorprendieron 😱">🎯 "Probé esto por 7 días y..."</option>
+                    <option value="La razón por la que todos en TikTok están obsesionados con esto 🔥">🔥 "La razón por la que todos están obsesionados..."</option>
+                    <option value="⚡ 50% OFF — Solo por hoy con envío gratis">⚡ "50% OFF — Solo por hoy"</option>
+                    <option value="🛑 STOP SCROLLING: La solución definitiva que buscabas">🛑 "STOP SCROLLING — La solución definitiva"</option>
+                  </select>
+                  
+                  <button class="btn btn-secondary" id="btnRenderAdCreative" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
+                    🎨 Crear Anuncio Publicitario de Conversión
+                  </button>
                 </div>
               </div>
 

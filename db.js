@@ -168,6 +168,13 @@ db.exec(`
     FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS workspaces (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    brand_niche TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS versions (
     id TEXT PRIMARY KEY,
     persona_id TEXT,
@@ -610,6 +617,23 @@ module.exports = {
     }
   },
 
+  bulkImportProducts(productsArray = []) {
+    const imported = [];
+    for (const p of productsArray) {
+      if (p && (p.name || p.Title || p.title)) {
+        const saved = this.saveProduct({
+          name: p.name || p.Title || p.title,
+          benefit: p.benefit || p.description || p.Description || 'Alta calidad y resultados comprobados',
+          audience: p.audience || p.Target || 'Emprendedores y consumidores modernos',
+          frustration: p.frustration || p.Problem || 'Productos genéricos sin garantía',
+          image: p.image || p.image_url || 'assets/product_serum.png'
+        });
+        imported.push(saved);
+      }
+    }
+    return imported;
+  },
+
   // Campaigns CRUD
   getAllCampaigns() {
     const campaigns = db.prepare('SELECT * FROM campaigns ORDER BY created_at DESC').all();
@@ -805,5 +829,17 @@ module.exports = {
     const byType = db.prepare('SELECT generation_type, COUNT(*) as count FROM generation_history GROUP BY generation_type').all();
     const byPersona = db.prepare('SELECT persona_id, COUNT(*) as count FROM generation_history GROUP BY persona_id ORDER BY count DESC').all();
     return { total: total.count, byType, byPersona };
+  },
+
+  getAllWorkspaces() {
+    return db.prepare('SELECT * FROM workspaces ORDER BY created_at ASC').all();
+  },
+
+  createWorkspace(w) {
+    const { v4: uuidv4 } = require('uuid');
+    const id = w.id || `ws_${Date.now()}`;
+    db.prepare(`INSERT INTO workspaces (id, name, brand_niche) VALUES (?, ?, ?)`).run(id, w.name, w.brand_niche || 'General');
+    syncDbToWorkspace();
+    return this.getAllWorkspaces();
   }
 };
