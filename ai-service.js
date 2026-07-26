@@ -6,6 +6,17 @@ const { DATA_DIR, ensureDir } = require('./paths');
 const imageProvider = require('./image-provider');
 const genQueue = require('./gen-queue');
 
+function getGenQueueStatusSafe() {
+  try {
+    if (genQueue && typeof genQueue.getStatus === 'function') {
+      return genQueue.getStatus();
+    }
+  } catch (e) {
+    // ignore
+  }
+  return { rateLimitActive: false, retryAfterSeconds: 30, isCoolingDown: false, cooldownRemainingMs: 0 };
+}
+
 // Load environment variables
 dotenv.config();
 
@@ -475,44 +486,16 @@ module.exports = {
           try {
             res = await fetchPollinations(referenceUrl);
           } catch (refErr) {
-            const is429 = /429/.test(refErr.message) || refErr.status === 429;
-            const waitMs = is429 ? 4000 : 1500;
-            console.warn(`Pollinations img2img failed (${refErr.message}), waiting ${waitMs}ms then retry...`);
-            await sleep(waitMs);
-            try {
-              res = await fetchPollinations(referenceUrl, 0.70);
-            } catch (retryErr) {
-              const is429b = /429/.test(retryErr.message) || retryErr.status === 429;
-              if (is429b) {
-                console.warn('Pollinations rate limited (429). Waiting 8s for final attempt...');
-                await sleep(8000);
-                try {
-                  res = await fetchPollinations(referenceUrl, 0.65);
-                } catch (finalErr) {
-                  console.warn(`Final img2img failed (${finalErr.message}). Text-only as last resort.`);
-                  await sleep(2000);
-                  res = await fetchPollinations(null);
-                }
-              } else {
-                console.warn(`Pollinations retry failed (${retryErr.message}), text-only fallback.`);
-                res = await fetchPollinations(null);
-              }
+            const is429 = /429/.test(refErr.message || '') || refErr.status === 429;
+            if (is429) {
+              throw refErr;
             }
+            console.warn(`Pollinations img2img non-429 error (${refErr.message}), text-only fallback.`);
+            res = await fetchPollinations(null);
           }
         } else {
           // fullbody path (or no ref): text-to-image with strong face description
-          try {
-            res = await fetchPollinations(null);
-          } catch (txtErr) {
-            const is429 = /429/.test(txtErr.message) || txtErr.status === 429;
-            if (is429) {
-              console.warn('Rate limited on fullbody text gen, waiting 6s...');
-              await sleep(6000);
-              res = await fetchPollinations(null);
-            } else {
-              throw txtErr;
-            }
-          }
+          res = await fetchPollinations(null);
         }
 
         const arrayBuffer = await res.arrayBuffer();

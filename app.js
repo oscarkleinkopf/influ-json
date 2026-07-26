@@ -961,6 +961,103 @@ function toastLoading(message) {
   showAppToast(message, { type: 'loading', duration: null });
 }
 
+/**
+ * F3 Global Queue Poller Singleton
+ * Polls GET /api/queue-status during image generation and updates UX banner/toasts.
+ */
+const QueuePoller = {
+  intervalId: null,
+  isPolling: false,
+
+  start(intervalMs = 1500) {
+    if (this.isPolling) return;
+    this.isPolling = true;
+    this.check();
+    this.intervalId = setInterval(() => this.check(), intervalMs);
+  },
+
+  stop() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+    this.isPolling = false;
+  },
+
+  lastCompletedCount: -1,
+
+  async check() {
+    try {
+      const res = await authFetch('/api/queue-status');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.success || !data.queue) return;
+
+      const q = data.queue;
+      this.updateUI(q);
+
+      // M2 Live Vault re-rendering when background queue tasks complete or progress
+      if (typeof state !== 'undefined' && state.selectedPersona && state.activeTab === 'vault') {
+        const completed = q.completedCount || 0;
+        if (completed !== this.lastCompletedCount || q.active) {
+          this.lastCompletedCount = completed;
+          if (typeof loadPersonaVariants === 'function') {
+            loadPersonaVariants(state.selectedPersona.id);
+          }
+        }
+      }
+
+      const isCooling = q.isCoolingDown || q.rateLimitActive;
+      const pending = q.pendingCount ?? q.queueLength ?? 0;
+      if (!q.active && pending === 0 && !isCooling) {
+        if (typeof state !== 'undefined' && state.selectedPersona && state.activeTab === 'vault' && typeof loadPersonaVariants === 'function') {
+          loadPersonaVariants(state.selectedPersona.id);
+        }
+        this.stop();
+      }
+    } catch (e) {
+      // Ignore polling fetch errors silently
+    }
+  },
+
+  updateUI(q) {
+    const isCooling = q.isCoolingDown || q.rateLimitActive;
+    const cooldownSec = isCooling ? (Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30) : 0;
+    const pendingCount = q.pendingCount ?? q.queueLength ?? 0;
+    const totalInQueue = pendingCount + (q.active ? 1 : 0);
+
+    let statusText = '';
+    let toastType = 'loading';
+
+    if (isCooling) {
+      statusText = `Servidor congestionado, enfriando ${cooldownSec} seg...`;
+      toastType = 'info';
+    } else if (q.active || pendingCount > 0) {
+      if (pendingCount > 0) {
+        statusText = `Encolado (Posición ${totalInQueue})`;
+      } else {
+        statusText = `Generando imagen...`;
+      }
+      toastType = 'loading';
+    }
+
+    if (statusText) {
+      showAppToast(statusText, { type: toastType, duration: null });
+
+      const variantText = document.getElementById('variantGenStatusText');
+      if (variantText && variantText.offsetParent !== null) {
+        variantText.textContent = statusText;
+      }
+      const ugcText = document.getElementById('ugcGenStatusText');
+      if (ugcText && ugcText.offsetParent !== null) {
+        ugcText.textContent = statusText;
+      }
+    }
+  }
+};
+
+window.QueuePoller = QueuePoller;
+
 /** @deprecated use toastSuccess / toastError — kept for call sites */
 function showSyncToast(success, message) {
   if (success) toastSuccess(message, { gitOk: true });
@@ -2074,6 +2171,7 @@ async function savePersona() {
   
   let portraitPath = null;
   try {
+    QueuePoller.start();
     const imgRes = await authFetch('/api/ai/generate-image', {
       method: 'POST',
       body: JSON.stringify({ 
@@ -2798,6 +2896,7 @@ async function generateAIImageAction() {
   statusText.textContent = 'Invocando generador de imágenes Imagen 3...';
   
   try {
+    QueuePoller.start();
     const bodyPayload = { prompt };
     if (state.selectedPersona) {
       bodyPayload.personaId = state.selectedPersona.id;
@@ -3971,6 +4070,7 @@ async function saveAnalysisAsPersona() {
   let portraitPath = uploadedImagePath;
   
   try {
+    QueuePoller.start();
     const imgRes = await authFetch('/api/ai/generate-image', {
       method: 'POST',
       body: JSON.stringify({ prompt: promptText, referenceLocalPath: uploadedImagePath })
@@ -4219,6 +4319,11 @@ window.setVariantMode = function(mode) {
   if (btnTrad) btnTrad.classList.toggle('active', mode === 'traditional');
   if (btnSpicy) btnSpicy.classList.toggle('active', mode === 'spicy');
 
+  const layout = document.querySelector('.variant-vault-layout');
+  if (layout) {
+    layout.classList.toggle('spicy-theme', mode === 'spicy');
+  }
+
   populateVariantDropdowns();
 };
 
@@ -4420,6 +4525,7 @@ async function generateVariantAction() {
   const statusCard = document.getElementById('variantGenStatus');
   const statusText = document.getElementById('variantGenStatusText');
   statusCard.style.display = 'flex';
+  statusCard.classList.add('loading-pulse');
   statusText.textContent = `Renderizando ${mode === 'spicy' ? 'spicy' : 'pose'} de ${p.name} (misma identidad)...`;
   toastLoading(`Generando variante de ${p.name} — misma cara que el retrato principal...`);
   
@@ -4479,6 +4585,7 @@ async function generateVariantAction() {
   ].join(' ');
   
   try {
+    QueuePoller.start();
     const res = await authFetch(`/api/personas/${p.id}/variants`, {
       method: 'POST',
       body: JSON.stringify({
@@ -4504,14 +4611,17 @@ async function generateVariantAction() {
       toastSuccess(framing === 'fullbody'
         ? `Cuerpo entero de ${p.name} listo`
         : `Variante lista — cara anclada a ${p.name}`);
+      statusCard.classList.remove('loading-pulse');
       setTimeout(() => statusCard.style.display = 'none', 3000);
     } else {
       statusText.textContent = 'Error al generar la pose.';
       toastError(data.message || 'Error al generar la pose.');
+      statusCard.classList.remove('loading-pulse');
     }
   } catch (err) {
     statusText.textContent = 'La generación falló o el servidor está offline.';
     toastError(err.message || 'La generación falló o el servidor está offline.');
+    statusCard.classList.remove('loading-pulse');
     setTimeout(() => statusCard.style.display = 'none', 4000);
   }
 }
@@ -4921,6 +5031,10 @@ function initImportModal() {
   const preview = document.getElementById('importPreview');
 
   const imagesInput = document.getElementById('importImages');
+  const dropzone = document.getElementById('importDropzone');
+  const counterBadge = document.getElementById('importCounterBadge');
+  const thumbnailStrip = document.getElementById('importThumbnailStrip');
+
   const urlInput = document.getElementById('importUrl');
   const nameInput = document.getElementById('importName');
   const scriptTopicInput = document.getElementById('importScriptTopic');
@@ -4929,19 +5043,90 @@ function initImportModal() {
   const videoPromptsContainer = document.getElementById('importVideoPrompts');
   const filesFeedback = document.getElementById('importFilesFeedback');
 
+  let selectedFiles = []; // Array of File objects (max 4)
   let lastImportedPersona = null;
 
   if (!modal) return;
 
-  if (imagesInput && filesFeedback) {
+  function updateImportUI() {
+    if (!thumbnailStrip || !counterBadge) return;
+    thumbnailStrip.innerHTML = '';
+
+    const count = selectedFiles.length;
+    counterBadge.textContent = `${count}/4 cargadas`;
+    counterBadge.classList.remove('has-files', 'full');
+    if (count > 0 && count < 4) counterBadge.classList.add('has-files');
+    if (count >= 4) counterBadge.classList.add('full');
+
+    selectedFiles.forEach((file, idx) => {
+      const card = document.createElement('div');
+      card.className = 'import-thumb-card';
+      const imgUrl = URL.createObjectURL(file);
+
+      card.innerHTML = `
+        <img src="${imgUrl}" alt="Foto ${idx + 1}">
+        ${idx === 0 ? '<span class="import-thumb-badge">Principal</span>' : ''}
+        <button type="button" class="import-thumb-remove" title="Eliminar foto">&times;</button>
+      `;
+
+      card.querySelector('.import-thumb-remove').addEventListener('click', (e) => {
+        e.stopPropagation();
+        URL.revokeObjectURL(imgUrl);
+        selectedFiles.splice(idx, 1);
+        updateImportUI();
+      });
+
+      thumbnailStrip.appendChild(card);
+    });
+  }
+
+  function handleAddFiles(fileList) {
+    const newFiles = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if (newFiles.length === 0) return;
+
+    const availableSlots = 4 - selectedFiles.length;
+    if (availableSlots <= 0) {
+      toastInfo('Se ha alcanzado el límite máximo de 4 fotos.');
+      return;
+    }
+
+    if (newFiles.length > availableSlots) {
+      toastInfo(`Máximo 4 fotos. Se agregaron las primeras ${availableSlots} fotos.`);
+    }
+
+    selectedFiles.push(...newFiles.slice(0, availableSlots));
+    updateImportUI();
+  }
+
+  if (dropzone && imagesInput) {
+    dropzone.addEventListener('click', () => imagesInput.click());
+
+    ['dragenter', 'dragover'].forEach(evtName => {
+      dropzone.addEventListener(evtName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(evtName => {
+      dropzone.addEventListener(evtName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+      });
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      if (e.dataTransfer && e.dataTransfer.files) {
+        handleAddFiles(e.dataTransfer.files);
+      }
+    });
+
     imagesInput.addEventListener('change', () => {
-      const count = imagesInput.files.length;
-      if (count > 0) {
-        filesFeedback.textContent = `Imágenes seleccionadas: ${count}/4 ${count > 4 ? '(se usarán las primeras 4)' : ''}`;
-        filesFeedback.style.display = 'block';
-      } else {
-        filesFeedback.style.display = 'none';
-        filesFeedback.textContent = '';
+      if (imagesInput.files && imagesInput.files.length > 0) {
+        handleAddFiles(imagesInput.files);
+        imagesInput.value = '';
       }
     });
   }
@@ -4952,7 +5137,9 @@ function initImportModal() {
     loading.style.display = 'none';
     preview.style.display = 'none';
     
-    // Clear inputs safely
+    selectedFiles = [];
+    updateImportUI();
+
     if (imagesInput) imagesInput.value = '';
     if (urlInput) urlInput.value = '';
     if (nameInput) nameInput.value = '';
@@ -4962,9 +5149,7 @@ function initImportModal() {
     if (videoPromptsContainer) videoPromptsContainer.innerHTML = '';
     
     const importJsonEl = document.getElementById('importJsonOutput');
-    if (importJsonEl) {
-      importJsonEl.value = '';
-    }
+    if (importJsonEl) importJsonEl.value = '';
 
     if (filesFeedback) {
       filesFeedback.style.display = 'none';
@@ -4995,40 +5180,32 @@ function initImportModal() {
 
   if (btnAnalyze) {
     btnAnalyze.addEventListener('click', async () => {
-      const files = imagesInput.files;
-      const imageUrl = urlInput.value.trim();
-      const customName = nameInput.value.trim();
-      const scriptTopic = scriptTopicInput.value.trim();
+      const imageUrl = urlInput ? urlInput.value.trim() : '';
+      const customName = nameInput ? nameInput.value.trim() : '';
+      const scriptTopic = scriptTopicInput ? scriptTopicInput.value.trim() : '';
 
-      if (files.length === 0 && !imageUrl) {
+      if (selectedFiles.length === 0 && !imageUrl) {
         toastInfo('Selecciona al menos una foto o una URL de referencia.');
         return;
       }
 
-      // Transition to loading step
       step1.style.display = 'none';
       loading.style.display = 'flex';
       preview.style.display = 'none';
       toastLoading(customName ? `Analizando e importando "${customName}"...` : 'Analizando referencia e importando influencer...');
 
       const formData = new FormData();
-      if (files.length > 0) {
-        const maxFiles = Math.min(files.length, 4);
-        for (let i = 0; i < maxFiles; i++) {
-          formData.append('photo', files[i]);
-        }
-      }
-      if (imageUrl) {
-        formData.append('imageUrl', imageUrl);
-      }
-      if (customName) {
-        formData.append('name', customName);
-      }
-      if (scriptTopic) {
-        formData.append('scriptTopic', scriptTopic);
-      }
+      const filesToSend = selectedFiles.slice(0, 4);
+      filesToSend.forEach(file => {
+        formData.append('photo', file);
+      });
+
+      if (imageUrl) formData.append('imageUrl', imageUrl);
+      if (customName) formData.append('name', customName);
+      if (scriptTopic) formData.append('scriptTopic', scriptTopic);
 
       try {
+        QueuePoller.start();
         const response = await authFetch('/api/import-influencer', {
           method: 'POST',
           body: formData
@@ -5042,7 +5219,6 @@ function initImportModal() {
         lastImportedPersona = data.persona;
         toastSuccess(`Análisis listo: ${lastImportedPersona?.name || 'influencer'}. Revisa y confirma.`);
 
-        // Persona is already persisted on analyze — refresh lists so it appears immediately
         try {
           state.personas = await reloadPersonasFromServer({
             id: lastImportedPersona?.id,
@@ -5052,14 +5228,11 @@ function initImportModal() {
           console.warn('Could not refresh persona list after import analyze:', refreshErr);
         }
 
-        // Transition to preview step
         loading.style.display = 'none';
         preview.style.display = 'block';
 
-        // Render suggested name
-        suggestedNameInput.value = lastImportedPersona.name;
+        if (suggestedNameInput) suggestedNameInput.value = lastImportedPersona.name;
 
-        // Render visual analysis summary
         const d = lastImportedPersona.detailedJSON || {};
         if (summaryText) {
           summaryText.innerHTML = `
@@ -5071,13 +5244,11 @@ function initImportModal() {
           `;
         }
 
-        // Render JSON preview
         const importJsonEl = document.getElementById('importJsonOutput');
         if (importJsonEl) {
           importJsonEl.value = JSON.stringify(lastImportedPersona.detailedJSON || {}, null, 2);
         }
 
-        // Render video scripts list
         videoPromptsContainer.innerHTML = '';
         if (data.videoScripts && data.videoScripts.length > 0) {
           data.videoScripts.forEach((s, idx) => {
@@ -5109,7 +5280,6 @@ function initImportModal() {
       } catch (err) {
         console.error('Import analysis failed:', err);
         toastError(`Error al analizar influencer: ${err.message}`);
-        // Return to step 1
         loading.style.display = 'none';
         step1.style.display = 'block';
       }
@@ -5120,14 +5290,13 @@ function initImportModal() {
     btnConfirm.addEventListener('click', async () => {
       if (!lastImportedPersona) return;
 
-      const finalName = suggestedNameInput.value.trim();
+      const finalName = suggestedNameInput ? suggestedNameInput.value.trim() : lastImportedPersona.name;
       if (!finalName) {
         toastInfo('Indica un nombre para el influencer.');
         return;
       }
 
       try {
-        // Always persist final name/handle on confirm (covers rename and first-time visibility)
         lastImportedPersona.name = finalName;
         lastImportedPersona.handle = `@${finalName.toLowerCase().replace(/\s+/g, '')}_ugc`;
 
@@ -5141,16 +5310,24 @@ function initImportModal() {
           if (saveJson.persona) lastImportedPersona = saveJson.persona;
         }
 
-        // Force full UI refresh so the new influencer is visible in portfolio + select grid
+        state.selectedPersona = lastImportedPersona;
+
         await reloadPersonasFromServer({
           id: lastImportedPersona?.id,
           name: finalName
         });
         refreshPersonaLists();
 
-        toastSuccess(`¡Influencer "${finalName}" importado y creado con éxito!`);
+        toastSuccess(`¡Influencer "${finalName}" importado con éxito! Se están generando poses adicionales en segundo plano...`);
         closeModal();
-        navigateToTab('dashboard');
+
+        // Immediate navigation to Vault
+        if (typeof navigateToTab === 'function') {
+          navigateToTab('vault');
+        }
+        if (typeof loadPersonaVariants === 'function' && lastImportedPersona.id) {
+          loadPersonaVariants(lastImportedPersona.id);
+        }
 
       } catch (err) {
         console.error('Failed to confirm and save persona:', err);

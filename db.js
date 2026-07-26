@@ -202,6 +202,27 @@ try {
 
 syncDbToWorkspace();
 
+/**
+ * Dual Persistence: Synchronize SQLite personas and persona_variants to personas.json
+ */
+function syncPersonasJson() {
+  const jsonPath = path.join(__dirname, 'personas.json');
+  try {
+    const personas = db.prepare('SELECT * FROM personas WHERE archived = 0 ORDER BY created_at DESC').all().map(hydratePersona);
+    const personasWithVariants = personas.map(p => {
+      const variants = db.prepare('SELECT id, persona_id, pose, clothing, attitude, setting, image_path, created_at FROM persona_variants WHERE persona_id = ? ORDER BY created_at DESC').all(p.id);
+      return {
+        ...p,
+        variants
+      };
+    });
+    fs.writeFileSync(jsonPath, JSON.stringify(personasWithVariants, null, 2), 'utf8');
+    console.log(`[db] Synchronized ${personasWithVariants.length} persona(s) with variants to personas.json`);
+  } catch (err) {
+    console.error('[db] Failed to sync personas.json:', err.message);
+  }
+}
+
 // Data migration helper (migrates from personas.json and products.json if DB is empty)
 function runMigrations() {
   const { v4: uuidv4 } = require('uuid');
@@ -444,6 +465,7 @@ module.exports = {
 
   parseDetailedJSON,
   serializeDetailedJSON,
+  syncPersonasJson,
   
   savePersona(p) {
     const { v4: uuidv4 } = require('uuid');
@@ -495,6 +517,7 @@ module.exports = {
         existing.id
       );
       syncDbToWorkspace();
+      syncPersonasJson();
       return this.getPersonaById(existing.id);
     }
 
@@ -523,6 +546,7 @@ module.exports = {
       serializeDetailedJSON(p.detailedJSON)
     );
     syncDbToWorkspace();
+    syncPersonasJson();
     return this.getPersonaById(id);
   },
 
@@ -713,12 +737,14 @@ module.exports = {
   deletePersona(id) {
     db.prepare('DELETE FROM personas WHERE id = ?').run(id);
     syncDbToWorkspace();
+    syncPersonasJson();
     return true;
   },
 
   toggleArchivePersona(id, archived) {
     db.prepare('UPDATE personas SET archived = ? WHERE id = ?').run(archived, id);
     syncDbToWorkspace();
+    syncPersonasJson();
     return this.getPersonaById(id);
   },
 
@@ -734,18 +760,21 @@ module.exports = {
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(id, v.persona_id, v.pose, v.clothing, v.attitude, v.setting, v.image_path);
     syncDbToWorkspace();
+    syncPersonasJson();
     return db.prepare('SELECT * FROM persona_variants WHERE id = ?').get(id);
   },
 
   deleteVariant(id) {
     db.prepare('DELETE FROM persona_variants WHERE id = ?').run(id);
     syncDbToWorkspace();
+    syncPersonasJson();
     return true;
   },
 
   setMainVariant(personaId, imagePath) {
     db.prepare('UPDATE personas SET image = ?, imageUGC = ? WHERE id = ?').run(imagePath, imagePath, personaId);
     syncDbToWorkspace();
+    syncPersonasJson();
     return this.getPersonaById(personaId);
   },
 

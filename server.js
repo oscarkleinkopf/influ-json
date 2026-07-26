@@ -13,6 +13,7 @@ dotenv.config();
 const dbService = require('./db');
 const authService = require('./auth');
 const aiService = require('./ai-service');
+const genQueue = require('./gen-queue');
 
 // Initialize DB and migrate legacy JSON data if empty
 dbService.runMigrations();
@@ -116,6 +117,14 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Image Generation Queue Status Endpoint
+app.get('/api/queue-status', (req, res) => {
+  res.json({
+    success: true,
+    queue: genQueue.getStatus()
+  });
+});
+
 // =============================================
 // PROTECTED ENDPOINTS (requireAuth)
 // =============================================
@@ -146,6 +155,9 @@ app.post('/api/personas', (req, res) => {
     } catch (err) {
       console.warn('Failed to update generation history persona ID:', err.message);
     }
+    triggerBackgroundVariants(persona).catch(err => {
+      console.warn('[personas] Error triggering background variants:', err.message);
+    });
   }
   runGitBackup((gitSuccess, msg) => {
     res.json({
@@ -745,8 +757,97 @@ app.post('/api/upload-reference-url', async (req, res) => {
   }
 });
 
-// Import Real Influencer (Fase 2)
-app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) => {
+/**
+ * Asynchronously trigger background generation of 4 initial variants (2 traditional + 2 spicy)
+ * using genQueue so the HTTP response returns immediately (<1s).
+ */
+async function triggerBackgroundVariants(persona) {
+  if (!persona || !persona.id) return;
+
+  const variantSpecs = [
+    {
+      pose: 'Pose casual de frente con sonrisa cálida',
+      clothing: 'Atuendo casual (chaqueta denim o top cómodo)',
+      attitude: 'Cálida, amigable, accesible',
+      setting: 'Cafetería acogedora o sala iluminada por el sol',
+      mode: 'traditional',
+      framing: 'portrait'
+    },
+    {
+      pose: 'Pose de cuerpo entero de pie, postura natural',
+      clothing: 'Blazer casual o conjunto streetwear moderno',
+      attitude: 'Confiada, relajada, profesional',
+      setting: 'Estudio minimalista moderno con fondo neutro suave',
+      mode: 'traditional',
+      framing: 'fullbody'
+    },
+    {
+      pose: 'Pose relajada en la playa o piscina con luz solar',
+      clothing: 'Traje de baño de verano elegante',
+      attitude: 'Atractiva, confiada, veraniega',
+      setting: 'Playa tropical o terraza de piscina de lujo con luz de día',
+      mode: 'spicy',
+      framing: 'medium'
+    },
+    {
+      pose: 'Pose de retrato glamour en sofá o sillón',
+      clothing: 'Vestido elegante de satén',
+      attitude: 'Seductora, sofisticada, atmosférica',
+      setting: 'Habitación de hotel de lujo con iluminación cálida de ambiente',
+      mode: 'spicy',
+      framing: 'portrait'
+    }
+  ];
+
+  for (let i = 0; i < variantSpecs.length; i++) {
+    const spec = variantSpecs[i];
+    const label = `variant_${spec.mode}_${i + 1}_${persona.name || persona.id}`;
+
+    genQueue.enqueue(label, async () => {
+      const eth = persona.ethnicity || 'Latina';
+      const age = persona.age || '25 años';
+      const name = persona.name || 'Influencer';
+
+      const prompt = `Realistic photograph of ${name}, a ${age} ${eth} influencer. Pose: ${spec.pose}. Outfit: ${spec.clothing}. Attitude: ${spec.attitude}. Setting: ${spec.setting}. IDENTITY LOCK: preserve face characteristics from reference image.`;
+
+      const referenceUrl = persona.image || null;
+      const seedHash = Array.from(String(persona.id)).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+      const imagePath = await aiService.generateInfluencerImage(prompt, referenceUrl, {
+        photoreal: true,
+        identityLock: true,
+        seed: seedHash + i * 13,
+        framing: spec.framing
+      });
+
+      if (imagePath) {
+        dbService.saveVariant({
+          persona_id: persona.id,
+          pose: spec.pose,
+          clothing: spec.clothing,
+          attitude: spec.attitude,
+          setting: spec.setting,
+          image_path: imagePath
+        });
+
+        dbService.saveGeneration({
+          persona_id: persona.id,
+          prompt,
+          image_path: imagePath,
+          generation_type: 'variant',
+          metadata: JSON.stringify(spec)
+        });
+
+        console.log(`[background-variants] Generated variant ${i + 1}/4 (${spec.mode}) for ${persona.name}: ${imagePath}`);
+      }
+    }).catch(err => {
+      console.warn(`[background-variants] Failed to generate variant ${i + 1} for ${persona.name}:`, err.message);
+    });
+  }
+}
+
+// Import Real Influencer (Fase 2) - supports both /api/import-influencer and /api/personas/import
+app.post(['/api/import-influencer', '/api/personas/import'], upload.array('photo', 4), async (req, res) => {
   const imagePaths = [];
   const filenames = [];
 
@@ -995,6 +1096,11 @@ app.post('/api/import-influencer', upload.array('photo', 4), async (req, res) =>
     // Save to SQLite
     const savedPersona = dbService.savePersona(persona);
 
+    // Trigger 4 background variants asynchronously (non-blocking)
+    triggerBackgroundVariants(savedPersona).catch(err => {
+      console.warn('[import] Error enqueuing background variants:', err.message);
+    });
+
     // Generate UGC Video Scripts
     const scriptTopic = req.body.scriptTopic || "Video UGC Promocional";
     const videoScripts = await aiService.generateUgcVideoScripts(savedPersona, scriptTopic);
@@ -1045,6 +1151,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: err.message || 'Error interno del servidor.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
