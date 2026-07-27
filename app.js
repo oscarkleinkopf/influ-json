@@ -138,31 +138,82 @@ function setupLogin() {
   });
 }
 
-// Tab Switcher Logic
+// Tab Switcher & Mobile Responsive Navigation Logic
 function setupTabs() {
+  const switchTab = (tabId) => {
+    state.activeTab = tabId;
+    
+    // Update sidebar nav items
+    navItems.forEach(nav => {
+      if (nav.getAttribute('data-tab') === tabId) {
+        nav.classList.add('active');
+      } else {
+        nav.classList.remove('active');
+      }
+    });
+
+    // Update mobile bottom nav items
+    document.querySelectorAll('.mobile-nav-item').forEach(mbItem => {
+      if (mbItem.getAttribute('data-tab') === tabId) {
+        mbItem.classList.add('active');
+      } else {
+        mbItem.classList.remove('active');
+      }
+    });
+    
+    // Update active panel class
+    tabPanels.forEach(panel => {
+      if (panel.id === tabId) {
+        panel.classList.add('active');
+      } else {
+        panel.classList.remove('active');
+      }
+    });
+    
+    // Close mobile drawer if open
+    closeMobileSidebar();
+
+    // Hook triggers for specific tabs
+    if (tabId === 'campaigns') renderCampaigns();
+    if (tabId === 'gallery') renderGallery();
+    if (tabId === 'ugc-studio' && typeof renderBulkProductSelector === 'function') renderBulkProductSelector();
+  };
+
   navItems.forEach(item => {
     item.addEventListener('click', () => {
-      const tabId = item.getAttribute('data-tab');
-      state.activeTab = tabId;
-      
-      // Update active nav class
-      navItems.forEach(nav => nav.classList.remove('active'));
-      item.classList.add('active');
-      
-      // Update active panel class
-      tabPanels.forEach(panel => {
-        if (panel.id === tabId) {
-          panel.classList.add('active');
-        } else {
-          panel.classList.remove('active');
-        }
-      });
-      
-      // Hook triggers for specific tabs
-      if (tabId === 'campaigns') renderCampaigns();
-      if (tabId === 'gallery') renderGallery();
+      switchTab(item.getAttribute('data-tab'));
     });
   });
+
+  // Mobile Bottom Navigation Bar listeners
+  document.querySelectorAll('.mobile-nav-item').forEach(mbItem => {
+    mbItem.addEventListener('click', () => {
+      switchTab(mbItem.getAttribute('data-tab'));
+    });
+  });
+
+  // Mobile Sidebar Hamburger Toggle
+  const toggleBtn = document.getElementById('mobileMenuToggle');
+  const backdrop = document.getElementById('mobileSidebarBackdrop');
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) sidebar.classList.toggle('mobile-open');
+      if (backdrop) backdrop.classList.toggle('active');
+    });
+  }
+
+  if (backdrop) {
+    backdrop.addEventListener('click', closeMobileSidebar);
+  }
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('mobileSidebarBackdrop');
+  if (sidebar) sidebar.classList.remove('mobile-open');
+  if (backdrop) backdrop.classList.remove('active');
 }
 
 /** Normalize archived flag (sqlite may return 0/1, true/false, or null). */
