@@ -55,8 +55,30 @@ Regresión P0: “guardé y no aparece”, o free path roto por una feature de p
 | `image-provider.js` | Free vs paid face-lock (paid = stub futuro) |
 | `ROADMAP.md` | Plan y filosofía |
 
-## Al retomar
+## Sync Cursor ↔ Antigravity (GitHub)
 
-1. Leer `ROADMAP.md` (fase free actual).  
-2. No implementar Replicate a menos que el usuario lo pida y free esté estable.  
-3. Entregables pequeños y verificables.  
+El usuario alterna entre **Antigravity** (principal) y **Cursor**. Cada cambio debe quedar respaldado en GitHub para retomar en la otra plataforma.
+
+**Remoto:** `https://github.com/oscarkleinkopf/influ-json` · rama `main`.
+
+### Al retomar (cualquier plataforma)
+
+1. `git pull origin main`
+2. Leer **[HANDOFF.md](./HANDOFF.md)** — foco actual, sesión reciente, próximos pasos
+3. Leer **[ROADMAP.md](./ROADMAP.md)** — fase free y criterios de hecho
+4. No implementar Replicate a menos que el usuario lo pida y free esté estable
+
+### Al terminar una tarea con cambios
+
+1. Actualizar **HANDOFF.md** (log + foco + sesión reciente)
+2. Si aplica, una línea en el log de **ROADMAP.md**
+3. `git add` → `git commit` → `git push origin main`
+4. Commit claro (`feat:` / `fix:` / `docs:` + por qué). **No** commitear `.env`
+
+Tokens (`GEMINI_API_KEY`, `REPLICATE_API_TOKEN`, etc.) viven en `.env` **local** de cada máquina; Antigravity usa los suyos tras el pull.
+
+## Al retomar (resumen)
+
+1. `git pull` → `HANDOFF.md` → `ROADMAP.md`  
+2. Entregables pequeños y verificables.  
+3. Push al cerrar cada tarea (respaldar en GitHub).  
