@@ -615,6 +615,102 @@
                     <input type="text" id="pLips" value="Labios rosados naturales carnosos">
                   </div>
                 </div>
+                <div class="form-row" style="margin-top: 10px;">
+                  <div>
+                    <label for="pFaceShape">Forma del Rostro</label>
+                    <input type="text" id="pFaceShape" value="Ovalada con mandíbula definida">
+                  </div>
+                  <div>
+                    <label for="pSmileType">Tipo de Sonrisa</label>
+                    <input type="text" id="pSmileType" value="Sonrisa cálida, accesible y natural">
+                  </div>
+                </div>
+                <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
+                  <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 10px; font-family: var(--font-display);">🧍 Cuerpo completo (no solo rostro)</h4>
+                  <div class="form-row">
+                    <div>
+                      <label for="pBodyType">Complexión / silueta</label>
+                      <input type="text" id="pBodyType" value="Atlético y proporcionado" placeholder="Ej: Curvilíneo, esbelto, fit...">
+                    </div>
+                    <div>
+                      <label for="pHeight">Estatura aparente</label>
+                      <input type="text" id="pHeight" value="Estatura media (~1.65 m)" placeholder="Ej: Alta, media, petite">
+                    </div>
+                  </div>
+                  <div class="form-row" style="margin-top: 10px;">
+                    <div>
+                      <label for="pProportions">Proporciones (hombros / cintura / cadera)</label>
+                      <input type="text" id="pProportions" value="Hombros equilibrados, cintura definida, caderas suaves y proporcionales">
+                    </div>
+                    <div>
+                      <label for="pPosture">Postura</label>
+                      <input type="text" id="pPosture" value="Erguida y relajada, hombros sueltos, cuello alargado">
+                    </div>
+                  </div>
+                  <div class="form-row" style="margin-top: 10px;">
+                    <div>
+                      <label for="pFitness">Tono / fitness</label>
+                      <input type="text" id="pFitness" value="Tono natural ligero, sin musculatura exagerada">
+                    </div>
+                    <div>
+                      <label for="pBodySkin">Piel corporal (cuello, brazos, hombros)</label>
+                      <input type="text" id="pBodySkin" value="Mismo tono de piel que el rostro en cuello, hombros y brazos; textura natural continua">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Personalidad y Reglas de Marca -->
+              <div class="glass-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); margin-top: 14px; padding: 14px; border-radius: var(--border-radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <h4 style="font-size: 11px; text-transform: uppercase; color: #ec4899; margin: 0; font-family: var(--font-display);">🧠 Personalidad, Marcas Distintivas y Reglas de Marca</h4>
+                </div>
+                
+                <div class="form-row">
+                  <div>
+                    <label for="pDistinctiveMarks">Marcas Distintivas y Señas Físicas</label>
+                    <input type="text" id="pDistinctiveMarks" value="Peca sutil en el pómulo izquierdo, pequeño lunar natural en el cuello" placeholder="Ej: Peca en pómulo, pequeño lunar en cuello, tatuaje en muñeca">
+                  </div>
+                  <div>
+                    <label for="pMbti">Arquetipo Psicológico (MBTI)</label>
+                    <select id="pMbti">
+                      <option value="ENFP - El Entusiasta Creativo">ENFP - El Entusiasta Creativo</option>
+                      <option value="ENFJ - El Líder Carismático">ENFJ - El Líder Carismático</option>
+                      <option value="INFJ - El Consejero Inspirador">INFJ - El Consejero Inspirador</option>
+                      <option value="ENTP - El Innovador Audaz">ENTP - El Innovador Audaz</option>
+                      <option value="ESFP - El Animador Espontáneo">ESFP - El Animador Espontáneo</option>
+                      <option value="ESTP - El Emprendedor Dinámico">ESTP - El Emprendedor Dinámico</option>
+                      <option value="INTJ - El Estratega Visionario">INTJ - El Estratega Visionario</option>
+                      <option value="INFP - El Soñador Auténtico">INFP - El Soñador Auténtico</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 10px;">
+                  <div>
+                    <label for="pCommunicationStyle">Tono de Voz y Estilo de Comunicación</label>
+                    <input type="text" id="pCommunicationStyle" value="Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia" placeholder="Ej: Cercano, empático, usa emojis de naturaleza y preguntas directas">
+                  </div>
+                  <div>
+                    <label for="pTaboos">Tabúes y Restricciones de Marca (Separados por coma)</label>
+                    <input type="text" id="pTaboos" value="No promociona fast fashion, No usa lenguaje agresivo, No habla de política" placeholder="Ej: No fast fashion, No lenguaje agresivo, No política">
+                  </div>
+                </div>
+              </div>
+              
+              <div style="margin-top: 10px; display: flex; gap: 8px;">
+                <button type="button" class="btn" id="btnSavePersona" style="flex: 2;">
+                  Guardar Persona en influ-JSON
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnCancelEditPersona" style="flex: 1.5; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
+                  👁️ Ver Ficha
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnArchivePersona" style="flex: 1.2; background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3);">
+                  📦 Archivar
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnDeletePersona" style="flex: 1; background: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid rgba(220, 53, 69, 0.4);">
+                  🗑️ Eliminar
+                </button>
               </div>
 
               <!-- Datalists para Menús Desplegables + Texto Personalizado -->
@@ -731,106 +827,6 @@
                 <option value="Ojos azules claros luminosos"></option>
                 <option value="Ojos negros expresivos"></option>
               </datalist>
-                    <input type="text" id="pLips" value="Labios rosados naturales carnosos">
-                  </div>
-                </div>
-                <div class="form-row" style="margin-top: 10px;">
-                  <div>
-                    <label for="pFaceShape">Forma del Rostro</label>
-                    <input type="text" id="pFaceShape" value="Ovalada con mandíbula definida">
-                  </div>
-                  <div>
-                    <label for="pSmileType">Tipo de Sonrisa</label>
-                    <input type="text" id="pSmileType" value="Sonrisa cálida, accesible y natural">
-                  </div>
-                </div>
-                <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
-                  <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 10px; font-family: var(--font-display);">🧍 Cuerpo completo (no solo rostro)</h4>
-                  <div class="form-row">
-                    <div>
-                      <label for="pBodyType">Complexión / silueta</label>
-                      <input type="text" id="pBodyType" value="Atlético y proporcionado" placeholder="Ej: Curvilíneo, esbelto, fit...">
-                    </div>
-                    <div>
-                      <label for="pHeight">Estatura aparente</label>
-                      <input type="text" id="pHeight" value="Estatura media (~1.65 m)" placeholder="Ej: Alta, media, petite">
-                    </div>
-                  </div>
-                  <div class="form-row" style="margin-top: 10px;">
-                    <div>
-                      <label for="pProportions">Proporciones (hombros / cintura / cadera)</label>
-                      <input type="text" id="pProportions" value="Hombros equilibrados, cintura definida, caderas suaves y proporcionales">
-                    </div>
-                    <div>
-                      <label for="pPosture">Postura</label>
-                      <input type="text" id="pPosture" value="Erguida y relajada, hombros sueltos, cuello alargado">
-                    </div>
-                  </div>
-                  <div class="form-row" style="margin-top: 10px;">
-                    <div>
-                      <label for="pFitness">Tono / fitness</label>
-                      <input type="text" id="pFitness" value="Tono natural ligero, sin musculatura exagerada">
-                    </div>
-                    <div>
-                      <label for="pBodySkin">Piel corporal (cuello, brazos, hombros)</label>
-                      <input type="text" id="pBodySkin" value="Mismo tono de piel que el rostro en cuello, hombros y brazos; textura natural continua">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Personalidad y Reglas de Marca -->
-              <div class="glass-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); margin-top: 14px; padding: 14px; border-radius: var(--border-radius-md);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                  <h4 style="font-size: 11px; text-transform: uppercase; color: #ec4899; margin: 0; font-family: var(--font-display);">🧠 Personalidad, Marcas Distintivas y Reglas de Marca</h4>
-                </div>
-                
-                <div class="form-row">
-                  <div>
-                    <label for="pDistinctiveMarks">Marcas Distintivas y Señas Físicas</label>
-                    <input type="text" id="pDistinctiveMarks" value="Peca sutil en el pómulo izquierdo, pequeño lunar natural en el cuello" placeholder="Ej: Peca en pómulo, pequeño lunar en cuello, tatuaje en muñeca">
-                  </div>
-                  <div>
-                    <label for="pMbti">Arquetipo Psicológico (MBTI)</label>
-                    <select id="pMbti">
-                      <option value="ENFP - El Entusiasta Creativo">ENFP - El Entusiasta Creativo</option>
-                      <option value="ENFJ - El Líder Carismático">ENFJ - El Líder Carismático</option>
-                      <option value="INFJ - El Consejero Inspirador">INFJ - El Consejero Inspirador</option>
-                      <option value="ENTP - El Innovador Audaz">ENTP - El Innovador Audaz</option>
-                      <option value="ESFP - El Animador Espontáneo">ESFP - El Animador Espontáneo</option>
-                      <option value="ESTP - El Emprendedor Dinámico">ESTP - El Emprendedor Dinámico</option>
-                      <option value="INTJ - El Estratega Visionario">INTJ - El Estratega Visionario</option>
-                      <option value="INFP - El Soñador Auténtico">INFP - El Soñador Auténtico</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="form-row" style="margin-top: 10px;">
-                  <div>
-                    <label for="pCommunicationStyle">Tono de Voz y Estilo de Comunicación</label>
-                    <input type="text" id="pCommunicationStyle" value="Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia" placeholder="Ej: Cercano, empático, usa emojis de naturaleza y preguntas directas">
-                  </div>
-                  <div>
-                    <label for="pTaboos">Tabúes y Restricciones de Marca (Separados por coma)</label>
-                    <input type="text" id="pTaboos" value="No promociona fast fashion, No usa lenguaje agresivo, No habla de política" placeholder="Ej: No fast fashion, No lenguaje agresivo, No política">
-                  </div>
-                </div>
-              </div>
-              
-              <div style="margin-top: 10px; display: flex; gap: 8px;">
-                <button type="button" class="btn" id="btnSavePersona" style="flex: 2;">
-                  Guardar Persona en influ-JSON
-                </button>
-                <button type="button" class="btn btn-secondary" id="btnCancelEditPersona" style="flex: 1.5; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
-                  👁️ Ver Ficha
-                </button>
-                <button type="button" class="btn btn-secondary" id="btnArchivePersona" style="flex: 1.2; background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3);">
-                  📦 Archivar
-                </button>
-                <button type="button" class="btn btn-secondary" id="btnDeletePersona" style="flex: 1; background: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid rgba(220, 53, 69, 0.4);">
-                  🗑️ Eliminar
-                </button>
-              </div>
             </form>
             
             <div class="prompt-console">
