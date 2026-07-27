@@ -524,7 +524,7 @@
                   </select>
                 </div>
               </div>
-              
+
               <div class="form-row">
                 <div>
                   <label for="pAge">Edad del Personaje</label>
@@ -532,73 +532,40 @@
                 </div>
                 <div>
                   <label for="pEthnicity">Origen / Apariencia</label>
-                  <select id="pEthnicity">
-                    <option value="Latina / Mediterránea">Latina / Mediterránea</option>
-                    <option value="Latina">Latina</option>
-                    <option value="Europeo / Atlético">Europeo / Atlético</option>
-                    <option value="Caucásica / Nórdica">Caucásica / Nórdica</option>
-                    <option value="Afrodescendiente / Mixta">Afrodescendiente / Mixta</option>
-                    <option value="Asiática / Oriental">Asiática / Oriental</option>
-                    <option value="Mixta / Universal">Mixta / Universal</option>
-                  </select>
+                  <input type="text" id="pEthnicity" list="dlEthnicity" placeholder="Selecciona o escribe..." value="Latina / Mediterránea">
                 </div>
               </div>
               
               <div class="form-row">
                 <div>
                   <label for="pStyle">Estilo / Vibe</label>
-                  <input type="text" id="pStyle" value="Minimalista y natural">
+                  <input type="text" id="pStyle" list="dlStyle" placeholder="Selecciona o escribe..." value="Minimalista y natural">
                 </div>
                 <div>
-                  <label for="pHair">Cabello</label>
-                  <input type="text" id="pHair" value="Marrón ondulado largo">
+                  <label for="pHair">Cabello (Resumen)</label>
+                  <input type="text" id="pHair" list="dlHair" placeholder="Selecciona o escribe..." value="Marrón ondulado largo">
                 </div>
               </div>
               
               <div class="form-row">
                 <div>
                   <label for="pLighting">Iluminación</label>
-                  <select id="pLighting">
-                    <option value="Casual daylight from bedroom window">Luz natural de ventana casual</option>
-                    <option value="Warm natural sunset flare, outdoor">Luz cálida de atardecer, exterior</option>
-                    <option value="Direct ring light glow, selfie style">Luz de aro led de frente (selfie)</option>
-                    <option value="Dim room lighting with phone screen reflection">Luz tenue con reflejo de pantalla</option>
-                    <option value="Harsh direct smartphone camera flash">Flash directo de cámara de celular</option>
-                  </select>
+                  <input type="text" id="pLighting" list="dlLighting" placeholder="Selecciona o escribe..." value="Luz natural de ventana casual">
                 </div>
                 <div>
                   <label for="pCamera">Cámara / Lente</label>
-                  <select id="pCamera">
-                    <option value="iPhone 15 Pro front camera selfie">Selfie casual de cámara frontal de iPhone</option>
-                    <option value="Amateur smartphone mirror selfie, camera lens visible">Selfie en el espejo con cámara de celular visible</option>
-                    <option value="Candid hand-held smartphone snapshot">Instantánea casual tomada a pulso con celular</option>
-                    <option value="Close-up raw portrait shot on iPhone 15">Foto de cerca (RAW) con iPhone 15</option>
-                  </select>
+                  <input type="text" id="pCamera" list="dlCamera" placeholder="Selecciona o escribe..." value="iPhone 15 Pro front camera selfie">
                 </div>
               </div>
               
               <div class="form-row">
                 <div>
                   <label for="pClothing">Vestimenta</label>
-                  <select id="pClothing">
-                    <!-- Dynamic gender options will be loaded here -->
-                  </select>
+                  <input type="text" id="pClothing" list="dlClothing" placeholder="Selecciona o escribe..." value="Casual chic (Top blanco y jeans)">
                 </div>
                 <div>
                   <label for="pSetting">Ubicación / Fondo</label>
-                  <select id="pSetting">
-                    <option value="Sala de estar moderna y neutral">Sala de estar moderna y neutral</option>
-                    <option value="Playa de arena blanca al mediodía, mar azul al fondo (bright tropical beach midday)">Playa (mediodía soleado)</option>
-                    <option value="Playa al atardecer dorado con olas suaves (golden hour beach sunset)">Playa (atardecer dorado)</option>
-                    <option value="Piscina exterior soleada con agua turquesa (sunny outdoor pool)">Piscina exterior soleada</option>
-                    <option value="Terraza costera con vista al mar (coastal terrace ocean view)">Terraza costera / vista mar</option>
-                    <option value="Cafetería moderna iluminada de día">Cafetería moderna</option>
-                    <option value="Parque natural soleado con follaje verde">Parque natural</option>
-                    <option value="Calle urbana de día con bokeh suave">Calle urbana (día)</option>
-                    <option value="Habitación de hotel luminosa y minimalista">Habitación de hotel</option>
-                    <option value="Gimnasio moderno con luz natural">Gimnasio</option>
-                    <option value="Cocina moderna con luz de ventana">Cocina moderna</option>
-                  </select>
+                  <input type="text" id="pSetting" list="dlSetting" placeholder="Selecciona o escribe..." value="Sala de estar moderna y neutral">
                 </div>
               </div>
 
@@ -611,7 +578,7 @@
                 <div class="form-row">
                   <div>
                     <label for="pSkinTone">Tez (Tono de Piel)</label>
-                    <input type="text" id="pSkinTone" value="Piel clara ligeramente bronceada">
+                    <input type="text" id="pSkinTone" list="dlSkinTone" placeholder="Selecciona o escribe..." value="Piel clara ligeramente bronceada">
                   </div>
                   <div>
                     <label for="pSkinTexture">Textura de la Piel</label>
@@ -621,17 +588,17 @@
                 <div class="form-row" style="margin-top: 10px;">
                   <div>
                     <label for="pHairColor">Color de Pelo</label>
-                    <input type="text" id="pHairColor" value="Castaño oscuro natural">
+                    <input type="text" id="pHairColor" list="dlHairColor" placeholder="Selecciona o escribe..." value="Castaño oscuro natural">
                   </div>
                   <div>
                     <label for="pHairTexture">Textura de Cabello</label>
-                    <input type="text" id="pHairTexture" value="Ondulado natural con cuerpo">
+                    <input type="text" id="pHairTexture" list="dlHairTexture" placeholder="Selecciona o escribe..." value="Ondulado natural con cuerpo">
                   </div>
                 </div>
                 <div class="form-row" style="margin-top: 10px;">
                   <div>
                     <label for="pHairLength">Largo de Cabello</label>
-                    <input type="text" id="pHairLength" value="Largo, por debajo de los hombros">
+                    <input type="text" id="pHairLength" list="dlHairLength" placeholder="Selecciona o escribe..." value="Largo, por debajo de los hombros">
                   </div>
                   <div>
                     <label for="pEyebrows">Cejas (Color y Estilo)</label>
@@ -641,10 +608,129 @@
                 <div class="form-row" style="margin-top: 10px;">
                   <div>
                     <label for="pEyeColor">Color de Ojos</label>
-                    <input type="text" id="pEyeColor" value="Marrón cálido con destellos miel">
+                    <input type="text" id="pEyeColor" list="dlEyeColor" placeholder="Selecciona o escribe..." value="Marrón cálido con destellos miel">
                   </div>
                   <div>
                     <label for="pLips">Labios (Color y Forma)</label>
+                    <input type="text" id="pLips" value="Labios rosados naturales carnosos">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Datalists para Menús Desplegables + Texto Personalizado -->
+              <datalist id="dlEthnicity">
+                <option value="Latina / Mediterránea"></option>
+                <option value="Latina Trigueña"></option>
+                <option value="Afrodescendiente / Afro-Latina"></option>
+                <option value="Caucásica / Nórdica"></option>
+                <option value="Asiática / Oriental"></option>
+                <option value="Europeo / Atlético"></option>
+                <option value="Mixta / Universal"></option>
+              </datalist>
+
+              <datalist id="dlStyle">
+                <option value="Minimalista y natural"></option>
+                <option value="Urbano streetwear y moderno"></option>
+                <option value="Elegante ejecutivo / Glamour"></option>
+                <option value="Fitness y deportivo activo"></option>
+                <option value="Boho chic y relajado"></option>
+                <option value="Luxury lifestyle & viajes"></option>
+                <option value="Aesthetic gen-Z & casual"></option>
+              </datalist>
+
+              <datalist id="dlHair">
+                <option value="Marrón ondulado largo"></option>
+                <option value="Castaño oscuro largo con ondas"></option>
+                <option value="Negro liso brillante estilo bob"></option>
+                <option value="Rubio dorado con ondas sueltas"></option>
+                <option value="Afro rizado natural corto"></option>
+                <option value="Cobrizo / Pelirrojo ondulado"></option>
+                <option value="Castaño claro en capas"></option>
+              </datalist>
+
+              <datalist id="dlLighting">
+                <option value="Luz natural de ventana casual"></option>
+                <option value="Luz cálida de atardecer, exterior"></option>
+                <option value="Luz de aro led de frente (selfie)"></option>
+                <option value="Luz tenue con reflejo de pantalla"></option>
+                <option value="Flash directo de cámara de celular"></option>
+                <option value="Luz de estudio fotográfico suave"></option>
+              </datalist>
+
+              <datalist id="dlCamera">
+                <option value="iPhone 15 Pro front camera selfie"></option>
+                <option value="Amateur smartphone mirror selfie, camera lens visible"></option>
+                <option value="Candid hand-held smartphone snapshot"></option>
+                <option value="Close-up raw portrait shot on iPhone 15"></option>
+                <option value="Cámara profesional de estudio 85mm"></option>
+              </datalist>
+
+              <datalist id="dlClothing">
+                <option value="Casual chic (Top blanco y jeans)"></option>
+                <option value="Ejecutiva (Blazer elegante y blusa)"></option>
+                <option value="Deportiva (Top deportivo y leggings)"></option>
+                <option value="Playa (Bikini elegante de 2 piezas)"></option>
+                <option value="Elegante (Vestido de noche y accesorios)"></option>
+                <option value="Streetwear (Polerón oversized y gorro)"></option>
+                <option value="Pijama cómoda o ropa de casa"></option>
+              </datalist>
+
+              <datalist id="dlSetting">
+                <option value="Sala de estar moderna y neutral"></option>
+                <option value="Playa de arena blanca al mediodía (bright tropical beach)"></option>
+                <option value="Playa al atardecer dorado (golden hour beach)"></option>
+                <option value="Piscina exterior soleada (sunny outdoor pool)"></option>
+                <option value="Terraza costera con vista al mar"></option>
+                <option value="Cafetería moderna iluminada de día"></option>
+                <option value="Parque natural soleado con follaje verde"></option>
+                <option value="Calle urbana de día con bokeh"></option>
+                <option value="Habitación de hotel luminosa"></option>
+                <option value="Gimnasio moderno con luz natural"></option>
+                <option value="Cocina moderna con luz de ventana"></option>
+              </datalist>
+
+              <datalist id="dlSkinTone">
+                <option value="Piel clara ligeramente bronceada"></option>
+                <option value="Tez oliva cálida mediterránea"></option>
+                <option value="Piel morena oscura rica en melanina"></option>
+                <option value="Tez porcelana clara natural"></option>
+                <option value="Piel canela trigueña"></option>
+                <option value="Piel dorada de sol"></option>
+              </datalist>
+
+              <datalist id="dlHairColor">
+                <option value="Castaño oscuro natural"></option>
+                <option value="Negro azabache intenso"></option>
+                <option value="Rubio dorado con luces"></option>
+                <option value="Pelirrojo cobrizo brillante"></option>
+                <option value="Castaño claro / Miel"></option>
+                <option value="Chocolate profundo"></option>
+                <option value="Platinado / Gris moderno"></option>
+              </datalist>
+
+              <datalist id="dlHairTexture">
+                <option value="Ondulado natural con cuerpo"></option>
+                <option value="Liso sedoso brillante"></option>
+                <option value="Rizado definido voluminoso"></option>
+                <option value="Afro rizado tupido"></option>
+                <option value="Ondas playeras desenfadadas"></option>
+              </datalist>
+
+              <datalist id="dlHairLength">
+                <option value="Largo, por debajo de los hombros"></option>
+                <option value="Melena media a la clavícula"></option>
+                <option value="Corto estilo bob chic"></option>
+                <option value="Pixie corto moderno"></option>
+                <option value="Extra largo a la cintura"></option>
+              </datalist>
+
+              <datalist id="dlEyeColor">
+                <option value="Marrón cálido con destellos miel"></option>
+                <option value="Ojos castaños oscuros profundos"></option>
+                <option value="Ojos verdes esmeralda"></option>
+                <option value="Ojos azules claros luminosos"></option>
+                <option value="Ojos negros expresivos"></option>
+              </datalist>
                     <input type="text" id="pLips" value="Labios rosados naturales carnosos">
                   </div>
                 </div>
