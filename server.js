@@ -449,6 +449,116 @@ app.get('/api/personas/:id/commercial-license', (req, res) => {
   }
 });
 
+// Bulk Ad Generator Pipeline (5x2 Matrix per Product)
+const activeAdBatches = {};
+
+const AD_CONVERSION_HOOKS = [
+  'Probé esto por 7 días y los resultados me sorprendieron 😱',
+  'La razón por la que todos en TikTok están obsesionados con esto...',
+  '⚡ 50% OFF — Solo por hoy con envío gratis',
+  '🛑 STOP SCROLLING: La solución definitiva que buscabas',
+  '✨ El secreto de calidad que las grandes marcas no quieren que sepas'
+];
+
+const AD_FORMATS = ['9:16', '1:1'];
+
+app.post('/api/ads/bulk-generate', async (req, res) => {
+  try {
+    const { personaId, productIds } = req.body;
+    if (!personaId) return res.status(400).json({ success: false, error: 'personaId es requerido.' });
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ success: false, error: 'Debe seleccionar al menos 1 producto.' });
+    }
+
+    const persona = dbService.getPersonaById(personaId);
+    if (!persona) return res.status(404).json({ success: false, error: 'Persona no encontrada.' });
+
+    const products = productIds.map(id => dbService.getProductById(id)).filter(Boolean);
+    if (products.length === 0) return res.status(404).json({ success: false, error: 'Productos no encontrados.' });
+
+    const batchId = `batch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const totalTasks = products.length * AD_CONVERSION_HOOKS.length * AD_FORMATS.length; // 10 per product
+
+    activeAdBatches[batchId] = {
+      batchId,
+      personaName: persona.name,
+      total: totalTasks,
+      completed: 0,
+      failed: 0,
+      status: 'processing',
+      images: [],
+      created_at: new Date().toISOString()
+    };
+
+    // Enqueue tasks into genQueue
+    for (const prod of products) {
+      for (const hookText of AD_CONVERSION_HOOKS) {
+        for (const format of AD_FORMATS) {
+          genQueue.enqueue(async () => {
+            try {
+              const masterPrompt = aiService.buildUnifiedMasterPrompt({
+                name: persona.name,
+                age: persona.age || '25 años',
+                gender: persona.gender || 'Female',
+                ethnicity: persona.ethnicity || 'Latina',
+                hair: persona.hair || 'dark brown wavy hair',
+                clothing: 'atuendo publicitario elegante',
+                setting: 'estudio comercial iluminado',
+                product: prod.name,
+                framing: format === '9:16' ? 'fullbody' : 'medium'
+              }) + `. AD HOOK TEXT: "${hookText}". COMMERCIAL AD CREATIVE FOR ${format.toUpperCase()}.`;
+
+              const imagePath = await aiService.generateInfluencerImage(masterPrompt, {
+                personaName: persona.name,
+                width: 1024,
+                height: 1024
+              });
+
+              const adRecord = {
+                id: `ad_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                productName: prod.name,
+                productId: prod.id,
+                hookText,
+                format,
+                imagePath,
+                caption: `🎯 ANUNCIO ${format} — ${prod.name}\n\n"${hookText}"\n\n👉 ¡Consíguelo hoy con envío rápido! #ad #dropshipping #${prod.name.toLowerCase().replace(/\s+/g, '')}`
+              };
+
+              dbService.saveGeneration({
+                persona_id: persona.id,
+                prompt: masterPrompt,
+                image_path: imagePath,
+                generation_type: 'bulk_ad',
+                metadata: JSON.stringify(adRecord)
+              });
+
+              activeAdBatches[batchId].completed++;
+              activeAdBatches[batchId].images.push(adRecord);
+            } catch (err) {
+              console.error(`Error in bulk ad generation task:`, err.message);
+              activeAdBatches[batchId].failed++;
+            } finally {
+              if (activeAdBatches[batchId].completed + activeAdBatches[batchId].failed >= activeAdBatches[batchId].total) {
+                activeAdBatches[batchId].status = 'completed';
+              }
+            }
+          });
+        }
+      }
+    }
+
+    res.json({ success: true, batchId, totalTasks, status: 'processing' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/ads/batch-status/:batchId', (req, res) => {
+  const batch = activeAdBatches[req.params.batchId];
+  if (!batch) return res.status(404).json({ success: false, error: 'Lote no encontrado.' });
+  res.json({ success: true, batch });
+});
+
 // Campaigns endpoints
 app.get('/api/campaigns', (req, res) => {
   res.json(dbService.getAllCampaigns());

@@ -1193,6 +1193,38 @@
               </div>
 
               <div>
+                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🚀 Generador de Anuncios Masivos en Lote (Matriz 5x2)</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
+                  <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">
+                    Selecciona los productos para generar automáticamente 10 anuncios publicitarios (5 Ganchos x 2 Formatos) por producto:
+                  </p>
+                  <div id="bulkProductSelectorContainer" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                    <span style="font-size: 11px; color: var(--text-muted);">Cargando catálogo...</span>
+                  </div>
+                  
+                  <button class="btn btn-primary" id="btnStartBulkAdGeneration" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
+                    ⚡ Generar Lote de Anuncios (10 por producto)
+                  </button>
+
+                  <div id="bulkBatchProgressCard" style="display: none; background: rgba(255,255,255,0.03); border: 1px solid var(--accent-color); border-radius: var(--border-radius-sm); padding: 12px; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; font-weight: bold;">
+                      <span>Progreso del Lote:</span>
+                      <span id="bulkBatchProgressText">0 / 0 (0%)</span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
+                      <div id="bulkBatchProgressBar" style="width: 0%; height: 100%; background: var(--accent-gradient); transition: width 0.3s ease;"></div>
+                    </div>
+                    <button class="btn btn-secondary" id="btnDownloadBulkBatchZip" style="width: 100%; display: none; align-items: center; justify-content: center; gap: 8px;">
+                      📥 Descargar Todo el Lote de Anuncios (.ZIP / PNGs)
+                    </button>
+                  </div>
+
+                  <div id="bulkBatchGallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 12px; max-height: 250px; overflow-y: auto;">
+                  </div>
+                </div>
+              </div>
+
+              <div>
                 <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🎬 Video UGC Pipeline (Infraestructura Veo/Runway)</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <button class="btn btn-secondary" id="btnGenerateUgcVideo" style="width: 100%;">
