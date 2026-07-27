@@ -4,9 +4,9 @@
   "description": "AI UGC Production Studio",
   "main": "index.js",
   "scripts": {
-    "start": "node server-minimal.js",
-    "start:full": "node server.js",
-    "dev": "node --watch server-minimal.js",
+    "start": "node server.js",
+    "start:minimal": "node server-minimal.js",
+    "dev": "node --watch server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

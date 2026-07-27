@@ -23,32 +23,38 @@ Regresión P0: “guardé y no aparece”, o free path roto por una feature de p
 
 | Campo | Valor |
 |-------|--------|
-| **Fase ROADMAP** | Maximizar free (Pollinations + JSON) — ver F1–F6 en ROADMAP |
-| **Prioridad inmediata** | Unificar entry point (`npm start` → `server.js`), alinear `package.json` con lock, cablear tests |
-| **En pausa / no tocar** | Replicate implementado, multi-tenant, billing, refactor React |
-| **Última plataforma** | Cursor |
+| **Fase ROADMAP** | Maximizar free (Pollinations + JSON) — F1–F6 Completados |
+| **Prioridad inmediata** | Continuar con Fase 3 (Video UGC corto 15s) / Módulos de Producción |
+| **En pausa / no tocar** | Replicate obligatorio (se mantiene opt-in cero costo) |
+| **Última plataforma** | Antigravity |
 | **Última actualización** | 2026-07-27 |
 
 ---
 
 ## Sesión reciente
 
-**Qué se discutió (Cursor, 2026-07-27):**
-- Revisión general del proyecto: producto sólido, deuda en dual-server (`server-minimal.js` vs `server.js`) y `package.json` desincronizado.
-- Usuario trabaja principalmente en **Antigravity**; quiere que cada cambio quede en **GitHub** con documentación para que el otro agente entienda el hilo.
+**Qué se discutió (Antigravity, 2026-07-27):**
+- Confirmado: **Antigravity utiliza `server.js` (servidor completo SQLite con `/api/data`)**.
+- Unificado `package.json`: `npm start` apunta a `node server.js` eliminando el riesgo de levantar por error `server-minimal.js`.
+- Creadas 3 Skills Oficiales en `.agents/skills/`:
+  - `influ-json-studio`: Gestión del roster y packs `character_lock`.
+  - `influ-license-certifier`: Emisión de Licencias B2B en JSON y HTML visual con hash SHA-256.
+  - `influ-ugc-scriptwriter`: Redacción de guiones 15-25s (AIDA, PAS, Unboxing).
+- Integrado Modal Gráfico de Ajustes (`⚙️ Ajustes & Claves API`) para guardar claves opcionales de Gemini / Replicate sin romper el modo 100% gratis.
 
-**Qué se hizo en código:** (esta sesión) — se creó este `HANDOFF.md` y se actualizó `AGENTS.md` con reglas de sync.
-
-**Qué NO se tocó:** código de app, servidor, UI.
+**Qué se hizo en código:**
+- `package.json`: `"start": "node server.js"`.
+- `server.js`: Endpoint `POST /api/settings/keys`.
+- `index.html` & `app.js`: `#settingsModal` y botón de ajustes en sidebar.
+- Documentación: `SKILLS_MANUAL.md` y `HANDOFF.md`.
 
 ---
 
 ## Próximos pasos sugeridos (para el robot que retome)
 
-1. Leer `ROADMAP.md` (fase F1–F6) y esta sección de foco.
-2. Si vas a correr el Studio: usar `npm run start:full` o unificar `npm start` → `server.js` (hoy `npm start` apunta a `server-minimal.js`, versión reducida).
-3. Pendientes ROADMAP de alto valor: **F4** side-by-side ancla vs última gen, **F6** happy path 60s en dashboard.
-4. Tokens (Gemini, Replicate): van en `.env` local de cada máquina — **no** se suben a Git.
+1. Leer `ROADMAP.md` y `SKILLS_MANUAL.md`.
+2. Servidor: `npm start` o `node server.js` (puerto 3000).
+3. Siguiente paso de producto: Fase 3 (Video UGC corto 15s en HTML5 Canvas/Node).
 
 ---
 
@@ -56,7 +62,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por una feature de p
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-27 | Cursor | Workflow sync GitHub + HANDOFF para continuidad entre agentes | *(este commit)* |
+| 2026-07-27 | Antigravity | Unificación `npm start` -> `server.js` + Modal GUI de Ajustes + 3 Agent Skills + SKILLS_MANUAL | `714ab5b` |
+| 2026-07-27 | Cursor | Workflow sync GitHub + HANDOFF para continuidad entre agentes | `4b2abcc` |
 
 ---
 
