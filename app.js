@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupGallery', fn: setupGallery },
     { name: 'setupVariantManager', fn: setupVariantManager },
     { name: 'setupFreeChatbotPacks', fn: setupFreeChatbotPacks },
+    { name: 'setupSettings', fn: setupSettings },
     { name: 'initImportModal', fn: initImportModal }
   ];
 
@@ -136,6 +137,70 @@ function setupLogin() {
       toastError('Error de conexión al autenticar.');
     }
   });
+}
+
+function setupSettings() {
+  const modal = document.getElementById('settingsModal');
+  const btnOpen = document.getElementById('btnOpenSettings');
+  const btnClose = document.getElementById('btnCloseSettings');
+  const form = document.getElementById('settingsForm');
+  const btnDisable = document.getElementById('btnDisableKeys');
+
+  if (btnOpen) {
+    btnOpen.addEventListener('click', () => {
+      if (modal) modal.style.display = 'flex';
+    });
+  }
+
+  if (btnClose) {
+    btnClose.addEventListener('click', () => {
+      if (modal) modal.style.display = 'none';
+    });
+  }
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const geminiApiKey = document.getElementById('geminiKeyInput').value;
+      const replicateApiToken = document.getElementById('replicateTokenInput').value;
+
+      try {
+        const res = await authFetch('/api/settings/keys', {
+          method: 'POST',
+          body: JSON.stringify({ geminiApiKey, replicateApiToken })
+        });
+        const data = await res.json();
+        if (data.success) {
+          toastSuccess(data.message || 'Configuración de claves guardada.');
+          if (modal) modal.style.display = 'none';
+        } else {
+          toastError(data.error || 'Error al guardar la configuración.');
+        }
+      } catch (err) {
+        toastError('Error de red al guardar claves API.');
+      }
+    });
+  }
+
+  if (btnDisable) {
+    btnDisable.addEventListener('click', async () => {
+      document.getElementById('geminiKeyInput').value = '';
+      document.getElementById('replicateTokenInput').value = '';
+      try {
+        const res = await authFetch('/api/settings/keys', {
+          method: 'POST',
+          body: JSON.stringify({ geminiApiKey: '', replicateApiToken: '' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          toastSuccess('Restablecido a Modo 100% Gratuito (Pollinations + Offline).');
+          if (modal) modal.style.display = 'none';
+        }
+      } catch (err) {
+        toastError('Error al restablecer la configuración.');
+      }
+    });
+  }
 }
 
 // Tab Switcher & Mobile Responsive Navigation Logic

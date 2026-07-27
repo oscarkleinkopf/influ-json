@@ -131,6 +131,40 @@ app.get('/api/queue-status', (req, res) => {
 
 app.use('/api', authService.requireAuth);
 
+// Settings Endpoint — Update API Keys in .env safely via GUI
+app.post('/api/settings/keys', (req, res) => {
+  try {
+    const { geminiApiKey, replicateApiToken } = req.body || {};
+    const envPath = path.join(__dirname, '.env');
+    let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+
+    function updateEnvVar(key, val) {
+      if (val === undefined || val === null) return;
+      const regex = new RegExp(`^${key}=.*$`, 'm');
+      if (regex.test(envContent)) {
+        envContent = envContent.replace(regex, `${key}=${val}`);
+      } else {
+        envContent += `\n${key}=${val}`;
+      }
+      process.env[key] = val;
+    }
+
+    if (geminiApiKey !== undefined) updateEnvVar('GEMINI_API_KEY', geminiApiKey.trim());
+    if (replicateApiToken !== undefined) updateEnvVar('REPLICATE_API_TOKEN', replicateApiToken.trim());
+
+    fs.writeFileSync(envPath, envContent.trim() + '\n', 'utf8');
+
+    res.json({
+      success: true,
+      message: 'Configuración de claves guardada correctamente.',
+      geminiConnected: !!process.env.GEMINI_API_KEY,
+      replicateConnected: !!process.env.REPLICATE_API_TOKEN
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Get All Data (legacy fallback endpoint)
 app.get('/api/data', (req, res) => {
   const personas = dbService.getAllPersonas();
