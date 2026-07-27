@@ -2988,6 +2988,133 @@ Este certificado avala que los derechos comerciales de explotación de imagen, n
 
   // Video Pipeline Simulation Action
   document.getElementById('btnGenerateUgcVideo').addEventListener('click', startVideoPipelineSimulation);
+
+  // Bulk Batch Ad Generation Pipeline Action
+  const btnStartBulk = document.getElementById('btnStartBulkAdGeneration');
+  if (btnStartBulk) {
+    btnStartBulk.addEventListener('click', async () => {
+      const p = state.selectedPersona || state.personas[0];
+      if (!p) return typeof toastError === 'function' ? toastError('Seleccione un influencer primero.') : alert('Seleccione un influencer primero.');
+
+      const checkedBoxes = document.querySelectorAll('.bulk-prod-checkbox:checked');
+      const selectedProductIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+      if (selectedProductIds.length === 0) {
+        return typeof toastError === 'function' ? toastError('Seleccione al menos 1 producto del catálogo.') : alert('Seleccione al menos 1 producto del catálogo.');
+      }
+
+      try {
+        btnStartBulk.disabled = true;
+        btnStartBulk.innerHTML = '⏳ Encolando lote...';
+
+        const res = await fetch('/api/ads/bulk-generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ personaId: p.id, productIds: selectedProductIds })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          if (typeof toastSuccess === 'function') toastSuccess(`🚀 Lote ${data.batchId} encolado: ${data.totalTasks} anuncios en proceso`);
+          startBulkAdBatchPolling(data.batchId);
+        } else {
+          if (typeof toastError === 'function') toastError('Error al iniciar lote: ' + data.error);
+          btnStartBulk.disabled = false;
+          btnStartBulk.innerHTML = '⚡ Generar Lote de Anuncios (10 por producto)';
+        }
+      } catch (err) {
+        if (typeof toastError === 'function') toastError('Error de servidor: ' + err.message);
+        btnStartBulk.disabled = false;
+        btnStartBulk.innerHTML = '⚡ Generar Lote de Anuncios (10 por producto)';
+      }
+    });
+  }
+
+  // Populate product selector checkboxes
+  renderBulkProductSelector();
+}
+
+function renderBulkProductSelector() {
+  const container = document.getElementById('bulkProductSelectorContainer');
+  if (!container) return;
+
+  const products = state.products || [];
+  if (products.length === 0) {
+    container.innerHTML = `<span style="font-size: 11px; color: var(--text-muted);">No hay productos en el catálogo. Agregue productos en el tab de Catálogo.</span>`;
+    return;
+  }
+
+  container.innerHTML = products.map(p => `
+    <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; cursor: pointer;">
+      <input type="checkbox" class="bulk-prod-checkbox" value="${p.id}" checked />
+      <span>📦 <strong>${p.name}</strong> — ${p.benefit || 'Producto e-commerce'}</span>
+    </label>
+  `).join('');
+}
+
+let activeBulkPollingInterval = null;
+
+function startBulkAdBatchPolling(batchId) {
+  const card = document.getElementById('bulkBatchProgressCard');
+  const progressText = document.getElementById('bulkBatchProgressText');
+  const progressBar = document.getElementById('bulkBatchProgressBar');
+  const gallery = document.getElementById('bulkBatchGallery');
+  const downloadBtn = document.getElementById('btnDownloadBulkBatchZip');
+
+  if (card) card.style.display = 'block';
+  if (gallery) gallery.innerHTML = '';
+
+  const renderedImageIds = new Set();
+
+  if (activeBulkPollingInterval) clearInterval(activeBulkPollingInterval);
+
+  activeBulkPollingInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/ads/batch-status/${batchId}`);
+      const data = await res.json();
+      if (!data.success) return;
+
+      const b = data.batch;
+      const pct = Math.round((b.completed / b.total) * 100);
+
+      if (progressText) progressText.textContent = `${b.completed} / ${b.total} (${pct}%)`;
+      if (progressBar) progressBar.style.width = `${pct}%`;
+
+      // Render new images as they complete
+      b.images.forEach(img => {
+        if (!renderedImageIds.has(img.id)) {
+          renderedImageIds.add(img.id);
+          const itemEl = document.createElement('div');
+          itemEl.style.cssText = 'background: rgba(0,0,0,0.4); border-radius: 6px; overflow: hidden; border: 1px solid var(--glass-border); padding: 4px;';
+          itemEl.innerHTML = `
+            <img src="${img.imagePath}" style="width: 100%; aspect-ratio: ${img.format === '9:16' ? '9/16' : '1/1'}; object-fit: cover; border-radius: 4px;" />
+            <div style="font-size: 9px; margin-top: 4px; color: var(--text-muted); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${img.format} | ${img.productName}
+            </div>
+          `;
+          gallery.appendChild(itemEl);
+        }
+      });
+
+      if (b.status === 'completed' || b.completed + b.failed >= b.total) {
+        clearInterval(activeBulkPollingInterval);
+        const btnStartBulk = document.getElementById('btnStartBulkAdGeneration');
+        if (btnStartBulk) {
+          btnStartBulk.disabled = false;
+          btnStartBulk.innerHTML = '⚡ Generar Lote de Anuncios (10 por producto)';
+        }
+        if (downloadBtn) {
+          downloadBtn.style.display = 'flex';
+          downloadBtn.onclick = () => {
+            if (typeof toastSuccess === 'function') toastSuccess(`📥 Lote completo de ${b.completed} anuncios listo.`);
+          };
+        }
+        if (typeof toastSuccess === 'function') toastSuccess(`🎉 ¡Lote completo! Se generaron ${b.completed} anuncios exitosamente.`);
+      }
+    } catch (e) {
+      console.warn('Error polling batch status:', e);
+    }
+  }, 2500);
 }
 
 function applyUgcCommercialPreset(presetType) {
