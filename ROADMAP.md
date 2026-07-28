@@ -116,6 +116,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-28 | **Backup UI + ownership** | `/api/backups`; `requireOwnedPersona`; gallery/import scoped; tests 32 |
 | 2026-07-28 | **Admin + invitaciones** | `studio_invites`, redeem → member aislado; products/campaigns por perfil |
 | 2026-07-28 | **Seguridad + perfiles locales** | Rate-limit login, headers, SESSION_SECRET, `studio_profiles`, roster por `profile_id` |
 | 2026-07-28 | **F2–F6 + export ZIP** usabilidad | Checklist 60s, SBS F4, cola UX F3, README, `/api/export/persona/:id` |

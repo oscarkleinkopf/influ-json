@@ -441,6 +441,22 @@ module.exports = {
     return row || null;
   },
 
+  assertProductOwnedBy(productId, profileId) {
+    const row = this.getProductById(productId);
+    if (!row) return null;
+    if (!profileId) return row;
+    if (row.profile_id && row.profile_id !== profileId) return null;
+    return row;
+  },
+
+  assertCampaignOwnedBy(campaignId, profileId) {
+    const row = this.getCampaignById(campaignId);
+    if (!row) return null;
+    if (!profileId) return row;
+    if (row.profile_id && row.profile_id !== profileId) return null;
+    return row;
+  },
+
   getPersonaByName(name) {
     return hydratePersona(db.prepare('SELECT * FROM personas WHERE LOWER(name) = LOWER(?)').get(name));
   },
@@ -744,17 +760,26 @@ module.exports = {
     return db.prepare('SELECT * FROM scripts WHERE campaign_id = ?').all(campaignId);
   },
 
-  // Gallery CRUD
-  saveToGallery(prompt, imagePath) {
+  // Gallery CRUD (scoped by profile_id)
+  saveToGallery(prompt, imagePath, profileId = null) {
     const { v4: uuidv4 } = require('uuid');
     const id = uuidv4();
-    db.prepare('INSERT INTO prompt_gallery (id, prompt, image_path) VALUES (?, ?, ?)')
-      .run(id, prompt, imagePath);
+    const pid = profileId || ensureDefaultStudioProfile();
+    try {
+      db.prepare('INSERT INTO prompt_gallery (id, prompt, image_path, profile_id) VALUES (?, ?, ?, ?)')
+        .run(id, prompt, imagePath, pid);
+    } catch (_) {
+      db.prepare('INSERT INTO prompt_gallery (id, prompt, image_path) VALUES (?, ?, ?)')
+        .run(id, prompt, imagePath);
+    }
     syncDbToWorkspace();
-    return { id, prompt, image_path: imagePath };
+    return { id, prompt, image_path: imagePath, profile_id: pid };
   },
 
-  getGalleryItems() {
+  getGalleryItems(profileId = null) {
+    if (profileId) {
+      return db.prepare('SELECT * FROM prompt_gallery WHERE profile_id = ? ORDER BY created_at DESC').all(profileId);
+    }
     return db.prepare('SELECT * FROM prompt_gallery ORDER BY created_at DESC').all();
   },
 

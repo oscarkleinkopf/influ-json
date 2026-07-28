@@ -103,6 +103,18 @@ function requireAdmin(req, res, next) {
   });
 }
 
+/** 404 si la persona no existe o no pertenece al perfil de sesión (no filtrar existencia ajena). */
+function requireOwnedPersona(req, res, next) {
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const persona = dbService.assertPersonaOwnedBy(req.params.id, profileId);
+  if (!persona) {
+    return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
+  }
+  req.persona = persona;
+  req.profileId = profileId;
+  next();
+}
+
 function publicProfileDTO(row) {
   if (!row) return null;
   return {
@@ -483,6 +495,87 @@ function inviteStatus(inv) {
   return 'active';
 }
 
+// Backups SQLite (solo Administración) — free path, sin cloud
+app.get('/api/backups', requireAdmin, (req, res) => {
+  try {
+    const meta = dbService.getBackupMeta();
+    const snapshots = dbService.listBackupSnapshots().map((s) => ({
+      filename: s.filename,
+      size: s.size,
+      mtime: s.mtime
+    }));
+    res.json({
+      success: true,
+      schemaVersion: dbService.getSchemaVersion(),
+      meta,
+      snapshots
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/backups', requireAdmin, (req, res) => {
+  try {
+    const label = (req.body && req.body.label) || 'manual';
+    const snap = dbService.createBackupSnapshot(label);
+    res.json({
+      success: true,
+      message: 'Backup creado en data/backups/.',
+      snapshot: {
+        filename: path.basename(snap.dbPath),
+        dbPath: snap.dbPath,
+        schemaVersion: snap.schemaVersion,
+        createdAt: snap.createdAt
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/backups/restore', requireAdmin, (req, res) => {
+  try {
+    const filename = String((req.body && req.body.filename) || '').trim();
+    if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      return res.status(400).json({ success: false, message: 'Nombre de archivo inválido.' });
+    }
+    if (!filename.endsWith('.sqlite')) {
+      return res.status(400).json({ success: false, message: 'Solo se restauran archivos .sqlite.' });
+    }
+    const abs = path.join(DATA_DIR, 'backups', filename);
+    const result = dbService.restoreBackupFromFile(abs);
+    res.json({
+      success: true,
+      ...result,
+      message: result.message || 'Backup restaurado. Reinicia el servidor (npm start).'
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/backups/:filename/download', requireAdmin, (req, res) => {
+  try {
+    const filename = String(req.params.filename || '').trim();
+    if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\') || !filename.endsWith('.sqlite')) {
+      return res.status(400).json({ success: false, message: 'Nombre de archivo inválido.' });
+    }
+    const abs = path.join(DATA_DIR, 'backups', filename);
+    const resolved = path.resolve(abs);
+    const backupsDir = path.resolve(path.join(DATA_DIR, 'backups'));
+    if (!resolved.startsWith(backupsDir + path.sep)) {
+      return res.status(400).json({ success: false, message: 'Ruta no permitida.' });
+    }
+    if (!fs.existsSync(resolved)) {
+      return res.status(404).json({ success: false, message: 'Backup no encontrado.' });
+    }
+    res.download(resolved, filename);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Settings Endpoint — Update API Keys in .env safely via GUI
 app.post('/api/settings/keys', (req, res) => {
   try {
@@ -546,6 +639,15 @@ app.post('/api/personas', (req, res) => {
   const forceCreate = body.forceCreate === true || body.forceCreate === 1 || body.forceCreate === 'true';
   const isNew = forceCreate || !body.id;
   const profileId = req.session.profileId || resolveSessionProfile(req);
+
+  // Update: no permitir reescribir personas de otro perfil
+  if (!isNew && body.id) {
+    const owned = dbService.assertPersonaOwnedBy(body.id, profileId);
+    if (!owned) {
+      return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
+    }
+  }
+
   const persona = dbService.savePersona({ ...body, profile_id: profileId });
   if (isNew && persona && persona.id) {
     try {
@@ -560,7 +662,7 @@ app.post('/api/personas', (req, res) => {
   runGitBackup((gitSuccess, msg) => {
     res.json({
       success: true,
-      personas: dbService.getAllPersonas(),
+      personas: dbService.getAllPersonas(profileId),
       persona,
       created: isNew,
       gitSynced: gitSuccess,
@@ -569,31 +671,33 @@ app.post('/api/personas', (req, res) => {
   });
 });
 
-app.delete('/api/personas/:id', (req, res) => {
+app.delete('/api/personas/:id', requireOwnedPersona, (req, res) => {
+  const profileId = req.profileId;
   dbService.deletePersona(req.params.id);
   runGitBackup((gitSuccess, msg) => {
-    res.json({ success: true, personas: dbService.getAllPersonas(), gitSynced: gitSuccess, gitMessage: msg });
+    res.json({ success: true, personas: dbService.getAllPersonas(profileId), gitSynced: gitSuccess, gitMessage: msg });
   });
 });
 
 // Persona Archiving
-app.post('/api/personas/:id/archive', (req, res) => {
+app.post('/api/personas/:id/archive', requireOwnedPersona, (req, res) => {
+  const profileId = req.profileId;
   const { archived } = req.body;
   const persona = dbService.toggleArchivePersona(req.params.id, archived ? 1 : 0);
   runGitBackup((gitSuccess, msg) => {
-    res.json({ success: true, personas: dbService.getAllPersonas(), persona, gitSynced: gitSuccess, gitMessage: msg });
+    res.json({ success: true, personas: dbService.getAllPersonas(profileId), persona, gitSynced: gitSuccess, gitMessage: msg });
   });
 });
 
 // Persona Variants endpoints
-app.get('/api/personas/:id/variants', (req, res) => {
+app.get('/api/personas/:id/variants', requireOwnedPersona, (req, res) => {
   res.json(dbService.getVariantsForPersona(req.params.id));
 });
 
 // Persona Anchor Pack endpoint (4 official face anchor reference photos)
-app.get('/api/personas/:id/anchor-pack', (req, res) => {
+app.get('/api/personas/:id/anchor-pack', requireOwnedPersona, (req, res) => {
   try {
-    const persona = dbService.getPersonaById(req.params.id);
+    const persona = req.persona;
     const variants = dbService.getVariantsForPersona(req.params.id) || [];
     const history = dbService.getGenerationsForPersona(req.params.id) || [];
 
@@ -611,11 +715,11 @@ app.get('/api/personas/:id/anchor-pack', (req, res) => {
   }
 });
 
-app.post('/api/personas/:id/variants', async (req, res) => {
+app.post('/api/personas/:id/variants', requireOwnedPersona, async (req, res) => {
   const { pose, clothing, attitude, setting } = req.body;
   let { prompt } = req.body;
   
-  const persona = dbService.getPersonaById(req.params.id);
+  const persona = req.persona;
   // ALWAYS prefer main portrait as face DNA (same for traditional + spicy)
   // Do not use a previous spicy/variant image as anchor or faces diverge.
   let referenceLocalPath = (persona && persona.image) ? persona.image : null;
@@ -723,28 +827,26 @@ app.post('/api/personas/:id/variants', async (req, res) => {
     });
 });
 
-app.delete('/api/personas/:id/variants/:variantId', (req, res) => {
+app.delete('/api/personas/:id/variants/:variantId', requireOwnedPersona, (req, res) => {
   dbService.deleteVariant(req.params.variantId);
   runGitBackup((gitSuccess, msg) => {
     res.json({ success: true, variants: dbService.getVariantsForPersona(req.params.id), gitSynced: gitSuccess, gitMessage: msg });
   });
 });
 
-app.post('/api/personas/:id/variants/:variantId/set-main', (req, res) => {
+app.post('/api/personas/:id/variants/:variantId/set-main', requireOwnedPersona, (req, res) => {
+  const profileId = req.profileId;
   const { imagePath } = req.body;
   const persona = dbService.setMainVariant(req.params.id, imagePath);
   runGitBackup((gitSuccess, msg) => {
-    res.json({ success: true, personas: dbService.getAllPersonas(), persona, gitSynced: gitSuccess, gitMessage: msg });
+    res.json({ success: true, personas: dbService.getAllPersonas(profileId), persona, gitSynced: gitSuccess, gitMessage: msg });
   });
 });
 
 // Generate Character Bible
-app.post('/api/personas/:id/character-bible', async (req, res) => {
+app.post('/api/personas/:id/character-bible', requireOwnedPersona, async (req, res) => {
   const { sceneDescription, options = {} } = req.body;
-  const persona = dbService.getPersonaById(req.params.id);
-  if (!persona) {
-    return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
-  }
+  const persona = req.persona;
 
   // Use referenceUrl only if explicitly provided in options
   const referenceUrl = options.referenceUrl || "";
@@ -763,11 +865,11 @@ app.post('/api/personas/:id/character-bible', async (req, res) => {
 });
 
 // Persona Versions & Revert
-app.get('/api/personas/:id/versions', (req, res) => {
+app.get('/api/personas/:id/versions', requireOwnedPersona, (req, res) => {
   res.json(dbService.getVersionsForPersona(req.params.id));
 });
 
-app.post('/api/personas/:id/revert/:versionId', (req, res) => {
+app.post('/api/personas/:id/revert/:versionId', requireOwnedPersona, (req, res) => {
   const reverted = dbService.revertPersonaVersion(req.params.id, req.params.versionId);
   if (reverted) {
     runGitBackup((gitSuccess, msg) => {
@@ -826,10 +928,9 @@ app.post('/api/workspaces', (req, res) => {
 });
 
 // Commercial License & Intellectual Property Compliance (Idea 4)
-app.get('/api/personas/:id/commercial-license', (req, res) => {
+app.get('/api/personas/:id/commercial-license', requireOwnedPersona, (req, res) => {
   try {
-    const persona = dbService.getPersonaById(req.params.id);
-    if (!persona) return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
+    const persona = req.persona;
 
     const license = {
       licenseId: `LIC-INFLU-${persona.id.substring(0, 8).toUpperCase()}`,
@@ -865,16 +966,19 @@ const AD_FORMATS = ['9:16', '1:1'];
 
 app.post('/api/ads/bulk-generate', async (req, res) => {
   try {
+    const profileId = req.session.profileId || resolveSessionProfile(req);
     const { personaId, productIds } = req.body;
     if (!personaId) return res.status(400).json({ success: false, error: 'personaId es requerido.' });
     if (!Array.isArray(productIds) || productIds.length === 0) {
       return res.status(400).json({ success: false, error: 'Debe seleccionar al menos 1 producto.' });
     }
 
-    const persona = dbService.getPersonaById(personaId);
+    const persona = dbService.assertPersonaOwnedBy(personaId, profileId);
     if (!persona) return res.status(404).json({ success: false, error: 'Persona no encontrada.' });
 
-    const products = productIds.map(id => dbService.getProductById(id)).filter(Boolean);
+    const products = productIds
+      .map(id => dbService.assertProductOwnedBy(id, profileId))
+      .filter(Boolean);
     if (products.length === 0) return res.status(404).json({ success: false, error: 'Productos no encontrados.' });
 
     const batchId = `batch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -1004,6 +1108,11 @@ app.delete('/api/campaigns/:id', (req, res) => {
 
 // Scripts endpoints
 app.post('/api/campaigns/:id/scripts', (req, res) => {
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const owned = dbService.assertCampaignOwnedBy(req.params.id, profileId);
+  if (!owned) {
+    return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
+  }
   const saved = dbService.saveScripts(req.params.id, req.body.scripts);
   runGitBackup((gitSuccess, msg) => {
     res.json({ success: true, scripts: saved, gitSynced: gitSuccess, gitMessage: msg });
@@ -1012,19 +1121,21 @@ app.post('/api/campaigns/:id/scripts', (req, res) => {
 
 // Gallery endpoints
 app.get('/api/gallery', (req, res) => {
-  res.json(dbService.getGalleryItems());
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  res.json(dbService.getGalleryItems(profileId));
 });
 
 app.post('/api/gallery', (req, res) => {
+  const profileId = req.session.profileId || resolveSessionProfile(req);
   const { prompt, imagePath } = req.body;
-  const item = dbService.saveToGallery(prompt, imagePath);
+  const item = dbService.saveToGallery(prompt, imagePath, profileId);
   runGitBackup((gitSuccess, msg) => {
     res.json({ success: true, item, gitSynced: gitSuccess, gitMessage: msg });
   });
 });
 
 // Generation History endpoints
-app.get('/api/personas/:id/generations', (req, res) => {
+app.get('/api/personas/:id/generations', requireOwnedPersona, (req, res) => {
   try {
     const generations = dbService.getGenerationsForPersona(req.params.id);
     res.json({ success: true, generations });
@@ -1139,7 +1250,8 @@ app.post('/api/ai/generate-video', (req, res) => {
 
 // ZIP exporter
 app.get('/api/export/campaign/:id', (req, res) => {
-  const c = dbService.getCampaignById(req.params.id);
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const c = dbService.assertCampaignOwnedBy(req.params.id, profileId);
   if (!c) {
     return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
   }
@@ -1227,12 +1339,9 @@ INVERSIÓN TOTAL DE CAMPAÑA: $${total.toFixed(2)} USD
  * 2.5–2.6 — Export pack ZIP por persona (character_lock + packs free + imágenes + licencia).
  * Free path: no requiere APIs de pago.
  */
-app.get('/api/export/persona/:id', (req, res) => {
+app.get('/api/export/persona/:id', requireOwnedPersona, (req, res) => {
   try {
-    const persona = dbService.getPersonaById(req.params.id);
-    if (!persona) {
-      return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
-    }
+    const persona = req.persona;
 
     const safeName = String(persona.name || 'influencer')
       .toLowerCase()
@@ -1845,6 +1954,7 @@ app.post(['/api/import-influencer', '/api/personas/import'], upload.array('photo
     // Prepare Persona model database columns (primary image is the first optimized image)
     const primaryImagePath = imagePaths[0];
     const personaName = req.body.name || analysis.identity.name || `Influencer_${Date.now().toString().slice(-4)}`;
+    const profileId = req.session.profileId || resolveSessionProfile(req);
     const persona = {
       name: personaName,
       gender: req.body.gender || analysis.identity.gender || "Female",
@@ -1859,7 +1969,9 @@ app.post(['/api/import-influencer', '/api/personas/import'], upload.array('photo
       image: primaryImagePath,
       imageUGC: primaryImagePath,
       handle: `@${personaName.toLowerCase().replace(/\s+/g, '')}_ugc`,
-      detailedJSON: analysis
+      detailedJSON: analysis,
+      profile_id: profileId,
+      forceCreate: true
     };
 
     // Save to SQLite
