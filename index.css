@@ -126,11 +126,36 @@ body {
 
 .nav-links {
   list-style: none;
-  margin-top: 32px;
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   flex-grow: 1;
+  overflow-y: auto;
+}
+
+.nav-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 8px 16px 4px;
+  margin-top: 4px;
+}
+
+.nav-group-label.nav-group-secondary {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.nav-item.nav-item-secondary button {
+  padding: 10px 16px;
+  font-size: 13px;
+  opacity: 0.85;
 }
 
 .nav-item button {
@@ -2561,4 +2586,83 @@ input:checked + .slider:before {
     margin: 0 !important;
     max-height: 90vh !important;
   }
+}
+
+/* Happy path (F6) + flow hierarchy */
+.happy-path-card {
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.happy-path-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.happy-path-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 14px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+  color: inherit;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  font-family: inherit;
+}
+
+.happy-path-step:hover {
+  border-color: var(--glass-border-focus);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.happy-step-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.happy-path-step h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #fff;
+  font-family: var(--font-display);
+}
+
+.happy-path-step p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.advanced-tools-details summary {
+  list-style: none;
+}
+
+.advanced-tools-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.primary-export-card {
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.15);
+}
+
+.post-save-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
 }

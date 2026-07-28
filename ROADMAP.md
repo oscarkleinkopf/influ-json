@@ -64,9 +64,9 @@
 | F1 | `character_lock` en todo save/export | Copiar a ChatGPT free reproduce la misma persona en 3 prompts distintos |
 | F2 | Documentar “flujo emprendedor gratis” en README corto | Un novato entiende: Studio + copiar JSON a chatbot |
 | F3 | Variantes: rate-limit UX + cola simple (1 gen a la vez) | No spamear Pollinations; toast “espera 30s” |
-| F4 | Side-by-side ancla vs última gen (gratis) | Usuario juzga consistencia sin API de scoring |
+| F4 | Side-by-side ancla vs última gen (gratis) | Usuario juzga consistencia sin API de scoring ✅ |
 | F5 | Prompt packs free (chatbot): cuerpo entero / bikini / spicy / producto en mano | 4 plantillas que reusan `character_lock` ✅ |
-| F6 | Happy path 60s en dashboard | Nuevo → guardar → 1 gen → copiar JSON |
+| F6 | Happy path 60s en dashboard | Nuevo → guardar → 1 gen → copiar JSON ✅ (gen opcional) |
 
 **No hacer en esta fase:** multi-tenant, billing, OAuth, video full, requerir Gemini key.
 
@@ -105,10 +105,12 @@
 | # | Tarea | Estado |
 |---|--------|--------|
 | 2.3 | Estados 429 / offline | parcial ✅ |
-| 2.4 | Side-by-side ancla | pendiente (F4) |
+| 2.4 | Side-by-side ancla | ✅ F4 |
 | 2.5–2.6 | Script + export pack | pendiente |
 | JSON chatbot | character_lock | ✅ |
 | Image provider stub | free-first | ✅ |
+| UX flujo canónico | nav + dashboard 3 pasos | ✅ 2026-07-28 |
+| Seguridad mínima | SESSION_SECRET, rate-limit, no auto-git | ✅ 2026-07-28 |
 
 ---
 
@@ -116,6 +118,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-28 | Usabilidad: ordenar flujo, F4, F6; seguridad: auth/session/git opt-in | Nav primario/secundario; save sin Pollinations; AUTO_GIT_BACKUP off |
 | 2026-07-27 | Unificar arranque + alinear `package.json` al lock; docs concepto prompts/JSON | `npm start`→`server.js`; etapa = usabilidad → seguridad |
 | 2026-07-19 | 1.3–1.6, body JSON, skin lock, spicy, full-body framing | Ver commits main |
 | 2026-07-20 | Filosofía cero costo; character_lock export; image-provider free-first | Replicate documentado, no implementado |

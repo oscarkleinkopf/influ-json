@@ -7,17 +7,15 @@
 
 ## Idea central (no negociable)
 
-**Producto:** herramientas para **crear prompts** que generen influencers **consistentes** (desde cero o inspirados en foto/referencia), y un **JSON (`character_lock`)** que se pueda pegar en **chatbots gratuitos** para seguir desarrollando esos personajes sin pagar face-lock.
+**Producto:** herramientas para **crear prompts** que generen influencers **consistentes** (desde cero o inspirados), y un **JSON (`character_lock`)** pegable en **chatbots gratuitos** para seguir desarrollando el personaje sin face-lock de pago.
 
-**Cero costo primero.** Pollinations = bocetos locales opcionales. Replicate = opt-in futuro que **nunca** rompe el free path.
+**Cero costo primero.** Pollinations = bocetos opcionales. Replicate = opt-in futuro.
 
-Happy path a proteger:
+Happy path:
 
 ```
-Crear/importar → portafolio → copiar JSON/packs a chatbot free (o gen Pollinations) → export pack
+Crear/importar → guardar JSON → copiar pack a chatbot free → (opcional) boceto + side-by-side
 ```
-
-Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ---
 
@@ -25,65 +23,48 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa de producto** | **Usabilidad** (perfeccionar flujo crear → JSON → chatbot). Luego **seguridad** para mercado. |
-| **Fase ROADMAP** | Free path sólido; pendientes UX: F4 side-by-side, F6 happy path 60s |
-| **Prioridad inmediata** | UX del loop prompts/JSON/chatbot; no video full ni Replicate obligatorio |
-| **En pausa** | Hardening de seguridad para lanzamiento; multi-tenant; billing |
-| **Servidor** | `npm start` → `server.js` (completo). `start:minimal` = demo only |
-| **Última plataforma** | Cursor |
-| **Última actualización** | 2026-07-27 |
+| **Etapa** | Fase 1 usabilidad **cerrada en esta rama**; Fase 2 seguridad **implementada** (revisar en PR) |
+| **Servidor** | `npm start` → `server.js`. Auto-git **off** salvo `AUTO_GIT_BACKUP=1` |
+| **Última plataforma** | Cursor Cloud |
+| **Última actualización** | 2026-07-28 |
 
 ---
 
-## Sesión reciente (Cursor, 2026-07-27)
+## Sesión reciente (Cursor, 2026-07-28)
 
-**Confirmado por usuario:** en Resumen ve portafolio + creaciones → Antigravity ya usaba el Studio completo (`/api/data` + SQLite).
+**Hecho — Usabilidad:**
+- Nav: «Flujo principal» (Resumen + Crear/JSON) vs «Producción» (Campañas, Script, UGC, Licensing, Galería).
+- Dashboard F6: 3 pasos + CTAs crear/importar; empty state con botones.
+- Guardar JSON **sin** exigir Pollinations (checkbox opcional); toast «siguiente: copiar pack».
+- Export primario: botón pack cuerpo entero + packs F5.
+- F4: `#sideBySideComparator` cableado (ancla vs última variante).
+- Mobile nav: `dashboard` / `persona-engine` / `ugc-studio` / `campaigns`.
+- A/B prompts demovido a «Herramientas avanzadas».
 
-**Pedido del usuario:**
-- Reparar dual-server / deps para evitar problemas futuros.
-- Concepto central = prompts consistentes + JSON para chatbots gratis.
-- Esta etapa = **usabilidad**; después = **seguridad** para mercado.
-
-**Hecho en esta sesión:**
-- `package.json`: deps alineadas al lock (`better-sqlite3`, `express-session`, `archiver`, Express 4…); `npm start` → `server.js`; `npm test` cableado; `start:minimal` explícito.
-- `server-minimal.js`: aviso DEMO ONLY en cabecera.
-- README / AGENTS / HANDOFF / ROADMAP: concepto + prioridades usabilidad → seguridad.
-
-**No tocado:** UI de producto, auth/PIN, auto git-push del servidor.
-
----
-
-## Próximos pasos (robot que retome)
-
-1. `git pull` → este archivo → `ROADMAP.md`.
-2. `npm start` (nunca `start:minimal` para trabajo real).
-3. Priorizar usabilidad del happy path: F6 (60s en dashboard), F4 (side-by-side ancla vs gen), claridad del export chatbot.
-4. No endurecer seguridad de mercado todavía salvo lo mínimo local (PIN / `.env`).
-5. Tokens: `.env` local por máquina — no van en Git.
+**Hecho — Seguridad:**
+- `SESSION_SECRET`, cookies `sameSite`, rate-limit login, logout.
+- `AUTO_GIT_BACKUP` off por defecto.
+- Uploads: MIME allowlist, 15MB.
+- `.env.example` actualizado.
 
 ---
 
-## Log de cambios (más reciente arriba)
+## Próximos pasos
+
+1. `git pull` de esta rama / merge a main.
+2. Probar happy path local: crear → guardar (sin boceto) → copiar pack.
+3. Ajustes UX finos si hace falta; no Replicate obligatorio.
+
+---
+
+## Log de cambios
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-27 | Cursor | Alinear deps + documentar concepto (prompts/JSON/chatbot) y etapa usabilidad→seguridad | *(este commit)* |
-| 2026-07-27 | Antigravity | `npm start`→`server.js` + modal Ajustes + 3 skills + SKILLS_MANUAL | `714ab5b` |
-| 2026-07-27 | Cursor | HANDOFF + workflow sync GitHub | `b70f6d0` / `4b2abcc` |
-
----
-
-## Cómo actualizar este archivo
-
-Al terminar cualquier tarea con cambios:
-
-1. Fila en **Log de cambios**.
-2. Actualizar **Foco actual** si cambió.
-3. Rellenar **Sesión reciente**.
-4. Línea en log de `ROADMAP.md` si aplica.
-5. `git commit` + `git push origin main`.
+| 2026-07-28 | Cursor | Fase usabilidad (flujo/F4/F6) + seguridad mínima | *(este PR)* |
+| 2026-07-27 | Cursor/Antigravity | HANDOFF, npm start→server.js, skills | varios |
 
 ## Qué no commitear
 
 - `.env`
-- `data/` (DB activa; mirror `influ.sqlite` en raíz puede ir si se usa backup por git)
+- `data/`
