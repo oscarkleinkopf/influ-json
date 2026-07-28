@@ -77,3 +77,14 @@ El usuario alterna entre **Antigravity** (principal) y **Cursor**. Cada cambio d
 2. Si aplica, línea en log de **ROADMAP.md**
 3. `git add` → `git commit` → `git push origin main`
 4. Commit claro (`feat:` / `fix:` / `docs:`). **No** commitear `.env`
+
+## Cursor Cloud specific instructions
+
+Servicio único: la app Express de `server.js` (puerto 3000). Comandos estándar (ver `package.json` / README): `npm start` (producción/dev real), `npm test` (tests), `npm run dev` (watch). El path libre funciona sin claves; `GEMINI_API_KEY`/`REPLICATE_API_TOKEN` son opcionales y **no** deben requerirse.
+
+Gotchas no obvios:
+- **`.env` no es obligatorio.** Sin `.env` la auth usa `STUDIO_PIN=1234` por defecto y corre en modo Offline/Prompt-Copy. Para dev local puedes `cp .env.example .env`.
+- **Login:** endpoint real es `POST /api/auth/login` con body `{"pin":"1234"}`. Endpoints API también aceptan header `Authorization: Bearer 1234`.
+- **La app escribe en el repo.** El feature de git-backup/sync (`runGitBackup` / `syncDbToWorkspace` en `server.js`) hace `git add/commit` sobre el workspace y puede dejar un `.git/index.lock` colgado tras arrancar el server o llamar `/api/sync`. Si ves `Unable to create '.git/index.lock'` sin proceso git activo, es seguro `rm -f .git/index.lock`.
+- **Los tests mutan el árbol de trabajo.** `npm test` modifica `influ.sqlite` y `personas.json` y crea imágenes mock en `assets/references/`. Crear personas genera archivos en `assets/generated/`. Restaura con `git checkout -- influ.sqlite personas.json` y borra los assets generados antes de commitear.
+- DB real vive en `data/influ.sqlite` (via `DATA_DIR`); `influ.sqlite` en la raíz es solo un mirror para backup por git.
