@@ -52,24 +52,39 @@ const storage = multer.diskStorage({
     cb(null, unique);
   }
 });
-const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
+const ALLOWED_IMAGE_MIME = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']);
+const upload = multer({
+  storage,
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_IMAGE_MIME.has(String(file.mimetype || '').toLowerCase())) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten imágenes JPEG, PNG, WebP o GIF'));
+    }
+  }
+});
 
 // Portable data directory (ROADMAP 1.6) — was hardcoded Antigravity brain path
 const { DATA_DIR, ensureDir } = require('./paths');
 const SCRATCH_DIR = DATA_DIR;
 ensureDir(SCRATCH_DIR);
 
-// Git backup helper function
+// Git backup helper — OFF by default (set AUTO_GIT_BACKUP=1 to enable)
 function runGitBackup(callback) {
+  if (process.env.AUTO_GIT_BACKUP !== '1' && process.env.AUTO_GIT_BACKUP !== 'true') {
+    // Treat as non-error so UI toasts don't say "Error en Git"
+    if (callback) callback(true, 'Auto git backup omitido (AUTO_GIT_BACKUP no activo)');
+    return;
+  }
+
   const commitMsg = `Backup auto-sync: Campaign update ${new Date().toISOString()}`;
   const commands = `git add . && git commit -m "${commitMsg}" --allow-empty && git push origin main`;
   
-  // Call callback immediately to prevent blocking HTTP response
   if (callback) {
     callback(true, 'Git backup scheduled in background');
   }
 
-  // Run the commands in the background asynchronously
   exec(commands, (error, stdout, stderr) => {
     if (error) {
       console.warn('Background Git backup failed:', error.message);
@@ -83,14 +98,36 @@ function runGitBackup(callback) {
 // PUBLIC ENDPOINTS
 // =============================================
 
-// Auth Login
+// Auth Login (rate-limited)
 app.post('/api/auth/login', (req, res) => {
+  const limit = authService.checkLoginRateLimit(req);
+  if (!limit.ok) {
+    res.setHeader('Retry-After', String(limit.retryAfterSec || 60));
+    return res.status(429).json({
+      success: false,
+      message: `Demasiados intentos. Espera ${limit.retryAfterSec}s e inténtalo de nuevo.`
+    });
+  }
+
   const { pin } = req.body;
   if (authService.verifyPin(pin)) {
+    authService.clearLoginFailures(req);
     req.session.authenticated = true;
     res.json({ success: true, message: 'Sesión iniciada correctamente.' });
   } else {
+    authService.recordLoginFailure(req);
     res.status(401).json({ success: false, message: 'PIN incorrecto. Inténtalo de nuevo.' });
+  }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  if (req.session) {
+    req.session.destroy(() => {
+      res.clearCookie('connect.sid');
+      res.json({ success: true, message: 'Sesión cerrada.' });
+    });
+  } else {
+    res.json({ success: true, message: 'Sesión cerrada.' });
   }
 });
 
@@ -104,10 +141,12 @@ app.get('/api/status', (req, res) => {
     success: true,
     apiConnected: aiService.isApiConnected(),
     gitLinked: fs.existsSync(path.join(__dirname, '.git')),
-    pinRequired: !!process.env.STUDIO_PIN && process.env.STUDIO_PIN.trim() !== '',
+    pinRequired: authService.pinRequiredForStatus
+      ? authService.pinRequiredForStatus()
+      : !!(process.env.STUDIO_PIN && process.env.STUDIO_PIN.trim() !== ''),
+    autoGitBackup: process.env.AUTO_GIT_BACKUP === '1' || process.env.AUTO_GIT_BACKUP === 'true',
     dataDir: dbService.getDataDir ? dbService.getDataDir() : DATA_DIR,
     dbPath: dbService.getDbPath ? dbService.getDbPath() : null,
-    // Free-first: Pollinations always on; Replicate only if explicitly configured later
     imageProviders,
     freeTier: {
       imageGen: 'pollinations',

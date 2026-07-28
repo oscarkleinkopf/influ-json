@@ -73,6 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupVariantManager', fn: setupVariantManager },
     { name: 'setupFreeChatbotPacks', fn: setupFreeChatbotPacks },
     { name: 'setupSettings', fn: setupSettings },
+    { name: 'setupHappyPathDashboard', fn: setupHappyPathDashboard },
+    { name: 'setupLogout', fn: setupLogout },
     { name: 'initImportModal', fn: initImportModal }
   ];
 
@@ -137,6 +139,100 @@ function setupLogin() {
       toastError('Error de conexión al autenticar.');
     }
   });
+}
+
+function setupLogout() {
+  const btn = document.getElementById('btnLogout');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    try {
+      await authFetch('/api/auth/logout', { method: 'POST', body: '{}' }).catch(() => null);
+    } catch (_) { /* ignore */ }
+    studioPin = '';
+    sessionStorage.removeItem('studioPin');
+    showLoginScreen();
+    toastInfo('Sesión cerrada.');
+  });
+}
+
+function setupHappyPathDashboard() {
+  const goCreate = () => {
+    navigateToTab('persona-engine');
+    setTimeout(() => {
+      const card = document.getElementById('cardCreateScratch');
+      if (card) card.click();
+      else if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
+    }, 80);
+  };
+  const goImport = () => {
+    navigateToTab('persona-engine');
+    setTimeout(() => {
+      const openBtn = document.getElementById('btnOpenImportModal');
+      const card = document.getElementById('cardCreateInspiration');
+      if (openBtn) openBtn.click();
+      else if (card) card.click();
+    }, 80);
+  };
+  const goCopyPack = async () => {
+    if (!state.selectedPersona && !(document.getElementById('pName')?.value || '').trim()) {
+      toastInfo('Selecciona un influencer del portafolio o créalo primero.');
+      navigateToTab('persona-engine');
+      return;
+    }
+    navigateToTab('persona-engine');
+    await copyFreeChatbotPack('fullbody');
+  };
+
+  const bind = (id, fn) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', fn);
+  };
+  bind('btnDashCreate', goCreate);
+  bind('btnDashImport', goImport);
+  bind('btnHappyStep1', goCreate);
+  bind('btnHappyStep2', () => {
+    navigateToTab('persona-engine');
+    toastInfo('Ajusta identidad y pulsa «Guardar JSON / character_lock».');
+  });
+  bind('btnHappyStep3', goCopyPack);
+
+  document.querySelectorAll('[data-happy-action]').forEach(el => {
+    // already bound via ids for steps; keep attribute for empty-state clones
+  });
+
+  window.__happyPath = { goCreate, goImport, goCopyPack };
+}
+
+/**
+ * F4 — Show anchor portrait vs latest generation side-by-side.
+ */
+function updateSideBySideComparator(anchorSrc, variantSrc) {
+  const panel = document.getElementById('sideBySideComparator');
+  const aImg = document.getElementById('sbsAnchorImg');
+  const vImg = document.getElementById('sbsVariantImg');
+  if (!panel || !aImg || !vImg) return;
+
+  const anchor = anchorSrc || state.selectedPersona?.image || '';
+  const variant = variantSrc || '';
+  if (!anchor || !variant) {
+    panel.style.display = 'none';
+    return;
+  }
+  aImg.src = anchor;
+  vImg.src = variant;
+  panel.style.display = 'block';
+}
+
+function refreshSideBySideFromState(latestVariantPath) {
+  const persona = state.selectedPersona;
+  if (!persona) return;
+  const variants = Array.isArray(state.activeVariants) ? state.activeVariants : [];
+  const latest = latestVariantPath
+    || (variants[0] && (variants[0].image_path || variants[0].image))
+    || null;
+  if (latest && persona.image && latest !== persona.image) {
+    updateSideBySideComparator(persona.image, latest);
+  }
 }
 
 function setupSettings() {
@@ -472,18 +568,20 @@ function updateDashboardStats() {
     const hasFilter = state.portfolioFilter !== 'all';
     personaGrid.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 40px 20px; font-size: 14px;">
-        <div style="font-size: 28px; margin-bottom: 10px;">🔍</div>
         <div style="margin-bottom: 8px; color: #fff; font-weight: 600;">0 influencers en esta vista</div>
         <div style="margin-bottom: 16px; font-size: 13px;">
           ${hasSearch || hasFilter
             ? 'No hay coincidencias con la búsqueda o el filtro actual.'
-            : 'Aún no hay influencers en el roster.'}
+            : 'Aún no hay influencers. Empieza creando uno o importando una referencia.'}
         </div>
         ${hasSearch || hasFilter ? `
           <button type="button" class="btn btn-secondary btn-sm" id="btnClearPortfolioFilters" style="margin: 0 4px;">
             Limpiar búsqueda y ver todos
           </button>
-        ` : ''}
+        ` : `
+          <button type="button" class="btn btn-sm" id="btnEmptyCreate" style="margin: 0 4px;">Crear desde cero</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnEmptyImport" style="margin: 0 4px;">Importar / inspirar</button>
+        `}
       </div>
     `;
     const clearBtn = document.getElementById('btnClearPortfolioFilters');
@@ -499,6 +597,10 @@ function updateDashboardStats() {
         clearPortfolioSearch();
       });
     }
+    const emptyCreate = document.getElementById('btnEmptyCreate');
+    const emptyImport = document.getElementById('btnEmptyImport');
+    if (emptyCreate && window.__happyPath) emptyCreate.addEventListener('click', window.__happyPath.goCreate);
+    if (emptyImport && window.__happyPath) emptyImport.addEventListener('click', window.__happyPath.goImport);
     return;
   }
   
@@ -685,7 +787,7 @@ function resetPersonaFormForNew() {
   // Change save button text
   const btnSave = document.getElementById('btnSavePersona');
   if (btnSave) {
-    btnSave.textContent = "Crear Influencer";
+    btnSave.textContent = '2. Guardar JSON / character_lock';
     btnSave.dataset.createMode = '1';
   }
 
@@ -2281,29 +2383,58 @@ async function savePersona() {
   
   const promptText = document.getElementById('promptPreview').textContent;
   const influencerName = name || 'Influencer';
+  const wantSketch = !!(document.getElementById('chkGenerateSketchOnSave')?.checked);
+
   toastLoading(creatingNew
-    ? `Creando influencer nuevo: ${influencerName}...`
-    : `Generando retrato virtual consistente con ${influencerName}...`);
+    ? `Guardando influencer nuevo: ${influencerName}...`
+    : `Guardando JSON de ${influencerName}...`);
   
   let portraitPath = null;
-  try {
-    QueuePoller.start();
-    const imgRes = await authFetch('/api/ai/generate-image', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        prompt: promptText, 
-        // Never borrow another persona's face when creating new
-        referenceLocalPath: uploadedImagePath || (creatingNew ? null : state.selectedPersona?.image),
-        personaId: creatingNew ? 'new_persona' : (state.selectedPersona?.id || 'new_persona'),
-        generationType: 'portrait'
-      })
-    });
-    const imgData = await imgRes.json();
-    if (imgData.success && imgData.imagePath) {
-      portraitPath = imgData.imagePath;
+  if (wantSketch) {
+    try {
+      try {
+        const qs = await authFetch('/api/queue-status');
+        const qj = await qs.json();
+        if (qj?.queue?.isCoolingDown || qj?.queue?.rateLimitActive) {
+          const sec = qj.queue.retryAfterSeconds || Math.ceil((qj.queue.cooldownRemainingMs || 30000) / 1000);
+          toastInfo(`Cola en cooldown (${sec}s). Guardamos el JSON ahora; el boceto se omite.`);
+        } else {
+          QueuePoller.start();
+          const imgRes = await authFetch('/api/ai/generate-image', {
+            method: 'POST',
+            body: JSON.stringify({ 
+              prompt: promptText, 
+              referenceLocalPath: uploadedImagePath || (creatingNew ? null : state.selectedPersona?.image),
+              personaId: creatingNew ? 'new_persona' : (state.selectedPersona?.id || 'new_persona'),
+              generationType: 'portrait'
+            })
+          });
+          const imgData = await imgRes.json();
+          if (imgRes.status === 429 || imgData.code === 429) {
+            toastInfo('Pollinations 429 — JSON se guarda igual. Reintenta el boceto luego.');
+          } else if (imgData.success && imgData.imagePath) {
+            portraitPath = imgData.imagePath;
+          }
+        }
+      } catch (inner) {
+        console.warn('Queue/status check failed:', inner);
+        QueuePoller.start();
+        const imgRes = await authFetch('/api/ai/generate-image', {
+          method: 'POST',
+          body: JSON.stringify({ 
+            prompt: promptText, 
+            referenceLocalPath: uploadedImagePath || (creatingNew ? null : state.selectedPersona?.image),
+            personaId: creatingNew ? 'new_persona' : (state.selectedPersona?.id || 'new_persona'),
+            generationType: 'portrait'
+          })
+        });
+        const imgData = await imgRes.json();
+        if (imgData.success && imgData.imagePath) portraitPath = imgData.imagePath;
+      }
+    } catch (err) {
+      console.warn('Image generation failed or offline. Saving JSON without sketch.');
+      toastInfo('Boceto no disponible. Guardando solo el JSON.');
     }
-  } catch (err) {
-    console.warn('Image generation failed or offline. Using reference or existing image.');
   }
 
   const finalImage = portraitPath
@@ -2376,16 +2507,15 @@ async function savePersona() {
       } catch (e) {
         console.warn('Post-save /api/data refresh failed:', e);
       }
-      
-      if (data.gitSynced) {
-        showSyncToast(true, creatingNew
-          ? `¡Influencer "${name}" creado como ficha nueva!`
-          : '¡Persona guardada y respaldada en GitHub con su retrato virtual!');
-      } else {
-        showSyncToast(false, creatingNew
-          ? `Influencer "${name}" creado localmente. Error en Git.`
-          : 'Guardado localmente. Error en Git.');
+
+      if (portraitPath && state.selectedPersona?.image) {
+        updateSideBySideComparator(state.selectedPersona.image, portraitPath);
       }
+      
+      const nextHint = 'Siguiente: usa «Copiar pack cuerpo entero → ChatGPT / Gemini».';
+      toastSuccess(creatingNew
+        ? `«${name}» guardado. ${nextHint}`
+        : `JSON actualizado. ${nextHint}`, { duration: 7000, gitOk: !!data.gitSynced });
     } else {
       showSyncToast(false, data.message || 'No se pudo guardar la persona.');
     }
@@ -4810,6 +4940,8 @@ function renderVariantVaultGrid() {
   const grid = document.getElementById('variantGalleryGrid');
   if (!grid) return;
   grid.innerHTML = '';
+
+  refreshSideBySideFromState();
   
   if (state.activeVariants.length === 0) {
     grid.innerHTML = `
@@ -5010,12 +5142,16 @@ async function generateVariantAction() {
     if (data.success) {
       state.activeVariants = data.variants;
       renderVariantVaultGrid();
+      const newest = (data.variants && data.variants[0] && data.variants[0].image_path)
+        || data.variant?.image_path
+        || null;
+      if (newest) refreshSideBySideFromState(newest);
       statusText.textContent = framing === 'fullbody'
         ? '✓ Cuerpo entero generado!'
         : '✓ Pose agregada (misma identidad)!';
       toastSuccess(framing === 'fullbody'
-        ? `Cuerpo entero de ${p.name} listo`
-        : `Variante lista — cara anclada a ${p.name}`);
+        ? `Cuerpo entero de ${p.name} listo — compara ancla vs variante`
+        : `Variante lista — compara consistencia (F4)`);
       statusCard.classList.remove('loading-pulse');
       setTimeout(() => statusCard.style.display = 'none', 3000);
     } else {

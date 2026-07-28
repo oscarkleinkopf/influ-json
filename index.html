@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.1.5">
+  <link rel="stylesheet" href="index.css?v=1.2.0">
 </head>
 <body>
   <div class="app-container">
@@ -29,46 +29,49 @@
       </div>
       
       <nav class="nav-links">
+        <div class="nav-group-label">Flujo principal</div>
         <li class="nav-item active" data-tab="dashboard">
-          <button>
+          <button type="button">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
             Resumen
           </button>
         </li>
-        <li class="nav-item" data-tab="campaigns">
-          <button>
+        <li class="nav-item" data-tab="persona-engine">
+          <button type="button">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Crear / JSON
+          </button>
+        </li>
+
+        <div class="nav-group-label nav-group-secondary">Producción (después)</div>
+        <li class="nav-item nav-item-secondary" data-tab="campaigns">
+          <button type="button">
             <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
             Campañas
           </button>
         </li>
-        <li class="nav-item" data-tab="persona-engine">
-          <button>
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Persona Engine
-          </button>
-        </li>
-        <li class="nav-item" data-tab="script-engine">
-          <button>
+        <li class="nav-item nav-item-secondary" data-tab="script-engine">
+          <button type="button">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             Script Engine
           </button>
         </li>
-        <li class="nav-item" data-tab="ugc-studio">
-          <button>
+        <li class="nav-item nav-item-secondary" data-tab="ugc-studio">
+          <button type="button">
             <svg viewBox="0 0 24 24"><path d="M23 7a2 2 0 0 0-2.45-1.45L16 7V5a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2l4.55 1.45A2 2 0 0 0 23 17V7z"/></svg>
             UGC Studio
           </button>
         </li>
-        <li class="nav-item" data-tab="licensing">
-          <button>
+        <li class="nav-item nav-item-secondary" data-tab="licensing">
+          <button type="button">
             <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            Licensing & Pitch
+            Licensing
           </button>
         </li>
-        <li class="nav-item" data-tab="gallery">
-          <button>
+        <li class="nav-item nav-item-secondary" data-tab="gallery">
+          <button type="button">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-            Galería Prompts
+            Galería
           </button>
         </li>
       </nav>
@@ -81,8 +84,11 @@
         <button class="btn btn-secondary btn-sm" id="btnOpenSettings" style="width: 100%; margin-bottom: 8px; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--accent-primary); color: #fff;">
           ⚙️ Ajustes & Claves API
         </button>
-        <button class="btn btn-secondary btn-sm" id="btnSyncNow" style="width: 100%;">
+        <button class="btn btn-secondary btn-sm" id="btnSyncNow" style="width: 100%; margin-bottom: 8px;">
           Sincronizar Git
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnLogout" style="width: 100%; color: var(--text-secondary);">
+          Cerrar sesión
         </button>
       </div>
     </aside>
@@ -94,9 +100,47 @@
       <section id="dashboard" class="tab-panel active">
         <div class="content-header">
           <div class="content-title">
-            <h1>Panel de Control</h1>
-            <p>Tu agencia de influencers virtuales — portafolio completo.</p>
+            <h1>Resumen</h1>
+            <p>Crea un influencer, bloquea su identidad en JSON y cópialo a un chatbot gratis.</p>
           </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn" id="btnDashCreate">+ Crear desde cero</button>
+            <button type="button" class="btn btn-secondary" id="btnDashImport">Importar / inspirar</button>
+          </div>
+        </div>
+
+        <!-- F6: Happy path 3 pasos -->
+        <div class="glass-card happy-path-card" style="margin-bottom: 24px;">
+          <h2 style="font-family: var(--font-display); margin-bottom: 8px; font-size: 18px;">Flujo en 3 pasos (gratis)</h2>
+          <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 18px; line-height: 1.5;">
+            El producto central es el <strong style="color:#fff;">character_lock</strong> en JSON: la misma persona en ChatGPT, Gemini, Claude o Meta sin pagar face-lock.
+          </p>
+          <div class="happy-path-steps">
+            <button type="button" class="happy-path-step" id="btnHappyStep1" data-happy-action="create">
+              <span class="happy-step-num">1</span>
+              <div>
+                <h4>Crear o inspirar</h4>
+                <p>Define el personaje desde cero o con foto/URL.</p>
+              </div>
+            </button>
+            <button type="button" class="happy-path-step" id="btnHappyStep2" data-happy-action="json">
+              <span class="happy-step-num">2</span>
+              <div>
+                <h4>Guardar JSON</h4>
+                <p>Ajusta tez, cuerpo y cara → character_lock.</p>
+              </div>
+            </button>
+            <button type="button" class="happy-path-step" id="btnHappyStep3" data-happy-action="copy-pack">
+              <span class="happy-step-num">3</span>
+              <div>
+                <h4>Copiar a chatbot</h4>
+                <p>Pega el pack en ChatGPT / Gemini free.</p>
+              </div>
+            </button>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 14px; margin-bottom: 0;">
+            Opcional después: boceto con Pollinations y comparar ancla vs última gen. Script, UGC y Licensing son producción secundaria.
+          </p>
         </div>
         
         <div class="dashboard-grid">
@@ -143,7 +187,7 @@
         <div class="glass-card" style="margin-top: 24px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
             <div>
-              <h2 style="font-family: var(--font-display); margin: 0;">🎭 Portafolio de Influencers</h2>
+              <h2 style="font-family: var(--font-display); margin: 0;">Portafolio</h2>
               <p id="portfolioResultMeta" style="margin: 6px 0 0; font-size: 12px; color: var(--text-secondary);">0 visibles</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -159,31 +203,6 @@
           </div>
           <div class="portfolio-grid" id="dashboardPersonaGrid">
             <!-- Dynamic portfolio cards generated by JS -->
-          </div>
-        </div>
-        
-        <div class="glass-card" style="margin-top: 28px;">
-          <h2 style="font-family: var(--font-display); margin-bottom: 16px;">Cómo funciona el Pipeline</h2>
-          <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;">
-            El flujo de trabajo automatiza el colapso de producción combinando consistencia de identidad (mediante anclas JSON) y variación de guiones estructurados (mediante GPT-5.6).
-          </p>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px;">
-            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
-              <h4 style="color: var(--accent-primary); margin-bottom: 8px;">1. Persona Engine</h4>
-              <p style="font-size: 13px; color: var(--text-secondary);">Define la identidad del influencer usando JSON. Ajusta un campo a la vez para mantener el estilo consistente.</p>
-            </div>
-            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
-              <h4 style="color: var(--accent-secondary); margin-bottom: 8px;">2. Script Engine</h4>
-              <p style="font-size: 13px; color: var(--text-secondary);">Genera 10 ángulos publicitarios basados en dolor, demostración, giro de solución y llamado a la acción suave.</p>
-            </div>
-            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
-              <h4 style="color: #f59e0b; margin-bottom: 8px;">3. UGC Studio</h4>
-              <p style="font-size: 13px; color: var(--text-secondary);">Genera la imagen del influencer con el producto en mano y previsualiza el post con los textos legales necesarios.</p>
-            </div>
-            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
-              <h4 style="color: var(--success); margin-bottom: 8px;">4. Licensing</h4>
-              <p style="font-size: 13px; color: var(--text-secondary);">Calcula tarifas por derechos comerciales (30/90 días o perpetuo) para cobrar el valor justo por la campaña.</p>
-            </div>
           </div>
         </div>
       </section>
@@ -302,21 +321,21 @@
       
       <!-- TAB: PERSONA ENGINE -->
       <section id="persona-engine" class="tab-panel">
-        <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 12px;">
           <div class="content-title">
-            <h1>Persona Engine (influ-JSON)</h1>
-            <p>Configura la identidad base de tu modelo AI usando un formato estructurado.</p>
+            <h1>Crear / JSON</h1>
+            <p>Paso a paso: crear o inspirar → guardar character_lock → copiar pack a chatbot gratis.</p>
           </div>
           <button type="button" class="btn" id="btnOpenImportModal" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 20px;">
-            📥 IMPORTAR IMAGEN DE REFERENCIA
+            Importar referencia
           </button>
         </div>
         
         <!-- Photo Upload & AI Analysis -->
         <!-- Action Dashboard: Añadir Nuevo Influencer -->
         <div class="glass-card" style="margin-bottom: 28px; padding: 24px;">
-          <h2 style="font-family: var(--font-display); margin-bottom: 6px; font-size: 18px; color: #fff;">✨ Añadir Nuevo Influencer</h2>
-          <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">Elige cómo deseas crear el perfil de tu influencer virtual para iniciar la producción de contenido UGC.</p>
+          <h2 style="font-family: var(--font-display); margin-bottom: 6px; font-size: 18px; color: #fff;">1. Crear o inspirar</h2>
+          <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">Empieza aquí. Después ajustas el JSON y copias el pack al chatbot.</p>
           
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <!-- Opción 1: Crear desde Cero -->
@@ -343,15 +362,18 @@
           </div>
         </div>
         
-        <!-- Comparison & Version History Controls -->
-        <div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: flex-end;">
-          <button class="btn btn-secondary btn-sm" id="btnToggleAB" style="display: flex; align-items: center; gap: 6px;">
-            ⚖️ Comparador A/B Split
-          </button>
-          <button class="btn btn-secondary btn-sm" id="btnToggleHistory" style="display: flex; align-items: center; gap: 6px;">
-            ⏳ Historial de Versiones
-          </button>
-        </div>
+        <!-- Advanced tools: demoted so they don't compete with create → JSON → chatbot -->
+        <details class="advanced-tools-details" style="margin-bottom: 24px;">
+          <summary style="cursor: pointer; color: var(--text-secondary); font-size: 12px; user-select: none;">Herramientas avanzadas (A/B prompts · historial de versiones)</summary>
+          <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" id="btnToggleAB" style="display: flex; align-items: center; gap: 6px;">
+              Comparador A/B de prompts
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btnToggleHistory" style="display: flex; align-items: center; gap: 6px;">
+              Historial de Versiones
+            </button>
+          </div>
+        </details>
 
         <!-- Hidden A/B Split-View Comparator -->
         <div id="abComparatorContainer" style="display: none; margin-bottom: 28px;">
@@ -498,17 +520,19 @@
                 <div class="prompt-text" id="sheetPromptPreview" style="font-size: 11px; max-height: 80px; overflow-y: auto; line-height: 1.5; color: #ccc;">Cargando...</div>
               </div>
 
-              <!-- F5: Free chatbot packs (zero cost) -->
-              <div class="glass-card" style="margin-top: 16px; padding: 14px; background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.2);">
-                <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 6px; letter-spacing: 0.4px;">🆓 Packs gratis para chatbots</h4>
-                <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
-                  Copia un pack y pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Reutiliza el <strong>character_lock</strong> para no pagar face-lock.
+              <!-- F5: Free chatbot packs (zero cost) — acción primaria -->
+              <div class="glass-card primary-export-card" style="margin-top: 16px; padding: 16px; background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.35);">
+                <h4 style="font-size: 12px; text-transform: uppercase; color: #34d399; margin: 0 0 6px; letter-spacing: 0.4px;">Siguiente: copiar a chatbot gratis</h4>
+                <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+                  Pega en ChatGPT, Gemini, Claude o Meta. Reutiliza el <strong>character_lock</strong> — sin face-lock de pago.
                 </p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 11px; padding: 8px 10px; text-align: left;">🧍 Cuerpo entero</button>
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 11px; padding: 8px 10px; text-align: left;">Bikini / playa</button>
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px; text-align: left;">Spicy (realista)</button>
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px; text-align: left;">Producto en mano</button>
+                <button type="button" class="btn" id="btnCopyPrimaryPack" data-free-pack="fullbody" style="width: 100%; margin-bottom: 10px; font-weight: 600;">
+                  Copiar pack cuerpo entero → ChatGPT / Gemini
+                </button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 11px; padding: 8px 10px;">Bikini / playa</button>
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px;">Spicy</button>
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px;">Producto</button>
                 </div>
               </div>
             </div>
@@ -701,18 +725,24 @@
                 </div>
               </div>
               
-              <div style="margin-top: 10px; display: flex; gap: 8px;">
-                <button type="button" class="btn" id="btnSavePersona" style="flex: 2;">
-                  Guardar Persona en influ-JSON
+              <div style="margin-top: 10px;">
+                <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; color: var(--text-secondary); line-height: 1.4;">
+                  <input type="checkbox" id="chkGenerateSketchOnSave" style="margin-top: 3px;">
+                  <span>También generar boceto Pollinations al guardar <span style="color: var(--text-muted);">(opcional — puede tardar o dar 429; el JSON se guarda igual)</span></span>
+                </label>
+              </div>
+              <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn" id="btnSavePersona" style="flex: 2; min-width: 160px;">
+                  2. Guardar JSON / character_lock
                 </button>
                 <button type="button" class="btn btn-secondary" id="btnCancelEditPersona" style="flex: 1.5; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
-                  👁️ Ver Ficha
+                  Ver Ficha
                 </button>
                 <button type="button" class="btn btn-secondary" id="btnArchivePersona" style="flex: 1.2; background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3);">
-                  📦 Archivar
+                  Archivar
                 </button>
                 <button type="button" class="btn btn-secondary" id="btnDeletePersona" style="flex: 1; background: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid rgba(220, 53, 69, 0.4);">
-                  🗑️ Eliminar
+                  Eliminar
                 </button>
               </div>
 
@@ -861,16 +891,16 @@
             <div class="prompt-console">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin: 0;">Prompt de Generación Compilado</h4>
-                <div style="display: flex; gap: 8px;">
-                  <button class="btn btn-secondary btn-sm" id="btnCopyChatbotPrompt" style="padding: 4px 10px; font-size: 10px; height: auto;">📋 Copiar para Chatbot</button>
-                  <button class="btn btn-secondary btn-sm" id="btnSaveToGallery" style="padding: 4px 10px; font-size: 10px; height: auto;">⭐ Guardar en Galería</button>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button class="btn btn-sm" id="btnCopyChatbotPrompt" style="padding: 6px 12px; font-size: 11px; height: auto; font-weight: 600;">Pegar en ChatGPT / Gemini (gratis)</button>
+                  <button class="btn btn-secondary btn-sm" id="btnSaveToGallery" style="padding: 4px 10px; font-size: 10px; height: auto;">Guardar en Galería</button>
                 </div>
               </div>
               <div class="prompt-text" id="promptPreview">Cargando prompt...</div>
               <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
-                <div style="font-size: 10px; text-transform: uppercase; color: #34d399; font-weight: 700; margin-bottom: 8px;">🆓 Packs gratis (F5) — pegar en chatbot free</div>
+                <div style="font-size: 10px; text-transform: uppercase; color: #34d399; font-weight: 700; margin-bottom: 8px;">Packs gratis — pegar en chatbot free</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 10px; padding: 6px 10px;">🧍 Cuerpo entero</button>
+                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 10px; padding: 6px 10px;">Cuerpo entero</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 10px; padding: 6px 10px;">Bikini / playa</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 10px; padding: 6px 10px;">Spicy</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 10px; padding: 6px 10px;">Producto en mano</button>
@@ -1754,17 +1784,17 @@
   
   <!-- Mobile Bottom Fixed Navigation Bar -->
   <nav class="mobile-bottom-nav">
-    <button class="mobile-nav-item active" data-tab="personas" id="mbNavInfluencers">
+    <button class="mobile-nav-item active" data-tab="dashboard" id="mbNavDashboard">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      <span>Resumen</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="persona-engine" id="mbNavInfluencers">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <span>Influencers</span>
+      <span>Crear</span>
     </button>
     <button class="mobile-nav-item" data-tab="ugc-studio" id="mbNavStudio">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-      <span>Studio</span>
-    </button>
-    <button class="mobile-nav-item" data-tab="products" id="mbNavProducts">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-      <span>Catálogo</span>
+      <span>UGC</span>
     </button>
     <button class="mobile-nav-item" data-tab="campaigns" id="mbNavCampaigns">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
