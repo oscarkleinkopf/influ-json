@@ -1522,7 +1522,7 @@ function getFullPersonaJSON() {
   return base;
 }
 
-function buildChatbotExportText({ includePrompt = true, includeScript = false, includeProduct = false, scriptData = null, productData = null } = {}) {
+function buildChatbotExportText({ includePrompt = true, includeScript = false, includeProduct = false, scriptData = null, productData = null, lean = false } = {}) {
   const personaJSON = getFullPersonaJSON();
   const lock = personaJSON.character_lock || {};
   const must = lock.must_match_every_image || {};
@@ -1556,13 +1556,15 @@ PUEDE CAMBIAR: pose, ropa (bikini/spicy/etc.), fondo, expresión suave, producto
 NO PUEDE CAMBIAR: cara, tez, peinado base, proporciones corporales, edad aparente.
 ═══════════════════════════════════════════`);
 
-  // Section 1: Full visual identity JSON
-  sections.push(`
+  // Section 1: Full visual identity JSON (omit in lean campaign pack — lock is enough for free chatbots)
+  if (!lean) {
+    sections.push(`
 ═══════════════════════════════════════════
   IDENTIDAD VISUAL COMPLETA (JSON)
 ═══════════════════════════════════════════
 ${formattedJson}
 ═══════════════════════════════════════════`);
+  }
   
   // Section 2: Product context (if included)
   if (includeProduct && productData) {
@@ -1603,7 +1605,7 @@ Dirección visual: ${scriptData.ctaCue}
   }
 
   // Section 4: Image generation prompt (if included)
-  if (includePrompt) {
+  if (includePrompt && !lean) {
     const prompt = document.getElementById('promptPreview')?.textContent || '';
     sections.push(`
 ═══════════════════════════════════════════
@@ -1621,9 +1623,77 @@ INSTRUCCIONES PARA CHATBOTS GRATUITOS (ChatGPT / Gemini / Claude / Meta / etc.):
 3. Si pides cuerpo entero, bikini o modo spicy: cambia SOLO ropa/pose/fondo; la cara y la tez son fijas.
 4. Estilo UGC: foto de celular amateur, no "cinematic 8K studio".
 5. Si el modelo se desvía (otra cara u otra tez), re-pega el bloque CHARACTER LOCK y repite la petición.
-6. Este flujo es deliberadamente gratis: no requiere Replicate, InstantID ni GPU de pago.`);
+6. Este flujo es deliberadamente gratis: no requiere Replicate, InstantID ni GPU de pago.
+${includeScript && scriptData ? '7. Usa el GUIÓN de arriba para el video/post: respeta hook → demo → giro → CTA y el tono del personaje.' : ''}`);
 
   return sections.join('\n');
+}
+
+/**
+ * ROADMAP 2.5–2.6 — Pack campaña lean: character_lock + guión seleccionado (+ producto opcional).
+ * Listo para pegar en chatbot gratis sin volcar todo el JSON/prompt de imagen.
+ */
+async function copyCampaignPack(opts = {}) {
+  const includeProduct = opts.includeProduct !== false;
+  if (!state.selectedPersona && !(document.getElementById('pName')?.value || '').trim()) {
+    toastInfo('Selecciona o crea un influencer (Crear / JSON) antes de exportar el pack.');
+    navigateToTab('persona-engine');
+    return false;
+  }
+  if (!Array.isArray(state.scripts) || state.scripts.length === 0) {
+    toastInfo('Primero genera los guiones en Script Engine.');
+    navigateToTab('script-engine');
+    return false;
+  }
+
+  const activeScript = state.scripts[state.selectedAngleIndex] || state.scripts[0];
+  const productFromForm = {
+    name: document.getElementById('prodName')?.value || '',
+    benefit: document.getElementById('prodBenefit')?.value || '',
+    audience: document.getElementById('prodAudience')?.value || '',
+    frustration: document.getElementById('prodFrustration')?.value || ''
+  };
+  const product = state.selectedProduct || productFromForm;
+  const hasProduct = !!(product && (product.name || '').trim());
+
+  const exportText = buildChatbotExportText({
+    lean: true,
+    includePrompt: false,
+    includeScript: true,
+    includeProduct: includeProduct && hasProduct,
+    scriptData: activeScript,
+    productData: hasProduct ? product : null
+  });
+
+  try {
+    await navigator.clipboard.writeText(exportText);
+    toastSuccess(`Pack campaña copiado («${activeScript.angle}») — pégalo en ChatGPT / Gemini gratis`);
+    return true;
+  } catch (err) {
+    toastError('No se pudo copiar el pack: ' + (err.message || 'error'));
+    return false;
+  }
+}
+
+async function persistScriptsToSelectedCampaign() {
+  const campaignId = state.selectedCampaign?.id;
+  if (!campaignId || !Array.isArray(state.scripts) || state.scripts.length === 0) return;
+  try {
+    const res = await authFetch(`/api/campaigns/${campaignId}/scripts`, {
+      method: 'POST',
+      body: JSON.stringify({ scripts: state.scripts })
+    });
+    const data = await res.json();
+    if (data.success) {
+      state.selectedCampaign = {
+        ...state.selectedCampaign,
+        scripts: data.scripts || state.scripts
+      };
+      toastInfo('Guiones guardados en la campaña seleccionada.');
+    }
+  } catch (err) {
+    console.warn('No se pudieron persistir scripts en campaña:', err);
+  }
 }
 
 /** F5 — Free chatbot prompt packs (reuse character_lock, zero cost) */
@@ -2765,26 +2835,33 @@ async function renderCampaigns() {
   }
 }
 
-function selectCampaign(c) {
-  state.selectedCampaign = c;
+async function selectCampaign(c) {
+  let full = c;
+  try {
+    const res = await authFetch(`/api/campaigns/${c.id}`);
+    const data = await res.json();
+    if (data && data.id) full = data;
+  } catch (e) {
+    console.warn('Could not reload campaign detail:', e);
+  }
+
+  state.selectedCampaign = full;
   renderCampaigns();
   
-  // Show Details Card
   const card = document.getElementById('campaignDetailCard');
   card.style.display = 'block';
   
-  document.getElementById('cdName').textContent = c.name;
-  document.getElementById('cdStatus').textContent = c.status;
-  document.getElementById('cdStatus').className = `badge ${c.status}`;
-  document.getElementById('cdClient').textContent = c.client_name;
-  document.getElementById('cdBudget').textContent = `$${c.budget.toFixed(2)}`;
-  document.getElementById('cdProduct').textContent = c.product ? c.product.name : 'Ninguno';
+  document.getElementById('cdName').textContent = full.name;
+  document.getElementById('cdStatus').textContent = full.status;
+  document.getElementById('cdStatus').className = `badge ${full.status}`;
+  document.getElementById('cdClient').textContent = full.client_name;
+  document.getElementById('cdBudget').textContent = `$${Number(full.budget || 0).toFixed(2)}`;
+  document.getElementById('cdProduct').textContent = full.product ? full.product.name : 'Ninguno';
   
-  // Render assigned personas
   const personasGrid = document.getElementById('cdPersonaGrid');
   personasGrid.innerHTML = '';
-  if (c.personas && c.personas.length > 0) {
-    c.personas.forEach(p => {
+  if (full.personas && full.personas.length > 0) {
+    full.personas.forEach(p => {
       const item = document.createElement('div');
       item.className = 'persona-card';
       item.innerHTML = `
@@ -2799,9 +2876,38 @@ function selectCampaign(c) {
     personasGrid.innerHTML = '<p style="font-size:11px; color:var(--text-muted);">Sin influencers asignados.</p>';
   }
 
-  // Setup ZIP Export link
   const exportBtn = document.getElementById('btnExportZip');
-  exportBtn.href = `/api/export/campaign/${c.id}`;
+  exportBtn.href = `/api/export/campaign/${full.id}`;
+
+  // Hydrate Script Engine from persisted campaign scripts (2.5–2.6)
+  if (Array.isArray(full.scripts) && full.scripts.length > 0) {
+    state.scripts = full.scripts.map(s => ({
+      angle: s.angle,
+      hook: s.hook,
+      hookCue: s.hookCue,
+      demo: s.demo,
+      demoCue: s.demoCue,
+      turn: s.turn,
+      turnCue: s.turnCue,
+      cta: s.cta,
+      ctaCue: s.ctaCue
+    }));
+    state.selectedAngleIndex = 0;
+    try { renderScriptsUI(); } catch (e) { console.warn(e); }
+  }
+  if (full.product) {
+    state.selectedProduct = {
+      name: full.product.name || '',
+      benefit: full.product.benefit || '',
+      audience: full.product.audience || '',
+      frustration: full.product.frustration || ''
+    };
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+    setVal('prodName', state.selectedProduct.name);
+    setVal('prodBenefit', state.selectedProduct.benefit);
+    setVal('prodAudience', state.selectedProduct.audience);
+    setVal('prodFrustration', state.selectedProduct.frustration);
+  }
 }
 
 // Script Engine Tab Logic
@@ -2817,31 +2923,13 @@ function setupScriptEngine() {
     toastSuccess('Guión publicitario copiado al portapapeles');
   });
   
-  // Full chatbot export (script + persona JSON + product + prompt)
+  // 2.5–2.6 lean campaign pack (character_lock + script + optional product)
   document.getElementById('btnExportScriptChatbot').addEventListener('click', () => {
-    if (state.scripts.length === 0) {
-      toastInfo('Primero genera los scripts de campaña.');
-      return;
-    }
-    const activeScript = state.scripts[state.selectedAngleIndex];
-    const product = state.selectedProduct || {
-      name: document.getElementById('prodName')?.value || '',
-      benefit: document.getElementById('prodBenefit')?.value || '',
-      audience: document.getElementById('prodAudience')?.value || '',
-      frustration: document.getElementById('prodFrustration')?.value || ''
-    };
-    
-    const exportText = buildChatbotExportText({
-      includePrompt: true,
-      includeScript: true,
-      includeProduct: true,
-      scriptData: activeScript,
-      productData: product
-    });
-    
-    navigator.clipboard.writeText(exportText);
-    toastSuccess('📋 Guión + JSON + producto copiados para tu chatbot');
+    const includeProduct = !!document.getElementById('chkPackIncludeProduct')?.checked;
+    copyCampaignPack({ includeProduct });
   });
+
+  window.copyCampaignPack = copyCampaignPack;
 }
 
 async function generateScriptsAction() {
@@ -2885,6 +2973,7 @@ async function generateScriptsAction() {
           renderScriptsUI();
           populateActiveUgcData();
           updateLicensingCalculator();
+          await persistScriptsToSelectedCampaign();
           showSyncToast(true, 'Scripts generados por Gemini con éxito!');
           document.getElementById('btnGenerateScripts').textContent = 'Generar 10 Variaciones de Scripts (Conectar AI)';
           return;
@@ -2898,13 +2987,10 @@ async function generateScriptsAction() {
     generateMockScripts();
     populateActiveUgcData();
     updateLicensingCalculator();
+    await persistScriptsToSelectedCampaign();
     document.getElementById('btnGenerateScripts').textContent = 'Generar 10 Variaciones de Scripts ( offline fallback )';
     
-    if (data.gitSynced) {
-      showSyncToast(true, '¡Campaña guardada y respaldada en GitHub!');
-    } else {
-      showSyncToast(false, 'Guardado localmente. Fallo al subir.');
-    }
+    toastSuccess('Guiones listos. Siguiente: «Copiar pack campaña → chatbot».');
   }
 }
 
@@ -3107,27 +3193,35 @@ function setupUgcStudio() {
   // Generate Image AI Action
   document.getElementById('btnGenerateUgcImage').addEventListener('click', generateAIImageAction);
 
-  // Export active bundle for chatbot
+  // Export lean campaign pack (lock + script)
   document.getElementById('btnExportUgcChatbot').addEventListener('click', () => {
-    const activeScript = state.scripts.length > 0 ? state.scripts[state.selectedAngleIndex] : null;
-    const product = state.selectedProduct || {
-      name: document.getElementById('prodName')?.value || '',
-      benefit: document.getElementById('prodBenefit')?.value || '',
-      audience: document.getElementById('prodAudience')?.value || '',
-      frustration: document.getElementById('prodFrustration')?.value || ''
-    };
-    
-    const exportText = buildChatbotExportText({
-      includePrompt: true,
-      includeScript: !!activeScript,
-      includeProduct: true,
-      scriptData: activeScript,
-      productData: product
-    });
-    
-    navigator.clipboard.writeText(exportText);
-    toastSuccess('📋 Pack completo copiado para tu chatbot');
+    const includeProduct = !!document.getElementById('chkPackIncludeProduct')?.checked;
+    copyCampaignPack({ includeProduct });
   });
+
+  // Full export (JSON + prompt + script) — optional secondary
+  const btnFull = document.getElementById('btnExportUgcFull');
+  if (btnFull) {
+    btnFull.addEventListener('click', () => {
+      const activeScript = state.scripts.length > 0 ? state.scripts[state.selectedAngleIndex] : null;
+      const product = state.selectedProduct || {
+        name: document.getElementById('prodName')?.value || '',
+        benefit: document.getElementById('prodBenefit')?.value || '',
+        audience: document.getElementById('prodAudience')?.value || '',
+        frustration: document.getElementById('prodFrustration')?.value || ''
+      };
+      const exportText = buildChatbotExportText({
+        lean: false,
+        includePrompt: true,
+        includeScript: !!activeScript,
+        includeProduct: !!(product.name || '').trim(),
+        scriptData: activeScript,
+        productData: product
+      });
+      navigator.clipboard.writeText(exportText);
+      toastSuccess('Export completo (JSON + prompt) copiado');
+    });
+  }
 
   // Download Master JSON Pack
   const btnDownloadJson = document.getElementById('btnDownloadJsonPack');

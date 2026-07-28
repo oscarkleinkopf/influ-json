@@ -7,14 +7,13 @@
 
 ## Idea central (no negociable)
 
-**Producto:** herramientas para **crear prompts** que generen influencers **consistentes** (desde cero o inspirados), y un **JSON (`character_lock`)** pegable en **chatbots gratuitos** para seguir desarrollando el personaje sin face-lock de pago.
-
-**Cero costo primero.** Pollinations = bocetos opcionales. Replicate = opt-in futuro.
+**Producto:** prompts + JSON `character_lock` → chatbots gratis para desarrollar influencers consistentes (desde cero o inspirados). Pollinations opcional. Replicate opt-in futuro.
 
 Happy path:
 
 ```
-Crear/importar → guardar JSON → copiar pack a chatbot free → (opcional) boceto + side-by-side
+Crear/importar → guardar JSON → copiar pack chatbot
+(+ Script Engine: pack campaña = lock + guión + producto)
 ```
 
 ---
@@ -23,46 +22,39 @@ Crear/importar → guardar JSON → copiar pack a chatbot free → (opcional) bo
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa** | Fase 1 usabilidad **cerrada en esta rama**; Fase 2 seguridad **implementada** (revisar en PR) |
-| **Servidor** | `npm start` → `server.js`. Auto-git **off** salvo `AUTO_GIT_BACKUP=1` |
-| **Última plataforma** | Cursor Cloud |
+| **Etapa** | Usabilidad + seguridad mínima hechas; **2.5–2.6 pack campaña** en esta sesión |
+| **Servidor** | `npm start` → `server.js`. `AUTO_GIT_BACKUP` off por defecto |
+| **Última plataforma** | Cursor |
 | **Última actualización** | 2026-07-28 |
 
 ---
 
 ## Sesión reciente (Cursor, 2026-07-28)
 
-**Hecho — Usabilidad:**
-- Nav: «Flujo principal» (Resumen + Crear/JSON) vs «Producción» (Campañas, Script, UGC, Licensing, Galería).
-- Dashboard F6: 3 pasos + CTAs crear/importar; empty state con botones.
-- Guardar JSON **sin** exigir Pollinations (checkbox opcional); toast «siguiente: copiar pack».
-- Export primario: botón pack cuerpo entero + packs F5.
-- F4: `#sideBySideComparator` cableado (ancla vs última variante).
-- Mobile nav: `dashboard` / `persona-engine` / `ugc-studio` / `campaigns`.
-- A/B prompts demovido a «Herramientas avanzadas».
+**Pack campaña (2.5–2.6):**
+- `copyCampaignPack()` — export lean: character_lock + guión seleccionado + producto opcional (sin volcar JSON completo ni prompt imagen).
+- Script Engine: botón «Copiar pack campaña → chatbot» + checkbox producto.
+- UGC: mismo pack lean; export completo como secundario.
+- Persistencia: al generar scripts, `POST /api/campaigns/:id/scripts` si hay campaña seleccionada; al seleccionar campaña se hidratan guiones.
 
-**Hecho — Seguridad:**
-- `SESSION_SECRET`, cookies `sameSite`, rate-limit login, logout.
-- `AUTO_GIT_BACKUP` off por defecto.
-- Uploads: MIME allowlist, 15MB.
-- `.env.example` actualizado.
+**Antes en la rama:** flujo nav F6/F4, save sin Pollinations obligatorio, auth/session, AUTO_GIT_BACKUP off.
 
 ---
 
 ## Próximos pasos
 
-1. `git pull` de esta rama / merge a main.
-2. Probar happy path local: crear → guardar (sin boceto) → copiar pack.
-3. Ajustes UX finos si hace falta; no Replicate obligatorio.
+1. Merge PR / `git pull` en Antigravity.
+2. Probar: crear persona → Script Engine generar → Copiar pack campaña → pegar en ChatGPT.
+3. Pendiente ligero: 1.1/1.2 QA import; no Replicate obligatorio.
 
 ---
 
 ## Log de cambios
 
-| Fecha | Plataforma | Resumen | Commit |
-|-------|------------|---------|--------|
-| 2026-07-28 | Cursor | Fase usabilidad (flujo/F4/F6) + seguridad mínima | *(este PR)* |
-| 2026-07-27 | Cursor/Antigravity | HANDOFF, npm start→server.js, skills | varios |
+| Fecha | Plataforma | Resumen | Commit / PR |
+|-------|------------|---------|-------------|
+| 2026-07-28 | Cursor | 2.5–2.6 pack campaña (lock+guión) + persist scripts | *(push siguiente)* |
+| 2026-07-28 | Cursor | Usabilidad F4/F6 + seguridad mínima | PR #1 / `923479f` |
 
 ## Qué no commitear
 
