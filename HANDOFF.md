@@ -14,7 +14,7 @@
 Happy path a proteger:
 
 ```
-Crear/importar → portafolio → copiar JSON/packs a chatbot free (o gen Pollinations) → export pack
+Crear/importar → portafolio → copiar JSON/packs a chatbot free (o gen Pollinations) → export pack / kit marca
 ```
 
 Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
@@ -25,11 +25,11 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa de producto** | **Onboarding member** cerrado (este PR). Multi-user local usable para demos. |
-| **Fase ROADMAP** | Seguridad + perfiles ✅ → siguiente: smoke tester real / merge PRs |
-| **Prioridad inmediata** | Merge PRs #7/#8/#9; invite real; luego Replicate solo si se pide |
-| **En pausa** | OAuth, SMTP, Replicate obligatorio, CSP estricta |
-| **Servidor** | `npm start` → `server.js`. `start:minimal` = demo only |
+| **Etapa de producto** | **Presets nicho + kit marca** (este PR). Multi-user ya cerrado en PRs previos. |
+| **Fase ROADMAP** | Núcleo free reforzado (character_lock por nicho + export emprendedor) |
+| **Prioridad inmediata** | Merge PRs; smoke con tester; Replicate solo si se pide |
+| **En pausa** | OAuth, SMTP, Replicate obligatorio |
+| **Servidor** | `npm start` → `server.js` |
 | **Última plataforma** | Cursor |
 | **Última actualización** | 2026-07-28 |
 
@@ -37,27 +37,25 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ## Sesión reciente (Cursor, 2026-07-28)
 
-**Pedido:** continuar con el resto (onboarding member + Ajustes simplificados).
+**Pedido:** presets de nicho + kit export en un clic.
 
 **Hecho:**
-- Modal bienvenida post-invitación / roster vacío (CTA → crear o checklist Resumen).
-- Banner vacío en happy-path para members.
-- Ajustes: members no ven claves API / invites / backups; solo su perfil + logout.
-- `/api/settings/keys` solo Administración (403 member).
-- Happy-path «copiado» keyed por `profileId`.
-- Tests: `test/member-onboarding.test.js` — suite **34/34**.
+- `niche-presets.js`: Beauty / Fitness / Moda → rellenan formulario + `character_lock.niche` / brand_voice.
+- UI: botones de nicho bajo «Añadir Nuevo Influencer».
+- `brand-kit.js` + `GET /api/export/persona/:id?kit=1` → ZIP con packs + `guion_ugc_15s.txt` + `COMO_USAR_KIT.txt`.
+- Botón **Descargar kit marca** (ficha + UGC Studio).
+- Tests: `test/niche-brand-kit.test.js` — suite **37/37**.
 
-**No tocado:** Replicate, CSP, email SMTP.
+**No tocado:** Replicate, CSP.
 
 ---
 
 ## Próximos pasos (robot que retome)
 
 1. `git pull` → este archivo → `ROADMAP.md`.
-2. Merge PRs multi-user (invites / backup / onboarding).
-3. Smoke manual: admin invita → member canjea → onboarding → crea 1 persona → no ve roster admin.
-4. Solo si el usuario lo pide: Replicate opt-in (R0–R3).
-5. Tests: `npm test` (`DISABLE_GIT_BACKUP=1`).
+2. Merge pila multi-user + este PR.
+3. Smoke: preset Beauty → crear → kit marca → pegar pack en chatbot free.
+4. Solo si el usuario lo pide: Replicate opt-in.
 
 ---
 
@@ -65,19 +63,15 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-28 | Cursor | Onboarding member + Ajustes por rol | *(este PR)* |
+| 2026-07-28 | Cursor | Presets nicho + kit marca ZIP | *(este PR)* |
+| 2026-07-28 | Cursor | Onboarding member + Ajustes por rol | PR #9 |
 | 2026-07-28 | Cursor | Backup UI + ownership API | PR #8 |
-| 2026-07-28 | Cursor | Admin + invitaciones + aislamiento | PR #7 |
-| 2026-07-28 | Cursor | Seguridad mínima + perfiles locales | PR #6 |
-| 2026-07-28 | Cursor | Usabilidad F2–F6 + export ZIP | PR #5 |
-| 2026-07-28 | Cursor | F1 validador `character_lock` | PR #4 |
+| 2026-07-28 | Cursor | Admin + invitaciones | PR #7 |
 
 ---
 
 ## Cómo actualizar este archivo
 
-Al terminar cualquier tarea con cambios:
-
 1. Fila en **Log de cambios**.
-2. Actualizar **Foco actual** si cambió.
+2. Actualizar **Foco actual**.
 3. Rellenar **Sesión reciente**.

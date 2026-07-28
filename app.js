@@ -27,7 +27,9 @@ let state = {
   currentProfile: null,
   pinIsDefault: false,
   /** Tras canjear invitación: mostrar onboarding una vez */
-  justRedeemedInvite: false
+  justRedeemedInvite: false,
+  /** Preset de nicho activo al crear (beauty|fitness|moda) */
+  activeNicheId: null
 };
 
 const HAPPY_PATH_COPY_KEY = 'influ_happy_path_copied_v1';
@@ -92,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupVariantManager', fn: setupVariantManager },
     { name: 'setupFreeChatbotPacks', fn: setupFreeChatbotPacks },
     { name: 'setupHappyPathChecklist', fn: setupHappyPathChecklist },
+    { name: 'setupNichePresets', fn: setupNichePresets },
     { name: 'setupSideBySideComparator', fn: setupSideBySideComparator },
     { name: 'setupSettings', fn: setupSettings },
     { name: 'setupMemberOnboarding', fn: setupMemberOnboarding },
@@ -1418,6 +1421,7 @@ function resetPersonaFormForNew() {
   state.isCreatingNewPersona = true;
   state.selectedPersona = null;
   state.scratchExtendedTraits = null;
+  state.activeNicheId = null;
   uploadedImagePath = null;
 
   // Clear selection highlight on portfolio / select grids
@@ -1463,6 +1467,10 @@ function resetPersonaFormForNew() {
   }
   createBanner.style.display = 'block';
   createBanner.textContent = '✨ Modo crear nuevo: al guardar se creará un influencer aparte. No se renombrará ni sobrescribirá ninguno existente.';
+
+  const nicheHint = document.getElementById('nichePresetHint');
+  if (nicheHint) { nicheHint.style.display = 'none'; nicheHint.textContent = ''; }
+  document.querySelectorAll('.niche-preset-btn').forEach(btn => btn.classList.remove('active'));
 
   // Clear basic inputs & suggest trendy name
   const trendyNames = ["Clara", "Sofía", "Valentina", "Martina", "Elena", "Paula", "Lucía", "Mateo", "Lucas", "Adrián", "Javier", "Thiago"];
@@ -1548,6 +1556,16 @@ function selectPersona(persona) {
   state.isCreatingNewPersona = false;
   state.selectedPersona = persona;
   uploadedImagePath = null; // Clear upload session when selecting another persona
+  state.activeNicheId = null;
+  try {
+    let d = persona.detailedJSON;
+    if (typeof d === 'string') d = JSON.parse(d);
+    const raw = d?.niche || d?.character_lock?.niche || d?.brand_niche || null;
+    if (raw && window.InfluNichePresets?.getNichePreset?.(raw)) state.activeNicheId = raw;
+    else if (/beauty|skincare/i.test(String(raw || d?.identity?.persona_archetype || ''))) state.activeNicheId = 'beauty';
+    else if (/fit|gym|wellness/i.test(String(raw || ''))) state.activeNicheId = 'fitness';
+    else if (/moda|fashion|ootd/i.test(String(raw || ''))) state.activeNicheId = 'moda';
+  } catch (_) {}
 
   const createBanner = document.getElementById('createModeBanner');
   if (createBanner) createBanner.style.display = 'none';
@@ -2140,6 +2158,7 @@ function getFullPersonaJSON() {
     version: 1,
     free_tier: true,
     purpose: 'Mantener la misma persona en chatbots gratuitos y en Pollinations sin APIs de face-lock de pago',
+    niche: state.activeNicheId || null,
     must_match_every_image: {
       name: base.identity.name,
       gender: base.identity.gender,
@@ -2181,6 +2200,19 @@ function getFullPersonaJSON() {
     ],
     free_chatbot_system: `Eres un generador de UGC. Debes mantener SIEMPRE la misma persona definida en character_lock.must_match_every_image. Solo puedes variar: ${['pose', 'ropa', 'fondo', 'expresión suave', 'producto'].join(', ')}. Si el usuario pide bikini, spicy o cuerpo entero, cambia ropa/pose/encuadre pero NUNCA la cara ni la tez (${skinTone}${skinHex ? ' ' + skinHex : ''}). Estilo: foto amateur de smartphone, no cine.`
   };
+
+  // Enrich from niche preset (brand voice / recommended packs)
+  try {
+    const api = window.InfluNichePresets;
+    const niche = state.activeNicheId && api?.getNichePreset?.(state.activeNicheId);
+    if (niche?.lockExtras) {
+      base.character_lock.niche = niche.lockExtras.niche || niche.id;
+      base.character_lock.brand_voice = niche.lockExtras.brand_voice;
+      base.character_lock.recommended_packs = niche.lockExtras.recommended_packs;
+      base.niche = niche.id;
+      base.brand_niche = niche.label;
+    }
+  } catch (_) {}
 
   // Clean internal metadata keys (keep character_lock)
   delete base.generation_prompt;
@@ -2430,16 +2462,18 @@ async function copyFreeChatbotPack(packId) {
 
 /**
  * 2.5–2.6 — Descarga ZIP del influencer (lock + packs + imágenes + licencia).
+ * kit=true → kit marca (+ guión UGC).
  */
-async function exportPersonaZipPack() {
+async function exportPersonaZipPack({ kit = false } = {}) {
   const p = state.selectedPersona || state.personas[0];
   if (!p?.id) {
     toastInfo('Selecciona o crea un influencer antes de exportar el pack.');
     return;
   }
   try {
-    toastLoading('Empaquetando ZIP…');
-    const res = await authFetch(`/api/export/persona/${p.id}`);
+    toastLoading(kit ? 'Empaquetando kit marca…' : 'Empaquetando ZIP…');
+    const qs = kit ? '?kit=1' : '';
+    const res = await authFetch(`/api/export/persona/${p.id}${qs}`);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || `HTTP ${res.status}`);
@@ -2447,7 +2481,10 @@ async function exportPersonaZipPack() {
     const blob = await res.blob();
     const cd = res.headers.get('Content-Disposition') || '';
     const match = cd.match(/filename="?([^"]+)"?/i);
-    const filename = match?.[1] || `${(p.name || 'influencer').toLowerCase().replace(/[^a-z0-9]+/gi, '_')}_pack.zip`;
+    const fallback = kit
+      ? `${(p.name || 'influencer').toLowerCase().replace(/[^a-z0-9]+/gi, '_')}_brand_kit.zip`
+      : `${(p.name || 'influencer').toLowerCase().replace(/[^a-z0-9]+/gi, '_')}_pack.zip`;
+    const filename = match?.[1] || fallback;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -2457,13 +2494,78 @@ async function exportPersonaZipPack() {
     a.remove();
     URL.revokeObjectURL(url);
     markHappyPathCopied();
-    toastSuccess(`📦 Pack ZIP descargado: ${filename}`);
+    toastSuccess(kit ? `🎁 Kit marca descargado: ${filename}` : `📦 Pack ZIP descargado: ${filename}`);
   } catch (err) {
     console.error(err);
     toastError('No se pudo exportar el ZIP: ' + (err.message || 'error'));
   }
 }
 window.exportPersonaZipPack = exportPersonaZipPack;
+window.exportBrandKit = () => exportPersonaZipPack({ kit: true });
+
+function applyNichePreset(nicheId) {
+  const api = window.InfluNichePresets;
+  if (!api?.formValuesFromNiche) {
+    toastError('Presets de nicho no cargados. Recarga la página.');
+    return;
+  }
+  const values = api.formValuesFromNiche(nicheId);
+  if (!values) {
+    toastError('Nicho no reconocido.');
+    return;
+  }
+  resetPersonaFormForNew();
+  state.activeNicheId = nicheId;
+  const setVal = (id, val) => {
+    if (val == null) return;
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  };
+  Object.entries(values).forEach(([key, val]) => {
+    if (key.startsWith('_')) return;
+    setVal(key, val);
+  });
+  // clothing / setting dropdowns
+  try {
+    if (values.pSetting && typeof updateSettingDropdown === 'function') {
+      updateSettingDropdown(values.pSetting);
+    }
+    if (typeof updateClothingDropdown === 'function') updateClothingDropdown();
+    const cloth = document.getElementById('pClothing');
+    if (cloth && values.pClothing) {
+      // try select matching option or set as custom text if input
+      const opts = Array.from(cloth.options || []);
+      const match = opts.find(o => o.value === values.pClothing || o.textContent.includes(values.pClothing.slice(0, 24)));
+      if (match) cloth.value = match.value;
+      else if (cloth.tagName === 'INPUT') cloth.value = values.pClothing;
+    }
+  } catch (_) {}
+
+  compilePromptAndJSON();
+  const jsonArea = document.getElementById('jsonEditor');
+  if (jsonArea) jsonArea.value = JSON.stringify(getFullPersonaJSON(), null, 2);
+
+  const hint = document.getElementById('nichePresetHint');
+  const preset = api.getNichePreset(nicheId);
+  if (hint && preset) {
+    hint.style.display = 'block';
+    hint.textContent = `Preset «${preset.label}» aplicado — ${preset.short}. Revisa tez/nombre y pulsa Crear Influencer.`;
+  }
+  document.querySelectorAll('.niche-preset-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-niche') === nicheId);
+  });
+  toastSuccess(`Nicho ${preset?.label || nicheId} listo — character_lock reforzado`);
+}
+
+function setupNichePresets() {
+  document.querySelectorAll('[data-niche]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      applyNichePreset(btn.getAttribute('data-niche'));
+    });
+  });
+  window.applyNichePreset = applyNichePreset;
+}
 
 function setupFreeChatbotPacks() {
   document.querySelectorAll('[data-free-pack]').forEach(btn => {
@@ -3909,13 +4011,15 @@ function setupUgcStudio() {
     });
   }
 
-  const wireExportZip = (btnId) => {
+  const wireExportZip = (btnId, opts = {}) => {
     const btn = document.getElementById(btnId);
     if (!btn) return;
-    btn.addEventListener('click', () => exportPersonaZipPack());
+    btn.addEventListener('click', () => exportPersonaZipPack(opts));
   };
   wireExportZip('btnExportPersonaZip');
   wireExportZip('btnExportPersonaZipSheet');
+  wireExportZip('btnExportBrandKit', { kit: true });
+  wireExportZip('btnExportBrandKitSheet', { kit: true });
 
   // Commercial License Generator Action
   const btnLicense = document.getElementById('btnGenerateCommercialLicense');
