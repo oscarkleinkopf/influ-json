@@ -65,6 +65,85 @@
         "setting": "Estudio de fotografía minimalista",
         "image_path": "assets/references/mock_variant.jpg",
         "created_at": "2026-07-28 01:16:07"
+      },
+      {
+        "id": "f1deccb8-da84-4ed1-800a-41052ff21b43",
+        "persona_id": "cac09d35-efeb-46f7-beb0-ece8c452c27f",
+        "pose": "Plano medio con sonrisa abierta y guiño de ojo espontáneo",
+        "clothing": "Top",
+        "attitude": "Alegre, divertida, expresiva",
+        "setting": "Ambiente de luz natural",
+        "image_path": "assets/references/mock_variant.jpg",
+        "created_at": "2026-07-28 01:16:07"
+      },
+      {
+        "id": "a67bb077-f8b3-4f8b-94cb-bfd5be827af8",
+        "persona_id": "cac09d35-efeb-46f7-beb0-ece8c452c27f",
+        "pose": "Fotografía de cuerpo completo de pie en estudio",
+        "clothing": "Top",
+        "attitude": "Postura erguida y profesional",
+        "setting": "Fondo de estudio neutro con luz uniforme",
+        "image_path": "assets/references/mock_variant.jpg",
+        "created_at": "2026-07-28 01:16:07"
+      }
+    ]
+  },
+  {
+    "id": "f2015445-4306-4c5e-b5eb-64276d8396df",
+    "name": "DualSyncPersona_1785201367762",
+    "gender": "Female",
+    "age": "24 años",
+    "ethnicity": "Latina",
+    "style": "Casual",
+    "hair": "largo, ondulado, color Castaño",
+    "lighting": null,
+    "camera": null,
+    "clothing": "Top",
+    "setting": "Estudio",
+    "image": "assets/references/ref_1785201367781_photo.jpg",
+    "imageUGC": "assets/references/ref_1785201367781_photo.jpg",
+    "handle": "@dualsyncpersona_1785201367762_ugc",
+    "detailedJSON": {
+      "identity": {
+        "name": "Test Persona",
+        "gender": "Female",
+        "apparent_age": "24 años",
+        "ethnicity_appearance": "Latina"
+      },
+      "body": {
+        "body_type": "Atlético"
+      },
+      "facial_features": {
+        "face_shape": "ovalada",
+        "skin_tone": "piel clara"
+      },
+      "hair": {
+        "length": "largo",
+        "texture": "ondulado",
+        "color": "Castaño"
+      },
+      "aesthetic": {
+        "overall_vibe": "Casual"
+      },
+      "photography": {
+        "background_setting": "Estudio"
+      },
+      "clothing": {
+        "type": "Top"
+      }
+    },
+    "created_at": "2026-07-28 01:16:07",
+    "archived": 0,
+    "variants": [
+      {
+        "id": "71b35399-c41d-481e-b023-83ee749473ac",
+        "persona_id": "f2015445-4306-4c5e-b5eb-64276d8396df",
+        "pose": "Retrato de frente mirando directamente a cámara",
+        "clothing": "Top",
+        "attitude": "Expresión neutra y natural",
+        "setting": "Estudio de fotografía minimalista",
+        "image_path": "assets/references/mock_variant.jpg",
+        "created_at": "2026-07-28 01:16:07"
       }
     ]
   },
