@@ -64,6 +64,11 @@ ensureDir(SCRATCH_DIR);
 
 // Git backup helper function
 function runGitBackup(callback) {
+  // Tests y scripts locales no deben commitear/pushear artefactos a main
+  if (process.env.DISABLE_GIT_BACKUP === '1') {
+    if (callback) callback(true, 'Git backup omitido (DISABLE_GIT_BACKUP=1)');
+    return;
+  }
   const commitMsg = `Backup auto-sync: Campaign update ${new Date().toISOString()}`;
   const commands = `git add . && git commit -m "${commitMsg}" --allow-empty && git push origin main`;
   
