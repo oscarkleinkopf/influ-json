@@ -14,6 +14,7 @@ const dbService = require('./db');
 const authService = require('./auth');
 const aiService = require('./ai-service');
 const genQueue = require('./gen-queue');
+const { assertPublicHttpUrl } = require('./safe-paths');
 
 // Initialize DB and migrate legacy JSON data if empty
 dbService.runMigrations();
@@ -24,6 +25,14 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(authService.sessionMiddleware);
+
+// Light security headers (no Helmet dependency)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  next();
+});
 
 // Serve static assets with no auth required
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
@@ -144,6 +153,10 @@ app.get('/api/status', (req, res) => {
     pinRequired: authService.pinRequiredForStatus
       ? authService.pinRequiredForStatus()
       : !!(process.env.STUDIO_PIN && process.env.STUDIO_PIN.trim() !== ''),
+    weakStudioPin: typeof authService.isWeakStudioPin === 'function'
+      ? authService.isWeakStudioPin()
+      : false,
+    ephemeralSessionSecret: !!authService.usingEphemeralSessionSecret,
     autoGitBackup: process.env.AUTO_GIT_BACKUP === '1' || process.env.AUTO_GIT_BACKUP === 'true',
     dataDir: dbService.getDataDir ? dbService.getDataDir() : DATA_DIR,
     dbPath: dbService.getDbPath ? dbService.getDbPath() : null,
@@ -713,12 +726,16 @@ app.get('/api/stats/generations', (req, res) => {
 // AI endpoints
 app.post('/api/ai/analyze-photo', (req, res) => {
   const { imagePath } = req.body;
+  if (!imagePath) {
+    return res.status(400).json({ success: false, message: 'Falta imagePath.' });
+  }
   aiService.analyzeReferencePhoto(imagePath)
     .then(result => {
       res.json({ success: true, analysis: result });
     })
     .catch(err => {
-      res.status(500).json({ success: false, message: err.message });
+      const status = /permitido|inválida|no encontrado/i.test(err.message || '') ? 400 : 500;
+      res.status(status).json({ success: false, message: err.message });
     });
 });
 
@@ -777,7 +794,17 @@ app.post('/api/ai/generate-image', async (req, res) => {
       res.json({ success: true, imagePath });
     })
     .catch(err => {
-      res.status(500).json({ success: false, message: err.message });
+      const status = err.status === 429 ? 429 : 500;
+      const rateLimited = status === 429 || /429|rate limit|límite/i.test(err.message || '');
+      const retryAfter = err.retryAfter || (rateLimited ? 30 : undefined);
+      if (retryAfter) res.setHeader('Retry-After', String(retryAfter));
+      res.status(rateLimited ? 429 : status).json({
+        success: false,
+        message: err.message || 'Error al generar imagen.',
+        rateLimited,
+        code: rateLimited ? 429 : status,
+        retryAfter
+      });
     });
 });
 
@@ -910,6 +937,7 @@ app.post('/api/upload-reference', upload.single('photo'), (req, res) => {
 });
 
 async function downloadOrResolveImage(inputUrl) {
+  assertPublicHttpUrl(inputUrl);
   let targetUrl = inputUrl;
   console.log(`Resolving reference image URL: ${targetUrl}`);
 
@@ -950,10 +978,12 @@ async function downloadOrResolveImage(inputUrl) {
       console.log(`Extracted OpenGraph/Twitter image URL from HTML page: ${extractedImage}`);
       
       if (extractedImage.startsWith('http')) {
+        assertPublicHttpUrl(extractedImage);
         targetUrl = extractedImage;
       } else {
         const parsedBase = new URL(inputUrl);
         targetUrl = new URL(extractedImage, parsedBase.origin).toString();
+        assertPublicHttpUrl(targetUrl);
       }
 
       response = await fetch(targetUrl, {
@@ -1422,7 +1452,7 @@ app.use((err, req, res, next) => {
   if (err && err.name === 'MulterError') {
     let message = 'Error al procesar archivos.';
     if (err.code === 'LIMIT_FILE_SIZE') {
-      message = 'Una de las imágenes excede el límite de tamaño permitido (50MB).';
+      message = 'Una de las imágenes excede el límite de tamaño permitido (15MB).';
     } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
       message = 'Has excedido el límite máximo de fotos (máximo 4 fotos).';
     }

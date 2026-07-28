@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.2.2">
+  <link rel="stylesheet" href="index.css?v=1.2.3">
 </head>
 <body>
   <div class="app-container">
@@ -1785,7 +1785,8 @@
     <div class="glass-card login-card" style="width: 100%; max-width: 360px; text-align: center; padding: 40px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
       <div class="logo-icon" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center;">I</div>
       <h2 style="font-family: var(--font-display); font-size: 22px; margin-bottom: 6px; color: #fff;">influ-JSON Studio</h2>
-      <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 28px;">Introduce tu PIN de acceso para abrir el studio.</p>
+      <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 16px;">Introduce tu PIN de acceso para abrir el studio.</p>
+      <p id="loginSecurityHint" style="display: none; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35); border-radius: 8px; padding: 10px 12px; margin-bottom: 20px; font-size: 11px; color: #fde68a; line-height: 1.45; text-align: left;"></p>
       
       <form id="loginForm">
         <input type="password" id="loginPinInput" placeholder="••••" required style="text-align: center; font-size: 24px; letter-spacing: 8px; padding: 12px; margin-bottom: 20px; width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: var(--border-radius-sm); color: #fff; outline: none;">
@@ -1853,6 +1854,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=1.2.2"></script>
+  <script src="app.js?v=1.2.3"></script>
 </body>
 </html>

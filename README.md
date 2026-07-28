@@ -25,7 +25,9 @@ Tras `git pull`, no inventar el producto: el núcleo es **JSON → chatbot grati
 | Side-by-side ancla vs gen (F4) | Hecho |
 | Packs F5 (fullbody / bikini / spicy / product) | Hecho |
 | Pack campaña lean (lock + guión + producto) 2.5–2.6 | Hecho |
-| Seguridad mínima (SESSION_SECRET, rate-limit, logout, AUTO_GIT_BACKUP off) | Hecho |
+| Seguridad mínima (SESSION_SECRET, rate-limit, logout, AUTO_GIT_BACKUP off) | Hecho (rama PR) |
+| Cola/429 UX (2.3) + CTA post-save | Hecho (rama PR) |
+| Path/SSRF guards + headers + aviso PIN débil | Hecho (rama PR) |
 | Import confirm / QA 1.1–1.2 | Hecho (rama PR) |
 | Replicate InstantID/PuLID | **No** implementado (stub en `image-provider.js`) |
 
