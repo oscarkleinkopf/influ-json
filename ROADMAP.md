@@ -50,7 +50,7 @@
 |-------|--------|------|
 | 1 | **Núcleo free** | Prompts + `character_lock` JSON → chatbots gratis (crear o inspirar) |
 | 2 | **Usabilidad** | Happy path claro, F4/F6, menos fricción al exportar packs ✅ |
-| 3 | **Seguridad + perfiles** ← *cerrando* | PIN/sesiones + Administración + invitaciones aisladas |
+| 3 | **Seguridad + perfiles** ✅ | PIN/sesiones + Administración + invitaciones + onboarding member |
 | 4 | Replicate / video / paid | Solo opt-in; nunca rompe free |
 
 ---
@@ -116,6 +116,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-28 | **Presets nicho + kit marca** | beauty/fitness/moda; `?kit=1` ZIP + guión 15s; tests 37 |
 | 2026-07-28 | **Onboarding member** | Modal post-invite; Ajustes por rol; keys solo admin; tests 34 |
 | 2026-07-28 | **Backup UI + ownership** | `/api/backups`; `requireOwnedPersona`; gallery/import scoped; tests 32 |
 | 2026-07-28 | **Admin + invitaciones** | `studio_invites`, redeem → member aislado; products/campaigns por perfil |

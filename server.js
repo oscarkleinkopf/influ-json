@@ -140,6 +140,9 @@ app.get('/app.js', (req, res) => {
 app.get('/character-lock-validator.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'character-lock-validator.js'));
 });
+app.get('/niche-presets.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'niche-presets.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });
@@ -1337,18 +1340,20 @@ INVERSIÓN TOTAL DE CAMPAÑA: $${total.toFixed(2)} USD
 
 /**
  * 2.5–2.6 — Export pack ZIP por persona (character_lock + packs free + imágenes + licencia).
- * Free path: no requiere APIs de pago.
+ * ?kit=1 → kit marca (+ guión UGC 15s + COMO_USAR_KIT). Free path.
  */
 app.get('/api/export/persona/:id', requireOwnedPersona, (req, res) => {
   try {
     const persona = req.persona;
+    const brandKit = require('./brand-kit');
+    const asKit = String(req.query.kit || '') === '1' || String(req.query.kit || '').toLowerCase() === 'true';
 
     const safeName = String(persona.name || 'influencer')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '_')
       .replace(/^_|_$/g, '') || 'influencer';
 
-    res.attachment(`${safeName}_influ_pack.zip`);
+    res.attachment(asKit ? `${safeName}_brand_kit.zip` : `${safeName}_influ_pack.zip`);
 
     const archive = createZipArchive({ zlib: { level: 9 } });
     archive.on('error', (err) => {
@@ -1356,91 +1361,20 @@ app.get('/api/export/persona/:id', requireOwnedPersona, (req, res) => {
     });
     archive.pipe(res);
 
-    // Parse detailed JSON if stored as string
-    let detailed = persona.detailedJSON || {};
-    if (typeof detailed === 'string') {
-      try { detailed = JSON.parse(detailed); } catch (_) { detailed = {}; }
+    const { files, lock } = brandKit.buildBrandKitFiles(persona);
+
+    if (asKit) {
+      files.forEach((f) => archive.append(f.content, { name: f.name }));
+    } else {
+      files.forEach((f) => {
+        if (f.name === 'guion_ugc_15s.txt') return;
+        if (f.name === 'COMO_USAR_KIT.txt') {
+          archive.append(f.content.replace('KIT MARCA (cero costo)', 'pack exportado (cero costo)'), { name: 'README.txt' });
+          return;
+        }
+        archive.append(f.content, { name: f.name });
+      });
     }
-    if (!detailed || typeof detailed !== 'object') detailed = {};
-
-    // Ensure character_lock exists for export
-    const lock = detailed.character_lock || {
-      version: 1,
-      free_tier: true,
-      purpose: 'Mantener la misma persona en chatbots gratuitos sin face-lock de pago',
-      must_match_every_image: {
-        name: persona.name,
-        gender: persona.gender,
-        age: persona.age,
-        ethnicity: persona.ethnicity,
-        skin_tone: detailed.facial_features?.skin_tone || null,
-        skin_tone_hex: detailed.facial_features?.skin_tone_hex || null,
-        face_shape: detailed.facial_features?.face_shape || null,
-        eye_color: detailed.facial_features?.eye_color || null,
-        hair_color: detailed.hair?.color || persona.hair || null,
-        body_type: detailed.body?.body_type || persona.body_type || null
-      },
-      may_vary_per_image: ['pose', 'clothing', 'setting_background', 'product_in_hand'],
-      never_do: [
-        'Cambiar tono de piel o etnia aparente',
-        'Cambiar forma de rostro',
-        'Cuerpo con proporciones distintas'
-      ]
-    };
-
-    const personaExport = {
-      ...persona,
-      detailedJSON: detailed,
-      character_lock: lock
-    };
-
-    archive.append(JSON.stringify(personaExport, null, 2), { name: 'persona.json' });
-    archive.append(JSON.stringify(lock, null, 2), { name: 'character_lock.json' });
-
-    const packScenes = {
-      fullbody: 'CUERPO ENTERO head-to-toe, misma persona del CHARACTER LOCK, foto smartphone amateur.',
-      bikini: 'Bikini en playa, misma cara y tez del CHARACTER LOCK (no oscurecer al sol).',
-      spicy: 'Sensual fotorealista (lencería), misma cara/tez/cuerpo del CHARACTER LOCK. No CGI.',
-      product: 'UGC con producto en mano, rostro reconocible según CHARACTER LOCK.'
-    };
-
-    Object.entries(packScenes).forEach(([packId, scene]) => {
-      const text = `PACK GRATIS PARA CHATBOT — ${packId}
-Influencer: ${persona.name}
-Cero costo: sin Replicate / InstantID
-
-CHARACTER LOCK:
-${JSON.stringify(lock, null, 2)}
-
-PETICIÓN:
-${scene}
-
-INSTRUCCIONES:
-1) Pega este texto en ChatGPT / Gemini / Claude / Meta free.
-2) Genera la imagen respetando character_lock.
-3) Si la cara o tez cambian, re-pega el lock y regenera.
-`;
-      archive.append(text, { name: `packs/${packId}.txt` });
-    });
-
-    const README = `influ-JSON — pack exportado
-============================
-Influencer: ${persona.name}
-Fecha: ${new Date().toISOString()}
-
-Contenido:
-- persona.json          → ficha completa
-- character_lock.json   → ancla de identidad (gratis)
-- packs/*.txt           → packs listos para chatbot free
-- imagenes/             → foto ancla + variantes (si existen)
-- licencia.json         → certificado comercial básico
-
-Flujo:
-1. Abre packs/fullbody.txt (o bikini / spicy / product)
-2. Cópialo a ChatGPT / Gemini / Claude free
-3. Pide variantes respetando el CHARACTER LOCK
-`;
-    archive.append(README, { name: 'README.txt' });
 
     // Images
     const addImageIfExists = (relPath, zipName) => {
@@ -1467,7 +1401,8 @@ Flujo:
       status: 'VERIFIED_VIRTUAL_INFLUENCER_IP',
       rightsHolder: req.query.brand || 'Dropshipping Master Brand LLC',
       platformsCompliant: ['Meta Business Manager', 'TikTok Shop', 'Instagram Ads', 'YouTube Shorts'],
-      disclosureRequired: 'Synthetic Interpreter Disclosure (NY State Compliant)'
+      disclosureRequired: 'Synthetic Interpreter Disclosure (NY State Compliant)',
+      characterLockVersion: lock?.version || 1
     };
     archive.append(JSON.stringify(license, null, 2), { name: 'licencia.json' });
 
@@ -1477,6 +1412,15 @@ Flujo:
     if (!res.headersSent) {
       res.status(500).json({ success: false, message: err.message || 'Error al exportar pack.' });
     }
+  }
+});
+
+app.get('/api/niches', (req, res) => {
+  try {
+    const { listNichePresets } = require('./niche-presets');
+    res.json({ success: true, niches: listNichePresets() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 

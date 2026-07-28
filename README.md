@@ -65,6 +65,8 @@ Si ves **429 / espera Ns** en la barra lateral: la cola genera **1 imagen a la v
 - Auth local: `STUDIO_PIN` en `.env` (no lo subas a Git).
 - Perfil **Administración**: genera códigos de invitación en Ajustes. Quien canjea («Tengo una invitación» en el login) obtiene un perfil propio; influencers/productos/campañas **no se mezclan**.
 - **Backup local** (solo Administración): Ajustes → Backup SQLite → crea/restaura copias en `data/backups/` (tras restaurar, reinicia `npm start`).
+- **Presets de nicho** (Persona Engine): Beauty / Fitness / Moda rellenan el formulario y refuerzan el `character_lock`.
+- **Kit marca**: botón «Descargar kit marca» → ZIP con packs chatbot + guión UGC ~15s (`?kit=1`).
 - `npm run start:minimal` **no** es producción.
 
 ## Documentación
