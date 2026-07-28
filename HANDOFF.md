@@ -25,10 +25,10 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa de producto** | **Admin + invitaciones + aislamiento** (este PR). Seguridad/perfiles base ya hecha. |
-| **Fase ROADMAP** | Soft multi-user local: Administración invita testers; creaciones no se mezclan |
-| **Prioridad inmediata** | Merge PR admin-invites; opcional backup UI / CSP; luego mercado/seguridad dura |
-| **En pausa** | OAuth cloud, billing, email SMTP obligatorio, Replicate obligatorio |
+| **Etapa de producto** | **Backup UI + ownership API** (este PR). Admin/invites en PR hermano. |
+| **Fase ROADMAP** | Cerrar multi-user local seguro antes de mercado / Replicate |
+| **Prioridad inmediata** | Merge PRs hardening; onboarding member; smoke con tester real |
+| **En pausa** | OAuth, SMTP, Replicate obligatorio |
 | **Servidor** | `npm start` → `server.js`. `start:minimal` = demo only |
 | **Última plataforma** | Cursor |
 | **Última actualización** | 2026-07-28 |
@@ -37,29 +37,27 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ## Sesión reciente (Cursor, 2026-07-28)
 
-**Pedido:** perfil de administración que envíe invitaciones; que no se mezclen las creaciones.
+**Pedido:** backup en Ajustes + ownership en APIs sensibles.
 
 **Hecho:**
-- Perfil por defecto renombrado a **Administración** (`role=admin`; `owner` legacy → admin).
-- Tabla `studio_invites` (migración 6): códigos `INFLU-XXXX-XXXX`, caducidad, revoke, max_uses.
-- API admin: `GET/POST /api/invites`, `POST /api/invites/:id/revoke` (`requireAdmin`).
-- Canje público: `POST /api/invites/redeem` → perfil `member` con roster vacío + login.
-- Aislamiento: personas **y** products/campaigns filtrados por `profile_id` en `/api/data`, `/api/products`, `/api/campaigns`.
-- UI: Ajustes → Invitaciones (solo admin); login → «Tengo una invitación».
-- Migraciones formales (`migrations.js`) + `db-repository.js` thin adapter.
-- Tests invitaciones + aislamiento en `test/auth-profiles.test.js`.
+- API backups (admin): `GET/POST /api/backups`, `POST /api/backups/restore`, download.
+- UI Ajustes → **Backup SQLite** (crear / listar / descargar / restaurar).
+- `requireOwnedPersona` en delete/archive/variants/export/generations/license/etc.
+- Bloqueo de update por ID ajeno en `POST /api/personas`.
+- Gallery + import + respuestas `getAllPersonas` filtradas por perfil (cerrada fuga).
+- Tests: `test/backup-ownership.test.js` — suite **32/32**.
 
-**No tocado:** SMTP/email real, OAuth, Replicate.
+**No tocado:** onboarding post-invite, Replicate, CSP estricta.
 
 ---
 
 ## Próximos pasos (robot que retome)
 
 1. `git pull` → este archivo → `ROADMAP.md`.
-2. `npm start` (nunca `start:minimal` para trabajo real).
-3. Pedir al usuario que cambie `STUDIO_PIN` / PIN de Administración.
-4. Opcional: UI backup/restore snapshots; CSP más estricta.
-5. Tests: `npm test` setea `DISABLE_GIT_BACKUP=1`.
+2. Merge PRs de hardening / invites / backup.
+3. Smoke: admin invita → member canjea → no ve creaciones ajenas; admin hace backup.
+4. Opcional: pantalla onboarding member tras redeem.
+5. Tests: `npm test` (`DISABLE_GIT_BACKUP=1`).
 
 ---
 
@@ -67,8 +65,9 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-28 | Cursor | Admin + invitaciones + aislamiento products/campaigns | *(este PR)* |
-| 2026-07-28 | Cursor | Seguridad mínima + perfiles locales (`studio_profiles`) | PR #6 |
+| 2026-07-28 | Cursor | Backup UI + ownership API (personas/gallery/export) | *(este PR)* |
+| 2026-07-28 | Cursor | Admin + invitaciones + aislamiento products/campaigns | PR #7 |
+| 2026-07-28 | Cursor | Seguridad mínima + perfiles locales | PR #6 |
 | 2026-07-28 | Cursor | Usabilidad F2–F6 + export ZIP persona | PR #5 |
 | 2026-07-28 | Cursor | F1 validador `character_lock` | PR #4 |
 

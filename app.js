@@ -284,7 +284,12 @@ async function refreshProfilesSettingsList() {
     if (createForm) createForm.style.display = isAdmin ? 'grid' : 'none';
     const invitesSection = document.getElementById('invitesSettingsSection');
     if (invitesSection) invitesSection.style.display = isAdmin ? 'block' : 'none';
-    if (isAdmin) refreshInvitesSettingsList();
+    const backupsSection = document.getElementById('backupsSettingsSection');
+    if (backupsSection) backupsSection.style.display = isAdmin ? 'block' : 'none';
+    if (isAdmin) {
+      refreshInvitesSettingsList();
+      refreshBackupsSettingsList();
+    }
 
     list.innerHTML = (data.profiles || []).map(p => `
       <div class="profile-row ${p.id === currentId ? 'is-current' : ''}">
@@ -405,6 +410,63 @@ async function refreshInvitesSettingsList() {
   }
 }
 
+function formatBytes(n) {
+  const num = Number(n) || 0;
+  if (num < 1024) return `${num} B`;
+  if (num < 1024 * 1024) return `${(num / 1024).toFixed(1)} KB`;
+  return `${(num / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+async function refreshBackupsSettingsList() {
+  const list = document.getElementById('backupsList');
+  const metaLine = document.getElementById('backupMetaLine');
+  if (!list) return;
+  try {
+    const res = await authFetch('/api/backups');
+    if (res.status === 403) {
+      list.innerHTML = '';
+      return;
+    }
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Error');
+    if (metaLine) {
+      const last = data.meta?.last_backup_at
+        ? `Último backup: ${escapeLockHtml(String(data.meta.last_backup_at))} · schema v${data.schemaVersion || '?'}`
+        : `Schema v${data.schemaVersion || '?'} · aún no hay backups registrados`;
+      metaLine.innerHTML = last;
+    }
+    list.innerHTML = (data.snapshots || []).map(s => `
+      <div class="profile-row">
+        <div>
+          <strong style="font-size:12px;word-break:break-all;">${escapeLockHtml(s.filename)}</strong>
+          <span class="profile-meta">${formatBytes(s.size)} · ${escapeLockHtml(String(s.mtime || '').slice(0, 19).replace('T', ' '))}</span>
+        </div>
+        <div class="profile-row-actions">
+          <a class="btn btn-secondary btn-sm" href="/api/backups/${encodeURIComponent(s.filename)}/download" download="${escapeLockHtml(s.filename)}">Descargar</a>
+          <button type="button" class="btn btn-secondary btn-sm" data-restore-backup="${escapeLockHtml(s.filename)}" style="color:var(--danger);">Restaurar</button>
+        </div>
+      </div>
+    `).join('') || '<p style="font-size:12px;color:var(--text-muted);">Sin snapshots todavía.</p>';
+
+    list.querySelectorAll('[data-restore-backup]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const filename = btn.getAttribute('data-restore-backup');
+        if (!confirm(`¿Restaurar ${filename}?\nSe crea un backup de seguridad antes. Luego reinicia el servidor (npm start).`)) return;
+        const res2 = await authFetch('/api/backups/restore', {
+          method: 'POST',
+          body: JSON.stringify({ filename })
+        });
+        const d = await res2.json();
+        if (!d.success) return toastError(d.message || 'No se pudo restaurar');
+        toastSuccess(d.message || 'Restaurado. Reinicia el servidor.');
+        refreshBackupsSettingsList();
+      });
+    });
+  } catch (err) {
+    list.innerHTML = `<p style="font-size:12px;color:var(--danger);">${escapeLockHtml(err.message || 'Error al cargar backups')}</p>`;
+  }
+}
+
 async function logoutSession() {
   try {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -498,6 +560,23 @@ function setupSettings() {
       toastSuccess('Código copiado');
     } catch (_) {
       toastInfo(code);
+    }
+  });
+
+  document.getElementById('btnCreateBackup')?.addEventListener('click', async () => {
+    const label = document.getElementById('backupLabelInput')?.value || 'manual';
+    try {
+      const res = await authFetch('/api/backups', {
+        method: 'POST',
+        body: JSON.stringify({ label })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Error');
+      if (document.getElementById('backupLabelInput')) document.getElementById('backupLabelInput').value = '';
+      toastSuccess(`Backup ${data.snapshot?.filename || 'creado'}`);
+      refreshBackupsSettingsList();
+    } catch (err) {
+      toastError(err.message || 'No se pudo crear el backup');
     }
   });
 

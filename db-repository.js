@@ -48,14 +48,16 @@ const repository = {
   products: {
     list: (profileId) => db.getAllProducts(profileId || null),
     get: (id) => db.getProductById(id),
-    save: (p) => db.saveProduct(p)
+    save: (p) => db.saveProduct(p),
+    assertOwned: (productId, profileId) => db.assertProductOwnedBy(productId, profileId)
   },
 
   campaigns: {
     list: (profileId) => db.getAllCampaigns(profileId || null),
     get: (id) => db.getCampaignById(id),
     save: (c, personaIds) => db.saveCampaign(c, personaIds),
-    remove: (id) => db.deleteCampaign(id)
+    remove: (id) => db.deleteCampaign(id),
+    assertOwned: (campaignId, profileId) => db.assertCampaignOwnedBy(campaignId, profileId)
   },
 
   invites: {

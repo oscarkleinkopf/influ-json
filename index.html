@@ -1947,10 +1947,27 @@
         </div>
         <div id="invitesList" style="display:flex; flex-direction:column; gap:8px;"></div>
       </div>
+
+      <div id="backupsSettingsSection" style="display:none;">
+        <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
+        <h3 style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Backup SQLite (Administración)</h3>
+        <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+          Copia local de la base en <code>data/backups/</code>. Gratis, sin nube. Restaurar pide reiniciar el servidor.
+        </p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:end;">
+          <div style="flex:1; min-width:140px;">
+            <label for="backupLabelInput" style="font-size:10px; color:var(--text-muted);">Etiqueta (opcional)</label>
+            <input id="backupLabelInput" type="text" placeholder="antes_demo" maxlength="40" style="width:100%; padding:8px; background:rgba(0,0,0,0.4); border:1px solid var(--glass-border); border-radius:6px; color:#fff; font-size:12px;">
+          </div>
+          <button type="button" id="btnCreateBackup" class="btn btn-sm" style="padding:10px 12px;">Crear backup</button>
+        </div>
+        <p id="backupMetaLine" style="font-size:11px; color:var(--text-muted); margin:0 0 10px;"></p>
+        <div id="backupsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
     </div>
   </div>
 
   <script src="character-lock-validator.js?v=1.0.0"></script>
-  <script src="app.js?v=1.4.0"></script>
+  <script src="app.js?v=1.5.0"></script>
 </body>
 </html>
