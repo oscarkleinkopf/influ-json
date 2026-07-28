@@ -55,8 +55,8 @@ function resolveSessionProfile(req) {
       const row = dbService.getStudioProfileById(def);
       req.session.authenticated = true;
       req.session.profileId = def;
-      req.session.profileName = row?.name || 'Admin';
-      req.session.profileRole = row?.role || 'owner';
+      req.session.profileName = row?.name || 'Administración';
+      req.session.profileRole = row?.role || 'admin';
       req.session.authVia = 'bearer_studio_pin';
       return def;
     }
@@ -66,8 +66,8 @@ function resolveSessionProfile(req) {
     req.session.authenticated = true;
     req.session.profileId = def;
     const row = dbService.getStudioProfileById(def);
-    req.session.profileName = row?.name || 'Admin';
-    req.session.profileRole = row?.role || 'owner';
+    req.session.profileName = row?.name || 'Administración';
+    req.session.profileRole = row?.role || 'admin';
     return def;
   }
   return null;
@@ -84,6 +84,23 @@ function requireAuth(req, res, next) {
   const profileId = resolveSessionProfile(req);
   if (req.session?.authenticated && profileId) return next();
   return res.status(401).json({ success: false, message: 'Acceso denegado. PIN inválido o sesión expirada.' });
+}
+
+function requireAdmin(req, res, next) {
+  const role = req.session?.profileRole;
+  if (dbService.isAdminRole(role)) return next();
+  // Re-check from DB in case session is stale
+  const profile = req.session?.profileId
+    ? dbService.getStudioProfileById(req.session.profileId)
+    : null;
+  if (profile && dbService.isAdminRole(profile.role)) {
+    req.session.profileRole = profile.role;
+    return next();
+  }
+  return res.status(403).json({
+    success: false,
+    message: 'Solo el perfil Administración puede realizar esta acción.'
+  });
 }
 
 function publicProfileDTO(row) {
@@ -257,6 +274,46 @@ app.get('/api/auth/profiles', (req, res) => {
   });
 });
 
+/** Canje público de invitación → perfil member aislado (sin mezclar creaciones). */
+app.post('/api/invites/redeem', (req, res) => {
+  const lock = authService.getLoginLockStatus(req);
+  if (lock.locked) {
+    return res.status(429).json({
+      success: false,
+      message: `Demasiados intentos. Espera ${lock.retryAfterSec}s.`,
+      retryAfterSec: lock.retryAfterSec
+    });
+  }
+  try {
+    const { code, name, pin } = req.body || {};
+    if (!code || !String(code).trim()) {
+      return res.status(400).json({ success: false, message: 'Código de invitación requerido.' });
+    }
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ success: false, message: 'Nombre de perfil requerido.' });
+    }
+    if (!pin || String(pin).trim().length < 4) {
+      return res.status(400).json({ success: false, message: 'El PIN debe tener al menos 4 caracteres.' });
+    }
+    const result = dbService.redeemStudioInvite({ code, name, pin });
+    authService.clearLoginFailures(req);
+    dbService.touchStudioProfileLogin(result.profile.id);
+    req.session.authenticated = true;
+    req.session.profileId = result.profile.id;
+    req.session.profileName = result.profile.name;
+    req.session.profileRole = result.profile.role;
+    res.json({
+      success: true,
+      message: 'Invitación aceptada. Tu espacio está vacío y aislado del resto.',
+      profile: publicProfileDTO(result.profile),
+      pinIsDefault: false
+    });
+  } catch (err) {
+    authService.registerLoginFailure(req);
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
 // API Connection Status
 app.get('/api/status', (req, res) => {
   let imageProviders = null;
@@ -299,19 +356,28 @@ app.get('/api/queue-status', (req, res) => {
 
 app.use('/api', requireAuth);
 
-// Profiles CRUD (local multi-user)
+// Profiles CRUD (local multi-user) — crear/borrar perfiles: solo Administración
 app.get('/api/profiles', (req, res) => {
   const profiles = dbService.listStudioProfilesAdmin().map((p) => ({
     ...publicProfileDTO(p),
     personaCount: dbService.countPersonasForProfile(p.id)
   }));
-  res.json({ success: true, profiles, currentProfileId: req.session.profileId || null });
+  res.json({
+    success: true,
+    profiles,
+    currentProfileId: req.session.profileId || null,
+    isAdmin: dbService.isAdminRole(req.session.profileRole)
+  });
 });
 
-app.post('/api/profiles', (req, res) => {
+app.post('/api/profiles', requireAdmin, (req, res) => {
   try {
     const { name, pin, role } = req.body || {};
-    const created = dbService.createStudioProfile({ name, pin, role });
+    const created = dbService.createStudioProfile({
+      name,
+      pin,
+      role: role === 'admin' ? 'admin' : 'member'
+    });
     res.json({ success: true, profile: publicProfileDTO(created) });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -320,6 +386,11 @@ app.post('/api/profiles', (req, res) => {
 
 app.patch('/api/profiles/:id', (req, res) => {
   try {
+    const isAdmin = dbService.isAdminRole(req.session.profileRole);
+    // Members solo pueden editar su propio perfil (nombre/PIN)
+    if (!isAdmin && req.session.profileId !== req.params.id) {
+      return res.status(403).json({ success: false, message: 'Solo puedes editar tu propio perfil.' });
+    }
     const updated = dbService.updateStudioProfile(req.params.id, req.body || {});
     if (req.session.profileId === updated.id) {
       req.session.profileName = updated.name;
@@ -331,7 +402,7 @@ app.patch('/api/profiles/:id', (req, res) => {
   }
 });
 
-app.delete('/api/profiles/:id', (req, res) => {
+app.delete('/api/profiles/:id', requireAdmin, (req, res) => {
   try {
     if (req.session.profileId === req.params.id) {
       return res.status(400).json({ success: false, message: 'No puedes eliminar el perfil con el que estás conectado.' });
@@ -342,6 +413,75 @@ app.delete('/api/profiles/:id', (req, res) => {
     res.status(400).json({ success: false, message: err.message });
   }
 });
+
+// Invitaciones — solo Administración (crear / listar / revocar)
+app.get('/api/invites', requireAdmin, (req, res) => {
+  const invites = dbService.listStudioInvites().map((inv) => ({
+    id: inv.id,
+    code: inv.code,
+    note: inv.note,
+    emailHint: inv.email_hint,
+    invitedBy: inv.invited_by,
+    invitedByName: inv.invited_by_name || null,
+    createdAt: inv.created_at,
+    expiresAt: inv.expires_at,
+    usedAt: inv.used_at,
+    usedByProfileId: inv.used_by_profile_id,
+    usedByName: inv.used_by_name || null,
+    revokedAt: inv.revoked_at,
+    maxUses: inv.max_uses,
+    useCount: inv.use_count,
+    status: inviteStatus(inv)
+  }));
+  res.json({ success: true, invites });
+});
+
+app.post('/api/invites', requireAdmin, (req, res) => {
+  try {
+    const { note, emailHint, expiresInDays, maxUses } = req.body || {};
+    const invite = dbService.createStudioInvite({
+      invitedBy: req.session.profileId,
+      note,
+      emailHint,
+      expiresInDays,
+      maxUses
+    });
+    res.json({
+      success: true,
+      invite: {
+        id: invite.id,
+        code: invite.code,
+        note: invite.note,
+        emailHint: invite.email_hint,
+        expiresAt: invite.expires_at,
+        maxUses: invite.max_uses,
+        useCount: invite.use_count,
+        status: inviteStatus(invite)
+      },
+      message: 'Invitación creada. Comparte el código con la persona invitada.'
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/invites/:id/revoke', requireAdmin, (req, res) => {
+  try {
+    const invite = dbService.revokeStudioInvite(req.params.id, req.session.profileId);
+    res.json({ success: true, invite: { id: invite.id, code: invite.code, revokedAt: invite.revoked_at, status: 'revoked' } });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+function inviteStatus(inv) {
+  if (!inv) return 'unknown';
+  if (inv.revoked_at) return 'revoked';
+  if (inv.expires_at && new Date(inv.expires_at).getTime() < Date.now()) return 'expired';
+  const maxUses = inv.max_uses == null ? 1 : Number(inv.max_uses);
+  if (Number(inv.use_count || 0) >= maxUses) return 'used';
+  return 'active';
+}
 
 // Settings Endpoint — Update API Keys in .env safely via GUI
 app.post('/api/settings/keys', (req, res) => {
@@ -381,7 +521,7 @@ app.post('/api/settings/keys', (req, res) => {
 app.get('/api/data', (req, res) => {
   const profileId = req.session.profileId || resolveSessionProfile(req);
   const personas = dbService.getAllPersonas(profileId);
-  const products = dbService.getAllProducts();
+  const products = dbService.getAllProducts(profileId);
   const generationStats = dbService.getGenerationStats();
   res.json({
     personas,
@@ -640,29 +780,32 @@ app.post('/api/personas/:id/revert/:versionId', (req, res) => {
 
 // Products endpoints
 app.get('/api/products', (req, res) => {
-  res.json(dbService.getAllProducts());
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  res.json(dbService.getAllProducts(profileId));
 });
 
 app.post('/api/products', (req, res) => {
-  const product = dbService.saveProduct(req.body);
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const product = dbService.saveProduct({ ...req.body, profile_id: profileId });
   runGitBackup((gitSuccess, msg) => {
-    res.json({ success: true, products: dbService.getAllProducts(), product, gitSynced: gitSuccess, gitMessage: msg });
+    res.json({ success: true, products: dbService.getAllProducts(profileId), product, gitSynced: gitSuccess, gitMessage: msg });
   });
 });
 
 // Bulk Import Products (Shopify / AliExpress Dropshipping CSV / JSON)
 app.post('/api/products/import', (req, res) => {
   try {
+    const profileId = req.session.profileId || resolveSessionProfile(req);
     const { products } = req.body;
     if (!Array.isArray(products) || products.length === 0) {
       return res.status(400).json({ success: false, error: 'Formato inválido. Debe enviar un array de productos.' });
     }
-    const imported = dbService.bulkImportProducts(products);
+    const imported = dbService.bulkImportProducts(products, profileId);
     runGitBackup((gitSuccess, msg) => {
       res.json({
         success: true,
         count: imported.length,
-        products: dbService.getAllProducts(),
+        products: dbService.getAllProducts(profileId),
         gitSynced: gitSuccess,
         gitMessage: msg
       });
@@ -819,30 +962,43 @@ app.get('/api/ads/batch-status/:batchId', (req, res) => {
 
 // Campaigns endpoints
 app.get('/api/campaigns', (req, res) => {
-  res.json(dbService.getAllCampaigns());
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  res.json(dbService.getAllCampaigns(profileId));
 });
 
 app.get('/api/campaigns/:id', (req, res) => {
+  const profileId = req.session.profileId || resolveSessionProfile(req);
   const c = dbService.getCampaignById(req.params.id);
-  if (c) {
-    res.json(c);
-  } else {
-    res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
+  if (!c) {
+    return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
   }
+  if (profileId && c.profile_id && c.profile_id !== profileId) {
+    return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
+  }
+  res.json(c);
 });
 
 app.post('/api/campaigns', (req, res) => {
+  const profileId = req.session.profileId || resolveSessionProfile(req);
   const { campaign, personaIds } = req.body;
-  const c = dbService.saveCampaign(campaign, personaIds);
+  const c = dbService.saveCampaign({ ...campaign, profile_id: profileId }, personaIds);
   runGitBackup((gitSuccess, msg) => {
-    res.json({ success: true, campaign: c, campaigns: dbService.getAllCampaigns(), gitSynced: gitSuccess, gitMessage: msg });
+    res.json({ success: true, campaign: c, campaigns: dbService.getAllCampaigns(profileId), gitSynced: gitSuccess, gitMessage: msg });
   });
 });
 
 app.delete('/api/campaigns/:id', (req, res) => {
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const existing = dbService.getCampaignById(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
+  }
+  if (profileId && existing.profile_id && existing.profile_id !== profileId) {
+    return res.status(403).json({ success: false, message: 'No puedes eliminar campañas de otro perfil.' });
+  }
   dbService.deleteCampaign(req.params.id);
   runGitBackup((gitSuccess, msg) => {
-    res.json({ success: true, campaigns: dbService.getAllCampaigns(), gitSynced: gitSuccess, gitMessage: msg });
+    res.json({ success: true, campaigns: dbService.getAllCampaigns(profileId), gitSynced: gitSuccess, gitMessage: msg });
   });
 });
 
