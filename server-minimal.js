@@ -1,8 +1,12 @@
 /**
- * server-minimal.js
- * Versión operativa de influ-json sin dependencias externas pesadas
- * F2 + F3 (cola + rate-limit handling) implementadas de verdad
- * Usa solo módulos nativos de Node.js + sharp global si está disponible
+ * server-minimal.js — DEMO / OFFLINE ONLY
+ *
+ * NO es el Studio de producción. No tiene SQLite, /api/data, campañas ni character_lock real.
+ * Arrancar con: npm run start:minimal
+ *
+ * Producción (default): npm start → server.js
+ *
+ * Histórico: parche F2/F3 cuando better-sqlite3 fallaba; la cola real vive en gen-queue.js.
  */
 
 const http = require('http');
