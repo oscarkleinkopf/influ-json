@@ -197,6 +197,17 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS studio_profiles (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    pin_hash TEXT NOT NULL,
+    pin_salt TEXT NOT NULL,
+    role TEXT DEFAULT 'owner',
+    active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_login_at DATETIME
+  );
 `);
 
 // Safe alter schema to support archived field
@@ -207,7 +218,54 @@ try {
   // Column already exists, ignore
 }
 
+// Soft tenancy: persona → studio_profiles
+try {
+  db.exec("ALTER TABLE personas ADD COLUMN profile_id TEXT;");
+  console.log("Added profile_id column to personas schema successfully.");
+} catch (e) {
+  // Column already exists, ignore
+}
+
 syncDbToWorkspace();
+
+const authCrypto = require('./auth');
+
+/**
+ * Asegura al menos un perfil local (Admin) con el PIN de .env / 1234.
+ * Backfill personas.profile_id huérfanas al perfil por defecto.
+ */
+function ensureDefaultStudioProfile() {
+  const { v4: uuidv4 } = require('uuid');
+  let count = 0;
+  try {
+    count = db.prepare('SELECT COUNT(*) AS c FROM studio_profiles').get().c;
+  } catch (_) {
+    return null;
+  }
+
+  let defaultId = null;
+  if (count === 0) {
+    const id = uuidv4();
+    const pin = authCrypto.getConfiguredPin() || authCrypto.DEFAULT_PIN_FALLBACK;
+    const { salt, hash } = authCrypto.hashPin(pin);
+    db.prepare(`
+      INSERT INTO studio_profiles (id, name, pin_hash, pin_salt, role, active)
+      VALUES (?, ?, ?, ?, 'owner', 1)
+    `).run(id, 'Admin', hash, salt);
+    defaultId = id;
+    console.log('[db] Created default studio profile «Admin»');
+  } else {
+    const row = db.prepare(`SELECT id FROM studio_profiles WHERE active = 1 ORDER BY created_at ASC LIMIT 1`).get();
+    defaultId = row?.id || null;
+  }
+
+  if (defaultId) {
+    db.prepare(`UPDATE personas SET profile_id = ? WHERE profile_id IS NULL OR profile_id = ''`).run(defaultId);
+  }
+  return defaultId;
+}
+
+ensureDefaultStudioProfile();
 
 /**
  * Dual Persistence: Synchronize SQLite personas and persona_variants to personas.json
@@ -458,12 +516,21 @@ module.exports = {
   DB_PATH: ACTIVE_DB_PATH,
   
   // Personas CRUD
-  getAllPersonas() {
+  getAllPersonas(profileId = null) {
+    if (profileId) {
+      return db.prepare('SELECT * FROM personas WHERE profile_id = ? ORDER BY created_at DESC').all(profileId).map(hydratePersona);
+    }
     return db.prepare('SELECT * FROM personas ORDER BY created_at DESC').all().map(hydratePersona);
   },
   
   getPersonaById(id) {
     return hydratePersona(db.prepare('SELECT * FROM personas WHERE id = ?').get(id));
+  },
+
+  assertPersonaOwnedBy(personaId, profileId) {
+    if (!profileId) return this.getPersonaById(personaId);
+    const row = hydratePersona(db.prepare('SELECT * FROM personas WHERE id = ? AND profile_id = ?').get(personaId, profileId));
+    return row || null;
   },
 
   getPersonaByName(name) {
@@ -473,6 +540,7 @@ module.exports = {
   parseDetailedJSON,
   serializeDetailedJSON,
   syncPersonasJson,
+  ensureDefaultStudioProfile,
   
   savePersona(p) {
     const { v4: uuidv4 } = require('uuid');
@@ -480,6 +548,7 @@ module.exports = {
     // Never match/update by name alone — that caused accidental renames of other influencers.
     const forceCreate = p.forceCreate === true || p.forceCreate === 1 || p.forceCreate === 'true';
     const hasId = p.id && String(p.id).trim() !== '';
+    const profileId = p.profile_id || p.profileId || ensureDefaultStudioProfile();
 
     let existing = null;
     if (!forceCreate && hasId) {
@@ -502,9 +571,11 @@ module.exports = {
       );
 
       // Update only the row with this id (name change is intentional rename of THIS persona)
+      // Keep original profile_id unless explicitly reassigned
+      const keepProfile = existing.profile_id || profileId;
       db.prepare(`
         UPDATE personas
-        SET name = ?, gender = ?, age = ?, ethnicity = ?, style = ?, hair = ?, lighting = ?, camera = ?, clothing = ?, setting = ?, image = ?, imageUGC = ?, handle = ?, detailedJSON = ?
+        SET name = ?, gender = ?, age = ?, ethnicity = ?, style = ?, hair = ?, lighting = ?, camera = ?, clothing = ?, setting = ?, image = ?, imageUGC = ?, handle = ?, detailedJSON = ?, profile_id = ?
         WHERE id = ?
       `).run(
         p.name,
@@ -521,6 +592,7 @@ module.exports = {
         p.imageUGC || existing.imageUGC,
         p.handle || existing.handle,
         serializeDetailedJSON(p.detailedJSON),
+        keepProfile,
         existing.id
       );
       syncDbToWorkspace();
@@ -533,8 +605,8 @@ module.exports = {
     const safeName = (p.name && String(p.name).trim()) || `Influencer_${Date.now().toString().slice(-4)}`;
     const handleBase = safeName.toLowerCase().replace(/\s+/g, '');
     db.prepare(`
-      INSERT INTO personas (id, name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting, image, imageUGC, handle, detailedJSON)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO personas (id, name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting, image, imageUGC, handle, detailedJSON, profile_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       safeName,
@@ -550,7 +622,8 @@ module.exports = {
       p.image || (p.gender === 'Male' ? 'assets/influencer_male.png' : 'assets/influencer_female.png'),
       p.imageUGC || (p.gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/influencer_female_serum.png'),
       p.handle || `@${handleBase}_ai_ugc`,
-      serializeDetailedJSON(p.detailedJSON)
+      serializeDetailedJSON(p.detailedJSON),
+      profileId
     );
     syncDbToWorkspace();
     syncPersonasJson();
@@ -841,5 +914,101 @@ module.exports = {
     db.prepare(`INSERT INTO workspaces (id, name, brand_niche) VALUES (?, ?, ?)`).run(id, w.name, w.brand_niche || 'General');
     syncDbToWorkspace();
     return this.getAllWorkspaces();
+  },
+
+  // ─── Studio profiles (local multi-user, free) ─────────────────
+  listStudioProfilesPublic() {
+    return db.prepare(`
+      SELECT id, name, role, active, created_at, last_login_at
+      FROM studio_profiles
+      WHERE active = 1
+      ORDER BY created_at ASC
+    `).all();
+  },
+
+  listStudioProfilesAdmin() {
+    return this.listStudioProfilesPublic();
+  },
+
+  getStudioProfileById(id) {
+    return db.prepare('SELECT * FROM studio_profiles WHERE id = ?').get(id);
+  },
+
+  findStudioProfileByPin(pin) {
+    const rows = db.prepare('SELECT * FROM studio_profiles WHERE active = 1').all();
+    for (const row of rows) {
+      if (authCrypto.verifyPinHash(pin, row.pin_salt, row.pin_hash)) return row;
+    }
+    return null;
+  },
+
+  touchStudioProfileLogin(id) {
+    db.prepare('UPDATE studio_profiles SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?').run(id);
+  },
+
+  createStudioProfile({ name, pin, role = 'member' }) {
+    const { v4: uuidv4 } = require('uuid');
+    const cleanName = String(name || '').trim();
+    if (!cleanName) throw new Error('El nombre del perfil es obligatorio.');
+    if (!pin || String(pin).trim().length < 4) throw new Error('El PIN debe tener al menos 4 caracteres.');
+    const exists = db.prepare('SELECT id FROM studio_profiles WHERE LOWER(name) = LOWER(?)').get(cleanName);
+    if (exists) throw new Error('Ya existe un perfil con ese nombre.');
+    const { salt, hash } = authCrypto.hashPin(pin);
+    const id = uuidv4();
+    db.prepare(`
+      INSERT INTO studio_profiles (id, name, pin_hash, pin_salt, role, active)
+      VALUES (?, ?, ?, ?, ?, 1)
+    `).run(id, cleanName, hash, salt, role === 'owner' ? 'owner' : 'member');
+    syncDbToWorkspace();
+    return this.getStudioProfileById(id);
+  },
+
+  updateStudioProfile(id, { name, pin, active } = {}) {
+    const row = this.getStudioProfileById(id);
+    if (!row) throw new Error('Perfil no encontrado.');
+    const nextName = name != null ? String(name).trim() : row.name;
+    if (!nextName) throw new Error('El nombre del perfil es obligatorio.');
+    if (name != null) {
+      const clash = db.prepare('SELECT id FROM studio_profiles WHERE LOWER(name) = LOWER(?) AND id != ?').get(nextName, id);
+      if (clash) throw new Error('Ya existe un perfil con ese nombre.');
+    }
+    let hash = row.pin_hash;
+    let salt = row.pin_salt;
+    if (pin != null && String(pin).trim() !== '') {
+      if (String(pin).trim().length < 4) throw new Error('El PIN debe tener al menos 4 caracteres.');
+      const h = authCrypto.hashPin(pin);
+      hash = h.hash;
+      salt = h.salt;
+    }
+    const nextActive = active === undefined ? row.active : (active ? 1 : 0);
+    db.prepare(`
+      UPDATE studio_profiles SET name = ?, pin_hash = ?, pin_salt = ?, active = ? WHERE id = ?
+    `).run(nextName, hash, salt, nextActive, id);
+    syncDbToWorkspace();
+    return this.getStudioProfileById(id);
+  },
+
+  deleteStudioProfile(id) {
+    const row = this.getStudioProfileById(id);
+    if (!row) throw new Error('Perfil no encontrado.');
+    const owners = db.prepare(`SELECT COUNT(*) AS c FROM studio_profiles WHERE role = 'owner' AND active = 1`).get().c;
+    if (row.role === 'owner' && owners <= 1) {
+      throw new Error('No puedes eliminar el último perfil owner.');
+    }
+    const total = db.prepare(`SELECT COUNT(*) AS c FROM studio_profiles WHERE active = 1`).get().c;
+    if (total <= 1) throw new Error('Debe quedar al menos un perfil activo.');
+    const fallback = db.prepare(`
+      SELECT id FROM studio_profiles WHERE id != ? AND active = 1 ORDER BY created_at ASC LIMIT 1
+    `).get(id);
+    if (fallback) {
+      db.prepare(`UPDATE personas SET profile_id = ? WHERE profile_id = ?`).run(fallback.id, id);
+    }
+    db.prepare('DELETE FROM studio_profiles WHERE id = ?').run(id);
+    syncDbToWorkspace();
+    return true;
+  },
+
+  countPersonasForProfile(profileId) {
+    return db.prepare('SELECT COUNT(*) AS c FROM personas WHERE profile_id = ?').get(profileId).c;
   }
 };

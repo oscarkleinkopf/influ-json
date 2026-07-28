@@ -25,11 +25,11 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa de producto** | **Usabilidad** casi cerrada (F1–F6 + export pack). Siguiente: **seguridad** para mercado. |
-| **Fase ROADMAP** | F1–F6 + 2.5–2.6 export ZIP ✅ en esta sesión |
-| **Prioridad inmediata** | Merge PRs usabilidad; luego hardening PIN/sesiones/headers |
-| **En pausa** | Multi-tenant; billing; Replicate obligatorio |
-| **Servidor** | `npm start` → `server.js` (completo). `start:minimal` = demo only |
+| **Etapa de producto** | **Seguridad + perfiles locales** (en curso / PR). Usabilidad F1–F6 ya cerrada. |
+| **Fase ROADMAP** | Hardening PIN/sesión/headers + `studio_profiles` con roster aislado |
+| **Prioridad inmediata** | Merge PR seguridad; opcional: aislar también products/campaigns por perfil |
+| **En pausa** | OAuth cloud, billing, multi-tenant SaaS, Replicate obligatorio |
+| **Servidor** | `npm start` → `server.js`. `start:minimal` = demo only |
 | **Última plataforma** | Cursor |
 | **Última actualización** | 2026-07-28 |
 
@@ -37,17 +37,17 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ## Sesión reciente (Cursor, 2026-07-28)
 
-**Pedido:** implementar los 5 pendientes de usabilidad (F6, F4, F3, export pack, F2).
+**Pedido:** seguridad + perfiles de usuario.
 
 **Hecho:**
-- **F6** Checklist «Arranque en 60 segundos» en Resumen (`#happyPathCard`).
-- **F4** Side-by-side ancla vs última gen (`#sideBySideComparator` + set-as-main); fix URL `set-main`.
-- **F3** Chip de cola + disable de botones gen durante busy/429; mensajes countdown.
-- **2.5–2.6** `GET /api/export/persona/:id` ZIP (lock + packs + imágenes + licencia).
-- **F2** README flujo emprendedor con nombres de botón reales.
-- Tests export + suite verde con `DISABLE_GIT_BACKUP=1`.
+- Rate-limit login (5 fails → lock 60s), `SESSION_SECRET`, cookies `httpOnly`/`sameSite`, security headers.
+- Banner si PIN default `1234`; `/api/status` expone `pinIsDefault`.
+- Tabla `studio_profiles` (PIN hasheado scrypt); perfil Admin bootstrap desde `STUDIO_PIN`.
+- Soft tenancy: `personas.profile_id`; `/api/data` filtra por perfil de sesión.
+- UI: selector de perfil en login, chip activo, CRUD en Ajustes, logout.
+- Tests: `test/auth-profiles.test.js` — suite **27/27**.
 
-**No tocado:** seguridad de mercado, Replicate real.
+**No tocado:** OAuth, billing, aislamiento products/campaigns, Replicate.
 
 ---
 
@@ -55,8 +55,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 1. `git pull` → este archivo → `ROADMAP.md`.
 2. `npm start` (nunca `start:minimal` para trabajo real).
-3. Etapa **seguridad**: rate-limit login, PIN default banner, headers, session secret desde `.env`.
-4. Tokens: `.env` local — no van en Git.
+3. Pedir al usuario que cambie `STUDIO_PIN` / PIN del perfil Admin.
+4. Opcional: `profile_id` en products/campaigns; CSP más estricta.
 5. Tests: `npm test` setea `DISABLE_GIT_BACKUP=1`.
 
 ---
@@ -65,10 +65,9 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-28 | Cursor | Usabilidad F2–F6 + export ZIP persona | *(este PR)* |
-| 2026-07-28 | Cursor | F1 validador `character_lock` (panel salud + toasts + tests) | PR #4 |
-| 2026-07-27 | Cursor | Alinear deps + documentar concepto | *(main)* |
-| 2026-07-27 | Antigravity | `npm start`→`server.js` + modal Ajustes + 3 skills | `714ab5b` |
+| 2026-07-28 | Cursor | Seguridad mínima + perfiles locales (`studio_profiles`) | *(este PR)* |
+| 2026-07-28 | Cursor | Usabilidad F2–F6 + export ZIP persona | PR #5 |
+| 2026-07-28 | Cursor | F1 validador `character_lock` | PR #4 |
 
 ---
 
@@ -80,7 +79,7 @@ Al terminar cualquier tarea con cambios:
 2. Actualizar **Foco actual** si cambió.
 3. Rellenar **Sesión reciente**.
 4. Línea en log de `ROADMAP.md` si aplica.
-5. `git commit` + `git push` (rama feature o `main` según workflow).
+5. `git commit` + `git push` (rama feature).
 
 ## Qué no commitear
 

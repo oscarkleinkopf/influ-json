@@ -22,7 +22,10 @@ let state = {
   historyFilter: 'all', // 'all', 'portrait', 'variant', 'ugc'
   scratchExtendedTraits: null,
   /** F4 — última variante mostrada en el comparador side-by-side */
-  lastComparedVariant: null
+  lastComparedVariant: null,
+  /** Perfil de studio activo (local multi-user) */
+  currentProfile: null,
+  pinIsDefault: false
 };
 
 const HAPPY_PATH_COPY_KEY = 'influ_happy_path_copied_v1';
@@ -101,20 +104,46 @@ function checkAuthAndInit() {
   fetch('/api/status')
     .then(res => res.json())
     .then(status => {
-      if (status.pinRequired && !studioPin) {
+      state.pinIsDefault = !!status.pinIsDefault;
+      if (status.profile) {
+        state.currentProfile = status.profile;
+        updateActiveProfileChip();
+      }
+      if (status.pinRequired && !status.authenticated && !studioPin) {
         showLoginScreen();
       } else {
-        fetchData();
+        if (status.authenticated || !status.pinRequired) {
+          fetchData().then(() => maybeShowPinDefaultBanner());
+        } else {
+          showLoginScreen();
+        }
       }
-    });
+    })
+    .catch(() => showLoginScreen());
 }
 
 function showLoginScreen() {
   document.getElementById('loginModal').style.display = 'flex';
+  loadLoginProfiles();
 }
 
 function hideLoginScreen() {
   document.getElementById('loginModal').style.display = 'none';
+}
+
+async function loadLoginProfiles() {
+  const select = document.getElementById('loginProfileSelect');
+  if (!select) return;
+  try {
+    const res = await fetch('/api/auth/profiles');
+    const data = await res.json();
+    const profiles = data.profiles || [];
+    select.innerHTML = '<option value="">Detectar por PIN…</option>' +
+      profiles.map(p => `<option value="${p.id}">${escapeLockHtml(p.name)}${p.role === 'owner' ? ' (owner)' : ''}</option>`).join('');
+    if (data.pinIsDefault) state.pinIsDefault = true;
+  } catch (e) {
+    // keep default option
+  }
 }
 
 function setupLogin() {
@@ -122,27 +151,153 @@ function setupLogin() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const pin = document.getElementById('loginPinInput').value;
-    
+    const profileId = document.getElementById('loginProfileSelect')?.value || '';
+    const errEl = document.getElementById('loginErrorText');
+    if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin })
+        body: JSON.stringify({ pin, profileId: profileId || undefined })
       });
       const data = await res.json();
-      
+
       if (data.success) {
         studioPin = pin;
         sessionStorage.setItem('studioPin', pin);
+        state.currentProfile = data.profile || null;
+        state.pinIsDefault = !!data.pinIsDefault;
+        updateActiveProfileChip();
         hideLoginScreen();
-        fetchData();
+        await fetchData();
+        maybeShowPinDefaultBanner();
       } else {
-        toastError('PIN incorrecto. Inténtalo de nuevo.');
+        const msg = data.message || 'PIN incorrecto.';
+        if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+        toastError(msg);
       }
     } catch (err) {
       toastError('Error de conexión al autenticar.');
     }
   });
+}
+
+function updateActiveProfileChip() {
+  const chip = document.getElementById('activeProfileChip');
+  const nameEl = document.getElementById('activeProfileName');
+  if (!chip || !nameEl) return;
+  if (state.currentProfile?.name) {
+    chip.style.display = 'flex';
+    nameEl.textContent = state.currentProfile.name;
+  } else {
+    chip.style.display = 'none';
+  }
+}
+
+function maybeShowPinDefaultBanner() {
+  const banner = document.getElementById('pinDefaultBanner');
+  if (!banner) return;
+  let dismissed = false;
+  try { dismissed = sessionStorage.getItem('influ_pin_banner_dismissed') === '1'; } catch (e) {}
+  if (state.pinIsDefault && !dismissed) banner.style.display = 'flex';
+  else banner.style.display = 'none';
+}
+
+function setupPinDefaultBanner() {
+  document.getElementById('btnPinBannerDismiss')?.addEventListener('click', () => {
+    try { sessionStorage.setItem('influ_pin_banner_dismissed', '1'); } catch (e) {}
+    const banner = document.getElementById('pinDefaultBanner');
+    if (banner) banner.style.display = 'none';
+  });
+  document.getElementById('btnPinBannerSettings')?.addEventListener('click', () => {
+    document.getElementById('btnOpenSettings')?.click();
+    setTimeout(() => {
+      document.getElementById('profilesSettingsSection')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  });
+}
+
+async function refreshProfilesSettingsList() {
+  const list = document.getElementById('profilesList');
+  if (!list) return;
+  try {
+    const res = await authFetch('/api/profiles');
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Error');
+    const currentId = data.currentProfileId;
+    list.innerHTML = (data.profiles || []).map(p => `
+      <div class="profile-row ${p.id === currentId ? 'is-current' : ''}">
+        <div>
+          <strong>${escapeLockHtml(p.name)}</strong>
+          <span class="profile-meta">${escapeLockHtml(p.role)} · ${p.personaCount || 0} influencers</span>
+        </div>
+        <div class="profile-row-actions">
+          ${p.id === currentId ? '<span class="profile-current-tag">Activo</span>' : ''}
+          <button type="button" class="btn btn-secondary btn-sm" data-rename-profile="${p.id}" data-name="${escapeLockHtml(p.name)}">Renombrar</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-repin-profile="${p.id}">Cambiar PIN</button>
+          ${p.id !== currentId ? `<button type="button" class="btn btn-secondary btn-sm" data-delete-profile="${p.id}" style="color:var(--danger);">Eliminar</button>` : ''}
+        </div>
+      </div>
+    `).join('') || '<p style="font-size:12px;color:var(--text-muted);">Sin perfiles.</p>';
+
+    list.querySelectorAll('[data-rename-profile]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const name = prompt('Nuevo nombre del perfil:', btn.getAttribute('data-name') || '');
+        if (!name) return;
+        const res2 = await authFetch(`/api/profiles/${btn.getAttribute('data-rename-profile')}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ name })
+        });
+        const d = await res2.json();
+        if (!d.success) return toastError(d.message || 'No se pudo renombrar');
+        if (state.currentProfile?.id === d.profile.id) {
+          state.currentProfile = d.profile;
+          updateActiveProfileChip();
+        }
+        toastSuccess('Perfil renombrado');
+        refreshProfilesSettingsList();
+      });
+    });
+    list.querySelectorAll('[data-repin-profile]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const pin = prompt('Nuevo PIN (mín. 4 caracteres):');
+        if (!pin) return;
+        const res2 = await authFetch(`/api/profiles/${btn.getAttribute('data-repin-profile')}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ pin })
+        });
+        const d = await res2.json();
+        if (!d.success) return toastError(d.message || 'No se pudo cambiar el PIN');
+        toastSuccess('PIN actualizado');
+        // Si cambió el PIN del Admin y STUDIO_PIN sigue en 1234, el banner puede seguir — ok
+      });
+    });
+    list.querySelectorAll('[data-delete-profile]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('¿Eliminar este perfil? Sus influencers pasarán al perfil más antiguo.')) return;
+        const res2 = await authFetch(`/api/profiles/${btn.getAttribute('data-delete-profile')}`, { method: 'DELETE' });
+        const d = await res2.json();
+        if (!d.success) return toastError(d.message || 'No se pudo eliminar');
+        toastSuccess('Perfil eliminado');
+        refreshProfilesSettingsList();
+      });
+    });
+  } catch (err) {
+    list.innerHTML = `<p style="font-size:12px;color:var(--danger);">${escapeLockHtml(err.message || 'Error al cargar perfiles')}</p>`;
+  }
+}
+
+async function logoutSession() {
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (e) {}
+  studioPin = '';
+  sessionStorage.removeItem('studioPin');
+  state.currentProfile = null;
+  updateActiveProfileChip();
+  showLoginScreen();
+  toastInfo('Sesión cerrada');
 }
 
 function setupSettings() {
@@ -155,6 +310,7 @@ function setupSettings() {
   if (btnOpen) {
     btnOpen.addEventListener('click', () => {
       if (modal) modal.style.display = 'flex';
+      refreshProfilesSettingsList();
     });
   }
 
@@ -163,6 +319,32 @@ function setupSettings() {
       if (modal) modal.style.display = 'none';
     });
   }
+
+  const createProfileForm = document.getElementById('createProfileForm');
+  if (createProfileForm) {
+    createProfileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('newProfileName')?.value || '';
+      const pin = document.getElementById('newProfilePin')?.value || '';
+      try {
+        const res = await authFetch('/api/profiles', {
+          method: 'POST',
+          body: JSON.stringify({ name, pin, role: 'member' })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Error');
+        document.getElementById('newProfileName').value = '';
+        document.getElementById('newProfilePin').value = '';
+        toastSuccess(`Perfil «${data.profile.name}» creado`);
+        refreshProfilesSettingsList();
+      } catch (err) {
+        toastError(err.message || 'No se pudo crear el perfil');
+      }
+    });
+  }
+
+  document.getElementById('btnLogoutSession')?.addEventListener('click', logoutSession);
+  setupPinDefaultBanner();
 
   if (form) {
     form.addEventListener('submit', async (e) => {
@@ -351,6 +533,10 @@ async function fetchData() {
     state.personas = Array.isArray(data.personas) ? data.personas : [];
     state.products = Array.isArray(data.products) ? data.products : [];
     state.generationStats = data.generationStats || { total: 0 };
+    if (data.profile) {
+      state.currentProfile = data.profile;
+      updateActiveProfileChip();
+    }
     
     // Always paint lists first so a selectPersona error cannot hide the portfolio
     refreshPersonaLists();

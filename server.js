@@ -32,9 +32,71 @@ dbService.runMigrations();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(authService.securityHeaders);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(authService.sessionMiddleware);
+
+/** Resuelve perfil activo en sesión (o Bearer PIN → perfil). */
+function resolveSessionProfile(req) {
+  if (req.session?.profileId) return req.session.profileId;
+  const bearer = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '').trim();
+  if (bearer) {
+    const byPin = dbService.findStudioProfileByPin(bearer);
+    if (byPin) {
+      req.session.authenticated = true;
+      req.session.profileId = byPin.id;
+      req.session.profileName = byPin.name;
+      req.session.profileRole = byPin.role;
+      return byPin.id;
+    }
+    if (authService.verifyLegacyStudioPin(bearer)) {
+      const def = dbService.ensureDefaultStudioProfile();
+      const row = dbService.getStudioProfileById(def);
+      req.session.authenticated = true;
+      req.session.profileId = def;
+      req.session.profileName = row?.name || 'Admin';
+      req.session.profileRole = row?.role || 'owner';
+      req.session.authVia = 'bearer_studio_pin';
+      return def;
+    }
+  }
+  if (!authService.isAuthEnabled()) {
+    const def = dbService.ensureDefaultStudioProfile();
+    req.session.authenticated = true;
+    req.session.profileId = def;
+    const row = dbService.getStudioProfileById(def);
+    req.session.profileName = row?.name || 'Admin';
+    req.session.profileRole = row?.role || 'owner';
+    return def;
+  }
+  return null;
+}
+
+function requireAuth(req, res, next) {
+  if (!authService.isAuthEnabled()) {
+    resolveSessionProfile(req);
+    return next();
+  }
+  if (req.session && req.session.authenticated && req.session.profileId) {
+    return next();
+  }
+  const profileId = resolveSessionProfile(req);
+  if (req.session?.authenticated && profileId) return next();
+  return res.status(401).json({ success: false, message: 'Acceso denegado. PIN inválido o sesión expirada.' });
+}
+
+function publicProfileDTO(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    active: !!row.active,
+    created_at: row.created_at,
+    last_login_at: row.last_login_at || null
+  };
+}
 
 // Serve static assets with no auth required
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
@@ -102,15 +164,97 @@ function runGitBackup(callback) {
 // PUBLIC ENDPOINTS
 // =============================================
 
-// Auth Login
+// Auth Login (perfiles locales + rate-limit)
 app.post('/api/auth/login', (req, res) => {
-  const { pin } = req.body;
-  if (authService.verifyPin(pin)) {
-    req.session.authenticated = true;
-    res.json({ success: true, message: 'Sesión iniciada correctamente.' });
-  } else {
-    res.status(401).json({ success: false, message: 'PIN incorrecto. Inténtalo de nuevo.' });
+  const lock = authService.getLoginLockStatus(req);
+  if (lock.locked) {
+    return res.status(429).json({
+      success: false,
+      message: `Demasiados intentos. Espera ${lock.retryAfterSec}s.`,
+      retryAfterSec: lock.retryAfterSec
+    });
   }
+
+  const { pin, profileId } = req.body || {};
+  if (!pin || !String(pin).trim()) {
+    return res.status(400).json({ success: false, message: 'PIN requerido.' });
+  }
+
+  let profile = null;
+  if (profileId) {
+    profile = dbService.getStudioProfileById(profileId);
+    if (!profile || !profile.active) {
+      authService.registerLoginFailure(req);
+      return res.status(401).json({ success: false, message: 'Perfil no encontrado.' });
+    }
+    if (!authService.verifyPinHash(pin, profile.pin_salt, profile.pin_hash)) {
+      const status = authService.registerLoginFailure(req);
+      return res.status(401).json({
+        success: false,
+        message: status.locked
+          ? `PIN incorrecto. Cuenta bloqueada ${status.retryAfterSec}s.`
+          : 'PIN incorrecto. Inténtalo de nuevo.'
+      });
+    }
+  } else {
+    profile = dbService.findStudioProfileByPin(pin);
+    if (!profile && authService.verifyLegacyStudioPin(pin)) {
+      const defId = dbService.ensureDefaultStudioProfile();
+      profile = dbService.getStudioProfileById(defId);
+    }
+    if (!profile) {
+      const status = authService.registerLoginFailure(req);
+      return res.status(401).json({
+        success: false,
+        message: status.locked
+          ? `PIN incorrecto. Cuenta bloqueada ${status.retryAfterSec}s.`
+          : 'PIN incorrecto. Inténtalo de nuevo.'
+      });
+    }
+  }
+
+  authService.clearLoginFailures(req);
+  dbService.touchStudioProfileLogin(profile.id);
+  req.session.authenticated = true;
+  req.session.profileId = profile.id;
+  req.session.profileName = profile.name;
+  req.session.profileRole = profile.role;
+
+  res.json({
+    success: true,
+    message: 'Sesión iniciada correctamente.',
+    profile: publicProfileDTO(profile),
+    pinIsDefault: authService.isPinDefault()
+  });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('influ.sid');
+    res.json({ success: true, message: 'Sesión cerrada.' });
+  });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  if (!req.session?.authenticated) {
+    return res.status(401).json({ success: false, authenticated: false });
+  }
+  const profile = dbService.getStudioProfileById(req.session.profileId);
+  res.json({
+    success: true,
+    authenticated: true,
+    profile: publicProfileDTO(profile),
+    pinIsDefault: authService.isPinDefault()
+  });
+});
+
+app.get('/api/auth/profiles', (req, res) => {
+  res.json({
+    success: true,
+    profiles: dbService.listStudioProfilesPublic().map(publicProfileDTO),
+    pinRequired: authService.isAuthEnabled(),
+    pinIsDefault: authService.isPinDefault()
+  });
 });
 
 // API Connection Status
@@ -123,10 +267,15 @@ app.get('/api/status', (req, res) => {
     success: true,
     apiConnected: aiService.isApiConnected(),
     gitLinked: fs.existsSync(path.join(__dirname, '.git')),
-    pinRequired: !!process.env.STUDIO_PIN && process.env.STUDIO_PIN.trim() !== '',
+    pinRequired: authService.isAuthEnabled(),
+    pinIsDefault: authService.isPinDefault(),
+    authEnabled: authService.isAuthEnabled(),
+    authenticated: !!(req.session && req.session.authenticated),
+    profile: req.session?.profileId
+      ? { id: req.session.profileId, name: req.session.profileName, role: req.session.profileRole }
+      : null,
     dataDir: dbService.getDataDir ? dbService.getDataDir() : DATA_DIR,
     dbPath: dbService.getDbPath ? dbService.getDbPath() : null,
-    // Free-first: Pollinations always on; Replicate only if explicitly configured later
     imageProviders,
     freeTier: {
       imageGen: 'pollinations',
@@ -148,7 +297,51 @@ app.get('/api/queue-status', (req, res) => {
 // PROTECTED ENDPOINTS (requireAuth)
 // =============================================
 
-app.use('/api', authService.requireAuth);
+app.use('/api', requireAuth);
+
+// Profiles CRUD (local multi-user)
+app.get('/api/profiles', (req, res) => {
+  const profiles = dbService.listStudioProfilesAdmin().map((p) => ({
+    ...publicProfileDTO(p),
+    personaCount: dbService.countPersonasForProfile(p.id)
+  }));
+  res.json({ success: true, profiles, currentProfileId: req.session.profileId || null });
+});
+
+app.post('/api/profiles', (req, res) => {
+  try {
+    const { name, pin, role } = req.body || {};
+    const created = dbService.createStudioProfile({ name, pin, role });
+    res.json({ success: true, profile: publicProfileDTO(created) });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+app.patch('/api/profiles/:id', (req, res) => {
+  try {
+    const updated = dbService.updateStudioProfile(req.params.id, req.body || {});
+    if (req.session.profileId === updated.id) {
+      req.session.profileName = updated.name;
+      req.session.profileRole = updated.role;
+    }
+    res.json({ success: true, profile: publicProfileDTO(updated) });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+app.delete('/api/profiles/:id', (req, res) => {
+  try {
+    if (req.session.profileId === req.params.id) {
+      return res.status(400).json({ success: false, message: 'No puedes eliminar el perfil con el que estás conectado.' });
+    }
+    dbService.deleteStudioProfile(req.params.id);
+    res.json({ success: true, profiles: dbService.listStudioProfilesAdmin().map(publicProfileDTO) });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
 
 // Settings Endpoint — Update API Keys in .env safely via GUI
 app.post('/api/settings/keys', (req, res) => {
@@ -186,22 +379,34 @@ app.post('/api/settings/keys', (req, res) => {
 
 // Get All Data (legacy fallback endpoint)
 app.get('/api/data', (req, res) => {
-  const personas = dbService.getAllPersonas();
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const personas = dbService.getAllPersonas(profileId);
   const products = dbService.getAllProducts();
   const generationStats = dbService.getGenerationStats();
-  res.json({ personas, products, generationStats });
+  res.json({
+    personas,
+    products,
+    generationStats,
+    profile: {
+      id: req.session.profileId,
+      name: req.session.profileName,
+      role: req.session.profileRole
+    }
+  });
 });
 
 // Personas endpoints
 app.get('/api/personas', (req, res) => {
-  res.json(dbService.getAllPersonas());
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  res.json(dbService.getAllPersonas(profileId));
 });
 
 app.post('/api/personas', (req, res) => {
   const body = req.body || {};
   const forceCreate = body.forceCreate === true || body.forceCreate === 1 || body.forceCreate === 'true';
   const isNew = forceCreate || !body.id;
-  const persona = dbService.savePersona(body);
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const persona = dbService.savePersona({ ...body, profile_id: profileId });
   if (isNew && persona && persona.id) {
     try {
       dbService.updateGenerationPersonaId('new_persona', persona.id);
