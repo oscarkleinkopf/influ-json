@@ -58,7 +58,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit / PR |
 |-------|------------|---------|-------------|
-| 2026-07-28 | Cursor | Docs para bots + import QA 1.1/1.2 + cache-bust | *(este commit)* |
+| 2026-07-28 | Cursor | Docs para bots + import QA 1.1/1.2 + cache-bust | `0bac0ad` · PR #1 |
 | 2026-07-28 | Cursor | 2.5–2.6 pack campaña (lock+guión) | `ad1da79` |
 | 2026-07-28 | Cursor | Usabilidad F4/F6 + seguridad mínima | `923479f` · PR #1 |
 
