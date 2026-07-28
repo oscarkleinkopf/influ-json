@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.2.0">
+  <link rel="stylesheet" href="index.css?v=1.2.1">
 </head>
 <body>
   <div class="app-container">
@@ -1199,8 +1199,8 @@
       <section id="script-engine" class="tab-panel">
         <div class="content-header">
           <div class="content-title">
-            <h1>Script Engine (GPT-5.6)</h1>
-            <p>Genera 10 ángulos publicitarios optimizados para el formato corto UGC de 15 a 25 segundos.</p>
+            <h1>Script Engine</h1>
+            <p>Genera guiones UGC y copia un <strong>pack campaña</strong>: character_lock + guión (+ producto) para chatbot gratis.</p>
           </div>
         </div>
         
@@ -1247,9 +1247,15 @@
             <div class="script-viewer">
               <div class="script-header-info">
                 <div class="script-angle-title" id="activeScriptAngle">Ángulo Seleccionado</div>
-                <div style="display: flex; gap: 8px;">
-                  <button class="btn btn-secondary btn-sm" id="btnCopyScript">Copiar Guión</button>
-                  <button class="btn btn-sm" id="btnExportScriptChatbot" style="background: var(--accent-gradient); border: none;">📋 Exportar para Chatbot</button>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                  <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); cursor: pointer;">
+                    <input type="checkbox" id="chkPackIncludeProduct" checked>
+                    Incluir producto en el pack
+                  </label>
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button class="btn btn-secondary btn-sm" id="btnCopyScript">Copiar guión solo</button>
+                    <button class="btn btn-sm" id="btnExportScriptChatbot" style="background: var(--accent-gradient); border: none; font-weight: 600;">Copiar pack campaña → chatbot</button>
+                  </div>
                 </div>
               </div>
               
@@ -1327,7 +1333,10 @@
                     🤖 Generar Imagen AI con Prompt
                   </button>
                   <button class="btn btn-secondary" id="btnExportUgcChatbot" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    📋 Copiar Prompt para Chatbots Gratis
+                    Copiar pack campaña (lock + guión) → chatbot
+                  </button>
+                  <button class="btn btn-secondary" id="btnExportUgcFull" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px;">
+                    Copiar export completo (JSON + prompt)
                   </button>
                   <button class="btn btn-secondary" id="btnDownloadJsonPack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     📥 Descargar Pack Maestro JSON (.json)

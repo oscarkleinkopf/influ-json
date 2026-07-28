@@ -106,7 +106,7 @@
 |---|--------|--------|
 | 2.3 | Estados 429 / offline | parcial ✅ |
 | 2.4 | Side-by-side ancla | ✅ F4 |
-| 2.5–2.6 | Script + export pack | pendiente |
+| 2.5–2.6 | Script + export pack | ✅ pack campaña lean (lock+guión+producto) |
 | JSON chatbot | character_lock | ✅ |
 | Image provider stub | free-first | ✅ |
 | UX flujo canónico | nav + dashboard 3 pasos | ✅ 2026-07-28 |
@@ -118,6 +118,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-28 | **2.5–2.6** Pack campaña: character_lock + guión (+ producto) | `copyCampaignPack`; persist scripts en campaña |
 | 2026-07-28 | Usabilidad: ordenar flujo, F4, F6; seguridad: auth/session/git opt-in | Nav primario/secundario; save sin Pollinations; AUTO_GIT_BACKUP off |
 | 2026-07-27 | Unificar arranque + alinear `package.json` al lock; docs concepto prompts/JSON | `npm start`→`server.js`; etapa = usabilidad → seguridad |
 | 2026-07-19 | 1.3–1.6, body JSON, skin lock, spicy, full-body framing | Ver commits main |
