@@ -4818,6 +4818,7 @@ function renderVariantVaultGrid() {
         <p style="color: var(--text-secondary); font-size: 11px; margin-top: 6px;">¡Selecciona una pose y vestuario a la izquierda y presiona Generar!</p>
       </div>
     `;
+    updateSideBySideComparator();
     return;
   }
   
@@ -4870,6 +4871,48 @@ function renderVariantVaultGrid() {
     
     grid.appendChild(card);
   });
+
+  updateSideBySideComparator();
+}
+
+/**
+ * F4 — Comparador de consistencia (foto ancla vs última variante generada).
+ * Free path: sin API de scoring; el usuario juzga visualmente la consistencia
+ * del character_lock comparando el retrato oficial con la generación más reciente.
+ */
+function pickLatestVariant(variants) {
+  if (!Array.isArray(variants) || variants.length === 0) return null;
+  return variants.reduce((latest, v) => {
+    const t = Date.parse(v && v.created_at) || 0;
+    const bestT = Date.parse(latest && latest.created_at) || 0;
+    return t >= bestT ? v : latest;
+  }, variants[0]);
+}
+
+function updateSideBySideComparator() {
+  const box = document.getElementById('sideBySideComparator');
+  if (!box) return;
+
+  const persona = state.selectedPersona;
+  const latest = pickLatestVariant(state.activeVariants);
+
+  if (!persona || !latest || !latest.image_path) {
+    box.style.display = 'none';
+    return;
+  }
+
+  const anchorImg = document.getElementById('sbsAnchorImg');
+  const variantImg = document.getElementById('sbsVariantImg');
+  if (!anchorImg || !variantImg) return;
+
+  const fallbackAnchor = persona.gender === 'Male'
+    ? 'assets/influencer_male.png'
+    : 'assets/influencer_female.png';
+
+  anchorImg.src = persona.image || fallbackAnchor;
+  anchorImg.onerror = () => { anchorImg.onerror = null; anchorImg.src = fallbackAnchor; };
+  variantImg.src = latest.image_path;
+  box.style.display = 'block';
 }
 
 // Attach these to window so inline onclick handlers work
@@ -4887,6 +4930,7 @@ window.setMainVariantAction = async function(imagePath) {
       state.selectedPersona = state.personas.find(p => p.id === state.selectedPersona.id);
       renderPersonaGrids();
       populateActiveUgcData();
+      updateSideBySideComparator();
       showSyncToast(true, '¡Retrato principal actualizado!');
     }
   } catch (e) {
