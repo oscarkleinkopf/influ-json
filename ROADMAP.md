@@ -62,11 +62,11 @@
 | # | Entregable | Criterio de hecho |
 |---|------------|-------------------|
 | F1 | `character_lock` en todo save/export + **validador local de salud** | Copiar a ChatGPT free reproduce la misma persona en 3 prompts distintos; panel muestra score/avisos antes de copiar ✅ |
-| F2 | Documentar “flujo emprendedor gratis” en README corto | Un novato entiende: Studio + copiar JSON a chatbot |
-| F3 | Variantes: rate-limit UX + cola simple (1 gen a la vez) | No spamear Pollinations; toast “espera 30s” |
-| F4 | Side-by-side ancla vs última gen (gratis) | Usuario juzga consistencia sin API de scoring |
+| F2 | Documentar “flujo emprendedor gratis” en README corto | Un novato entiende: Studio + copiar JSON a chatbot ✅ |
+| F3 | Variantes: rate-limit UX + cola simple (1 gen a la vez) | No spamear Pollinations; toast/chip “espera Ns” + botones disabled ✅ |
+| F4 | Side-by-side ancla vs última gen (gratis) | Usuario juzga consistencia sin API de scoring ✅ |
 | F5 | Prompt packs free (chatbot): cuerpo entero / bikini / spicy / producto en mano | 4 plantillas que reusan `character_lock` ✅ |
-| F6 | Happy path 60s en dashboard | Nuevo → guardar → 1 gen → copiar JSON |
+| F6 | Happy path 60s en dashboard | Nuevo → guardar → 1 gen → copiar JSON ✅ |
 
 **No hacer en esta fase:** multi-tenant, billing, OAuth, video full, requerir Gemini key.
 
@@ -104,9 +104,9 @@
 
 | # | Tarea | Estado |
 |---|--------|--------|
-| 2.3 | Estados 429 / offline | parcial ✅ |
-| 2.4 | Side-by-side ancla | pendiente (F4) |
-| 2.5–2.6 | Script + export pack | pendiente |
+| 2.3 | Estados 429 / offline | ✅ (chip cola + disable gens) |
+| 2.4 | Side-by-side ancla | ✅ (F4) |
+| 2.5–2.6 | Script + export pack | ✅ ZIP persona (`/api/export/persona/:id`) |
 | JSON chatbot | character_lock | ✅ |
 | Image provider stub | free-first | ✅ |
 
@@ -116,6 +116,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-28 | **F2–F6 + export ZIP** usabilidad | Checklist 60s, SBS F4, cola UX F3, README, `/api/export/persona/:id` |
 | 2026-07-28 | **F1** Validador local `character_lock` (panel salud + toasts al copiar) | `character-lock-validator.js`; tests; `DISABLE_GIT_BACKUP` en suite |
 | 2026-07-27 | Unificar arranque + alinear `package.json` al lock; docs concepto prompts/JSON | `npm start`→`server.js`; etapa = usabilidad → seguridad |
 | 2026-07-19 | 1.3–1.6, body JSON, skin lock, spicy, full-body framing | Ver commits main |

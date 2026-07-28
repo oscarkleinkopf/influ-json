@@ -2691,3 +2691,129 @@ input:checked + .slider:before {
   color: var(--text-muted);
   font-style: normal;
 }
+
+/* ============================================
+   F6 — Happy path 60s checklist
+   ============================================ */
+.happy-path-progress {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.happy-path-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.happy-path-step {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.happy-path-step.done {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.happy-path-check {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.happy-path-step.done .happy-path-check {
+  color: var(--success);
+}
+
+.happy-path-step strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.happy-path-step p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+
+.happy-path-done {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--success);
+}
+
+/* ============================================
+   F3 — Queue status chip
+   ============================================ */
+.queue-status-chip {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+.queue-status-chip.busy {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.queue-status-chip.cooling {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.queue-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warning);
+  flex-shrink: 0;
+}
+
+.queue-status-chip.busy .queue-status-dot {
+  background: var(--accent-primary);
+  animation: queuePulse 1.2s ease-in-out infinite;
+}
+
+.queue-status-chip.cooling .queue-status-dot {
+  background: var(--danger);
+}
+
+@keyframes queuePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+button.is-queue-locked,
+button.is-queue-locked:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

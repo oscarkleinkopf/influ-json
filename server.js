@@ -3,7 +3,18 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const multer = require('multer');
-const archiver = require('archiver');
+const archiverMod = require('archiver');
+/** Archiver v8 (ESM interop) usa ZipArchive; v7 era archiver('zip'). */
+function createZipArchive(options = { zlib: { level: 9 } }) {
+  if (typeof archiverMod === 'function') return archiverMod('zip', options);
+  if (archiverMod.ZipArchive) return new archiverMod.ZipArchive(options);
+  if (archiverMod.Archiver) {
+    const a = new archiverMod.Archiver(options);
+    if (typeof a.format === 'function') a.format('zip', options);
+    return a;
+  }
+  throw new Error('No se pudo inicializar archiver (ZIP)');
+}
 const dotenv = require('dotenv');
 const sharp = require('sharp');
 
@@ -774,7 +785,7 @@ app.get('/api/export/campaign/:id', (req, res) => {
 
   res.attachment(`campana_${c.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_export.zip`);
 
-  const archive = archiver('zip', { zlib: { level: 9 } });
+  const archive = createZipArchive({ zlib: { level: 9 } });
   archive.on('error', (err) => {
     res.status(500).send({ error: err.message });
   });
@@ -849,6 +860,154 @@ INVERSIÓN TOTAL DE CAMPAÑA: $${total.toFixed(2)} USD
   archive.append(proposalText.trim(), { name: 'propuesta_licencia.txt' });
 
   archive.finalize();
+});
+
+/**
+ * 2.5–2.6 — Export pack ZIP por persona (character_lock + packs free + imágenes + licencia).
+ * Free path: no requiere APIs de pago.
+ */
+app.get('/api/export/persona/:id', (req, res) => {
+  try {
+    const persona = dbService.getPersonaById(req.params.id);
+    if (!persona) {
+      return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
+    }
+
+    const safeName = String(persona.name || 'influencer')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '') || 'influencer';
+
+    res.attachment(`${safeName}_influ_pack.zip`);
+
+    const archive = createZipArchive({ zlib: { level: 9 } });
+    archive.on('error', (err) => {
+      if (!res.headersSent) res.status(500).json({ success: false, error: err.message });
+    });
+    archive.pipe(res);
+
+    // Parse detailed JSON if stored as string
+    let detailed = persona.detailedJSON || {};
+    if (typeof detailed === 'string') {
+      try { detailed = JSON.parse(detailed); } catch (_) { detailed = {}; }
+    }
+    if (!detailed || typeof detailed !== 'object') detailed = {};
+
+    // Ensure character_lock exists for export
+    const lock = detailed.character_lock || {
+      version: 1,
+      free_tier: true,
+      purpose: 'Mantener la misma persona en chatbots gratuitos sin face-lock de pago',
+      must_match_every_image: {
+        name: persona.name,
+        gender: persona.gender,
+        age: persona.age,
+        ethnicity: persona.ethnicity,
+        skin_tone: detailed.facial_features?.skin_tone || null,
+        skin_tone_hex: detailed.facial_features?.skin_tone_hex || null,
+        face_shape: detailed.facial_features?.face_shape || null,
+        eye_color: detailed.facial_features?.eye_color || null,
+        hair_color: detailed.hair?.color || persona.hair || null,
+        body_type: detailed.body?.body_type || persona.body_type || null
+      },
+      may_vary_per_image: ['pose', 'clothing', 'setting_background', 'product_in_hand'],
+      never_do: [
+        'Cambiar tono de piel o etnia aparente',
+        'Cambiar forma de rostro',
+        'Cuerpo con proporciones distintas'
+      ]
+    };
+
+    const personaExport = {
+      ...persona,
+      detailedJSON: detailed,
+      character_lock: lock
+    };
+
+    archive.append(JSON.stringify(personaExport, null, 2), { name: 'persona.json' });
+    archive.append(JSON.stringify(lock, null, 2), { name: 'character_lock.json' });
+
+    const packScenes = {
+      fullbody: 'CUERPO ENTERO head-to-toe, misma persona del CHARACTER LOCK, foto smartphone amateur.',
+      bikini: 'Bikini en playa, misma cara y tez del CHARACTER LOCK (no oscurecer al sol).',
+      spicy: 'Sensual fotorealista (lencería), misma cara/tez/cuerpo del CHARACTER LOCK. No CGI.',
+      product: 'UGC con producto en mano, rostro reconocible según CHARACTER LOCK.'
+    };
+
+    Object.entries(packScenes).forEach(([packId, scene]) => {
+      const text = `PACK GRATIS PARA CHATBOT — ${packId}
+Influencer: ${persona.name}
+Cero costo: sin Replicate / InstantID
+
+CHARACTER LOCK:
+${JSON.stringify(lock, null, 2)}
+
+PETICIÓN:
+${scene}
+
+INSTRUCCIONES:
+1) Pega este texto en ChatGPT / Gemini / Claude / Meta free.
+2) Genera la imagen respetando character_lock.
+3) Si la cara o tez cambian, re-pega el lock y regenera.
+`;
+      archive.append(text, { name: `packs/${packId}.txt` });
+    });
+
+    const README = `influ-JSON — pack exportado
+============================
+Influencer: ${persona.name}
+Fecha: ${new Date().toISOString()}
+
+Contenido:
+- persona.json          → ficha completa
+- character_lock.json   → ancla de identidad (gratis)
+- packs/*.txt           → packs listos para chatbot free
+- imagenes/             → foto ancla + variantes (si existen)
+- licencia.json         → certificado comercial básico
+
+Flujo:
+1. Abre packs/fullbody.txt (o bikini / spicy / product)
+2. Cópialo a ChatGPT / Gemini / Claude free
+3. Pide variantes respetando el CHARACTER LOCK
+`;
+    archive.append(README, { name: 'README.txt' });
+
+    // Images
+    const addImageIfExists = (relPath, zipName) => {
+      if (!relPath) return;
+      const abs = path.isAbsolute(relPath) ? relPath : path.join(__dirname, relPath);
+      if (fs.existsSync(abs)) {
+        archive.file(abs, { name: `imagenes/${zipName}` });
+      }
+    };
+    addImageIfExists(persona.image, `ancla_${path.basename(persona.image || 'main.jpg')}`);
+    addImageIfExists(persona.imageUGC, `ugc_${path.basename(persona.imageUGC || 'ugc.jpg')}`);
+
+    const variants = dbService.getVariantsForPersona(persona.id) || [];
+    variants.slice(0, 24).forEach((v, i) => {
+      addImageIfExists(v.image_path, `variante_${String(i + 1).padStart(2, '0')}_${path.basename(v.image_path || 'v.jpg')}`);
+    });
+
+    const license = {
+      licenseId: `LIC-INFLU-${String(persona.id).substring(0, 8).toUpperCase()}`,
+      issuedAt: new Date().toISOString(),
+      personaName: persona.name,
+      ethnicity: persona.ethnicity || 'Latina',
+      age: persona.age || '25 años',
+      status: 'VERIFIED_VIRTUAL_INFLUENCER_IP',
+      rightsHolder: req.query.brand || 'Dropshipping Master Brand LLC',
+      platformsCompliant: ['Meta Business Manager', 'TikTok Shop', 'Instagram Ads', 'YouTube Shorts'],
+      disclosureRequired: 'Synthetic Interpreter Disclosure (NY State Compliant)'
+    };
+    archive.append(JSON.stringify(license, null, 2), { name: 'licencia.json' });
+
+    archive.finalize();
+  } catch (err) {
+    console.error('[export/persona]', err);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: err.message || 'Error al exportar pack.' });
+    }
+  }
 });
 
 // Upload reference photo endpoint
