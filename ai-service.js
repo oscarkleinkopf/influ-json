@@ -57,7 +57,8 @@ module.exports = {
 
     try {
       const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
-      const absolutePath = path.resolve(imagePath);
+      const { resolveSafeLocalImagePath } = require('./safe-paths');
+      const absolutePath = resolveSafeLocalImagePath(imagePath);
       const imgData = fs.readFileSync(absolutePath);
       
       const filePart = {
@@ -707,8 +708,12 @@ module.exports = {
       if (!localPath || localPath.includes('influencer_female.png') || localPath.includes('influencer_male.png')) {
         return null;
       }
-      const absolutePath = path.resolve(localPath);
-      if (!fs.existsSync(absolutePath) || fs.lstatSync(absolutePath).isDirectory()) {
+      const { resolveSafeLocalImagePath } = require('./safe-paths');
+      let absolutePath;
+      try {
+        absolutePath = resolveSafeLocalImagePath(localPath);
+      } catch (pathErr) {
+        console.warn('Blocked unsafe local image path for upload:', pathErr.message);
         return null;
       }
 

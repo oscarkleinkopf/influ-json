@@ -97,12 +97,32 @@ function checkAuthAndInit() {
   fetch('/api/status')
     .then(res => res.json())
     .then(status => {
+      updateAuthSecurityHints(status);
       if (status.pinRequired && !studioPin) {
         showLoginScreen();
       } else {
         fetchData();
       }
     });
+}
+
+function updateAuthSecurityHints(status) {
+  const hint = document.getElementById('loginSecurityHint');
+  if (!hint) return;
+  const parts = [];
+  if (status.weakStudioPin) {
+    parts.push('PIN por defecto (1234). Cámbialo en .env (STUDIO_PIN) antes de exponer el Studio en red.');
+  }
+  if (status.ephemeralSessionSecret) {
+    parts.push('SESSION_SECRET no definido — las sesiones no son duraderas entre reinicios.');
+  }
+  if (parts.length) {
+    hint.style.display = 'block';
+    hint.textContent = parts.join(' ');
+  } else {
+    hint.style.display = 'none';
+    hint.textContent = '';
+  }
 }
 
 function showLoginScreen() {
@@ -1200,6 +1220,21 @@ const QueuePoller = {
       this.intervalId = null;
     }
     this.isPolling = false;
+    // Clear sticky queue toast (duration: null) so it does not linger forever
+    if (this._queueToastActive) {
+      this._queueToastActive = false;
+      const banner = syncBanner || document.getElementById('syncBanner');
+      if (banner && banner.classList.contains('type-loading')) {
+        banner.classList.remove('show');
+      } else if (banner && banner.classList.contains('show')) {
+        // Only hide if still showing a queue message
+        const textEl = syncBannerText || document.getElementById('syncBannerText');
+        const t = textEl?.textContent || '';
+        if (/Encolado|Generando imagen|congestionado|enfriando/i.test(t)) {
+          banner.classList.remove('show');
+        }
+      }
+    }
   },
 
   lastCompletedCount: -1,
@@ -1214,13 +1249,16 @@ const QueuePoller = {
       const q = data.queue;
       this.updateUI(q);
 
-      // M2 Live Vault re-rendering when background queue tasks complete or progress
-      if (typeof state !== 'undefined' && state.selectedPersona && state.activeTab === 'vault') {
+      // Refresh variants while on Persona Engine (there is no "vault" tab)
+      const onPersonaTab = typeof state !== 'undefined'
+        && state.selectedPersona
+        && (state.activeTab === 'persona-engine' || state.activeTab === 'vault');
+      if (onPersonaTab) {
         const completed = q.completedCount || 0;
         if (completed !== this.lastCompletedCount || q.active) {
           this.lastCompletedCount = completed;
-          if (typeof loadPersonaVariants === 'function') {
-            loadPersonaVariants(state.selectedPersona.id);
+          if (typeof loadVariantsForPersona === 'function') {
+            loadVariantsForPersona(state.selectedPersona.id);
           }
         }
       }
@@ -1228,8 +1266,8 @@ const QueuePoller = {
       const isCooling = q.isCoolingDown || q.rateLimitActive;
       const pending = q.pendingCount ?? q.queueLength ?? 0;
       if (!q.active && pending === 0 && !isCooling) {
-        if (typeof state !== 'undefined' && state.selectedPersona && state.activeTab === 'vault' && typeof loadPersonaVariants === 'function') {
-          loadPersonaVariants(state.selectedPersona.id);
+        if (onPersonaTab && typeof loadVariantsForPersona === 'function') {
+          loadVariantsForPersona(state.selectedPersona.id);
         }
         this.stop();
       }
@@ -1260,6 +1298,7 @@ const QueuePoller = {
     }
 
     if (statusText) {
+      this._queueToastActive = true;
       showAppToast(statusText, { type: toastType, duration: null });
 
       const variantText = document.getElementById('variantGenStatusText');
@@ -2586,12 +2625,28 @@ async function savePersona() {
       toastSuccess(creatingNew
         ? `«${name}» guardado. ${nextHint}`
         : `JSON actualizado. ${nextHint}`, { duration: 7000, gitOk: !!data.gitSynced });
+
+      offerPrimaryChatbotPackCopy(creatingNew ? name : null);
     } else {
       showSyncToast(false, data.message || 'No se pudo guardar la persona.');
     }
   } catch (err) {
     showSyncToast(false, 'Error de servidor al guardar.');
   }
+}
+
+/** Post-save / post-import: scroll to primary pack and optionally copy fullbody. */
+function offerPrimaryChatbotPackCopy(personaName) {
+  setTimeout(() => {
+    const packBtn = document.getElementById('btnCopyPrimaryPack');
+    if (packBtn) {
+      packBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    const label = personaName ? `«${personaName}»` : 'el personaje';
+    if (confirm(`¿Copiar ahora el pack «cuerpo entero» de ${label} para pegar en ChatGPT / Gemini?`)) {
+      if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
+    }
+  }, 350);
 }
 
 // A/B Comparator Logic
@@ -5991,15 +6046,7 @@ function initImportModal() {
         if (typeof navigateToTab === 'function') {
           navigateToTab('persona-engine');
         }
-        setTimeout(() => {
-          const packBtn = document.getElementById('btnCopyPrimaryPack');
-          if (packBtn) {
-            packBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-          if (confirm('¿Copiar ahora el pack «cuerpo entero» para pegar en ChatGPT / Gemini?')) {
-            if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
-          }
-        }, 350);
+        offerPrimaryChatbotPackCopy(finalName);
 
       } catch (err) {
         console.error('Failed to confirm and save persona:', err);

@@ -34,11 +34,23 @@ function pinRequiredForStatus() {
   return isAuthEnabled();
 }
 
-const sessionSecret = (process.env.SESSION_SECRET || '').trim()
+/** True when configured PIN is the well-known default (local DX or forgotten prod config). */
+function isWeakStudioPin() {
+  return isAuthEnabled() && CONFIGURED_PIN === '1234';
+}
+
+const sessionSecretFromEnv = (process.env.SESSION_SECRET || '').trim();
+const usingEphemeralSessionSecret = !sessionSecretFromEnv;
+
+const sessionSecret = sessionSecretFromEnv
   || (isProd ? crypto.randomBytes(32).toString('hex') : 'influ-json-dev-only-session-secret');
 
-if (isProd && !(process.env.SESSION_SECRET || '').trim()) {
+if (isProd && usingEphemeralSessionSecret) {
   console.warn('[auth] SESSION_SECRET missing in production — generated ephemeral secret (sessions reset on restart). Set SESSION_SECRET in .env');
+}
+
+if (isWeakStudioPin()) {
+  console.warn('[auth] STUDIO_PIN is the default "1234" — change it before exposing the Studio on a network.');
 }
 
 const sessionMiddleware = expressSession({
@@ -119,6 +131,8 @@ module.exports = {
   requireAuth,
   isAuthEnabled,
   pinRequiredForStatus,
+  isWeakStudioPin,
+  usingEphemeralSessionSecret,
   checkLoginRateLimit,
   recordLoginFailure,
   clearLoginFailures,

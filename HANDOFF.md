@@ -22,7 +22,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa** | Docs bots + free path estable (import 1.1/1.2 ✅); listo para merge / checklist |
+| **Etapa** | Free path UX (cola/429 + CTA post-save) + seguridad ligera mercado |
 | **Rama / PR** | `cursor/usabilidad-seguridad-b0f8` · https://github.com/oscarkleinkopf/influ-json/pull/1 |
 | **Servidor** | `npm start` → `server.js`. `AUTO_GIT_BACKUP` off por defecto |
 | **No tocar ahora** | Replicate obligatorio, video full, multi-tenant, React rewrite |
@@ -33,24 +33,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ## Sesión reciente (Cursor, 2026-07-28)
 
-**Docs + estabilización:**
-- README reescrito para humanos y bots (estado, mapa de lectura, checklist, anti-regresiones).
-- HANDOFF / AGENTS / ROADMAP alineados al código real.
-- Import 1.1/1.2: confirmación, errores honestos, CTA post-import hacia pack chatbot.
-- Cache-bust unificado en `index.html`.
+**Cola / happy path / seguridad ligera:**
+- `/api/ai/generate-image` devuelve **429** + `Retry-After` (antes siempre 500).
+- QueuePoller: refresca en `persona-engine` (no tab `vault`); limpia toast sticky al idle.
+- CTA post-save = post-import (`offerPrimaryChatbotPackCopy`).
+- `safe-paths.js`: path traversal bloqueado; SSRF en URL import; headers `nosniff` / `SAMEORIGIN`.
+- Aviso PIN débil / SESSION_SECRET efímero en login + `/api/status`.
 
-**Ya en la rama (commits previos):**
-- Usabilidad F4/F6, nav primario/secundario, save sin Pollinations obligatorio.
-- Seguridad mínima (SESSION_SECRET, rate-limit, logout, AUTO_GIT_BACKUP off).
-- Pack campaña lean `copyCampaignPack` (2.5–2.6).
+**Previo en la rama:** docs bots, import 1.1/1.2, F4/F6, pack campaña, seguridad mínima.
 
 ---
 
 ## Próximos pasos (para el robot que retome)
 
-1. `git fetch && git checkout cursor/usabilidad-seguridad-b0f8` (o merge PR #1 a `main`).
-2. Correr checklist de regresión del README (6 pasos).
-3. Tras merge: siguiente foco = seguridad de mercado o UX fina — **no** Replicate salvo petición explícita.
+1. Correr checklist de regresión del README (6 pasos) + gen con cooldown 429.
+2. Merge PR #1 cuando esté estable.
+3. Siguiente: hardening de deploy (HTTPS/`COOKIE_SECURE`) o UX fina — **no** Replicate salvo petición explícita.
 
 ---
 
@@ -58,6 +56,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit / PR |
 |-------|------------|---------|-------------|
+| 2026-07-28 | Cursor | 429/cola UX + CTA post-save + path/SSRF + avisos PIN | *(este commit)* · PR #1 |
 | 2026-07-28 | Cursor | Docs para bots + import QA 1.1/1.2 + cache-bust | `0bac0ad` · PR #1 |
 | 2026-07-28 | Cursor | 2.5–2.6 pack campaña (lock+guión) | `ad1da79` |
 | 2026-07-28 | Cursor | Usabilidad F4/F6 + seguridad mínima | `923479f` · PR #1 |
