@@ -47,9 +47,15 @@ function memberOnboardDismissKey(profileId) {
 // Auth session token (stored in memory/sessionStorage)
 let studioPin = sessionStorage.getItem('studioPin') || '';
 
-// DOM Elements
-const navItems = document.querySelectorAll('.nav-item');
-const tabPanels = document.querySelectorAll('.tab-panel');
+// DOM Elements (NodeLists vivos vía helpers — paneles/nav pueden crecer)
+function getNavItems() {
+  return document.querySelectorAll('.nav-item');
+}
+function getTabPanels() {
+  return document.querySelectorAll('.tab-panel');
+}
+const navItems = getNavItems();
+const tabPanels = getTabPanels();
 const gitIndicator = document.getElementById('gitIndicator');
 const gitStatusText = document.getElementById('gitStatusText');
 const btnSyncNow = document.getElementById('btnSyncNow');
@@ -95,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupFreeChatbotPacks', fn: setupFreeChatbotPacks },
     { name: 'setupHappyPathChecklist', fn: setupHappyPathChecklist },
     { name: 'setupNichePresets', fn: setupNichePresets },
+    { name: 'setupComoUsarGuide', fn: setupComoUsarGuide },
     { name: 'setupSideBySideComparator', fn: setupSideBySideComparator },
     { name: 'setupSettings', fn: setupSettings },
     { name: 'setupMemberOnboarding', fn: setupMemberOnboarding },
@@ -344,10 +351,7 @@ function setupMemberOnboarding() {
   document.getElementById('btnMemberWelcomeDashboard')?.addEventListener('click', () => {
     dismissMemberOnboarding(state.currentProfile?.id);
     hideMemberWelcomeModal();
-    navigateToTab('dashboard');
-    setTimeout(() => {
-      document.getElementById('happyPathCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
+    navigateToTab('como-usar');
   });
   document.getElementById('btnMemberEmptyCreate')?.addEventListener('click', startMemberCreateFlow);
 }
@@ -779,7 +783,7 @@ function setupTabs() {
     state.activeTab = tabId;
     
     // Update sidebar nav items
-    navItems.forEach(nav => {
+    getNavItems().forEach(nav => {
       if (nav.getAttribute('data-tab') === tabId) {
         nav.classList.add('active');
       } else {
@@ -797,7 +801,7 @@ function setupTabs() {
     });
     
     // Update active panel class
-    tabPanels.forEach(panel => {
+    getTabPanels().forEach(panel => {
       if (panel.id === tabId) {
         panel.classList.add('active');
       } else {
@@ -814,7 +818,7 @@ function setupTabs() {
     if (tabId === 'ugc-studio' && typeof renderBulkProductSelector === 'function') renderBulkProductSelector();
   };
 
-  navItems.forEach(item => {
+  getNavItems().forEach(item => {
     item.addEventListener('click', () => {
       switchTab(item.getAttribute('data-tab'));
     });
@@ -1346,11 +1350,72 @@ function updateQueueStatusChip(q) {
 }
 
 function navigateToTab(tabId) {
-  // Simulates nav item click
-  const navItem = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('data-tab') === tabId);
-  if (navItem) {
-    navItem.click();
+  // Prefer direct switch so paneles nuevos (p. ej. cómo usar) siempre activan
+  const panel = document.getElementById(tabId);
+  if (panel && panel.classList.contains('tab-panel')) {
+    state.activeTab = tabId;
+    getNavItems().forEach(nav => {
+      nav.classList.toggle('active', nav.getAttribute('data-tab') === tabId);
+    });
+    document.querySelectorAll('.mobile-nav-item').forEach(mbItem => {
+      mbItem.classList.toggle('active', mbItem.getAttribute('data-tab') === tabId);
+    });
+    getTabPanels().forEach(p => {
+      p.classList.toggle('active', p.id === tabId);
+    });
+    if (typeof closeMobileSidebar === 'function') closeMobileSidebar();
+    if (tabId === 'campaigns' && typeof renderCampaigns === 'function') renderCampaigns();
+    if (tabId === 'gallery' && typeof renderGallery === 'function') renderGallery();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
   }
+  const navItem = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('data-tab') === tabId);
+  if (navItem) navItem.click();
+}
+
+function setupComoUsarGuide() {
+  const openGuide = () => navigateToTab('como-usar');
+  document.getElementById('btnOpenComoUsar')?.addEventListener('click', openGuide);
+  document.getElementById('btnDashboardComoUsar')?.addEventListener('click', openGuide);
+
+  document.querySelectorAll('[data-guide-action]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const action = btn.getAttribute('data-guide-action');
+      if (action === 'create') {
+        navigateToTab('persona-engine');
+        setTimeout(() => {
+          const nicheBtn = document.querySelector('[data-niche="beauty"]');
+          if (nicheBtn) nicheBtn.click();
+          else document.getElementById('cardCreateScratch')?.click();
+        }, 80);
+      } else if (action === 'portfolio') {
+        navigateToTab('dashboard');
+        setTimeout(() => {
+          document.getElementById('dashboardPersonaGrid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      } else if (action === 'packs') {
+        navigateToTab('persona-engine');
+        setTimeout(() => {
+          document.getElementById('btnExportBrandKitSheet')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 120);
+      } else if (action === 'kit') {
+        navigateToTab('persona-engine');
+        setTimeout(() => {
+          if (typeof exportPersonaZipPack === 'function' && (state.selectedPersona || state.personas[0])) {
+            exportPersonaZipPack({ kit: true });
+          } else {
+            toastInfo('Crea o selecciona un influencer y pulsa «Descargar kit marca».');
+            document.getElementById('btnExportBrandKitSheet')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 120);
+      } else if (action === 'checklist') {
+        navigateToTab('dashboard');
+        setTimeout(() => {
+          document.getElementById('happyPathCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      }
+    });
+  });
 }
 
 function applyGeneratedTraitsToForm(details) {
