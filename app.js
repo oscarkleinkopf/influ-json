@@ -25,10 +25,22 @@ let state = {
   lastComparedVariant: null,
   /** Perfil de studio activo (local multi-user) */
   currentProfile: null,
-  pinIsDefault: false
+  pinIsDefault: false,
+  /** Tras canjear invitación: mostrar onboarding una vez */
+  justRedeemedInvite: false
 };
 
 const HAPPY_PATH_COPY_KEY = 'influ_happy_path_copied_v1';
+const MEMBER_ONBOARD_DISMISS_PREFIX = 'influ_member_onboard_dismissed_';
+
+function happyPathCopyStorageKey() {
+  const id = state.currentProfile?.id;
+  return id ? `${HAPPY_PATH_COPY_KEY}_${id}` : HAPPY_PATH_COPY_KEY;
+}
+
+function memberOnboardDismissKey(profileId) {
+  return `${MEMBER_ONBOARD_DISMISS_PREFIX}${profileId || 'unknown'}`;
+}
 
 // Auth session token (stored in memory/sessionStorage)
 let studioPin = sessionStorage.getItem('studioPin') || '';
@@ -82,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupHappyPathChecklist', fn: setupHappyPathChecklist },
     { name: 'setupSideBySideComparator', fn: setupSideBySideComparator },
     { name: 'setupSettings', fn: setupSettings },
+    { name: 'setupMemberOnboarding', fn: setupMemberOnboarding },
     { name: 'initImportModal', fn: initImportModal }
   ];
 
@@ -175,6 +188,7 @@ function setupLogin() {
         hideLoginScreen();
         await fetchData();
         maybeShowPinDefaultBanner();
+        maybeShowMemberOnboarding();
       } else {
         const msg = data.message || 'PIN incorrecto.';
         if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
@@ -221,10 +235,13 @@ function setupLogin() {
       sessionStorage.setItem('studioPin', pin);
       state.currentProfile = data.profile || null;
       state.pinIsDefault = false;
+      state.justRedeemedInvite = true;
+      try { sessionStorage.setItem('influ_just_redeemed', '1'); } catch (e) {}
       updateActiveProfileChip();
       hideLoginScreen();
       await fetchData();
       toastSuccess(data.message || 'Espacio creado. Roster vacío y aislado.');
+      maybeShowMemberOnboarding();
     } catch (err) {
       toastError('Error de conexión al canjear la invitación.');
     }
@@ -234,6 +251,128 @@ function setupLogin() {
 function isCurrentUserAdmin() {
   const role = state.currentProfile?.role;
   return role === 'admin' || role === 'owner';
+}
+
+function isMemberOnboardingDismissed(profileId) {
+  if (!profileId) return true;
+  try {
+    return localStorage.getItem(memberOnboardDismissKey(profileId)) === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function dismissMemberOnboarding(profileId) {
+  if (!profileId) return;
+  try {
+    localStorage.setItem(memberOnboardDismissKey(profileId), '1');
+  } catch (e) {}
+  state.justRedeemedInvite = false;
+  try { sessionStorage.removeItem('influ_just_redeemed'); } catch (e) {}
+}
+
+function hideMemberWelcomeModal() {
+  const modal = document.getElementById('memberWelcomeModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function showMemberWelcomeModal() {
+  const modal = document.getElementById('memberWelcomeModal');
+  if (!modal) return;
+  const name = state.currentProfile?.name;
+  const lead = document.getElementById('memberWelcomeLead');
+  if (lead && name) {
+    lead.textContent = `Hola ${name}: este perfil es solo tuyo. No verás ni mezclarás creaciones de Administración u otros testers.`;
+  }
+  modal.style.display = 'flex';
+}
+
+/**
+ * Muestra onboarding a members:
+ * - justo tras canjear invitación, o
+ * - primer login con roster vacío (si no lo descartaron).
+ */
+function maybeShowMemberOnboarding() {
+  if (isCurrentUserAdmin()) {
+    updateMemberEmptyRosterBanner();
+    applyRoleBasedSettingsUi();
+    return;
+  }
+  applyRoleBasedSettingsUi();
+  updateMemberEmptyRosterBanner();
+
+  const profileId = state.currentProfile?.id;
+  if (!profileId) return;
+
+  let justRedeemed = state.justRedeemedInvite;
+  try {
+    if (sessionStorage.getItem('influ_just_redeemed') === '1') justRedeemed = true;
+  } catch (e) {}
+
+  const emptyRoster = !Array.isArray(state.personas) || state.personas.length === 0;
+  if (!justRedeemed && !emptyRoster) return;
+  if (!justRedeemed && isMemberOnboardingDismissed(profileId)) return;
+
+  showMemberWelcomeModal();
+}
+
+function startMemberCreateFlow() {
+  const profileId = state.currentProfile?.id;
+  dismissMemberOnboarding(profileId);
+  hideMemberWelcomeModal();
+  navigateToTab('persona-engine');
+  setTimeout(() => {
+    const card = document.getElementById('cardCreateScratch');
+    if (card) card.click();
+    else if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
+  }, 80);
+}
+
+function setupMemberOnboarding() {
+  document.getElementById('btnCloseMemberWelcome')?.addEventListener('click', () => {
+    dismissMemberOnboarding(state.currentProfile?.id);
+    hideMemberWelcomeModal();
+  });
+  document.getElementById('btnMemberWelcomeSkip')?.addEventListener('click', () => {
+    dismissMemberOnboarding(state.currentProfile?.id);
+    hideMemberWelcomeModal();
+  });
+  document.getElementById('btnMemberWelcomeCreate')?.addEventListener('click', startMemberCreateFlow);
+  document.getElementById('btnMemberWelcomeDashboard')?.addEventListener('click', () => {
+    dismissMemberOnboarding(state.currentProfile?.id);
+    hideMemberWelcomeModal();
+    navigateToTab('dashboard');
+    setTimeout(() => {
+      document.getElementById('happyPathCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  });
+  document.getElementById('btnMemberEmptyCreate')?.addEventListener('click', startMemberCreateFlow);
+}
+
+function updateMemberEmptyRosterBanner() {
+  const banner = document.getElementById('memberEmptyRosterBanner');
+  if (!banner) return;
+  const empty = !Array.isArray(state.personas) || state.personas.length === 0;
+  const show = !isCurrentUserAdmin() && empty;
+  banner.style.display = show ? 'flex' : 'none';
+}
+
+function applyRoleBasedSettingsUi() {
+  const isAdmin = isCurrentUserAdmin();
+  const keys = document.getElementById('adminKeysSettingsSection');
+  const hint = document.getElementById('memberSettingsHint');
+  const title = document.getElementById('settingsModalTitle');
+  const heading = document.getElementById('profilesSettingsHeading');
+  const lead = document.getElementById('profilesSettingsLead');
+  if (keys) keys.style.display = isAdmin ? 'block' : 'none';
+  if (hint) hint.style.display = isAdmin ? 'none' : 'block';
+  if (title) title.textContent = isAdmin ? 'Ajustes de Proveedores y Claves API' : 'Tu cuenta';
+  if (heading) heading.textContent = isAdmin ? 'Perfiles de usuario (local)' : 'Tu perfil';
+  if (lead) {
+    lead.textContent = isAdmin
+      ? 'Varios emprendedores en el mismo Studio, cada uno con su PIN y su roster. Sin nube ni OAuth.'
+      : 'Cambia tu PIN o cierra sesión. Tus influencers siguen aislados en este perfil.';
+  }
 }
 
 function updateActiveProfileChip() {
@@ -286,12 +425,17 @@ async function refreshProfilesSettingsList() {
     if (invitesSection) invitesSection.style.display = isAdmin ? 'block' : 'none';
     const backupsSection = document.getElementById('backupsSettingsSection');
     if (backupsSection) backupsSection.style.display = isAdmin ? 'block' : 'none';
+    applyRoleBasedSettingsUi();
     if (isAdmin) {
       refreshInvitesSettingsList();
       refreshBackupsSettingsList();
     }
 
-    list.innerHTML = (data.profiles || []).map(p => `
+    const visibleProfiles = isAdmin
+      ? (data.profiles || [])
+      : (data.profiles || []).filter(p => p.id === currentId);
+
+    list.innerHTML = visibleProfiles.map(p => `
       <div class="profile-row ${p.id === currentId ? 'is-current' : ''}">
         <div>
           <strong>${escapeLockHtml(p.name)}</strong>
@@ -488,6 +632,7 @@ function setupSettings() {
 
   if (btnOpen) {
     btnOpen.addEventListener('click', () => {
+      applyRoleBasedSettingsUi();
       if (modal) modal.style.display = 'flex';
       refreshProfilesSettingsList();
     });
@@ -774,6 +919,9 @@ async function fetchData() {
     
     // Always paint lists first so a selectPersona error cannot hide the portfolio
     refreshPersonaLists();
+    updateMemberEmptyRosterBanner();
+    applyRoleBasedSettingsUi();
+    renderHappyPathChecklist();
 
     if (state.personas.length > 0) {
       try {
@@ -788,6 +936,7 @@ async function fetchData() {
     try { populateActiveUgcData(); } catch (e) { console.warn(e); }
     try { generateMockScripts(); } catch (e) { console.warn(e); }
     try { updateLicensingCalculator(); } catch (e) { console.warn(e); }
+    maybeShowMemberOnboarding();
   } catch (err) {
     console.error('Error fetching initial data:', err);
   }
@@ -1023,7 +1172,7 @@ function getHappyPathStatus() {
   const totalGens = state.generationStats?.total || 0;
   const hasVariants = Array.isArray(state.activeVariants) && state.activeVariants.length > 0;
   let copied = false;
-  try { copied = localStorage.getItem(HAPPY_PATH_COPY_KEY) === '1'; } catch (e) {}
+  try { copied = localStorage.getItem(happyPathCopyStorageKey()) === '1'; } catch (e) {}
 
   return {
     create: hasAny,
@@ -1034,7 +1183,7 @@ function getHappyPathStatus() {
 }
 
 function markHappyPathCopied() {
-  try { localStorage.setItem(HAPPY_PATH_COPY_KEY, '1'); } catch (e) {}
+  try { localStorage.setItem(happyPathCopyStorageKey(), '1'); } catch (e) {}
   renderHappyPathChecklist();
 }
 

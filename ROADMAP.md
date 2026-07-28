@@ -116,6 +116,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-28 | **Onboarding member** | Modal post-invite; Ajustes por rol; keys solo admin; tests 34 |
 | 2026-07-28 | **Backup UI + ownership** | `/api/backups`; `requireOwnedPersona`; gallery/import scoped; tests 32 |
 | 2026-07-28 | **Admin + invitaciones** | `studio_invites`, redeem → member aislado; products/campaigns por perfil |
 | 2026-07-28 | **Seguridad + perfiles locales** | Rate-limit login, headers, SESSION_SECRET, `studio_profiles`, roster por `profile_id` |

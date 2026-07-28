@@ -576,8 +576,8 @@ app.get('/api/backups/:filename/download', requireAdmin, (req, res) => {
   }
 });
 
-// Settings Endpoint — Update API Keys in .env safely via GUI
-app.post('/api/settings/keys', (req, res) => {
+// Settings Endpoint — Update API Keys in .env safely via GUI (solo Administración)
+app.post('/api/settings/keys', requireAdmin, (req, res) => {
   try {
     const { geminiApiKey, replicateApiToken } = req.body || {};
     const envPath = path.join(__dirname, '.env');
