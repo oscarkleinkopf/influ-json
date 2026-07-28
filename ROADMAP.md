@@ -64,7 +64,7 @@
 | F1 | `character_lock` en todo save/export | Copiar a ChatGPT free reproduce la misma persona en 3 prompts distintos |
 | F2 | Documentar “flujo emprendedor gratis” en README corto | Un novato entiende: Studio + copiar JSON a chatbot |
 | F3 | Variantes: rate-limit UX + cola simple (1 gen a la vez) | No spamear Pollinations; toast “espera 30s” |
-| F4 | Side-by-side ancla vs última gen (gratis) | Usuario juzga consistencia sin API de scoring |
+| F4 | Side-by-side ancla vs última gen (gratis) ✅ | Usuario juzga consistencia sin API de scoring |
 | F5 | Prompt packs free (chatbot): cuerpo entero / bikini / spicy / producto en mano | 4 plantillas que reusan `character_lock` ✅ |
 | F6 | Happy path 60s en dashboard | Nuevo → guardar → 1 gen → copiar JSON |
 
@@ -105,7 +105,7 @@
 | # | Tarea | Estado |
 |---|--------|--------|
 | 2.3 | Estados 429 / offline | parcial ✅ |
-| 2.4 | Side-by-side ancla | pendiente (F4) |
+| 2.4 | Side-by-side ancla | ✅ (F4) |
 | 2.5–2.6 | Script + export pack | pendiente |
 | JSON chatbot | character_lock | ✅ |
 | Image provider stub | free-first | ✅ |
@@ -120,6 +120,7 @@
 | 2026-07-19 | 1.3–1.6, body JSON, skin lock, spicy, full-body framing | Ver commits main |
 | 2026-07-20 | Filosofía cero costo; character_lock export; image-provider free-first | Replicate documentado, no implementado |
 | 2026-07-20 | **F5** Packs gratis chatbot (fullbody / bikini / spicy / product) | UI en ficha + prompt console; `buildFreeChatbotPack` |
+| 2026-07-28 | **F4** Comparador side-by-side ancla vs última variante | `updateSideBySideComparator()` en `app.js`; sin API de scoring |
 
 ---
 
