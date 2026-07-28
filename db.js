@@ -6,8 +6,10 @@ const {
   DB_PATH,
   WORKSPACE_DB_MIRROR,
   resolveDatabasePath,
-  ensureDataLayout
+  ensureDataLayout,
+  ensureDir
 } = require('./paths');
+const { runMigrations, getSchemaVersion } = require('./migrations');
 
 // Portable DB: ./data/influ.sqlite (or DATA_DIR) — migrates from legacy paths once
 ensureDataLayout();
@@ -19,6 +21,7 @@ console.log(`[db] Opened SQLite at ${ACTIVE_DB_PATH}`);
  * Mirror active DB to project-root influ.sqlite for git auto-backup compatibility.
  */
 function syncDbToWorkspace() {
+  if (process.env.SKIP_DB_MIRROR === '1') return;
   try {
     fs.copyFileSync(ACTIVE_DB_PATH, WORKSPACE_DB_MIRROR);
     console.log(`Synced database to workspace: ${WORKSPACE_DB_MIRROR}`);
@@ -84,154 +87,35 @@ function hydratePersona(row) {
   return { ...row, detailedJSON: parsed };
 }
 
-// Initialize tables
-db.exec(`
-  CREATE TABLE IF NOT EXISTS personas (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    gender TEXT,
-    age TEXT,
-    ethnicity TEXT,
-    style TEXT,
-    hair TEXT,
-    lighting TEXT,
-    camera TEXT,
-    clothing TEXT,
-    setting TEXT,
-    image TEXT,
-    imageUGC TEXT,
-    handle TEXT,
-    detailedJSON TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS products (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    benefit TEXT,
-    audience TEXT,
-    frustration TEXT,
-    image TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS campaigns (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    product_id TEXT,
-    status TEXT DEFAULT 'draft', -- draft, active, completed
-    budget REAL DEFAULT 0,
-    client_name TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(product_id) REFERENCES products(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS campaign_personas (
-    campaign_id TEXT,
-    persona_id TEXT,
-    PRIMARY KEY(campaign_id, persona_id),
-    FOREIGN KEY(campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
-    FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS scripts (
-    id TEXT PRIMARY KEY,
-    campaign_id TEXT,
-    angle TEXT,
-    hook TEXT,
-    hookCue TEXT,
-    demo TEXT,
-    demoCue TEXT,
-    turn TEXT,
-    turnCue TEXT,
-    cta TEXT,
-    ctaCue TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS prompt_gallery (
-    id TEXT PRIMARY KEY,
-    prompt TEXT NOT NULL,
-    image_path TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS generation_history (
-    id TEXT PRIMARY KEY,
-    persona_id TEXT NOT NULL,
-    prompt TEXT,
-    image_path TEXT NOT NULL,
-    generation_type TEXT,
-    metadata TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS workspaces (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    brand_niche TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS versions (
-    id TEXT PRIMARY KEY,
-    persona_id TEXT,
-    field_changed TEXT,
-    old_value TEXT,
-    new_value TEXT,
-    full_json TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS persona_variants (
-    id TEXT PRIMARY KEY,
-    persona_id TEXT NOT NULL,
-    pose TEXT,
-    clothing TEXT,
-    attitude TEXT,
-    setting TEXT,
-    image_path TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS studio_profiles (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    pin_hash TEXT NOT NULL,
-    pin_salt TEXT NOT NULL,
-    role TEXT DEFAULT 'owner',
-    active INTEGER DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_login_at DATETIME
-  );
-`);
-
-// Safe alter schema to support archived field
-try {
-  db.exec("ALTER TABLE personas ADD COLUMN archived INTEGER DEFAULT 0;");
-  console.log("Added archived column to personas schema successfully.");
-} catch (e) {
-  // Column already exists, ignore
-}
-
-// Soft tenancy: persona → studio_profiles
-try {
-  db.exec("ALTER TABLE personas ADD COLUMN profile_id TEXT;");
-  console.log("Added profile_id column to personas schema successfully.");
-} catch (e) {
-  // Column already exists, ignore
-}
+// Formal migrations (schema_migrations) — ver migrations.js
+const migrationResult = runMigrations(db);
+console.log(`[db] Schema version ${migrationResult.currentVersion}` +
+  (migrationResult.applied.length ? ` (applied: ${migrationResult.applied.join(', ')})` : ''));
 
 syncDbToWorkspace();
 
 const authCrypto = require('./auth');
 
+/** admin = sistema; owner = legacy (tratado como admin). */
+function isAdminRole(role) {
+  return role === 'admin' || role === 'owner';
+}
+
+function normalizeProfileRole(role) {
+  if (role === 'admin' || role === 'owner') return 'admin';
+  return 'member';
+}
+
+function normalizeInviteCode(code) {
+  return String(code || '')
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, '')
+    .replace(/[^A-Z0-9-]/g, '');
+}
+
 /**
- * Asegura al menos un perfil local (Admin) con el PIN de .env / 1234.
+ * Asegura al menos un perfil local (Administración) con el PIN de .env / 1234.
  * Backfill personas.profile_id huérfanas al perfil por defecto.
  */
 function ensureDefaultStudioProfile() {
@@ -250,17 +134,33 @@ function ensureDefaultStudioProfile() {
     const { salt, hash } = authCrypto.hashPin(pin);
     db.prepare(`
       INSERT INTO studio_profiles (id, name, pin_hash, pin_salt, role, active)
-      VALUES (?, ?, ?, ?, 'owner', 1)
-    `).run(id, 'Admin', hash, salt);
+      VALUES (?, ?, ?, ?, 'admin', 1)
+    `).run(id, 'Administración', hash, salt);
     defaultId = id;
-    console.log('[db] Created default studio profile «Admin»');
+    console.log('[db] Created default studio profile «Administración» (admin)');
   } else {
-    const row = db.prepare(`SELECT id FROM studio_profiles WHERE active = 1 ORDER BY created_at ASC LIMIT 1`).get();
+    const row = db.prepare(`
+      SELECT id FROM studio_profiles
+      WHERE active = 1 AND role IN ('admin', 'owner')
+      ORDER BY created_at ASC LIMIT 1
+    `).get() || db.prepare(`SELECT id FROM studio_profiles WHERE active = 1 ORDER BY created_at ASC LIMIT 1`).get();
     defaultId = row?.id || null;
+    // Promote legacy owner → admin label for clarity (role stays compatible)
+    try {
+      db.prepare(`UPDATE studio_profiles SET role = 'admin' WHERE role = 'owner'`).run();
+      db.prepare(`UPDATE studio_profiles SET name = 'Administración' WHERE name = 'Admin' AND role = 'admin'`).run();
+    } catch (_) {}
   }
 
   if (defaultId) {
     db.prepare(`UPDATE personas SET profile_id = ? WHERE profile_id IS NULL OR profile_id = ''`).run(defaultId);
+    try {
+      db.prepare(`UPDATE products SET profile_id = ? WHERE profile_id IS NULL OR profile_id = ''`).run(defaultId);
+      db.prepare(`UPDATE campaigns SET profile_id = ? WHERE profile_id IS NULL OR profile_id = ''`).run(defaultId);
+      db.prepare(`UPDATE prompt_gallery SET profile_id = ? WHERE profile_id IS NULL OR profile_id = ''`).run(defaultId);
+    } catch (e) {
+      console.warn('[db] profile backfill products/campaigns:', e.message);
+    }
   }
   return defaultId;
 }
@@ -288,8 +188,8 @@ function syncPersonasJson() {
   }
 }
 
-// Data migration helper (migrates from personas.json and products.json if DB is empty)
-function runMigrations() {
+// Seed helper: importa personas.json / products.json si la DB está vacía
+function migrateJsonSeedData() {
   const { v4: uuidv4 } = require('uuid');
 
   const checkPersonas = db.prepare('SELECT COUNT(*) as count FROM personas').get();
@@ -506,14 +406,22 @@ function runMigrations() {
   syncDbToWorkspace();
 }
 
+migrateJsonSeedData();
+
 module.exports = {
   db,
   syncDbToWorkspace,
-  runMigrations,
+  migrateJsonSeedData,
+  /** Alias: las migraciones ya corren al cargar el módulo. */
+  runMigrations() {
+    return migrationResult;
+  },
   getDbPath,
   getDataDir,
   DATA_DIR,
   DB_PATH: ACTIVE_DB_PATH,
+  isAdminRole,
+  normalizeInviteCode,
   
   // Personas CRUD
   getAllPersonas(profileId = null) {
@@ -641,8 +549,11 @@ module.exports = {
     return this.savePersona(oldData);
   },
 
-  // Products CRUD
-  getAllProducts() {
+  // Products CRUD (scoped by profile_id)
+  getAllProducts(profileId = null) {
+    if (profileId) {
+      return db.prepare('SELECT * FROM products WHERE profile_id = ? ORDER BY created_at DESC').all(profileId);
+    }
     return db.prepare('SELECT * FROM products ORDER BY created_at DESC').all();
   },
 
@@ -650,17 +561,24 @@ module.exports = {
     return db.prepare('SELECT * FROM products WHERE id = ?').get(id);
   },
 
-  getProductByName(name) {
+  getProductByName(name, profileId = null) {
+    if (profileId) {
+      return db.prepare('SELECT * FROM products WHERE LOWER(name) = LOWER(?) AND profile_id = ?').get(name, profileId);
+    }
     return db.prepare('SELECT * FROM products WHERE LOWER(name) = LOWER(?)').get(name);
   },
 
   saveProduct(p) {
     const { v4: uuidv4 } = require('uuid');
-    const existing = db.prepare('SELECT * FROM products WHERE id = ? OR LOWER(name) = LOWER(?)').get(p.id || '', p.name);
+    const profileId = p.profile_id || p.profileId || ensureDefaultStudioProfile();
+    const existing = p.id
+      ? db.prepare('SELECT * FROM products WHERE id = ?').get(p.id)
+      : db.prepare('SELECT * FROM products WHERE LOWER(name) = LOWER(?) AND profile_id = ?').get(p.name, profileId);
     if (existing) {
+      const keepProfile = existing.profile_id || profileId;
       db.prepare(`
         UPDATE products
-        SET name = ?, benefit = ?, audience = ?, frustration = ?, image = ?
+        SET name = ?, benefit = ?, audience = ?, frustration = ?, image = ?, profile_id = ?
         WHERE id = ?
       `).run(
         p.name,
@@ -668,6 +586,7 @@ module.exports = {
         p.audience,
         p.frustration,
         p.image || existing.image,
+        keepProfile,
         existing.id
       );
       syncDbToWorkspace();
@@ -675,23 +594,25 @@ module.exports = {
     } else {
       const id = p.id || uuidv4();
       db.prepare(`
-        INSERT INTO products (id, name, benefit, audience, frustration, image)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO products (id, name, benefit, audience, frustration, image, profile_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `).run(
         id,
         p.name,
         p.benefit,
         p.audience,
         p.frustration,
-        p.image || 'assets/product_serum.png'
+        p.image || 'assets/product_serum.png',
+        profileId
       );
       syncDbToWorkspace();
       return this.getProductById(id);
     }
   },
 
-  bulkImportProducts(productsArray = []) {
+  bulkImportProducts(productsArray = [], profileId = null) {
     const imported = [];
+    const pid = profileId || ensureDefaultStudioProfile();
     for (const p of productsArray) {
       if (p && (p.name || p.Title || p.title)) {
         const saved = this.saveProduct({
@@ -699,7 +620,8 @@ module.exports = {
           benefit: p.benefit || p.description || p.Description || 'Alta calidad y resultados comprobados',
           audience: p.audience || p.Target || 'Emprendedores y consumidores modernos',
           frustration: p.frustration || p.Problem || 'Productos genéricos sin garantía',
-          image: p.image || p.image_url || 'assets/product_serum.png'
+          image: p.image || p.image_url || 'assets/product_serum.png',
+          profile_id: pid
         });
         imported.push(saved);
       }
@@ -707,15 +629,17 @@ module.exports = {
     return imported;
   },
 
-  // Campaigns CRUD
-  getAllCampaigns() {
-    const campaigns = db.prepare('SELECT * FROM campaigns ORDER BY created_at DESC').all();
+  // Campaigns CRUD (scoped by profile_id)
+  getAllCampaigns(profileId = null) {
+    const campaigns = profileId
+      ? db.prepare('SELECT * FROM campaigns WHERE profile_id = ? ORDER BY created_at DESC').all(profileId)
+      : db.prepare('SELECT * FROM campaigns ORDER BY created_at DESC').all();
     return campaigns.map(c => {
       c.personas = db.prepare(`
         SELECT p.* FROM personas p
         JOIN campaign_personas cp ON p.id = cp.persona_id
         WHERE cp.campaign_id = ?
-      `).all(c.id);
+      `).all(c.id).map(hydratePersona);
       c.product = db.prepare('SELECT * FROM products WHERE id = ?').get(c.product_id);
       return c;
     });
@@ -728,7 +652,7 @@ module.exports = {
       SELECT p.* FROM personas p
       JOIN campaign_personas cp ON p.id = cp.persona_id
       WHERE cp.campaign_id = ?
-    `).all(c.id);
+    `).all(c.id).map(hydratePersona);
     c.product = db.prepare('SELECT * FROM products WHERE id = ?').get(c.product_id);
     c.scripts = db.prepare('SELECT * FROM scripts WHERE campaign_id = ?').all(c.id);
     return c;
@@ -738,11 +662,12 @@ module.exports = {
     const { v4: uuidv4 } = require('uuid');
     const existing = db.prepare('SELECT * FROM campaigns WHERE id = ?').get(c.id || '');
     const id = c.id || uuidv4();
+    const profileId = c.profile_id || c.profileId || existing?.profile_id || ensureDefaultStudioProfile();
 
     if (existing) {
       db.prepare(`
         UPDATE campaigns
-        SET name = ?, product_id = ?, status = ?, budget = ?, client_name = ?
+        SET name = ?, product_id = ?, status = ?, budget = ?, client_name = ?, profile_id = ?
         WHERE id = ?
       `).run(
         c.name,
@@ -750,19 +675,21 @@ module.exports = {
         c.status || 'draft',
         c.budget || 0,
         c.client_name,
+        profileId,
         id
       );
     } else {
       db.prepare(`
-        INSERT INTO campaigns (id, name, product_id, status, budget, client_name)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO campaigns (id, name, product_id, status, budget, client_name, profile_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `).run(
         id,
         c.name,
         c.product_id,
         c.status || 'draft',
         c.budget || 0,
-        c.client_name
+        c.client_name,
+        profileId
       );
     }
 
@@ -955,10 +882,11 @@ module.exports = {
     if (exists) throw new Error('Ya existe un perfil con ese nombre.');
     const { salt, hash } = authCrypto.hashPin(pin);
     const id = uuidv4();
+    const normalizedRole = normalizeProfileRole(role);
     db.prepare(`
       INSERT INTO studio_profiles (id, name, pin_hash, pin_salt, role, active)
       VALUES (?, ?, ?, ?, ?, 1)
-    `).run(id, cleanName, hash, salt, role === 'owner' ? 'owner' : 'member');
+    `).run(id, cleanName, hash, salt, normalizedRole);
     syncDbToWorkspace();
     return this.getStudioProfileById(id);
   },
@@ -991,9 +919,14 @@ module.exports = {
   deleteStudioProfile(id) {
     const row = this.getStudioProfileById(id);
     if (!row) throw new Error('Perfil no encontrado.');
-    const owners = db.prepare(`SELECT COUNT(*) AS c FROM studio_profiles WHERE role = 'owner' AND active = 1`).get().c;
-    if (row.role === 'owner' && owners <= 1) {
-      throw new Error('No puedes eliminar el último perfil owner.');
+    if (isAdminRole(row.role)) {
+      const admins = db.prepare(`
+        SELECT COUNT(*) AS c FROM studio_profiles
+        WHERE role IN ('admin', 'owner') AND active = 1
+      `).get().c;
+      if (admins <= 1) {
+        throw new Error('No puedes eliminar el último perfil de Administración.');
+      }
     }
     const total = db.prepare(`SELECT COUNT(*) AS c FROM studio_profiles WHERE active = 1`).get().c;
     if (total <= 1) throw new Error('Debe quedar al menos un perfil activo.');
@@ -1002,7 +935,14 @@ module.exports = {
     `).get(id);
     if (fallback) {
       db.prepare(`UPDATE personas SET profile_id = ? WHERE profile_id = ?`).run(fallback.id, id);
+      db.prepare(`UPDATE products SET profile_id = ? WHERE profile_id = ?`).run(fallback.id, id);
+      db.prepare(`UPDATE campaigns SET profile_id = ? WHERE profile_id = ?`).run(fallback.id, id);
+      db.prepare(`UPDATE prompt_gallery SET profile_id = ? WHERE profile_id = ?`).run(fallback.id, id);
     }
+    try {
+      db.prepare(`UPDATE studio_invites SET used_by_profile_id = NULL WHERE used_by_profile_id = ?`).run(id);
+      db.prepare(`UPDATE studio_invites SET invited_by = NULL WHERE invited_by = ?`).run(id);
+    } catch (_) { /* tabla ausente en DBs muy viejas */ }
     db.prepare('DELETE FROM studio_profiles WHERE id = ?').run(id);
     syncDbToWorkspace();
     return true;
@@ -1010,5 +950,204 @@ module.exports = {
 
   countPersonasForProfile(profileId) {
     return db.prepare('SELECT COUNT(*) AS c FROM personas WHERE profile_id = ?').get(profileId).c;
+  },
+
+  // ─── Invitaciones (admin → testers aislados) ───────────────────
+  generateInviteCode() {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let suffix = '';
+    const bytes = require('crypto').randomBytes(8);
+    for (let i = 0; i < 8; i++) suffix += alphabet[bytes[i] % alphabet.length];
+    return `INFLU-${suffix.slice(0, 4)}-${suffix.slice(4)}`;
+  },
+
+  listStudioInvites() {
+    return db.prepare(`
+      SELECT i.*,
+        inv.name AS invited_by_name,
+        used.name AS used_by_name
+      FROM studio_invites i
+      LEFT JOIN studio_profiles inv ON inv.id = i.invited_by
+      LEFT JOIN studio_profiles used ON used.id = i.used_by_profile_id
+      ORDER BY i.created_at DESC
+    `).all();
+  },
+
+  getStudioInviteById(id) {
+    return db.prepare('SELECT * FROM studio_invites WHERE id = ?').get(id);
+  },
+
+  getStudioInviteByCode(code) {
+    const clean = normalizeInviteCode(code);
+    if (!clean) return null;
+    return db.prepare('SELECT * FROM studio_invites WHERE UPPER(code) = ?').get(clean);
+  },
+
+  createStudioInvite({ invitedBy, note = '', emailHint = '', expiresInDays = 14, maxUses = 1 } = {}) {
+    const { v4: uuidv4 } = require('uuid');
+    if (!invitedBy) throw new Error('invitedBy es obligatorio.');
+    const inviter = this.getStudioProfileById(invitedBy);
+    if (!inviter || !isAdminRole(inviter.role)) {
+      throw new Error('Solo Administración puede crear invitaciones.');
+    }
+    const days = Math.max(1, Math.min(365, Number(expiresInDays) || 14));
+    const uses = Math.max(1, Math.min(50, Number(maxUses) || 1));
+    const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+    let code = this.generateInviteCode();
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const clash = db.prepare('SELECT id FROM studio_invites WHERE code = ?').get(code);
+      if (!clash) break;
+      code = this.generateInviteCode();
+    }
+    const id = uuidv4();
+    db.prepare(`
+      INSERT INTO studio_invites (
+        id, code, note, email_hint, invited_by, expires_at, max_uses, use_count
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+    `).run(
+      id,
+      code,
+      String(note || '').trim().slice(0, 200) || null,
+      String(emailHint || '').trim().slice(0, 120) || null,
+      invitedBy,
+      expires,
+      uses
+    );
+    syncDbToWorkspace();
+    return this.getStudioInviteById(id);
+  },
+
+  revokeStudioInvite(id, actorProfileId) {
+    const invite = this.getStudioInviteById(id);
+    if (!invite) throw new Error('Invitación no encontrada.');
+    if (invite.revoked_at) throw new Error('La invitación ya estaba revocada.');
+    const actor = this.getStudioProfileById(actorProfileId);
+    if (!actor || !isAdminRole(actor.role)) {
+      throw new Error('Solo Administración puede revocar invitaciones.');
+    }
+    db.prepare(`UPDATE studio_invites SET revoked_at = CURRENT_TIMESTAMP WHERE id = ?`).run(id);
+    syncDbToWorkspace();
+    return this.getStudioInviteById(id);
+  },
+
+  /**
+   * Canjea código → nuevo perfil member con roster vacío (creaciones no se mezclan).
+   */
+  redeemStudioInvite({ code, name, pin }) {
+    const invite = this.getStudioInviteByCode(code);
+    if (!invite) throw new Error('Código de invitación no válido.');
+    if (invite.revoked_at) throw new Error('Esta invitación fue revocada.');
+    if (invite.expires_at && new Date(invite.expires_at).getTime() < Date.now()) {
+      throw new Error('Esta invitación ha caducado.');
+    }
+    const maxUses = invite.max_uses == null ? 1 : Number(invite.max_uses);
+    const useCount = Number(invite.use_count || 0);
+    if (useCount >= maxUses) throw new Error('Esta invitación ya fue usada.');
+
+    const profile = this.createStudioProfile({ name, pin, role: 'member' });
+    db.prepare(`
+      UPDATE studio_invites
+      SET use_count = use_count + 1,
+          used_at = CURRENT_TIMESTAMP,
+          used_by_profile_id = ?
+      WHERE id = ?
+    `).run(profile.id, invite.id);
+    syncDbToWorkspace();
+    return {
+      profile,
+      invite: this.getStudioInviteById(invite.id)
+    };
+  },
+
+  getSchemaVersion() {
+    return getSchemaVersion(db);
+  },
+
+  listMigrations() {
+    return db.prepare('SELECT id, name, applied_at FROM schema_migrations ORDER BY id ASC').all();
+  },
+
+  getBackupMeta() {
+    try {
+      return db.prepare('SELECT * FROM backup_meta WHERE id = 1').get() || null;
+    } catch (_) {
+      return null;
+    }
+  },
+
+  /**
+   * Copia data/influ.sqlite (+ personas.json) a data/backups/.
+   * Esto es el backup de producto — no usa git.
+   */
+  createBackupSnapshot(label = '') {
+    const backupsDir = ensureDir(path.join(DATA_DIR, 'backups'));
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const safeLabel = String(label || 'manual').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 40);
+    const base = `influ_${stamp}_${safeLabel}`;
+    const destDb = path.join(backupsDir, `${base}.sqlite`);
+    const destJson = path.join(backupsDir, `${base}_personas.json`);
+
+    // Checkpoint WAL so the copy is consistent
+    try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch (_) {}
+    fs.copyFileSync(ACTIVE_DB_PATH, destDb);
+    const personasJson = path.join(__dirname, 'personas.json');
+    if (fs.existsSync(personasJson)) {
+      fs.copyFileSync(personasJson, destJson);
+    }
+
+    try {
+      db.prepare(`
+        UPDATE backup_meta SET last_backup_at = CURRENT_TIMESTAMP, last_backup_path = ? WHERE id = 1
+      `).run(destDb);
+    } catch (_) {}
+
+    syncDbToWorkspace();
+    return {
+      ok: true,
+      dbPath: destDb,
+      personasJsonPath: fs.existsSync(destJson) ? destJson : null,
+      schemaVersion: getSchemaVersion(db),
+      createdAt: new Date().toISOString()
+    };
+  },
+
+  listBackupSnapshots() {
+    const backupsDir = path.join(DATA_DIR, 'backups');
+    if (!fs.existsSync(backupsDir)) return [];
+    return fs.readdirSync(backupsDir)
+      .filter((f) => f.endsWith('.sqlite'))
+      .map((f) => {
+        const abs = path.join(backupsDir, f);
+        const st = fs.statSync(abs);
+        return { filename: f, path: abs, size: st.size, mtime: st.mtime.toISOString() };
+      })
+      .sort((a, b) => (a.mtime < b.mtime ? 1 : -1));
+  },
+
+  /**
+   * Restaura desde un .sqlite bajo data/backups/ (o path absoluto permitido).
+   * Cierra el handle actual no es trivial con better-sqlite3 singleton —
+   * copiamos encima tras checkpoint y el proceso debe reiniciar el proceso.
+   */
+  restoreBackupFromFile(absPath) {
+    const resolved = path.resolve(absPath);
+    const backupsDir = path.resolve(path.join(DATA_DIR, 'backups'));
+    if (!resolved.startsWith(backupsDir + path.sep) && resolved !== ACTIVE_DB_PATH) {
+      throw new Error('Solo se pueden restaurar snapshots desde data/backups/.');
+    }
+    if (!fs.existsSync(resolved)) throw new Error('Archivo de backup no encontrado.');
+
+    // Safety snapshot first
+    const safety = this.createBackupSnapshot('pre_restore');
+    try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch (_) {}
+    fs.copyFileSync(resolved, ACTIVE_DB_PATH);
+    syncDbToWorkspace();
+    return {
+      ok: true,
+      restoredFrom: resolved,
+      safetyBackup: safety.dbPath,
+      restartRequired: true,
+      message: 'Backup restaurado. Reinicia el servidor (npm start) para recargar SQLite.'
+    };
   }
 };

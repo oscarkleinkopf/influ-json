@@ -50,7 +50,7 @@
 |-------|--------|------|
 | 1 | **Núcleo free** | Prompts + `character_lock` JSON → chatbots gratis (crear o inspirar) |
 | 2 | **Usabilidad** | Happy path claro, F4/F6, menos fricción al exportar packs ✅ |
-| 3 | **Seguridad + perfiles** ← *ahora* | PIN/sesiones/headers + perfiles locales (sin OAuth) |
+| 3 | **Seguridad + perfiles** ← *cerrando* | PIN/sesiones + Administración + invitaciones aisladas |
 | 4 | Replicate / video / paid | Solo opt-in; nunca rompe free |
 
 ---
@@ -116,6 +116,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-28 | **Admin + invitaciones** | `studio_invites`, redeem → member aislado; products/campaigns por perfil |
+| 2026-07-28 | **Seguridad + perfiles locales** | Rate-limit login, headers, SESSION_SECRET, `studio_profiles`, roster por `profile_id` |
 | 2026-07-28 | **F2–F6 + export ZIP** usabilidad | Checklist 60s, SBS F4, cola UX F3, README, `/api/export/persona/:id` |
 | 2026-07-28 | **F1** Validador local `character_lock` (panel salud + toasts al copiar) | `character-lock-validator.js`; tests; `DISABLE_GIT_BACKUP` en suite |
 | 2026-07-27 | Unificar arranque + alinear `package.json` al lock; docs concepto prompts/JSON | `npm start`→`server.js`; etapa = usabilidad → seguridad |

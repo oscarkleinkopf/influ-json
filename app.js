@@ -139,7 +139,10 @@ async function loadLoginProfiles() {
     const data = await res.json();
     const profiles = data.profiles || [];
     select.innerHTML = '<option value="">Detectar por PIN…</option>' +
-      profiles.map(p => `<option value="${p.id}">${escapeLockHtml(p.name)}${p.role === 'owner' ? ' (owner)' : ''}</option>`).join('');
+      profiles.map(p => {
+        const tag = (p.role === 'admin' || p.role === 'owner') ? ' (admin)' : '';
+        return `<option value="${p.id}">${escapeLockHtml(p.name)}${tag}</option>`;
+      }).join('');
     if (data.pinIsDefault) state.pinIsDefault = true;
   } catch (e) {
     // keep default option
@@ -181,6 +184,56 @@ function setupLogin() {
       toastError('Error de conexión al autenticar.');
     }
   });
+
+  const showInviteBtn = document.getElementById('btnShowInviteRedeem');
+  const inviteForm = document.getElementById('inviteRedeemForm');
+  const backBtn = document.getElementById('btnBackToLogin');
+  showInviteBtn?.addEventListener('click', () => {
+    if (form) form.style.display = 'none';
+    if (showInviteBtn) showInviteBtn.style.display = 'none';
+    if (inviteForm) inviteForm.style.display = 'block';
+  });
+  backBtn?.addEventListener('click', () => {
+    if (inviteForm) inviteForm.style.display = 'none';
+    if (form) form.style.display = 'block';
+    if (showInviteBtn) showInviteBtn.style.display = 'inline';
+  });
+  inviteForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('inviteRedeemError');
+    if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    const code = document.getElementById('inviteCodeInput')?.value || '';
+    const name = document.getElementById('inviteNameInput')?.value || '';
+    const pin = document.getElementById('invitePinInput')?.value || '';
+    try {
+      const res = await fetch('/api/invites/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, name, pin })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        const msg = data.message || 'No se pudo activar la invitación.';
+        if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+        return toastError(msg);
+      }
+      studioPin = pin;
+      sessionStorage.setItem('studioPin', pin);
+      state.currentProfile = data.profile || null;
+      state.pinIsDefault = false;
+      updateActiveProfileChip();
+      hideLoginScreen();
+      await fetchData();
+      toastSuccess(data.message || 'Espacio creado. Roster vacío y aislado.');
+    } catch (err) {
+      toastError('Error de conexión al canjear la invitación.');
+    }
+  });
+}
+
+function isCurrentUserAdmin() {
+  const role = state.currentProfile?.role;
+  return role === 'admin' || role === 'owner';
 }
 
 function updateActiveProfileChip() {
@@ -226,17 +279,24 @@ async function refreshProfilesSettingsList() {
     const data = await res.json();
     if (!data.success) throw new Error(data.message || 'Error');
     const currentId = data.currentProfileId;
+    const isAdmin = !!data.isAdmin || isCurrentUserAdmin();
+    const createForm = document.getElementById('createProfileForm');
+    if (createForm) createForm.style.display = isAdmin ? 'grid' : 'none';
+    const invitesSection = document.getElementById('invitesSettingsSection');
+    if (invitesSection) invitesSection.style.display = isAdmin ? 'block' : 'none';
+    if (isAdmin) refreshInvitesSettingsList();
+
     list.innerHTML = (data.profiles || []).map(p => `
       <div class="profile-row ${p.id === currentId ? 'is-current' : ''}">
         <div>
           <strong>${escapeLockHtml(p.name)}</strong>
-          <span class="profile-meta">${escapeLockHtml(p.role)} · ${p.personaCount || 0} influencers</span>
+          <span class="profile-meta">${escapeLockHtml(p.role === 'owner' ? 'admin' : p.role)} · ${p.personaCount || 0} influencers</span>
         </div>
         <div class="profile-row-actions">
           ${p.id === currentId ? '<span class="profile-current-tag">Activo</span>' : ''}
           <button type="button" class="btn btn-secondary btn-sm" data-rename-profile="${p.id}" data-name="${escapeLockHtml(p.name)}">Renombrar</button>
           <button type="button" class="btn btn-secondary btn-sm" data-repin-profile="${p.id}">Cambiar PIN</button>
-          ${p.id !== currentId ? `<button type="button" class="btn btn-secondary btn-sm" data-delete-profile="${p.id}" style="color:var(--danger);">Eliminar</button>` : ''}
+          ${(isAdmin && p.id !== currentId) ? `<button type="button" class="btn btn-secondary btn-sm" data-delete-profile="${p.id}" style="color:var(--danger);">Eliminar</button>` : ''}
         </div>
       </div>
     `).join('') || '<p style="font-size:12px;color:var(--text-muted);">Sin perfiles.</p>';
@@ -270,7 +330,6 @@ async function refreshProfilesSettingsList() {
         const d = await res2.json();
         if (!d.success) return toastError(d.message || 'No se pudo cambiar el PIN');
         toastSuccess('PIN actualizado');
-        // Si cambió el PIN del Admin y STUDIO_PIN sigue en 1234, el banner puede seguir — ok
       });
     });
     list.querySelectorAll('[data-delete-profile]').forEach(btn => {
@@ -285,6 +344,64 @@ async function refreshProfilesSettingsList() {
     });
   } catch (err) {
     list.innerHTML = `<p style="font-size:12px;color:var(--danger);">${escapeLockHtml(err.message || 'Error al cargar perfiles')}</p>`;
+  }
+}
+
+async function refreshInvitesSettingsList() {
+  const list = document.getElementById('invitesList');
+  if (!list) return;
+  try {
+    const res = await authFetch('/api/invites');
+    if (res.status === 403) {
+      list.innerHTML = '';
+      return;
+    }
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Error');
+    const statusLabel = {
+      active: 'activa',
+      used: 'usada',
+      expired: 'caducada',
+      revoked: 'revocada'
+    };
+    list.innerHTML = (data.invites || []).map(inv => `
+      <div class="profile-row">
+        <div>
+          <strong><code>${escapeLockHtml(inv.code)}</code></strong>
+          <span class="profile-meta">${statusLabel[inv.status] || inv.status}${inv.note ? ' · ' + escapeLockHtml(inv.note) : ''}${inv.usedByName ? ' · ' + escapeLockHtml(inv.usedByName) : ''}</span>
+        </div>
+        <div class="profile-row-actions">
+          ${inv.status === 'active' ? `
+            <button type="button" class="btn btn-secondary btn-sm" data-copy-invite="${escapeLockHtml(inv.code)}">Copiar</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-revoke-invite="${inv.id}" style="color:var(--danger);">Revocar</button>
+          ` : `<span class="profile-meta">${inv.expiresAt ? 'caduca ' + escapeLockHtml(String(inv.expiresAt).slice(0, 10)) : ''}</span>`}
+        </div>
+      </div>
+    `).join('') || '<p style="font-size:12px;color:var(--text-muted);">Aún no hay invitaciones.</p>';
+
+    list.querySelectorAll('[data-copy-invite]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const code = btn.getAttribute('data-copy-invite');
+        try {
+          await navigator.clipboard.writeText(code);
+          toastSuccess('Código copiado');
+        } catch (_) {
+          toastInfo(code);
+        }
+      });
+    });
+    list.querySelectorAll('[data-revoke-invite]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('¿Revocar esta invitación?')) return;
+        const res2 = await authFetch(`/api/invites/${btn.getAttribute('data-revoke-invite')}/revoke`, { method: 'POST' });
+        const d = await res2.json();
+        if (!d.success) return toastError(d.message || 'No se pudo revocar');
+        toastSuccess('Invitación revocada');
+        refreshInvitesSettingsList();
+      });
+    });
+  } catch (err) {
+    list.innerHTML = `<p style="font-size:12px;color:var(--danger);">${escapeLockHtml(err.message || 'Error al cargar invitaciones')}</p>`;
   }
 }
 
@@ -345,6 +462,44 @@ function setupSettings() {
 
   document.getElementById('btnLogoutSession')?.addEventListener('click', logoutSession);
   setupPinDefaultBanner();
+
+  const createInviteForm = document.getElementById('createInviteForm');
+  if (createInviteForm) {
+    createInviteForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const note = document.getElementById('inviteNoteInput')?.value || '';
+      const expiresInDays = Number(document.getElementById('inviteDaysInput')?.value || 14);
+      try {
+        const res = await authFetch('/api/invites', {
+          method: 'POST',
+          body: JSON.stringify({ note, expiresInDays, maxUses: 1 })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Error');
+        document.getElementById('inviteNoteInput').value = '';
+        const banner = document.getElementById('lastInviteCodeBanner');
+        const codeEl = document.getElementById('lastInviteCodeValue');
+        if (banner && codeEl) {
+          codeEl.textContent = data.invite.code;
+          banner.style.display = 'block';
+        }
+        toastSuccess(`Código ${data.invite.code} listo para compartir`);
+        refreshInvitesSettingsList();
+      } catch (err) {
+        toastError(err.message || 'No se pudo crear la invitación');
+      }
+    });
+  }
+  document.getElementById('btnCopyLastInvite')?.addEventListener('click', async () => {
+    const code = document.getElementById('lastInviteCodeValue')?.textContent || '';
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      toastSuccess('Código copiado');
+    } catch (_) {
+      toastInfo(code);
+    }
+  });
 
   if (form) {
     form.addEventListener('submit', async (e) => {

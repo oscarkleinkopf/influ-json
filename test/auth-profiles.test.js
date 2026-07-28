@@ -50,7 +50,8 @@ test('db: default Admin profile exists and personas are scoped', () => {
   assert.ok(def);
   const profiles = db.listStudioProfilesPublic();
   assert.ok(profiles.length >= 1);
-  assert.ok(profiles.some(p => p.name === 'Admin'));
+  assert.ok(profiles.some(p => p.name === 'Administración' || p.name === 'Admin'));
+  assert.ok(profiles.some(p => p.role === 'admin' || p.role === 'owner'));
 
   const other = db.createStudioProfile({ name: `QA_${Date.now()}`, pin: '5678', role: 'member' });
   const a = db.savePersona({
@@ -76,6 +77,119 @@ test('db: default Admin profile exists and personas are scoped', () => {
   db.deletePersona(a.id);
   db.deletePersona(b.id);
   db.deleteStudioProfile(other.id);
+});
+
+test('db+API: admin invites create isolated member profiles', async () => {
+  const adminId = db.ensureDefaultStudioProfile();
+  const invite = db.createStudioInvite({
+    invitedBy: adminId,
+    note: 'qa-tester',
+    expiresInDays: 7,
+    maxUses: 1
+  });
+  assert.ok(invite.code.startsWith('INFLU-'));
+
+  const redeemed = db.redeemStudioInvite({
+    code: invite.code,
+    name: `InviteUser_${Date.now()}`,
+    pin: '2468'
+  });
+  assert.equal(redeemed.profile.role, 'member');
+  assert.equal(db.getAllPersonas(redeemed.profile.id).length, 0);
+
+  const adminPersona = db.savePersona({
+    name: `AdminOnly_${Date.now()}`,
+    gender: 'Female',
+    forceCreate: true,
+    profile_id: adminId
+  });
+  assert.equal(
+    db.getAllPersonas(redeemed.profile.id).some(p => p.id === adminPersona.id),
+    false
+  );
+
+  // Second redeem should fail (maxUses=1)
+  assert.throws(
+    () => db.redeemStudioInvite({ code: invite.code, name: `Dup_${Date.now()}`, pin: '9999' }),
+    /ya fue usada|no válido|revocada/i
+  );
+
+  db.deletePersona(adminPersona.id);
+  db.deleteStudioProfile(redeemed.profile.id);
+
+  await withServer(async (base) => {
+    const loginRes = await fetch(`${base}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: process.env.STUDIO_PIN || '1234' })
+    });
+    const cookie = loginRes.headers.getSetCookie?.()?.[0] || loginRes.headers.get('set-cookie');
+    const authHdr = cookie
+      ? { Cookie: cookie.split(';')[0], 'Content-Type': 'application/json' }
+      : { ...authHeaders({ 'Content-Type': 'application/json' }) };
+
+    const createRes = await fetch(`${base}/api/invites`, {
+      method: 'POST',
+      headers: authHdr,
+      body: JSON.stringify({ note: 'api-invite', expiresInDays: 3 })
+    });
+    const created = await createRes.json();
+    assert.equal(created.success, true, created.message || 'create invite');
+    assert.ok(created.invite?.code);
+
+    const redeemRes = await fetch(`${base}/api/invites/redeem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: created.invite.code,
+        name: `ApiInvite_${Date.now()}`,
+        pin: '1357'
+      })
+    });
+    const redeemedApi = await redeemRes.json();
+    assert.equal(redeemedApi.success, true, redeemedApi.message || 'redeem');
+    assert.equal(redeemedApi.profile.role, 'member');
+
+    // Member cannot create invites
+    const memberCookie = redeemRes.headers.getSetCookie?.()?.[0] || redeemRes.headers.get('set-cookie');
+    const forbid = await fetch(`${base}/api/invites`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(memberCookie ? { Cookie: memberCookie.split(';')[0] } : {})
+      },
+      body: JSON.stringify({ note: 'should-fail' })
+    });
+    assert.equal(forbid.status, 403);
+
+    // Products isolation via API
+    const memberProd = await fetch(`${base}/api/products`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(memberCookie ? { Cookie: memberCookie.split(';')[0] } : {})
+      },
+      body: JSON.stringify({
+        name: `MemberProd_${Date.now()}`,
+        benefit: 'x',
+        audience: 'y',
+        frustration: 'z'
+      })
+    });
+    const mp = await memberProd.json();
+    assert.equal(mp.success, true);
+
+    const adminProducts = await fetch(`${base}/api/products`, {
+      headers: authHdr
+    });
+    const adminList = await adminProducts.json();
+    const adminIds = (Array.isArray(adminList) ? adminList : adminList.products || []).map(p => p.id);
+    assert.equal(adminIds.includes(mp.product.id), false);
+
+    if (redeemedApi.profile?.id) {
+      try { db.deleteStudioProfile(redeemedApi.profile.id); } catch (_) {}
+    }
+  });
 });
 
 test('API: login + profiles + status pinIsDefault', async () => {

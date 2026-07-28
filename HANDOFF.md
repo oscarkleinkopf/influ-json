@@ -25,10 +25,10 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa de producto** | **Seguridad + perfiles locales** (en curso / PR). Usabilidad F1–F6 ya cerrada. |
-| **Fase ROADMAP** | Hardening PIN/sesión/headers + `studio_profiles` con roster aislado |
-| **Prioridad inmediata** | Merge PR seguridad; opcional: aislar también products/campaigns por perfil |
-| **En pausa** | OAuth cloud, billing, multi-tenant SaaS, Replicate obligatorio |
+| **Etapa de producto** | **Admin + invitaciones + aislamiento** (este PR). Seguridad/perfiles base ya hecha. |
+| **Fase ROADMAP** | Soft multi-user local: Administración invita testers; creaciones no se mezclan |
+| **Prioridad inmediata** | Merge PR admin-invites; opcional backup UI / CSP; luego mercado/seguridad dura |
+| **En pausa** | OAuth cloud, billing, email SMTP obligatorio, Replicate obligatorio |
 | **Servidor** | `npm start` → `server.js`. `start:minimal` = demo only |
 | **Última plataforma** | Cursor |
 | **Última actualización** | 2026-07-28 |
@@ -37,17 +37,19 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ## Sesión reciente (Cursor, 2026-07-28)
 
-**Pedido:** seguridad + perfiles de usuario.
+**Pedido:** perfil de administración que envíe invitaciones; que no se mezclen las creaciones.
 
 **Hecho:**
-- Rate-limit login (5 fails → lock 60s), `SESSION_SECRET`, cookies `httpOnly`/`sameSite`, security headers.
-- Banner si PIN default `1234`; `/api/status` expone `pinIsDefault`.
-- Tabla `studio_profiles` (PIN hasheado scrypt); perfil Admin bootstrap desde `STUDIO_PIN`.
-- Soft tenancy: `personas.profile_id`; `/api/data` filtra por perfil de sesión.
-- UI: selector de perfil en login, chip activo, CRUD en Ajustes, logout.
-- Tests: `test/auth-profiles.test.js` — suite **27/27**.
+- Perfil por defecto renombrado a **Administración** (`role=admin`; `owner` legacy → admin).
+- Tabla `studio_invites` (migración 6): códigos `INFLU-XXXX-XXXX`, caducidad, revoke, max_uses.
+- API admin: `GET/POST /api/invites`, `POST /api/invites/:id/revoke` (`requireAdmin`).
+- Canje público: `POST /api/invites/redeem` → perfil `member` con roster vacío + login.
+- Aislamiento: personas **y** products/campaigns filtrados por `profile_id` en `/api/data`, `/api/products`, `/api/campaigns`.
+- UI: Ajustes → Invitaciones (solo admin); login → «Tengo una invitación».
+- Migraciones formales (`migrations.js`) + `db-repository.js` thin adapter.
+- Tests invitaciones + aislamiento en `test/auth-profiles.test.js`.
 
-**No tocado:** OAuth, billing, aislamiento products/campaigns, Replicate.
+**No tocado:** SMTP/email real, OAuth, Replicate.
 
 ---
 
@@ -55,8 +57,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 1. `git pull` → este archivo → `ROADMAP.md`.
 2. `npm start` (nunca `start:minimal` para trabajo real).
-3. Pedir al usuario que cambie `STUDIO_PIN` / PIN del perfil Admin.
-4. Opcional: `profile_id` en products/campaigns; CSP más estricta.
+3. Pedir al usuario que cambie `STUDIO_PIN` / PIN de Administración.
+4. Opcional: UI backup/restore snapshots; CSP más estricta.
 5. Tests: `npm test` setea `DISABLE_GIT_BACKUP=1`.
 
 ---
@@ -65,7 +67,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-28 | Cursor | Seguridad mínima + perfiles locales (`studio_profiles`) | *(este PR)* |
+| 2026-07-28 | Cursor | Admin + invitaciones + aislamiento products/campaigns | *(este PR)* |
+| 2026-07-28 | Cursor | Seguridad mínima + perfiles locales (`studio_profiles`) | PR #6 |
 | 2026-07-28 | Cursor | Usabilidad F2–F6 + export ZIP persona | PR #5 |
 | 2026-07-28 | Cursor | F1 validador `character_lock` | PR #4 |
 
@@ -78,10 +81,3 @@ Al terminar cualquier tarea con cambios:
 1. Fila en **Log de cambios**.
 2. Actualizar **Foco actual** si cambió.
 3. Rellenar **Sesión reciente**.
-4. Línea en log de `ROADMAP.md` si aplica.
-5. `git commit` + `git push` (rama feature).
-
-## Qué no commitear
-
-- `.env`
-- `data/` (DB activa; mirror `influ.sqlite` en raíz puede ir si se usa backup por git)
