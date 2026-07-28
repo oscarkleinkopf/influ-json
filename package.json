@@ -1,24 +1,27 @@
 {
   "name": "influ-json",
   "version": "1.0.0",
-  "description": "AI UGC Production Studio",
-  "main": "index.js",
+  "description": "Estudio local de UGC con influencers virtuales — prompts + character_lock JSON para chatbots gratis",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "start:minimal": "node server-minimal.js",
     "dev": "node --watch server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/*.test.js"
   },
-  "keywords": [],
+  "keywords": ["ugc", "influencer", "character-lock", "pollinations"],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
-    "express": "^5.1.0",
-    "multer": "^1.4.5-lts.1",
     "@google/generative-ai": "^0.24.1",
-    "dotenv": "^16.4.5",
-    "uuid": "^10.0.0",
-    "sharp": "^0.34.1"
+    "archiver": "^8.0.0",
+    "better-sqlite3": "^12.11.1",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "express-session": "^1.19.0",
+    "multer": "^2.2.0",
+    "sharp": "^0.35.3",
+    "uuid": "^14.0.1"
   }
 }

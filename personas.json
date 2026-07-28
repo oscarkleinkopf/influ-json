@@ -1,5 +1,84 @@
 [
   {
+    "id": "ddd65528-9177-4570-8cb5-3b69a3eeb215",
+    "name": "SpeedTestPersona",
+    "gender": "Female",
+    "age": "24 años",
+    "ethnicity": "Latina",
+    "style": "Casual",
+    "hair": "largo, ondulado, color Castaño",
+    "lighting": null,
+    "camera": null,
+    "clothing": "Top",
+    "setting": "Estudio",
+    "image": "assets/references/ref_1785201342493_img1.jpg",
+    "imageUGC": "assets/references/ref_1785201342493_img1.jpg",
+    "handle": "@speedtestpersona_ugc",
+    "detailedJSON": {
+      "identity": {
+        "name": "Test Persona",
+        "gender": "Female",
+        "apparent_age": "24 años",
+        "ethnicity_appearance": "Latina"
+      },
+      "body": {
+        "body_type": "Atlético"
+      },
+      "facial_features": {
+        "face_shape": "ovalada",
+        "skin_tone": "piel clara"
+      },
+      "hair": {
+        "length": "largo",
+        "texture": "ondulado",
+        "color": "Castaño"
+      },
+      "aesthetic": {
+        "overall_vibe": "Casual"
+      },
+      "photography": {
+        "background_setting": "Estudio"
+      },
+      "clothing": {
+        "type": "Top"
+      }
+    },
+    "created_at": "2026-07-28 01:15:42",
+    "archived": 0,
+    "variants": [
+      {
+        "id": "c9eb4842-fa31-442a-b807-e23f41103a8e",
+        "persona_id": "ddd65528-9177-4570-8cb5-3b69a3eeb215",
+        "pose": "Retrato de frente mirando directamente a cámara",
+        "clothing": "Top",
+        "attitude": "Expresión neutra y natural",
+        "setting": "Estudio de fotografía minimalista",
+        "image_path": "assets/references/mock_variant.jpg",
+        "created_at": "2026-07-28 01:15:42"
+      },
+      {
+        "id": "c0944c7d-8b28-4a4d-b384-1e0cf8d54e9b",
+        "persona_id": "ddd65528-9177-4570-8cb5-3b69a3eeb215",
+        "pose": "Retrato en ángulo de 3/4 a 45 grados de perfil",
+        "clothing": "Top",
+        "attitude": "Mirada en 3/4 suave",
+        "setting": "Estudio de fotografía minimalista",
+        "image_path": "assets/references/mock_variant.jpg",
+        "created_at": "2026-07-28 01:15:42"
+      },
+      {
+        "id": "2eb01e4f-88a2-4f3e-963f-175a937d0119",
+        "persona_id": "ddd65528-9177-4570-8cb5-3b69a3eeb215",
+        "pose": "Plano medio con sonrisa abierta y guiño de ojo espontáneo",
+        "clothing": "Top",
+        "attitude": "Alegre, divertida, expresiva",
+        "setting": "Ambiente de luz natural",
+        "image_path": "assets/references/mock_variant.jpg",
+        "created_at": "2026-07-28 01:15:42"
+      }
+    ]
+  },
+  {
     "id": "ce965967-f3a1-48a5-b3d1-d6ba17f37f52",
     "name": "Daniela 3.3",
     "gender": "Female",
@@ -1962,15 +2041,4 @@
         "posture": "Postura erguida y relajada",
         "fitness_level": "Tono natural ligero, sin musculatura exagerada",
         "shoulders": "Hombros suaves y naturales",
-        "waist_hip_balance": "Cintura y caderas en proporción armónica",
-        "limbs": "Brazos y piernas proporcionados al torso",
-        "hands": "Manos naturales con dedos finos",
-        "skin_continuity": "Mismo tono de piel en rostro, cuello, hombros y brazos",
-        "visible_framing": "Cuerpo visible en plano medio / medio cuerpo, no solo close-up facial"
-      }
-    },
-    "created_at": "2026-07-13 04:49:57",
-    "archived": 0,
-    "variants": []
-  }
-]
+        "waist_hip_balance": "

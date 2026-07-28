@@ -44,9 +44,20 @@
 
 ---
 
-## Fase actual — Maximizar free (Pollinations + JSON)
+## Etapas de producto (orden del usuario)
 
-**Meta:** sacar el máximo del path cero costo antes de tocar Replicate.
+| Orden | Etapa | Meta |
+|-------|--------|------|
+| 1 | **Núcleo free** | Prompts + `character_lock` JSON → chatbots gratis (crear o inspirar) |
+| 2 | **Usabilidad** ← *ahora* | Happy path claro, F4/F6, menos fricción al exportar packs |
+| 3 | **Seguridad** | Endurecer PIN/sesiones/superficie antes de mercado |
+| 4 | Replicate / video / paid | Solo opt-in; nunca rompe free |
+
+---
+
+## Fase actual — Maximizar free + usabilidad (Pollinations + JSON)
+
+**Meta:** sacar el máximo del path cero costo y pulir UX antes de seguridad de lanzamiento / Replicate.
 
 | # | Entregable | Criterio de hecho |
 |---|------------|-------------------|
@@ -105,6 +116,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-27 | Unificar arranque + alinear `package.json` al lock; docs concepto prompts/JSON | `npm start`→`server.js`; etapa = usabilidad → seguridad |
 | 2026-07-19 | 1.3–1.6, body JSON, skin lock, spicy, full-body framing | Ver commits main |
 | 2026-07-20 | Filosofía cero costo; character_lock export; image-provider free-first | Replicate documentado, no implementado |
 | 2026-07-20 | **F5** Packs gratis chatbot (fullbody / bikini / spicy / product) | UI en ficha + prompt console; `buildFreeChatbotPack` |

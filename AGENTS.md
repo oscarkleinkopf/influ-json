@@ -2,7 +2,8 @@
 
 ## Qué es este proyecto
 
-**influ-JSON**: estudio local de producción UGC con influencers virtuales (roster en SQLite, Persona Engine, scripts, UGC Studio, licensing).  
+**influ-JSON**: estudio local para generar **prompts + JSON** de influencers virtuales consistentes (desde cero o inspirados), anclar identidad con **`character_lock`**, y usar ese JSON en **chatbots gratuitos** para seguir desarrollando el personaje. UGC Studio, scripts y licensing rodean ese núcleo.
+
 Stack: Node/Express, better-sqlite3, front monolítico (`index.html` + `app.js` + `index.css`).
 
 ## Filosofía de producto (crítica)
@@ -15,26 +16,26 @@ Stack: Node/Express, better-sqlite3, front monolítico (`index.html` + `app.js` 
 | JSON `character_lock` → chatbots gratis | ComfyUI self-host |
 | Studio local + SQLite | Cualquier proveedor de pago |
 
-- **No** hagas que el path básico requiera `REPLICATE_API_TOKEN` o tarjeta.  
-- Si implementas face-lock de pago: flag opt-in + fallback a Pollinations.  
-- Documento maestro: **[ROADMAP.md](./ROADMAP.md)**.
+- **No** hagas que el path básico requiera `REPLICATE_API_TOKEN` o tarjeta.
+- Si implementas face-lock de pago: flag opt-in + fallback a Pollinations.
+- Documento maestro: **[ROADMAP.md](./ROADMAP.md)**. Continuidad: **[HANDOFF.md](./HANDOFF.md)**.
 
-## Prioridad de trabajo
+## Prioridad de trabajo (orden del usuario)
 
-1. **Mecánica free** (Pollinations, skin/body lock, variantes, full-body)  
-2. **Integridad vía JSON** (export chatbot, `character_lock`)  
-3. **Usabilidad**  
-4. **Seguridad mínima**  
-5. **Replicate opcional** (solo cuando free esté sólido)
+1. **Prompts + JSON consistentes** (crear / inspirar → `character_lock` → chatbot free)
+2. **Usabilidad** (esta etapa — happy path claro, menos fricción)
+3. **Seguridad mínima** (siguiente etapa — endurecer antes de mercado)
+4. Replicate / video / features de pago (solo cuando free + UX estén sólidos)
 
 ## Convenciones técnicas
 
-- Servidor: `npm start` → `node server.js` (puerto 3000). En PowerShell: `npm.cmd` si hace falta.  
-- Auth: `STUDIO_PIN` en `.env`. No commitear `.env`.  
-- DB: `data/influ.sqlite` o `DATA_DIR` — ver `paths.js`.  
-- Imagen: `image-provider.js` (default `pollinations`).  
-- Tras mutar personas: refrescar `state.personas` + grids.  
-- UI en español; errores honestos (429, offline).  
+- Servidor: **`npm start` → `node server.js`** (puerto 3000). `npm run start:minimal` es demo offline — **no** es producción.
+- Auth: `STUDIO_PIN` en `.env`. No commitear `.env`.
+- DB: `data/influ.sqlite` o `DATA_DIR` — ver `paths.js`.
+- Imagen: `image-provider.js` (default `pollinations`).
+- Tras mutar personas: refrescar `state.personas` + grids.
+- UI en español; errores honestos (429, offline).
+- Tests: `npm test` → `node --test test/*.test.js`.
 
 ## Happy path a proteger
 
@@ -48,37 +49,31 @@ Regresión P0: “guardé y no aparece”, o free path roto por una feature de p
 
 | Archivo | Rol |
 |---------|-----|
-| `server.js` | API Express |
+| `server.js` | API Express (producción) |
+| `server-minimal.js` | Solo demo offline (`npm run start:minimal`) |
 | `db.js` | SQLite |
 | `app.js` | Front + `character_lock` + export chatbot |
 | `ai-service.js` | Pollinations / Gemini opcional |
 | `image-provider.js` | Free vs paid face-lock (paid = stub futuro) |
+| `HANDOFF.md` | Foco entre plataformas |
 | `ROADMAP.md` | Plan y filosofía |
 
 ## Sync Cursor ↔ Antigravity (GitHub)
 
-El usuario alterna entre **Antigravity** (principal) y **Cursor**. Cada cambio debe quedar respaldado en GitHub para retomar en la otra plataforma.
+El usuario alterna entre **Antigravity** (principal) y **Cursor**. Cada cambio debe quedar respaldado en GitHub.
 
 **Remoto:** `https://github.com/oscarkleinkopf/influ-json` · rama `main`.
 
-### Al retomar (cualquier plataforma)
+### Al retomar
 
 1. `git pull origin main`
-2. Leer **[HANDOFF.md](./HANDOFF.md)** — foco actual, sesión reciente, próximos pasos
-3. Leer **[ROADMAP.md](./ROADMAP.md)** — fase free y criterios de hecho
-4. No implementar Replicate a menos que el usuario lo pida y free esté estable
+2. Leer **[HANDOFF.md](./HANDOFF.md)**
+3. Leer **[ROADMAP.md](./ROADMAP.md)**
+4. No implementar Replicate a menos que el usuario lo pida
 
-### Al terminar una tarea con cambios
+### Al terminar una tarea
 
-1. Actualizar **HANDOFF.md** (log + foco + sesión reciente)
-2. Si aplica, una línea en el log de **ROADMAP.md**
+1. Actualizar **HANDOFF.md** (log + foco + sesión)
+2. Si aplica, línea en log de **ROADMAP.md**
 3. `git add` → `git commit` → `git push origin main`
-4. Commit claro (`feat:` / `fix:` / `docs:` + por qué). **No** commitear `.env`
-
-Tokens (`GEMINI_API_KEY`, `REPLICATE_API_TOKEN`, etc.) viven en `.env` **local** de cada máquina; Antigravity usa los suyos tras el pull.
-
-## Al retomar (resumen)
-
-1. `git pull` → `HANDOFF.md` → `ROADMAP.md`  
-2. Entregables pequeños y verificables.  
-3. Push al cerrar cada tarea (respaldar en GitHub).  
+4. Commit claro (`feat:` / `fix:` / `docs:`). **No** commitear `.env`

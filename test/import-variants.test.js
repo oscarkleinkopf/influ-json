@@ -15,6 +15,12 @@ const app = require('../server');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Auth header when STUDIO_PIN is set (local .env). */
+function authHeaders(extra = {}) {
+  const pin = (process.env.STUDIO_PIN || '1234').trim();
+  return pin ? { ...extra, Authorization: `Bearer ${pin}` } : extra;
+}
+
 test('Multi-Image Import & Background Variants Test Suite', async (t) => {
   let server;
   let baseUrl;
@@ -66,6 +72,7 @@ test('Multi-Image Import & Background Variants Test Suite', async (t) => {
     const start = Date.now();
     const res = await fetch(`${baseUrl}/api/import-influencer`, {
       method: 'POST',
+      headers: authHeaders(),
       body: formData
     });
     const elapsed = Date.now() - start;
@@ -87,6 +94,7 @@ test('Multi-Image Import & Background Variants Test Suite', async (t) => {
 
     const res = await fetch(`${baseUrl}/api/import-influencer`, {
       method: 'POST',
+      headers: authHeaders(),
       body: formData
     });
     const data = await res.json();
@@ -104,6 +112,7 @@ test('Multi-Image Import & Background Variants Test Suite', async (t) => {
 
     const res = await fetch(`${baseUrl}/api/import-influencer`, {
       method: 'POST',
+      headers: authHeaders(),
       body: formData
     });
     const data = await res.json();
