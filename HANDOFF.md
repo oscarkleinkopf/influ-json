@@ -26,14 +26,20 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | Campo | Valor |
 |-------|--------|
 | **Etapa de producto** | **Usabilidad** (perfeccionar flujo crear → JSON → chatbot). Luego **seguridad** para mercado. |
-| **Fase ROADMAP** | Free path sólido; pendientes UX: F4 side-by-side, F6 happy path 60s |
+| **Fase ROADMAP** | Free path sólido; **F4 side-by-side ✅**; pendiente UX: F6 happy path 60s |
 | **Prioridad inmediata** | UX del loop prompts/JSON/chatbot; no video full ni Replicate obligatorio |
 | **En pausa** | Hardening de seguridad para lanzamiento; multi-tenant; billing |
 | **Servidor** | `npm start` → `server.js` (completo). `start:minimal` = demo only |
 | **Última plataforma** | Cursor |
-| **Última actualización** | 2026-07-27 |
+| **Última actualización** | 2026-07-28 |
 
 ---
+
+## Sesión reciente (Cursor, 2026-07-28)
+
+**Hecho:** F4 completado. La UI del comparador side-by-side ya existía en `index.html` (`#sideBySideComparator`) pero **ningún JS la mostraba**. Se cableó `updateSideBySideComparator()` en `app.js`: al cargar/generar/borrar variantes o cambiar el retrato principal, muestra la **Foto Ancla Oficial** vs la **Última Variante Generada** (la más reciente por `created_at`). Cero costo: el usuario juzga consistencia del `character_lock` sin API de scoring. Se oculta si no hay variantes.
+
+**Verificado:** `npm test` 8/8; prueba manual con "Daniela 3.2" (14 variantes) mostrando ambas imágenes sin romperse.
 
 ## Sesión reciente (Cursor, 2026-07-27)
 
@@ -67,6 +73,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-28 | Cursor | **F4**: cablear comparador side-by-side ancla vs última variante (`updateSideBySideComparator`) | *(este commit)* |
 | 2026-07-27 | Cursor | Alinear deps + documentar concepto (prompts/JSON/chatbot) y etapa usabilidad→seguridad | *(este commit)* |
 | 2026-07-27 | Antigravity | `npm start`→`server.js` + modal Ajustes + 3 skills + SKILLS_MANUAL | `714ab5b` |
 | 2026-07-27 | Cursor | HANDOFF + workflow sync GitHub | `b70f6d0` / `4b2abcc` |
