@@ -7,7 +7,7 @@
     "start": "node server.js",
     "start:minimal": "node server-minimal.js",
     "dev": "node --watch server.js",
-    "test": "node --test test/*.test.js"
+    "test": "DISABLE_GIT_BACKUP=1 node --test test/*.test.js"
   },
   "keywords": ["ugc", "influencer", "character-lock", "pollinations"],
   "author": "",

@@ -61,7 +61,7 @@
 
 | # | Entregable | Criterio de hecho |
 |---|------------|-------------------|
-| F1 | `character_lock` en todo save/export | Copiar a ChatGPT free reproduce la misma persona en 3 prompts distintos |
+| F1 | `character_lock` en todo save/export + **validador local de salud** | Copiar a ChatGPT free reproduce la misma persona en 3 prompts distintos; panel muestra score/avisos antes de copiar ✅ |
 | F2 | Documentar “flujo emprendedor gratis” en README corto | Un novato entiende: Studio + copiar JSON a chatbot |
 | F3 | Variantes: rate-limit UX + cola simple (1 gen a la vez) | No spamear Pollinations; toast “espera 30s” |
 | F4 | Side-by-side ancla vs última gen (gratis) | Usuario juzga consistencia sin API de scoring |
@@ -116,6 +116,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-28 | **F1** Validador local `character_lock` (panel salud + toasts al copiar) | `character-lock-validator.js`; tests; `DISABLE_GIT_BACKUP` en suite |
 | 2026-07-27 | Unificar arranque + alinear `package.json` al lock; docs concepto prompts/JSON | `npm start`→`server.js`; etapa = usabilidad → seguridad |
 | 2026-07-19 | 1.3–1.6, body JSON, skin lock, spicy, full-body framing | Ver commits main |
 | 2026-07-20 | Filosofía cero costo; character_lock export; image-provider free-first | Replicate documentado, no implementado |

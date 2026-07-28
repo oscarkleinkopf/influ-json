@@ -197,10 +197,11 @@
     }
 
     // ── Score y grado ──────────────────────────────────────────────────
+    // Verde solo si no hay nada accionable: cualquier warning ya baja a «ok».
     const score = Math.max(0, 100 - errors.length * 25 - warnings.length * 8 - infos.length * 3);
     let grade = 'solid';
     if (errors.length > 0 || score < 60) grade = 'weak';
-    else if (score < 85) grade = 'ok';
+    else if (warnings.length > 0 || score < 85) grade = 'ok';
     const gradeLabel = grade === 'solid' ? 'Sólido' : grade === 'ok' ? 'Aceptable' : 'Débil';
 
     const total = errors.length + warnings.length + infos.length;

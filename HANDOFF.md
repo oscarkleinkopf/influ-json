@@ -26,30 +26,28 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | Campo | Valor |
 |-------|--------|
 | **Etapa de producto** | **Usabilidad** (perfeccionar flujo crear → JSON → chatbot). Luego **seguridad** para mercado. |
-| **Fase ROADMAP** | Free path sólido; pendientes UX: F4 side-by-side, F6 happy path 60s |
-| **Prioridad inmediata** | UX del loop prompts/JSON/chatbot; no video full ni Replicate obligatorio |
+| **Fase ROADMAP** | Free path sólido; **F1 validador** ✅; pendientes UX: F4 side-by-side, F6 happy path 60s |
+| **Prioridad inmediata** | F6 (60s) y F4 (side-by-side); no video full ni Replicate obligatorio |
 | **En pausa** | Hardening de seguridad para lanzamiento; multi-tenant; billing |
 | **Servidor** | `npm start` → `server.js` (completo). `start:minimal` = demo only |
 | **Última plataforma** | Cursor |
-| **Última actualización** | 2026-07-27 |
+| **Última actualización** | 2026-07-28 |
 
 ---
 
-## Sesión reciente (Cursor, 2026-07-27)
+## Sesión reciente (Cursor, 2026-07-28)
 
-**Confirmado por usuario:** en Resumen ve portafolio + creaciones → Antigravity ya usaba el Studio completo (`/api/data` + SQLite).
-
-**Pedido del usuario:**
-- Reparar dual-server / deps para evitar problemas futuros.
-- Concepto central = prompts consistentes + JSON para chatbots gratis.
-- Esta etapa = **usabilidad**; después = **seguridad** para mercado.
+**Pedido del usuario:** ideas concretas → implementar **#3 Validador de `character_lock`**.
 
 **Hecho en esta sesión:**
-- `package.json`: deps alineadas al lock (`better-sqlite3`, `express-session`, `archiver`, Express 4…); `npm start` → `server.js`; `npm test` cableado; `start:minimal` explícito.
-- `server-minimal.js`: aviso DEMO ONLY en cabecera.
-- README / AGENTS / HANDOFF / ROADMAP: concepto + prioridades usabilidad → seguridad.
+- Nuevo módulo `character-lock-validator.js` (UMD: Node + browser) con `validateCharacterLock`.
+- Panel `#lockHealthPanel` en Persona Engine (score 0–100, grados Sólido/Aceptable/Débil, lista expandible).
+- Toasts no bloqueantes al copiar JSON / chatbot / packs free si el lock tiene avisos.
+- Tests: `test/character-lock-validator.test.js` (12 casos).
+- `DISABLE_GIT_BACKUP=1` en `server.js` + `npm test` (evita que la suite ensucie `main` vía auto-sync).
+- Servido en `GET /character-lock-validator.js`.
 
-**No tocado:** UI de producto, auth/PIN, auto git-push del servidor.
+**No tocado:** F4 side-by-side, F6 onboarding 60s, Replicate, auth hardening.
 
 ---
 
@@ -57,9 +55,10 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 1. `git pull` → este archivo → `ROADMAP.md`.
 2. `npm start` (nunca `start:minimal` para trabajo real).
-3. Priorizar usabilidad del happy path: F6 (60s en dashboard), F4 (side-by-side ancla vs gen), claridad del export chatbot.
+3. Priorizar: **F6** (60s en dashboard) y **F4** (side-by-side ancla vs gen).
 4. No endurecer seguridad de mercado todavía salvo lo mínimo local (PIN / `.env`).
 5. Tokens: `.env` local por máquina — no van en Git.
+6. Tests: `npm test` ya setea `DISABLE_GIT_BACKUP=1`.
 
 ---
 
@@ -67,7 +66,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-27 | Cursor | Alinear deps + documentar concepto (prompts/JSON/chatbot) y etapa usabilidad→seguridad | *(este commit)* |
+| 2026-07-28 | Cursor | F1 validador `character_lock` (panel salud + toasts + tests) | *(este PR)* |
+| 2026-07-27 | Cursor | Alinear deps + documentar concepto (prompts/JSON/chatbot) y etapa usabilidad→seguridad | *(main)* |
 | 2026-07-27 | Antigravity | `npm start`→`server.js` + modal Ajustes + 3 skills + SKILLS_MANUAL | `714ab5b` |
 | 2026-07-27 | Cursor | HANDOFF + workflow sync GitHub | `b70f6d0` / `4b2abcc` |
 
@@ -81,7 +81,7 @@ Al terminar cualquier tarea con cambios:
 2. Actualizar **Foco actual** si cambió.
 3. Rellenar **Sesión reciente**.
 4. Línea en log de `ROADMAP.md` si aplica.
-5. `git commit` + `git push origin main`.
+5. `git commit` + `git push` (rama feature o `main` según workflow).
 
 ## Qué no commitear
 
