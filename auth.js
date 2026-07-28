@@ -1,26 +1,135 @@
+/**
+ * Auth local del Studio — PIN + perfiles + rate-limit.
+ * Sin OAuth / multi-tenant cloud: perfiles locales en SQLite.
+ */
+const crypto = require('crypto');
 const expressSession = require('express-session');
 
-const DEFAULT_PIN = process.env.STUDIO_PIN || '1234';
+const DEFAULT_PIN_FALLBACK = '1234';
 
-// Setup session middleware helper
+function getConfiguredPin() {
+  if (process.env.STUDIO_PIN === undefined || process.env.STUDIO_PIN === null) {
+    return DEFAULT_PIN_FALLBACK;
+  }
+  return String(process.env.STUDIO_PIN);
+}
+
+function isAuthEnabled() {
+  const pin = getConfiguredPin();
+  // PIN vacío en .env desactiva auth (modo abierto local)
+  return String(pin).trim() !== '';
+}
+
+function isPinDefault() {
+  if (!isAuthEnabled()) return false;
+  return String(getConfiguredPin()).trim() === DEFAULT_PIN_FALLBACK;
+}
+
+function getSessionSecret() {
+  const fromEnv = (process.env.SESSION_SECRET || '').trim();
+  if (fromEnv) return fromEnv;
+  // Derivado del PIN + salt fijo de instalación (mejor que hardcode público; aún así: set SESSION_SECRET)
+  const pin = getConfiguredPin() || 'open';
+  return crypto.createHash('sha256').update(`influ-json-session|${pin}`).digest('hex');
+}
+
 const sessionMiddleware = expressSession({
-  secret: 'influ-json-super-secret-key-1337',
+  name: 'influ.sid',
+  secret: getSessionSecret(),
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    secure: false // Set to true if running over https
+    sameSite: 'lax',
+    secure: process.env.COOKIE_SECURE === '1'
   }
 });
 
+// ─── Rate limit login (memoria) ─────────────────────────────────
+const loginAttempts = new Map(); // key → { fails, lockedUntil }
+const MAX_FAILS = Number(process.env.LOGIN_MAX_FAILS || 5);
+const LOCK_MS = Number(process.env.LOGIN_LOCK_MS || 60_000);
+
+function clientKey(req) {
+  return (
+    req.ip ||
+    req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() ||
+    req.socket?.remoteAddress ||
+    'unknown'
+  );
+}
+
+function getLoginLockStatus(req) {
+  const key = clientKey(req);
+  const row = loginAttempts.get(key);
+  if (!row) return { locked: false, retryAfterSec: 0 };
+  const left = (row.lockedUntil || 0) - Date.now();
+  if (left > 0) return { locked: true, retryAfterSec: Math.ceil(left / 1000) };
+  return { locked: false, retryAfterSec: 0, fails: row.fails || 0 };
+}
+
+function registerLoginFailure(req) {
+  const key = clientKey(req);
+  const row = loginAttempts.get(key) || { fails: 0, lockedUntil: 0 };
+  row.fails += 1;
+  if (row.fails >= MAX_FAILS) {
+    row.lockedUntil = Date.now() + LOCK_MS;
+    row.fails = 0;
+  }
+  loginAttempts.set(key, row);
+  return getLoginLockStatus(req);
+}
+
+function clearLoginFailures(req) {
+  loginAttempts.delete(clientKey(req));
+}
+
+// ─── PIN hashing (perfiles) ─────────────────────────────────────
+function hashPin(pin, salt) {
+  const s = salt || crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(String(pin), s, 64).toString('hex');
+  return { salt: s, hash };
+}
+
+function verifyPinHash(pin, salt, hash) {
+  if (!pin || !salt || !hash) return false;
+  try {
+    const { hash: next } = hashPin(pin, salt);
+    const a = Buffer.from(next, 'hex');
+    const b = Buffer.from(String(hash), 'hex');
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
+  } catch (_) {
+    return false;
+  }
+}
+
+function verifyLegacyStudioPin(pin) {
+  if (!isAuthEnabled()) return true;
+  if (!pin) return false;
+  const expected = String(getConfiguredPin()).trim();
+  const got = String(pin).trim();
+  // timing-safe compare for equal-length; fallback if lengths differ
+  if (expected.length === got.length) {
+    try {
+      return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(got));
+    } catch (_) {
+      return false;
+    }
+  }
+  return false;
+}
+
 function requireAuth(req, res, next) {
-  // Allow bypassing auth if PIN is set to empty or disabled
-  if (!DEFAULT_PIN || String(DEFAULT_PIN).trim() === '') {
+  if (!isAuthEnabled()) {
+    // Modo abierto: perfil por defecto si existe
+    if (req.session && !req.session.profileId) {
+      req.session.authenticated = true;
+    }
     return next();
   }
 
-  // Check session or Authorization header
   if (req.session && req.session.authenticated) {
     return next();
   }
@@ -28,20 +137,51 @@ function requireAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
   if (authHeader) {
     const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-    if (token === String(DEFAULT_PIN).trim()) {
-      if (req.session) req.session.authenticated = true;
+    if (verifyLegacyStudioPin(token)) {
+      if (req.session) {
+        req.session.authenticated = true;
+        req.session.authVia = 'bearer_studio_pin';
+      }
       return next();
+    }
+    // Bearer puede ser PIN de un perfil — se resuelve en login de perfiles vía db (lazy)
+    if (req.session) {
+      req._bearerPin = token;
     }
   }
 
   res.status(401).json({ success: false, message: 'Acceso denegado. PIN inválido o sesión expirada.' });
 }
 
+/**
+ * Cabeceras de seguridad mínimas (sin romper el Studio local).
+ */
+function securityHeaders(req, res, next) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-XSS-Protection', '0');
+  // CSP laxa: el front monolítico inline + Pollinations; endurecer en fase mercado
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; img-src 'self' data: blob: https:; media-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline'; connect-src 'self' https:;"
+  );
+  next();
+}
+
 module.exports = {
   sessionMiddleware,
   requireAuth,
-  verifyPin(pin) {
-    if (!pin) return false;
-    return String(pin).trim() === String(DEFAULT_PIN).trim();
-  }
+  securityHeaders,
+  verifyPin: verifyLegacyStudioPin,
+  verifyLegacyStudioPin,
+  verifyPinHash,
+  hashPin,
+  isAuthEnabled,
+  isPinDefault,
+  getConfiguredPin,
+  getLoginLockStatus,
+  registerLoginFailure,
+  clearLoginFailures,
+  DEFAULT_PIN_FALLBACK
 };

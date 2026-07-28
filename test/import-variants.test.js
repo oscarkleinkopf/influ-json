@@ -122,11 +122,12 @@ test('Multi-Image Import & Background Variants Test Suite', async (t) => {
     const personaId = data.persona.id;
     assert.ok(personaId);
 
-    // Wait for genQueue to finish running background tasks
+    // Wait for genQueue to finish running background tasks, then for all 4 variants to persist
     let attempts = 0;
-    while (attempts < 50) {
+    while (attempts < 80) {
       const qStatus = genQueue.getStatus();
-      if (!qStatus.active && qStatus.pendingCount === 0) break;
+      const variantsInDb = dbService.getVariantsForPersona(personaId);
+      if (!qStatus.active && qStatus.pendingCount === 0 && variantsInDb.length >= 4) break;
       await sleep(50);
       attempts++;
     }

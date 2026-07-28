@@ -2817,3 +2817,87 @@ button.is-queue-locked:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+/* Seguridad / perfiles */
+.pin-default-banner {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  z-index: 90;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: rgba(245, 158, 11, 0.12);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.35);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.pin-default-banner code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--warning);
+}
+
+.active-profile-chip {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.active-profile-chip strong {
+  color: var(--text-primary);
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.profile-row.is-current {
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.profile-meta {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.profile-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.profile-current-tag {
+  font-size: 10px;
+  color: var(--success);
+  align-self: center;
+}
+
+@media (max-width: 900px) {
+  .pin-default-banner {
+    left: 0;
+  }
+}

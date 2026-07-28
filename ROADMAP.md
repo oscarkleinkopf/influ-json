@@ -49,8 +49,8 @@
 | Orden | Etapa | Meta |
 |-------|--------|------|
 | 1 | **Núcleo free** | Prompts + `character_lock` JSON → chatbots gratis (crear o inspirar) |
-| 2 | **Usabilidad** ← *ahora* | Happy path claro, F4/F6, menos fricción al exportar packs |
-| 3 | **Seguridad** | Endurecer PIN/sesiones/superficie antes de mercado |
+| 2 | **Usabilidad** | Happy path claro, F4/F6, menos fricción al exportar packs ✅ |
+| 3 | **Seguridad + perfiles** ← *ahora* | PIN/sesiones/headers + perfiles locales (sin OAuth) |
 | 4 | Replicate / video / paid | Solo opt-in; nunca rompe free |
 
 ---
