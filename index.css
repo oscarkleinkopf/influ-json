@@ -2915,6 +2915,278 @@ button.is-queue-locked:disabled {
   color: #fff;
 }
 
+/* ─── Cómo usar (guía gráfica) ─────────────────────────────── */
+.guide-teaser {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 22px 24px;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(120deg, rgba(52, 211, 153, 0.08), transparent 45%),
+    rgba(255, 255, 255, 0.02);
+}
+
+.guide-teaser h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  margin: 0 0 6px;
+}
+
+.guide-teaser p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 46ch;
+  line-height: 1.45;
+}
+
+.como-usar-page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding-bottom: 64px;
+}
+
+.como-usar-hero {
+  position: relative;
+  min-height: min(72vh, 640px);
+  border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+  overflow: hidden;
+  margin: -8px -8px 40px;
+  display: flex;
+  align-items: flex-end;
+  isolation: isolate;
+  animation: comoUsarFadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.como-usar-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.como-usar-hero-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 28%;
+  transform: scale(1.04);
+  animation: comoUsarKenBurns 18s ease-out both;
+}
+
+.como-usar-hero-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(8, 7, 13, 0.15) 0%, rgba(8, 7, 13, 0.55) 45%, rgba(8, 7, 13, 0.92) 100%),
+    radial-gradient(ellipse at 20% 80%, rgba(52, 211, 153, 0.18), transparent 50%);
+}
+
+.como-usar-hero-copy {
+  position: relative;
+  z-index: 2;
+  padding: clamp(28px, 5vw, 56px);
+  max-width: 640px;
+  animation: comoUsarFadeUp 0.85s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.como-usar-brand {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  margin: 0 0 14px;
+  background: linear-gradient(135deg, #f8fafc 10%, #6ee7b7 55%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.como-usar-hero-copy h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.6vw, 1.85rem);
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: #fff;
+}
+
+.como-usar-lead {
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(248, 250, 252, 0.78);
+  margin: 0 0 22px;
+  max-width: 42ch;
+}
+
+.como-usar-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.como-usar-section {
+  margin-bottom: 48px;
+  animation: comoUsarFadeUp 0.7s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.como-usar-section h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.como-usar-section-lead {
+  margin: 0 0 28px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  max-width: 48ch;
+  line-height: 1.5;
+}
+
+.como-usar-steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  margin-left: 18px;
+  padding: 0;
+}
+
+.como-usar-step {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 8px 18px;
+  padding: 0 0 32px 22px;
+  position: relative;
+}
+
+.como-usar-step::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--step-accent, var(--success));
+  box-shadow: 0 0 0 4px rgba(8, 7, 13, 0.9), 0 0 18px color-mix(in srgb, var(--step-accent, #34d399) 45%, transparent);
+}
+
+.como-usar-step-index {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--step-accent, #34d399) 70%, #fff);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.como-usar-step-body h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+
+.como-usar-step-body p {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 52ch;
+}
+
+.como-usar-step-body code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #a7f3d0;
+}
+
+.como-usar-rule {
+  padding: 28px 0 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.como-usar-rule-quote {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+  line-height: 1.35;
+  color: #fff;
+  margin: 12px 0 22px;
+  max-width: 28ch;
+}
+
+.como-usar-rule-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+}
+
+.como-usar-rule-list li {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.como-usar-rule-list span {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6ee7b7;
+  min-width: 72px;
+}
+
+.como-usar-invite-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@keyframes comoUsarFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes comoUsarKenBurns {
+  from { transform: scale(1.08); }
+  to { transform: scale(1.02); }
+}
+
+@media (max-width: 720px) {
+  .como-usar-hero {
+    margin: 0 0 28px;
+    min-height: 70vh;
+    border-radius: var(--border-radius-md);
+  }
+
+  .como-usar-step {
+    grid-template-columns: 1fr;
+    padding-left: 18px;
+  }
+
+  .como-usar-step-index {
+    font-size: 22px;
+  }
+}
+
 @media (max-width: 900px) {
   .pin-default-banner {
     left: 0;

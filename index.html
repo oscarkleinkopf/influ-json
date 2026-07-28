@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.1.5">
+  <link rel="stylesheet" href="index.css?v=1.2.0">
 </head>
 <body>
   <div class="app-container">
@@ -71,6 +71,12 @@
             Galería Prompts
           </button>
         </li>
+        <li class="nav-item" data-tab="como-usar">
+          <button>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Cómo usar
+          </button>
+        </li>
       </nav>
       
       <div class="sidebar-footer">
@@ -86,6 +92,9 @@
           <span class="queue-status-dot"></span>
           <span id="queueStatusChipText">Cola libre</span>
         </div>
+        <button class="btn btn-secondary btn-sm" id="btnOpenComoUsar" style="width: 100%; margin-bottom: 8px;">
+          Cómo usar
+        </button>
         <button class="btn btn-secondary btn-sm" id="btnOpenSettings" style="width: 100%; margin-bottom: 8px; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--accent-primary); color: #fff;">
           ⚙️ Ajustes & Claves API
         </button>
@@ -221,30 +230,93 @@
           </div>
         </div>
         
-        <div class="glass-card" style="margin-top: 28px;">
-          <h2 style="font-family: var(--font-display); margin-bottom: 16px;">Cómo funciona el Pipeline</h2>
-          <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;">
-            El flujo de trabajo automatiza el colapso de producción combinando consistencia de identidad (mediante anclas JSON) y variación de guiones estructurados (mediante GPT-5.6).
-          </p>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px;">
-            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
-              <h4 style="color: var(--accent-primary); margin-bottom: 8px;">1. Persona Engine</h4>
-              <p style="font-size: 13px; color: var(--text-secondary);">Define la identidad del influencer usando JSON. Ajusta un campo a la vez para mantener el estilo consistente.</p>
-            </div>
-            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
-              <h4 style="color: var(--accent-secondary); margin-bottom: 8px;">2. Script Engine</h4>
-              <p style="font-size: 13px; color: var(--text-secondary);">Genera 10 ángulos publicitarios basados en dolor, demostración, giro de solución y llamado a la acción suave.</p>
-            </div>
-            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
-              <h4 style="color: #f59e0b; margin-bottom: 8px;">3. UGC Studio</h4>
-              <p style="font-size: 13px; color: var(--text-secondary);">Genera la imagen del influencer con el producto en mano y previsualiza el post con los textos legales necesarios.</p>
-            </div>
-            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
-              <h4 style="color: var(--success); margin-bottom: 8px;">4. Licensing</h4>
-              <p style="font-size: 13px; color: var(--text-secondary);">Calcula tarifas por derechos comerciales (30/90 días o perpetuo) para cobrar el valor justo por la campaña.</p>
-            </div>
+        <div class="guide-teaser" style="margin-top: 28px;">
+          <div class="guide-teaser-copy">
+            <h2>¿Primera vez aquí?</h2>
+            <p>Guía visual del flujo gratis: crear → anclar con JSON → copiar a chatbot o descargar kit marca.</p>
           </div>
+          <button type="button" class="btn" id="btnDashboardComoUsar">Ver Cómo usar</button>
         </div>
+      </section>
+
+      <!-- TAB: CÓMO USAR (guía gráfica) -->
+      <section id="como-usar" class="tab-panel">
+        <article class="como-usar-page">
+          <header class="como-usar-hero">
+            <div class="como-usar-hero-media" aria-hidden="true">
+              <img src="assets/guides/como-usar-hero.png" alt="" width="1600" height="900" decoding="async">
+            </div>
+            <div class="como-usar-hero-veil"></div>
+            <div class="como-usar-hero-copy">
+              <p class="como-usar-brand">influ-JSON</p>
+              <h1>Cómo usar el Studio</h1>
+              <p class="como-usar-lead">Crea influencers consistentes sin pagar face-lock. El JSON es tu ancla; los chatbots gratis hacen el resto.</p>
+              <div class="como-usar-cta-row">
+                <button type="button" class="btn" data-guide-action="create">Empezar ahora</button>
+                <button type="button" class="btn btn-secondary" data-guide-action="kit">Ver kit marca</button>
+              </div>
+            </div>
+          </header>
+
+          <section class="como-usar-section" aria-labelledby="guide-flow-title">
+            <h2 id="guide-flow-title">El flujo en cuatro movimientos</h2>
+            <p class="como-usar-section-lead">Una sola persona. Muchas escenas. Cero tarjeta.</p>
+
+            <ol class="como-usar-steps">
+              <li class="como-usar-step" style="--step-accent: #34d399;">
+                <span class="como-usar-step-index">01</span>
+                <div class="como-usar-step-body">
+                  <h3>Elige nicho y crea</h3>
+                  <p>Beauty, Fitness o Moda. El preset rellena tez, cuerpo y voz para que el <code>character_lock</code> nazca fuerte.</p>
+                  <button type="button" class="btn btn-secondary btn-sm" data-guide-action="create">Ir a crear</button>
+                </div>
+              </li>
+              <li class="como-usar-step" style="--step-accent: #fbbf24;">
+                <span class="como-usar-step-index">02</span>
+                <div class="como-usar-step-body">
+                  <h3>Guarda en tu portafolio</h3>
+                  <p>Al guardar, el influencer queda en SQLite bajo tu perfil. Nadie más mezcla tus creaciones.</p>
+                  <button type="button" class="btn btn-secondary btn-sm" data-guide-action="portfolio">Ver portafolio</button>
+                </div>
+              </li>
+              <li class="como-usar-step" style="--step-accent: #38bdf8;">
+                <span class="como-usar-step-index">03</span>
+                <div class="como-usar-step-body">
+                  <h3>Copia el JSON o un pack</h3>
+                  <p>Pégalo en ChatGPT, Gemini o Claude free. Misma cara en retrato, cuerpo entero, bikini o producto en mano.</p>
+                  <button type="button" class="btn btn-secondary btn-sm" data-guide-action="packs">Ir a packs</button>
+                </div>
+              </li>
+              <li class="como-usar-step" style="--step-accent: #a3e635;">
+                <span class="como-usar-step-index">04</span>
+                <div class="como-usar-step-body">
+                  <h3>Descarga el kit marca</h3>
+                  <p>Un ZIP con lock, 4 packs, guión UGC ~15s e instrucciones. Listo para grabar Reels o TikTok.</p>
+                  <button type="button" class="btn btn-secondary btn-sm" data-guide-action="kit">Descargar kit</button>
+                </div>
+              </li>
+            </ol>
+          </section>
+
+          <section class="como-usar-section como-usar-rule" aria-labelledby="guide-rule-title">
+            <h2 id="guide-rule-title">La regla de oro</h2>
+            <p class="como-usar-rule-quote">Si la cara o la tez cambian, re-pega el <strong>CHARACTER LOCK</strong> y vuelve a pedir la imagen.</p>
+            <ul class="como-usar-rule-list">
+              <li><span>Fijo</span> cara, tez, pelo base, proporciones</li>
+              <li><span>Variable</span> pose, ropa, fondo, producto</li>
+              <li><span>Gratis</span> Pollinations + chatbots — Replicate opcional</li>
+            </ul>
+          </section>
+
+          <section class="como-usar-section" aria-labelledby="guide-invite-title">
+            <h2 id="guide-invite-title">Si llegaste con invitación</h2>
+            <p class="como-usar-section-lead">Tu espacio empieza vacío y aislado. Administración no ve lo tuyo; tú no ves lo de otros.</p>
+            <div class="como-usar-invite-row">
+              <button type="button" class="btn" data-guide-action="create">Crear mi primer influencer</button>
+              <button type="button" class="btn btn-secondary" data-guide-action="checklist">Abrir checklist 60s</button>
+            </div>
+          </section>
+        </article>
       </section>
       
       <!-- TAB: CAMPAIGNS -->
@@ -1878,7 +1950,7 @@
       </ol>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <button type="button" class="btn" id="btnMemberWelcomeCreate" style="width:100%; padding:12px;">Empezar: crear influencer</button>
-        <button type="button" class="btn btn-secondary" id="btnMemberWelcomeDashboard" style="width:100%; padding:10px; font-size:12px;">Ver checklist en Resumen</button>
+        <button type="button" class="btn btn-secondary" id="btnMemberWelcomeDashboard" style="width:100%; padding:10px; font-size:12px;">Ver guía Cómo usar</button>
         <button type="button" id="btnMemberWelcomeSkip" style="background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">Ahora no</button>
       </div>
     </div>
@@ -2016,6 +2088,6 @@
 
   <script src="character-lock-validator.js?v=1.0.0"></script>
   <script src="niche-presets.js?v=1.0.0"></script>
-  <script src="app.js?v=1.7.0"></script>
+  <script src="app.js?v=1.8.0"></script>
 </body>
 </html>

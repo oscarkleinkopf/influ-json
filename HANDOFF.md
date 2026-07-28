@@ -25,9 +25,9 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa de producto** | **Presets nicho + kit marca** (este PR). Multi-user ya cerrado en PRs previos. |
-| **Fase ROADMAP** | Núcleo free reforzado (character_lock por nicho + export emprendedor) |
-| **Prioridad inmediata** | Merge PRs; smoke con tester; Replicate solo si se pide |
+| **Etapa de producto** | **Guía «Cómo usar» gráfica** (este PR) + presets/kit en la pila |
+| **Fase ROADMAP** | Free path entendible visualmente para testers invitados |
+| **Prioridad inmediata** | Merge PRs; smoke con tester real |
 | **En pausa** | OAuth, SMTP, Replicate obligatorio |
 | **Servidor** | `npm start` → `server.js` |
 | **Última plataforma** | Cursor |
@@ -37,14 +37,13 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ## Sesión reciente (Cursor, 2026-07-28)
 
-**Pedido:** presets de nicho + kit export en un clic.
+**Pedido:** generar un «Cómo usar» de alta calidad gráfica.
 
 **Hecho:**
-- `niche-presets.js`: Beauty / Fitness / Moda → rellenan formulario + `character_lock.niche` / brand_voice.
-- UI: botones de nicho bajo «Añadir Nuevo Influencer».
-- `brand-kit.js` + `GET /api/export/persona/:id?kit=1` → ZIP con packs + `guion_ugc_15s.txt` + `COMO_USAR_KIT.txt`.
-- Botón **Descargar kit marca** (ficha + UGC Studio).
-- Tests: `test/niche-brand-kit.test.js` — suite **37/37**.
+- Nueva pestaña **Cómo usar** con hero full-bleed (`assets/guides/como-usar-hero.png`).
+- Flujo visual en 4 pasos + regla de oro + CTAs a crear / packs / kit / checklist.
+- Entrada desde sidebar, Resumen y onboarding member («Ver checklist» → guía).
+- CSS con motion (fade-up + ken burns suave).
 
 **No tocado:** Replicate, CSP.
 
@@ -63,7 +62,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-28 | Cursor | Presets nicho + kit marca ZIP | *(este PR)* |
+| 2026-07-28 | Cursor | Guía gráfica «Cómo usar» (hero + 4 pasos) | *(este PR)* |
+| 2026-07-28 | Cursor | Presets nicho + kit marca ZIP | PR #10 |
 | 2026-07-28 | Cursor | Onboarding member + Ajustes por rol | PR #9 |
 | 2026-07-28 | Cursor | Backup UI + ownership API | PR #8 |
 | 2026-07-28 | Cursor | Admin + invitaciones | PR #7 |
