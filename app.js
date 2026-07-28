@@ -1651,7 +1651,7 @@ async function copyFreeChatbotPack(packId) {
     const text = buildFreeChatbotPack(packId);
     await navigator.clipboard.writeText(text);
     const pack = FREE_CHATBOT_PACKS[packId];
-    toastSuccess(`Pack gratis «${pack.label}» copiado — pégalo en ChatGPT/Gemini/Claude`);
+    toastWithLockHealth(`Pack gratis «${pack.label}» copiado — pégalo en ChatGPT/Gemini/Claude`, getFullPersonaJSON());
   } catch (err) {
     console.error(err);
     toastError('No se pudo copiar el pack: ' + (err.message || 'error'));
@@ -2038,13 +2038,20 @@ function setupPersonaEngine() {
     const jsonArea = document.getElementById('jsonEditor');
     jsonArea.select();
     navigator.clipboard.writeText(jsonArea.value);
-    toastSuccess('Estructura JSON copiada al portapapeles');
+    // F1 — validar lo que realmente se copió (el textarea puede estar editado a mano)
+    let parsed = null;
+    try { parsed = JSON.parse(jsonArea.value); } catch (e) {}
+    if (parsed && typeof parsed === 'object') {
+      toastWithLockHealth('Estructura JSON copiada al portapapeles', parsed);
+    } else {
+      toastSuccess('Estructura JSON copiada al portapapeles');
+    }
   });
-  
+
   document.getElementById('btnCopyChatbotPrompt').addEventListener('click', () => {
     const exportText = buildChatbotExportText({ includePrompt: true });
     navigator.clipboard.writeText(exportText);
-    toastSuccess('📋 Prompt + JSON copiados para tu chatbot');
+    toastWithLockHealth('📋 Prompt + JSON copiados para tu chatbot', getFullPersonaJSON());
   });
 
   document.getElementById('btnSaveToGallery').addEventListener('click', async () => {
@@ -2254,9 +2261,82 @@ function compilePromptAndJSON() {
   }
   
   document.getElementById('jsonEditor').value = JSON.stringify(jsonConfig, null, 2);
-  
+
   // Keep split A/B prompts up to date
   updateABPrompts();
+
+  // F1 — salud del character_lock (valida exactamente el JSON que se copiará)
+  renderLockHealth(jsonConfig);
+}
+
+/**
+ * F1 — Panel de salud del character_lock (validador local, gratis).
+ * Se refresca en cada compilePromptAndJSON para reflejar el formulario en vivo.
+ */
+function renderLockHealth(personaJSON) {
+  const panel = document.getElementById('lockHealthPanel');
+  if (!panel || typeof CharacterLockValidator === 'undefined') return;
+  let v;
+  try {
+    v = CharacterLockValidator.validateCharacterLock(personaJSON);
+  } catch (e) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+  const issues = [...v.errors, ...v.warnings, ...v.infos];
+  const countLabel = issues.length === 0
+    ? 'sin avisos'
+    : `${issues.length} aviso${issues.length === 1 ? '' : 's'}`;
+  panel.innerHTML = `
+    <button type="button" class="lock-health-head lock-${v.grade}" id="lockHealthToggle" aria-expanded="false">
+      <span class="lock-health-title"><span class="lock-health-dot">●</span> Character lock: <strong>${v.gradeLabel}</strong> · ${v.score}%</span>
+      <span class="lock-health-count">${countLabel}${issues.length ? ' <span class="lock-health-caret">▾</span>' : ''}</span>
+    </button>
+    ${issues.length ? `<ul class="lock-health-list" id="lockHealthList" style="display:none;">${issues.map(i => `
+      <li class="lock-issue lock-issue-${i.level}">
+        <span class="lock-issue-badge">${i.level === 'error' ? '✕' : i.level === 'warning' ? '!' : 'i'}</span>
+        <span class="lock-issue-text">${escapeLockHtml(i.message)}${i.hint ? ` <em>${escapeLockHtml(i.hint)}</em>` : ''}</span>
+      </li>`).join('')}</ul>` : ''}
+  `;
+  const toggle = document.getElementById('lockHealthToggle');
+  const list = document.getElementById('lockHealthList');
+  if (toggle && list) {
+    toggle.addEventListener('click', () => {
+      const open = list.style.display !== 'none';
+      list.style.display = open ? 'none' : 'block';
+      toggle.setAttribute('aria-expanded', String(!open));
+      toggle.classList.toggle('open', !open);
+    });
+  }
+}
+
+function escapeLockHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+/**
+ * F1 — Copiar nunca se bloquea (happy path free primero), pero si el lock
+ * tiene errores/avisos el toast lo dice con el problema más grave.
+ */
+function toastWithLockHealth(successMessage, personaJSON) {
+  if (typeof CharacterLockValidator === 'undefined') {
+    toastSuccess(successMessage);
+    return;
+  }
+  try {
+    const v = CharacterLockValidator.validateCharacterLock(personaJSON);
+    const top = v.errors[0] || v.warnings[0];
+    if (!top) {
+      toastSuccess(successMessage);
+      return;
+    }
+    toastInfo(`${successMessage} — ojo, lock ${v.gradeLabel.toLowerCase()} (${v.score}%): ${top.message}`);
+  } catch (e) {
+    toastSuccess(successMessage);
+  }
 }
 
 async function savePersona() {

@@ -2562,3 +2562,132 @@ input:checked + .slider:before {
     max-height: 90vh !important;
   }
 }
+
+/* ============================================
+   F1 — Character lock health panel
+   ============================================ */
+.lock-health {
+  margin-bottom: 10px;
+}
+
+.lock-health-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: var(--border-radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+  transition: var(--transition-smooth);
+}
+
+.lock-health-head:hover {
+  border-color: var(--glass-border-focus);
+}
+
+.lock-health-head.lock-solid {
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.lock-health-head.lock-ok {
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.lock-health-head.lock-weak {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.lock-health-title strong {
+  color: var(--text-primary);
+}
+
+.lock-health-dot {
+  font-size: 8px;
+  margin-right: 5px;
+}
+
+.lock-solid .lock-health-dot {
+  color: var(--success);
+}
+
+.lock-ok .lock-health-dot {
+  color: var(--warning);
+}
+
+.lock-weak .lock-health-dot {
+  color: var(--danger);
+}
+
+.lock-health-count {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.lock-health-caret {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.lock-health-head.open .lock-health-caret {
+  transform: rotate(180deg);
+}
+
+.lock-health-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: var(--border-radius-sm);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--glass-border);
+  max-height: 170px;
+  overflow-y: auto;
+}
+
+.lock-issue {
+  display: flex;
+  gap: 8px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  padding: 3px 0;
+}
+
+.lock-issue-badge {
+  flex: 0 0 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.lock-issue-error .lock-issue-badge {
+  background: rgba(239, 68, 68, 0.18);
+  color: var(--danger);
+}
+
+.lock-issue-warning .lock-issue-badge {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning);
+}
+
+.lock-issue-info .lock-issue-badge {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-primary);
+}
+
+.lock-issue-text em {
+  color: var(--text-muted);
+  font-style: normal;
+}

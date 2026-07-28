@@ -35,6 +35,9 @@ app.get('/', (req, res) => {
 app.get('/app.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'app.js'));
 });
+app.get('/character-lock-validator.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'character-lock-validator.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });
