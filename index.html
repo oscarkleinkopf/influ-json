@@ -156,6 +156,11 @@
             </div>
             <span id="happyPathProgress" class="happy-path-progress">0 / 4</span>
           </div>
+          <div id="memberEmptyRosterBanner" class="member-empty-banner" style="display:none;" role="status">
+            <strong>Tu portafolio está vacío.</strong>
+            <span>Empieza creando tu primer influencer — solo tú lo verás en este perfil.</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnMemberEmptyCreate">Crear ahora</button>
+          </div>
           <ol id="happyPathChecklist" class="happy-path-list">
             <li class="happy-path-step" data-step="create">
               <span class="happy-path-check" aria-hidden="true">○</span>
@@ -1842,6 +1847,28 @@
     <button type="button" class="btn btn-secondary btn-sm" id="btnPinBannerSettings">Abrir perfiles</button>
     <button type="button" class="btn btn-secondary btn-sm" id="btnPinBannerDismiss" aria-label="Cerrar">✕</button>
   </div>
+
+  <!-- Onboarding member (post-invitación / roster vacío) -->
+  <div id="memberWelcomeModal" class="login-modal-overlay" style="display:none;" role="dialog" aria-labelledby="memberWelcomeTitle">
+    <div class="glass-card login-card" style="width:100%; max-width:440px; text-align:left; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.8); position:relative;">
+      <button type="button" id="btnCloseMemberWelcome" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;" aria-label="Cerrar">✕</button>
+      <p style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin:0 0 8px;">Tu espacio aislado</p>
+      <h2 id="memberWelcomeTitle" style="font-family:var(--font-display); font-size:22px; margin:0 0 8px; color:#fff;">Bienvenido a influ-JSON</h2>
+      <p id="memberWelcomeLead" style="font-size:13px; color:var(--text-secondary); margin:0 0 18px; line-height:1.45;">
+        Este perfil es solo tuyo. No verás ni mezclarás creaciones de Administración u otros testers.
+      </p>
+      <ol style="margin:0 0 20px; padding-left:18px; font-size:13px; color:var(--text-secondary); line-height:1.55;">
+        <li style="margin-bottom:8px;"><strong style="color:#fff;">Crear</strong> un influencer (desde cero o con foto)</li>
+        <li style="margin-bottom:8px;"><strong style="color:#fff;">Guardar</strong> — aparece en tu portafolio</li>
+        <li style="margin-bottom:8px;"><strong style="color:#fff;">Copiar JSON</strong> a ChatGPT / Gemini / Claude free (o 1 gen Pollinations)</li>
+      </ol>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button type="button" class="btn" id="btnMemberWelcomeCreate" style="width:100%; padding:12px;">Empezar: crear influencer</button>
+        <button type="button" class="btn btn-secondary" id="btnMemberWelcomeDashboard" style="width:100%; padding:10px; font-size:12px;">Ver checklist en Resumen</button>
+        <button type="button" id="btnMemberWelcomeSkip" style="background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">Ahora no</button>
+      </div>
+    </div>
+  </div>
   
   <!-- Mobile Bottom Fixed Navigation Bar -->
   <nav class="mobile-bottom-nav">
@@ -1870,41 +1897,47 @@
 
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
         <div class="logo-icon" style="width: 36px; height: 36px; font-size: 16px;">⚙️</div>
-        <h2 style="font-family: var(--font-display); font-size: 20px; margin: 0; color: #fff;">Ajustes de Proveedores y Claves API</h2>
+        <h2 id="settingsModalTitle" style="font-family: var(--font-display); font-size: 20px; margin: 0; color: #fff;">Ajustes</h2>
       </div>
 
-      <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; color: #a7f3d0;">
-        🟢 <strong>Modo Gratuito Siempre Activo:</strong> Si no agregas ninguna clave, influ-JSON funciona 100% gratis con Pollinations + offline.
+      <div id="adminKeysSettingsSection">
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; color: #a7f3d0;">
+          🟢 <strong>Modo Gratuito Siempre Activo:</strong> Si no agregas ninguna clave, influ-JSON funciona 100% gratis con Pollinations + offline.
+        </div>
+
+        <form id="settingsForm">
+          <div style="margin-bottom: 16px;">
+            <label for="geminiKeyInput" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-secondary);">
+              Clave API de Google Gemini (Gratis)
+            </label>
+            <input type="password" id="geminiKeyInput" placeholder="AIzaSy... (Dejar en blanco para modo 100% gratis)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
+            <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Activa la redacción en vivo de guiones y la IA de productos en Node.js.</small>
+          </div>
+
+          <div style="margin-bottom: 24px;">
+            <label for="replicateTokenInput" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-secondary);">
+              Token API de Replicate (Opt-in Face-Lock de Pago)
+            </label>
+            <input type="password" id="replicateTokenInput" placeholder="r8_... (Dejar en blanco para Pollinations gratis)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
+            <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Opcional para marcas que requieran InstantID / PuLID dedicado.</small>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn" style="flex: 2; padding: 10px;">💾 Guardar Claves en .env</button>
+            <button type="button" id="btnDisableKeys" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 11px;">Restablecer a 100% Gratis</button>
+          </div>
+        </form>
+
+        <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
       </div>
 
-      <form id="settingsForm">
-        <div style="margin-bottom: 16px;">
-          <label for="geminiKeyInput" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-secondary);">
-            Clave API de Google Gemini (Gratis)
-          </label>
-          <input type="password" id="geminiKeyInput" placeholder="AIzaSy... (Dejar en blanco para modo 100% gratis)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
-          <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Activa la redacción en vivo de guiones y la IA de productos en Node.js.</small>
-        </div>
-
-        <div style="margin-bottom: 24px;">
-          <label for="replicateTokenInput" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-secondary);">
-            Token API de Replicate (Opt-in Face-Lock de Pago)
-          </label>
-          <input type="password" id="replicateTokenInput" placeholder="r8_... (Dejar en blanco para Pollinations gratis)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
-          <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Opcional para marcas que requieran InstantID / PuLID dedicado.</small>
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-          <button type="submit" class="btn" style="flex: 2; padding: 10px;">💾 Guardar Claves en .env</button>
-          <button type="button" id="btnDisableKeys" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 11px;">Restablecer a 100% Gratis</button>
-        </div>
-      </form>
-
-      <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
+      <div id="memberSettingsHint" style="display:none; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+        Tu cuenta es de <strong style="color:#fff;">tester invitado</strong>. El Studio ya funciona gratis (Pollinations + JSON). Aquí solo gestionas tu PIN y cierras sesión.
+      </div>
 
       <div id="profilesSettingsSection">
-        <h3 style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Perfiles de usuario (local)</h3>
-        <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+        <h3 id="profilesSettingsHeading" style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Perfiles de usuario (local)</h3>
+        <p id="profilesSettingsLead" style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
           Varios emprendedores en el mismo Studio, cada uno con su PIN y su roster. Sin nube ni OAuth.
         </p>
         <div id="profilesList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;"></div>
@@ -1968,6 +2001,6 @@
   </div>
 
   <script src="character-lock-validator.js?v=1.0.0"></script>
-  <script src="app.js?v=1.5.0"></script>
+  <script src="app.js?v=1.6.0"></script>
 </body>
 </html>
