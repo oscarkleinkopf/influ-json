@@ -78,6 +78,10 @@
           <div class="git-indicator" id="gitIndicator"></div>
           <span id="gitStatusText">Repositorio sincronizado</span>
         </div>
+        <div id="queueStatusChip" class="queue-status-chip" style="display:none;" aria-live="polite">
+          <span class="queue-status-dot"></span>
+          <span id="queueStatusChipText">Cola libre</span>
+        </div>
         <button class="btn btn-secondary btn-sm" id="btnOpenSettings" style="width: 100%; margin-bottom: 8px; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--accent-primary); color: #fff;">
           ⚙️ Ajustes & Claves API
         </button>
@@ -137,6 +141,52 @@
               <p id="statScriptsCount">0</p>
             </div>
           </div>
+        </div>
+
+        <!-- F6 — Happy path 60s -->
+        <div class="glass-card" id="happyPathCard" style="margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+            <div>
+              <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Arranque en 60 segundos</h2>
+              <p style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Crear → guardar → generar → copiar JSON a un chatbot gratis. Sin tarjeta.</p>
+            </div>
+            <span id="happyPathProgress" class="happy-path-progress">0 / 4</span>
+          </div>
+          <ol id="happyPathChecklist" class="happy-path-list">
+            <li class="happy-path-step" data-step="create">
+              <span class="happy-path-check" aria-hidden="true">○</span>
+              <div>
+                <strong>1. Crear o importar</strong>
+                <p>Abre Persona Engine y usa «Crear desde Cero» o importa una foto.</p>
+                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="create">Ir a crear</button>
+              </div>
+            </li>
+            <li class="happy-path-step" data-step="save">
+              <span class="happy-path-check" aria-hidden="true">○</span>
+              <div>
+                <strong>2. Guardar influencer</strong>
+                <p>Completa nombre, tez y rasgos → «Crear Influencer» / Guardar.</p>
+                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="save">Ir a guardar</button>
+              </div>
+            </li>
+            <li class="happy-path-step" data-step="gen">
+              <span class="happy-path-check" aria-hidden="true">○</span>
+              <div>
+                <strong>3. Generar 1 imagen</strong>
+                <p>Retrato al guardar o una variante en el vault (Pollinations, gratis).</p>
+                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="gen">Ir a variantes</button>
+              </div>
+            </li>
+            <li class="happy-path-step" data-step="copy">
+              <span class="happy-path-check" aria-hidden="true">○</span>
+              <div>
+                <strong>4. Copiar JSON / pack chatbot</strong>
+                <p>Usa «Copiar para Chatbot» o un pack gratis (cuerpo entero, bikini…).</p>
+                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="copy">Ir a packs</button>
+              </div>
+            </li>
+          </ol>
+          <p id="happyPathDoneMsg" class="happy-path-done" style="display:none;">Listo: ya puedes pegar el pack en ChatGPT / Gemini / Claude free.</p>
         </div>
         
         <!-- Portfolio Search & Filter -->
@@ -510,6 +560,7 @@
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px; text-align: left;">Spicy (realista)</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px; text-align: left;">Producto en mano</button>
                 </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; margin-top: 10px; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
               </div>
             </div>
             
@@ -1120,22 +1171,27 @@
             <div>
               <!-- Side-by-Side Comparator (F4: Ancla vs Última Generación) -->
               <div id="sideBySideComparator" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--accent-primary); border-radius: var(--border-radius-md); padding: 14px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                  <h4 style="font-size: 12px; text-transform: uppercase; color: var(--accent-primary); margin: 0; font-family: var(--font-display);">🔍 Comparador de Consistencia (Foto Ancla vs Última Variante)</h4>
-                  <span style="font-size: 10px; background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
-                    Identidad Verificada (Character Lock)
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: wrap;">
+                  <h4 style="font-size: 12px; text-transform: uppercase; color: var(--accent-primary); margin: 0; font-family: var(--font-display);">Comparador de consistencia (ancla vs última gen)</h4>
+                  <span id="sbsStatusBadge" style="font-size: 10px; background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
+                    Juzga a ojo — gratis
                   </span>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                   <div style="text-align: center;">
-                    <span style="display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">📷 Foto Ancla Oficial</span>
-                    <img id="sbsAnchorImg" src="" style="width: 100%; height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid var(--glass-border);" />
+                    <span style="display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Foto ancla oficial</span>
+                    <img id="sbsAnchorImg" src="" alt="Ancla" style="width: 100%; height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid var(--glass-border); background: #111;" />
                   </div>
                   <div style="text-align: center;">
-                    <span style="display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">🎨 Última Variante Generada</span>
-                    <img id="sbsVariantImg" src="" style="width: 100%; height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid var(--accent-primary);" />
+                    <span style="display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Última variante generada</span>
+                    <img id="sbsVariantImg" src="" alt="Última variante" style="width: 100%; height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid var(--accent-primary); background: #111;" />
                   </div>
                 </div>
+                <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                  <button type="button" class="btn btn-primary btn-sm" id="btnSbsSetMain" style="font-size: 11px;">Usar variante como nuevo ancla</button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnSbsHide" style="font-size: 11px;">Ocultar</button>
+                </div>
+                <p style="font-size: 11px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.4;">Misma cara y tez = lock OK. Si cambia la persona, re-ajusta el JSON o regenera.</p>
               </div>
 
               <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 16px; color: var(--text-secondary);">Galería de Variaciones Consistentes</h3>
@@ -1302,6 +1358,9 @@
                   </button>
                   <button class="btn btn-secondary" id="btnDownloadJsonPack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     📥 Descargar Pack Maestro JSON (.json)
+                  </button>
+                  <button class="btn btn-secondary" id="btnExportPersonaZip" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    📦 Exportar pack completo (.zip)
                   </button>
                   <button class="btn btn-secondary" id="btnGenerateCommercialLicense" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     📄 Emitir Certificado de Licencia Comercial (TikTok / Meta)
@@ -1813,6 +1872,6 @@
   </div>
 
   <script src="character-lock-validator.js?v=1.0.0"></script>
-  <script src="app.js?v=1.1.16"></script>
+  <script src="app.js?v=1.2.0"></script>
 </body>
 </html>

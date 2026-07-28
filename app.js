@@ -20,8 +20,12 @@ let state = {
   activeVariants: [],
   generationHistory: [],
   historyFilter: 'all', // 'all', 'portrait', 'variant', 'ugc'
-  scratchExtendedTraits: null
+  scratchExtendedTraits: null,
+  /** F4 — última variante mostrada en el comparador side-by-side */
+  lastComparedVariant: null
 };
+
+const HAPPY_PATH_COPY_KEY = 'influ_happy_path_copied_v1';
 
 // Auth session token (stored in memory/sessionStorage)
 let studioPin = sessionStorage.getItem('studioPin') || '';
@@ -72,6 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupGallery', fn: setupGallery },
     { name: 'setupVariantManager', fn: setupVariantManager },
     { name: 'setupFreeChatbotPacks', fn: setupFreeChatbotPacks },
+    { name: 'setupHappyPathChecklist', fn: setupHappyPathChecklist },
+    { name: 'setupSideBySideComparator', fn: setupSideBySideComparator },
     { name: 'setupSettings', fn: setupSettings },
     { name: 'initImportModal', fn: initImportModal }
   ];
@@ -408,6 +414,9 @@ function clearPortfolioSearch() {
 
 // Dashboard Update
 function updateDashboardStats() {
+  // F6 — refrescar checklist aunque el portafolio esté vacío
+  renderHappyPathChecklist();
+
   const all = Array.isArray(state.personas) ? state.personas : [];
   const activeTotal = all.filter(p => !isArchivedPersona(p)).length;
   const archivedTotal = all.filter(p => isArchivedPersona(p)).length;
@@ -580,6 +589,188 @@ function setPortfolioFilter(filter) {
   document.getElementById('btnPortfolioArchived').classList.toggle('active', filter === 'archived');
   
   updateDashboardStats();
+}
+
+/**
+ * F6 — Happy path 60s checklist (Resumen).
+ * Pasos: crear → guardar → 1 gen → copiar JSON.
+ * El paso «copiar» se marca en localStorage al usar cualquier botón de export chatbot.
+ */
+function getHappyPathStatus() {
+  const personas = Array.isArray(state.personas) ? state.personas : [];
+  const hasAny = personas.length > 0;
+  const hasActive = personas.some(p => !isArchivedPersona(p));
+  const totalGens = state.generationStats?.total || 0;
+  const hasVariants = Array.isArray(state.activeVariants) && state.activeVariants.length > 0;
+  let copied = false;
+  try { copied = localStorage.getItem(HAPPY_PATH_COPY_KEY) === '1'; } catch (e) {}
+
+  return {
+    create: hasAny,
+    save: hasActive || hasAny,
+    gen: totalGens > 0 || hasVariants,
+    copy: copied
+  };
+}
+
+function markHappyPathCopied() {
+  try { localStorage.setItem(HAPPY_PATH_COPY_KEY, '1'); } catch (e) {}
+  renderHappyPathChecklist();
+}
+
+function renderHappyPathChecklist() {
+  const list = document.getElementById('happyPathChecklist');
+  const progress = document.getElementById('happyPathProgress');
+  const doneMsg = document.getElementById('happyPathDoneMsg');
+  if (!list) return;
+
+  const status = getHappyPathStatus();
+  const steps = ['create', 'save', 'gen', 'copy'];
+  let done = 0;
+  steps.forEach(step => {
+    const li = list.querySelector(`[data-step="${step}"]`);
+    if (!li) return;
+    const ok = !!status[step];
+    if (ok) done += 1;
+    li.classList.toggle('done', ok);
+    const check = li.querySelector('.happy-path-check');
+    if (check) check.textContent = ok ? '●' : '○';
+  });
+  if (progress) progress.textContent = `${done} / 4`;
+  if (doneMsg) doneMsg.style.display = done === 4 ? 'block' : 'none';
+}
+
+function setupHappyPathChecklist() {
+  document.querySelectorAll('[data-happy-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.getAttribute('data-happy-action');
+      if (action === 'create') {
+        navigateToTab('persona-engine');
+        setTimeout(() => {
+          const card = document.getElementById('cardCreateScratch');
+          if (card) card.click();
+          else if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
+        }, 80);
+      } else if (action === 'save') {
+        navigateToTab('persona-engine');
+        setTimeout(() => {
+          const form = document.getElementById('personaForm');
+          if (form) form.style.display = 'block';
+          document.getElementById('btnSavePersona')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 80);
+      } else if (action === 'gen') {
+        navigateToTab('persona-engine');
+        setTimeout(() => {
+          document.getElementById('variantManagerSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+      } else if (action === 'copy') {
+        navigateToTab('persona-engine');
+        setTimeout(() => {
+          document.getElementById('btnCopyChatbotPrompt')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 120);
+      }
+    });
+  });
+  renderHappyPathChecklist();
+}
+
+/**
+ * F4 — Side-by-side ancla vs última variante (imágenes, no prompts A/B).
+ */
+function updateSideBySideComparator(preferredVariant) {
+  const box = document.getElementById('sideBySideComparator');
+  const anchorImg = document.getElementById('sbsAnchorImg');
+  const variantImg = document.getElementById('sbsVariantImg');
+  if (!box || !anchorImg || !variantImg) return;
+
+  const persona = state.selectedPersona;
+  const variants = Array.isArray(state.activeVariants) ? state.activeVariants : [];
+  const last = preferredVariant || variants[0] || state.lastComparedVariant;
+  if (!persona || !last || !last.image_path) {
+    box.style.display = 'none';
+    state.lastComparedVariant = null;
+    return;
+  }
+
+  state.lastComparedVariant = last;
+  const anchorSrc = persona.image || 'assets/influencer_female.png';
+  // Evitar comparar la misma imagen consigo misma
+  if (anchorSrc === last.image_path && variants.length < 2) {
+    box.style.display = 'none';
+    return;
+  }
+
+  anchorImg.src = anchorSrc;
+  variantImg.src = last.image_path;
+  box.style.display = 'block';
+}
+
+function setupSideBySideComparator() {
+  const hideBtn = document.getElementById('btnSbsHide');
+  if (hideBtn) {
+    hideBtn.addEventListener('click', () => {
+      const box = document.getElementById('sideBySideComparator');
+      if (box) box.style.display = 'none';
+    });
+  }
+  const setMainBtn = document.getElementById('btnSbsSetMain');
+  if (setMainBtn) {
+    setMainBtn.addEventListener('click', () => {
+      const v = state.lastComparedVariant;
+      if (v && v.image_path && typeof window.setMainVariantAction === 'function') {
+        window.setMainVariantAction(v.image_path, v.id);
+      } else {
+        toastInfo('Genera una variante primero para poder usarla como ancla.');
+      }
+    });
+  }
+}
+
+/** Alias legacy — QueuePoller / import llamaban loadPersonaVariants */
+function loadPersonaVariants(personaId) {
+  return loadVariantsForPersona(personaId);
+}
+window.loadPersonaVariants = loadPersonaVariants;
+
+function setGenerationButtonsDisabled(disabled) {
+  ['btnGenerateVariant', 'btnGenerateUgcImage', 'btnSavePersona', 'btnStartBulkAdGeneration'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = !!disabled;
+    el.classList.toggle('is-queue-locked', !!disabled);
+    if (disabled) el.setAttribute('title', 'Espera a que termine la cola de generación');
+    else el.removeAttribute('title');
+  });
+}
+
+function updateQueueStatusChip(q) {
+  const chip = document.getElementById('queueStatusChip');
+  const text = document.getElementById('queueStatusChipText');
+  if (!chip || !text) return;
+
+  const isCooling = q.isCoolingDown || q.rateLimitActive;
+  const pending = q.pendingCount ?? q.queueLength ?? 0;
+  const busy = !!(q.active || q.busy);
+  const cooldownSec = isCooling
+    ? (Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30)
+    : 0;
+
+  if (!busy && pending === 0 && !isCooling) {
+    chip.style.display = 'none';
+    chip.classList.remove('cooling', 'busy');
+    return;
+  }
+
+  chip.style.display = 'flex';
+  chip.classList.toggle('cooling', !!isCooling);
+  chip.classList.toggle('busy', !!busy && !isCooling);
+  if (isCooling) {
+    text.textContent = `429 — espera ${cooldownSec}s`;
+  } else if (pending > 0) {
+    text.textContent = `Cola: ${pending + (busy ? 1 : 0)} en espera`;
+  } else {
+    text.textContent = q.currentLabel ? `Generando: ${q.currentLabel}` : 'Generando imagen…';
+  }
 }
 
 function navigateToTab(tabId) {
@@ -1112,13 +1303,13 @@ const QueuePoller = {
       const q = data.queue;
       this.updateUI(q);
 
-      // M2 Live Vault re-rendering when background queue tasks complete or progress
-      if (typeof state !== 'undefined' && state.selectedPersona && state.activeTab === 'vault') {
+      // Refresh variants when queue progresses (Persona Engine vault, not a separate tab)
+      if (typeof state !== 'undefined' && state.selectedPersona && state.activeTab === 'persona-engine') {
         const completed = q.completedCount || 0;
         if (completed !== this.lastCompletedCount || q.active) {
           this.lastCompletedCount = completed;
-          if (typeof loadPersonaVariants === 'function') {
-            loadPersonaVariants(state.selectedPersona.id);
+          if (typeof loadVariantsForPersona === 'function') {
+            loadVariantsForPersona(state.selectedPersona.id);
           }
         }
       }
@@ -1126,8 +1317,10 @@ const QueuePoller = {
       const isCooling = q.isCoolingDown || q.rateLimitActive;
       const pending = q.pendingCount ?? q.queueLength ?? 0;
       if (!q.active && pending === 0 && !isCooling) {
-        if (typeof state !== 'undefined' && state.selectedPersona && state.activeTab === 'vault' && typeof loadPersonaVariants === 'function') {
-          loadPersonaVariants(state.selectedPersona.id);
+        setGenerationButtonsDisabled(false);
+        updateQueueStatusChip(q);
+        if (typeof state !== 'undefined' && state.selectedPersona && state.activeTab === 'persona-engine' && typeof loadVariantsForPersona === 'function') {
+          loadVariantsForPersona(state.selectedPersona.id);
         }
         this.stop();
       }
@@ -1141,18 +1334,23 @@ const QueuePoller = {
     const cooldownSec = isCooling ? (Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30) : 0;
     const pendingCount = q.pendingCount ?? q.queueLength ?? 0;
     const totalInQueue = pendingCount + (q.active ? 1 : 0);
+    const locked = !!(q.active || pendingCount > 0 || isCooling);
+
+    // F3 — deshabilitar gens mientras hay cola / cooldown 429
+    setGenerationButtonsDisabled(locked);
+    updateQueueStatusChip(q);
 
     let statusText = '';
     let toastType = 'loading';
 
     if (isCooling) {
-      statusText = `Servidor congestionado, enfriando ${cooldownSec} seg...`;
+      statusText = `Rate limit 429 — reintentando en ${cooldownSec}s…`;
       toastType = 'info';
     } else if (q.active || pendingCount > 0) {
       if (pendingCount > 0) {
-        statusText = `Encolado (Posición ${totalInQueue})`;
+        statusText = `Cola ocupada · posición ${totalInQueue} (1 gen a la vez)`;
       } else {
-        statusText = `Generando imagen...`;
+        statusText = q.currentLabel ? `Generando: ${q.currentLabel}` : 'Generando imagen…';
       }
       toastType = 'loading';
     }
@@ -1168,6 +1366,8 @@ const QueuePoller = {
       if (ugcText && ugcText.offsetParent !== null) {
         ugcText.textContent = statusText;
       }
+    } else {
+      setGenerationButtonsDisabled(false);
     }
   }
 };
@@ -1651,12 +1851,50 @@ async function copyFreeChatbotPack(packId) {
     const text = buildFreeChatbotPack(packId);
     await navigator.clipboard.writeText(text);
     const pack = FREE_CHATBOT_PACKS[packId];
+    markHappyPathCopied();
     toastWithLockHealth(`Pack gratis «${pack.label}» copiado — pégalo en ChatGPT/Gemini/Claude`, getFullPersonaJSON());
   } catch (err) {
     console.error(err);
     toastError('No se pudo copiar el pack: ' + (err.message || 'error'));
   }
 }
+
+/**
+ * 2.5–2.6 — Descarga ZIP del influencer (lock + packs + imágenes + licencia).
+ */
+async function exportPersonaZipPack() {
+  const p = state.selectedPersona || state.personas[0];
+  if (!p?.id) {
+    toastInfo('Selecciona o crea un influencer antes de exportar el pack.');
+    return;
+  }
+  try {
+    toastLoading('Empaquetando ZIP…');
+    const res = await authFetch(`/api/export/persona/${p.id}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const blob = await res.blob();
+    const cd = res.headers.get('Content-Disposition') || '';
+    const match = cd.match(/filename="?([^"]+)"?/i);
+    const filename = match?.[1] || `${(p.name || 'influencer').toLowerCase().replace(/[^a-z0-9]+/gi, '_')}_pack.zip`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    markHappyPathCopied();
+    toastSuccess(`📦 Pack ZIP descargado: ${filename}`);
+  } catch (err) {
+    console.error(err);
+    toastError('No se pudo exportar el ZIP: ' + (err.message || 'error'));
+  }
+}
+window.exportPersonaZipPack = exportPersonaZipPack;
 
 function setupFreeChatbotPacks() {
   document.querySelectorAll('[data-free-pack]').forEach(btn => {
@@ -2042,6 +2280,7 @@ function setupPersonaEngine() {
     let parsed = null;
     try { parsed = JSON.parse(jsonArea.value); } catch (e) {}
     if (parsed && typeof parsed === 'object') {
+      markHappyPathCopied();
       toastWithLockHealth('Estructura JSON copiada al portapapeles', parsed);
     } else {
       toastSuccess('Estructura JSON copiada al portapapeles');
@@ -2051,6 +2290,7 @@ function setupPersonaEngine() {
   document.getElementById('btnCopyChatbotPrompt').addEventListener('click', () => {
     const exportText = buildChatbotExportText({ includePrompt: true });
     navigator.clipboard.writeText(exportText);
+    markHappyPathCopied();
     toastWithLockHealth('📋 Prompt + JSON copiados para tu chatbot', getFullPersonaJSON());
   });
 
@@ -3076,6 +3316,7 @@ function setupUgcStudio() {
     });
     
     navigator.clipboard.writeText(exportText);
+    markHappyPathCopied();
     toastSuccess('📋 Pack completo copiado para tu chatbot');
   });
 
@@ -3084,7 +3325,7 @@ function setupUgcStudio() {
   if (btnDownloadJson) {
     btnDownloadJson.addEventListener('click', () => {
       const personaJSON = getFullPersonaJSON();
-      const filename = `${(personaJSON.name || 'influencer').toLowerCase().replace(/\s+/g, '_')}_master_pack.json`;
+      const filename = `${(personaJSON.identity?.name || personaJSON.name || 'influencer').toLowerCase().replace(/\s+/g, '_')}_master_pack.json`;
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(personaJSON, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
@@ -3092,11 +3333,20 @@ function setupUgcStudio() {
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
+      markHappyPathCopied();
       if (typeof toastSuccess === 'function') {
         toastSuccess(`📥 Pack JSON descargado: ${filename}`);
       }
     });
   }
+
+  const wireExportZip = (btnId) => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.addEventListener('click', () => exportPersonaZipPack());
+  };
+  wireExportZip('btnExportPersonaZip');
+  wireExportZip('btnExportPersonaZipSheet');
 
   // Commercial License Generator Action
   const btnLicense = document.getElementById('btnGenerateCommercialLicense');
@@ -4898,9 +5148,12 @@ function renderVariantVaultGrid() {
         <p style="color: var(--text-secondary); font-size: 11px; margin-top: 6px;">¡Selecciona una pose y vestuario a la izquierda y presiona Generar!</p>
       </div>
     `;
+    updateSideBySideComparator(null);
     return;
   }
-  
+
+  updateSideBySideComparator(state.activeVariants[0]);
+
   state.activeVariants.forEach(v => {
     const card = document.createElement('div');
     card.className = 'variant-card';
@@ -4913,7 +5166,7 @@ function renderVariantVaultGrid() {
           ${(v.pose || '').split('(')[0]}
         </div>
         <div style="display: flex; gap: 4px;">
-          <button type="button" class="btn btn-sm btn-primary" style="flex: 1; font-size: 9px; padding: 4px 6px;" onclick="event.stopPropagation(); setMainVariantAction('${v.image_path}')">⭐ Perfil</button>
+          <button type="button" class="btn btn-sm btn-primary" style="flex: 1; font-size: 9px; padding: 4px 6px;" onclick="event.stopPropagation(); setMainVariantAction('${v.image_path}', '${v.id}')">⭐ Perfil</button>
           <button type="button" class="btn btn-sm btn-secondary" style="flex: 1; font-size: 9px; padding: 4px 6px; background: rgba(220,53,69,0.3); color:#ff6b6b;" onclick="event.stopPropagation(); deleteVariantAction('${v.id}')">🗑️ Borrar</button>
         </div>
       </div>
@@ -4953,11 +5206,12 @@ function renderVariantVaultGrid() {
 }
 
 // Attach these to window so inline onclick handlers work
-window.setMainVariantAction = async function(imagePath) {
+window.setMainVariantAction = async function(imagePath, variantId) {
   if (!state.selectedPersona) return;
   setGitSyncingState();
   try {
-    const res = await authFetch(`/api/personas/${state.selectedPersona.id}/variants/set-main/set-main`, {
+    const idPart = variantId || 'set-main';
+    const res = await authFetch(`/api/personas/${state.selectedPersona.id}/variants/${idPart}/set-main`, {
       method: 'POST',
       body: JSON.stringify({ imagePath })
     });
@@ -4967,7 +5221,10 @@ window.setMainVariantAction = async function(imagePath) {
       state.selectedPersona = state.personas.find(p => p.id === state.selectedPersona.id);
       renderPersonaGrids();
       populateActiveUgcData();
+      updateSideBySideComparator(state.lastComparedVariant);
       showSyncToast(true, '¡Retrato principal actualizado!');
+    } else {
+      showSyncToast(false, data.message || 'Error al actualizar retrato.');
     }
   } catch (e) {
     showSyncToast(false, 'Error al actualizar retrato.');
@@ -5090,6 +5347,8 @@ async function generateVariantAction() {
     if (data.success) {
       state.activeVariants = data.variants;
       renderVariantVaultGrid();
+      updateSideBySideComparator(data.variant || data.variants?.[0]);
+      renderHappyPathChecklist();
       statusText.textContent = framing === 'fullbody'
         ? '✓ Cuerpo entero generado!'
         : '✓ Pose agregada (misma identidad)!';

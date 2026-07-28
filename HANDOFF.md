@@ -25,10 +25,10 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa de producto** | **Usabilidad** (perfeccionar flujo crear → JSON → chatbot). Luego **seguridad** para mercado. |
-| **Fase ROADMAP** | Free path sólido; **F1 validador** ✅; pendientes UX: F4 side-by-side, F6 happy path 60s |
-| **Prioridad inmediata** | F6 (60s) y F4 (side-by-side); no video full ni Replicate obligatorio |
-| **En pausa** | Hardening de seguridad para lanzamiento; multi-tenant; billing |
+| **Etapa de producto** | **Usabilidad** casi cerrada (F1–F6 + export pack). Siguiente: **seguridad** para mercado. |
+| **Fase ROADMAP** | F1–F6 + 2.5–2.6 export ZIP ✅ en esta sesión |
+| **Prioridad inmediata** | Merge PRs usabilidad; luego hardening PIN/sesiones/headers |
+| **En pausa** | Multi-tenant; billing; Replicate obligatorio |
 | **Servidor** | `npm start` → `server.js` (completo). `start:minimal` = demo only |
 | **Última plataforma** | Cursor |
 | **Última actualización** | 2026-07-28 |
@@ -37,17 +37,17 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ## Sesión reciente (Cursor, 2026-07-28)
 
-**Pedido del usuario:** ideas concretas → implementar **#3 Validador de `character_lock`**.
+**Pedido:** implementar los 5 pendientes de usabilidad (F6, F4, F3, export pack, F2).
 
-**Hecho en esta sesión:**
-- Nuevo módulo `character-lock-validator.js` (UMD: Node + browser) con `validateCharacterLock`.
-- Panel `#lockHealthPanel` en Persona Engine (score 0–100, grados Sólido/Aceptable/Débil, lista expandible).
-- Toasts no bloqueantes al copiar JSON / chatbot / packs free si el lock tiene avisos.
-- Tests: `test/character-lock-validator.test.js` (12 casos).
-- `DISABLE_GIT_BACKUP=1` en `server.js` + `npm test` (evita que la suite ensucie `main` vía auto-sync).
-- Servido en `GET /character-lock-validator.js`.
+**Hecho:**
+- **F6** Checklist «Arranque en 60 segundos» en Resumen (`#happyPathCard`).
+- **F4** Side-by-side ancla vs última gen (`#sideBySideComparator` + set-as-main); fix URL `set-main`.
+- **F3** Chip de cola + disable de botones gen durante busy/429; mensajes countdown.
+- **2.5–2.6** `GET /api/export/persona/:id` ZIP (lock + packs + imágenes + licencia).
+- **F2** README flujo emprendedor con nombres de botón reales.
+- Tests export + suite verde con `DISABLE_GIT_BACKUP=1`.
 
-**No tocado:** F4 side-by-side, F6 onboarding 60s, Replicate, auth hardening.
+**No tocado:** seguridad de mercado, Replicate real.
 
 ---
 
@@ -55,10 +55,9 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 1. `git pull` → este archivo → `ROADMAP.md`.
 2. `npm start` (nunca `start:minimal` para trabajo real).
-3. Priorizar: **F6** (60s en dashboard) y **F4** (side-by-side ancla vs gen).
-4. No endurecer seguridad de mercado todavía salvo lo mínimo local (PIN / `.env`).
-5. Tokens: `.env` local por máquina — no van en Git.
-6. Tests: `npm test` ya setea `DISABLE_GIT_BACKUP=1`.
+3. Etapa **seguridad**: rate-limit login, PIN default banner, headers, session secret desde `.env`.
+4. Tokens: `.env` local — no van en Git.
+5. Tests: `npm test` setea `DISABLE_GIT_BACKUP=1`.
 
 ---
 
@@ -66,10 +65,10 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-28 | Cursor | F1 validador `character_lock` (panel salud + toasts + tests) | *(este PR)* |
-| 2026-07-27 | Cursor | Alinear deps + documentar concepto (prompts/JSON/chatbot) y etapa usabilidad→seguridad | *(main)* |
-| 2026-07-27 | Antigravity | `npm start`→`server.js` + modal Ajustes + 3 skills + SKILLS_MANUAL | `714ab5b` |
-| 2026-07-27 | Cursor | HANDOFF + workflow sync GitHub | `b70f6d0` / `4b2abcc` |
+| 2026-07-28 | Cursor | Usabilidad F2–F6 + export ZIP persona | *(este PR)* |
+| 2026-07-28 | Cursor | F1 validador `character_lock` (panel salud + toasts + tests) | PR #4 |
+| 2026-07-27 | Cursor | Alinear deps + documentar concepto | *(main)* |
+| 2026-07-27 | Antigravity | `npm start`→`server.js` + modal Ajustes + 3 skills | `714ab5b` |
 
 ---
 
