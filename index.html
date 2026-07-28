@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.2.1">
+  <link rel="stylesheet" href="index.css?v=1.2.2">
 </head>
 <body>
   <div class="app-container">
@@ -1670,8 +1670,8 @@
     <div class="glass-card" style="width: 100%; max-width: 650px; padding: 32px; position: relative; border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow-y: auto; max-height: 90vh;">
       <button type="button" class="history-modal-close" id="btnCloseImportModal" style="position: absolute; top: 16px; right: 16px; border: none; background: transparent; font-size: 24px; color: var(--text-secondary); cursor: pointer;">&times;</button>
       
-      <h2 style="font-family: var(--font-display); margin-bottom: 8px; font-size: 20px; color: #fff; display: flex; align-items: center; gap: 10px;">📥 Importar Influencer Real</h2>
-      <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 24px;">Sube fotos o indica un enlace de referencia para crear un influencer consistente con guiones de video UGC.</p>
+      <h2 style="font-family: var(--font-display); margin-bottom: 8px; font-size: 20px; color: #fff;">Importar / inspirar</h2>
+      <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 24px;">Sube 1–4 fotos (o URL). Se analiza la identidad y creas una <strong>ficha nueva</strong> con JSON — sin depender de Gemini. Después: copiar pack a chatbot gratis.</p>
 
       <!-- Paso 1: Formulario de Carga -->
       <div id="importStep1">
@@ -1723,8 +1723,8 @@
       <div id="importLoading" style="display: none; padding: 40px 0; text-align: center; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
         <div class="analysis-spinner" style="width: 48px; height: 48px; border-width: 4px; border-color: rgba(99, 102, 241, 0.1); border-top-color: var(--accent-primary);"></div>
         <div>
-          <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 6px;">Analizando imágenes con IA...</h3>
-          <p style="color: var(--text-secondary); font-size: 12px;">Extrayendo rasgos visuales consistentes y redactando guiones UGC para video. Esto puede tomar unos segundos.</p>
+          <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 6px;">Analizando referencia…</h3>
+          <p style="color: var(--text-secondary); font-size: 12px;">Extrayendo rasgos (Gemini si hay clave; si no, heurística / offline). Funciona sin APIs de pago.</p>
         </div>
       </div>
 
@@ -1760,9 +1760,12 @@
           <!-- Dynamically populated scripts -->
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+        <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+          Al confirmar se guardará una <strong style="color:#fff;">ficha nueva</strong> en el portafolio (no sobrescribe otra). Siguiente paso recomendado: copiar pack chatbot (`character_lock`).
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; flex-wrap: wrap;">
           <button type="button" class="btn btn-secondary" id="btnCancelImportPreview" style="padding: 10px 24px;">Descartar</button>
-          <button type="button" class="btn" id="btnConfirmImport" style="padding: 10px 24px; background: #10b981;">Crear Persona y Guardar</button>
+          <button type="button" class="btn" id="btnConfirmImport" style="padding: 10px 24px; background: #10b981; font-weight: 600;">Confirmar: crear ficha nueva</button>
         </div>
       </div>
 
@@ -1850,6 +1853,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=1.1.15"></script>
+  <script src="app.js?v=1.2.2"></script>
 </body>
 </html>

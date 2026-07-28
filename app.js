@@ -5820,7 +5820,11 @@ function initImportModal() {
       const scriptTopic = scriptTopicInput ? scriptTopicInput.value.trim() : '';
 
       if (selectedFiles.length === 0 && !imageUrl) {
-        toastInfo('Selecciona al menos una foto o una URL de referencia.');
+        toastInfo('Selecciona al menos una foto (máx. 4) o una URL de referencia.');
+        return;
+      }
+      if (selectedFiles.length > 4) {
+        toastError('Máximo 4 fotos por importación.');
         return;
       }
 
@@ -5846,13 +5850,23 @@ function initImportModal() {
           body: formData
         });
 
-        const data = await response.json();
-        if (!data.success) {
-          throw new Error(data.message || 'Error desconocido al analizar.');
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+          throw new Error('Sesión expirada o PIN inválido. Vuelve a iniciar sesión.');
+        }
+        if (response.status === 429 || data.code === 429) {
+          const sec = data.retryAfter || 30;
+          throw new Error(`Límite de generación (429). Espera ~${sec}s e inténtalo de nuevo.`);
+        }
+        if (response.status === 400) {
+          throw new Error(data.message || 'Petición inválida (revisa número/tipo de fotos).');
+        }
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || data.error || `Error HTTP ${response.status}`);
         }
 
         lastImportedPersona = data.persona;
-        toastSuccess(`Análisis listo: ${lastImportedPersona?.name || 'influencer'}. Revisa y confirma.`);
+        toastSuccess(`Análisis listo: ${lastImportedPersona?.name || 'influencer'}. Revisa y confirma la ficha nueva.`);
 
         try {
           state.personas = await reloadPersonasFromServer({
@@ -5909,12 +5923,17 @@ function initImportModal() {
             videoPromptsContainer.appendChild(card);
           });
         } else {
-          videoPromptsContainer.innerHTML = '<p style="font-size: 11px; color: var(--text-secondary);">No se generaron guiones de video.</p>';
+          videoPromptsContainer.innerHTML = '<p style="font-size: 11px; color: var(--text-secondary);">No se generaron guiones de video (opcional).</p>';
         }
 
       } catch (err) {
         console.error('Import analysis failed:', err);
-        toastError(`Error al analizar influencer: ${err.message}`);
+        const msg = err.message || 'Error de red al importar.';
+        if (/Failed to fetch|NetworkError|network/i.test(msg)) {
+          toastError('Error de red al analizar. Comprueba que el Studio está en marcha (npm start).');
+        } else {
+          toastError(`Error al analizar influencer: ${msg}`);
+        }
         loading.style.display = 'none';
         step1.style.display = 'block';
       }
@@ -5923,7 +5942,10 @@ function initImportModal() {
 
   if (btnConfirm) {
     btnConfirm.addEventListener('click', async () => {
-      if (!lastImportedPersona) return;
+      if (!lastImportedPersona) {
+        toastInfo('Primero analiza una referencia.');
+        return;
+      }
 
       const finalName = suggestedNameInput ? suggestedNameInput.value.trim() : lastImportedPersona.name;
       if (!finalName) {
@@ -5931,19 +5953,29 @@ function initImportModal() {
         return;
       }
 
+      const ok = confirm(
+        `Se guardará la ficha nueva «${finalName}» en el portafolio (no sobrescribe otra).\n\n¿Confirmar creación?`
+      );
+      if (!ok) return;
+
       try {
         lastImportedPersona.name = finalName;
         lastImportedPersona.handle = `@${finalName.toLowerCase().replace(/\s+/g, '')}_ugc`;
+        lastImportedPersona.forceCreate = true;
 
         const saveRes = await authFetch('/api/personas', {
           method: 'POST',
           body: JSON.stringify(lastImportedPersona)
         });
-        const saveJson = await saveRes.json();
-        if (saveJson.success) {
-          state.personas = Array.isArray(saveJson.personas) ? saveJson.personas : state.personas;
-          if (saveJson.persona) lastImportedPersona = saveJson.persona;
+        if (saveRes.status === 401) {
+          throw new Error('Sesión expirada. Vuelve a iniciar sesión.');
         }
+        const saveJson = await saveRes.json();
+        if (!saveJson.success) {
+          throw new Error(saveJson.message || 'No se pudo guardar la persona.');
+        }
+        state.personas = Array.isArray(saveJson.personas) ? saveJson.personas : state.personas;
+        if (saveJson.persona) lastImportedPersona = saveJson.persona;
 
         state.selectedPersona = lastImportedPersona;
 
@@ -5953,16 +5985,21 @@ function initImportModal() {
         });
         refreshPersonaLists();
 
-        toastSuccess(`¡Influencer "${finalName}" importado con éxito! Se están generando poses adicionales en segundo plano...`);
+        toastSuccess(`«${finalName}» en portafolio. Siguiente: copiar pack chatbot (character_lock).`);
         closeModal();
 
-        // Immediate navigation to Vault
         if (typeof navigateToTab === 'function') {
-          navigateToTab('vault');
+          navigateToTab('persona-engine');
         }
-        if (typeof loadPersonaVariants === 'function' && lastImportedPersona.id) {
-          loadPersonaVariants(lastImportedPersona.id);
-        }
+        setTimeout(() => {
+          const packBtn = document.getElementById('btnCopyPrimaryPack');
+          if (packBtn) {
+            packBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          if (confirm('¿Copiar ahora el pack «cuerpo entero» para pegar en ChatGPT / Gemini?')) {
+            if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
+          }
+        }, 350);
 
       } catch (err) {
         console.error('Failed to confirm and save persona:', err);
