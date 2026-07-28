@@ -46,29 +46,31 @@
 
 ## Etapas de producto (orden del usuario)
 
-| Orden | Etapa | Meta |
-|-------|--------|------|
-| 1 | **Núcleo free** | Prompts + `character_lock` JSON → chatbots gratis (crear o inspirar) |
-| 2 | **Usabilidad** ← *ahora* | Happy path claro, F4/F6, menos fricción al exportar packs |
-| 3 | **Seguridad** | Endurecer PIN/sesiones/superficie antes de mercado |
-| 4 | Replicate / video / paid | Solo opt-in; nunca rompe free |
+| Orden | Etapa | Meta | Estado (2026-07-28) |
+|-------|--------|------|---------------------|
+| 1 | **Núcleo free** | Prompts + `character_lock` JSON → chatbots gratis | Hecho (proteger) |
+| 2 | **Usabilidad** | Happy path, F4/F6, export packs, nav | Core hecho en PR #1 |
+| 3 | **Seguridad** | PIN/sesiones/superficie antes de mercado | Mínima hecha en PR #1 |
+| 4 | Replicate / video / paid | Solo opt-in; nunca rompe free | No empezar aún |
 
 ---
 
-## Fase actual — Maximizar free + usabilidad (Pollinations + JSON)
+## Fase actual — Estabilizar free path + docs
 
-**Meta:** sacar el máximo del path cero costo y pulir UX antes de seguridad de lanzamiento / Replicate.
+**Meta:** que cualquier bot/humano retome sin perder el hilo; cerrar fricción ligera de import (1.1/1.2). No abrir Replicate.
 
 | # | Entregable | Criterio de hecho |
 |---|------------|-------------------|
 | F1 | `character_lock` en todo save/export | Copiar a ChatGPT free reproduce la misma persona en 3 prompts distintos |
-| F2 | Documentar “flujo emprendedor gratis” en README corto | Un novato entiende: Studio + copiar JSON a chatbot |
-| F3 | Variantes: rate-limit UX + cola simple (1 gen a la vez) | No spamear Pollinations; toast “espera 30s” |
-| F4 | Side-by-side ancla vs última gen (gratis) | Usuario juzga consistencia sin API de scoring ✅ |
-| F5 | Prompt packs free (chatbot): cuerpo entero / bikini / spicy / producto en mano | 4 plantillas que reusan `character_lock` ✅ |
-| F6 | Happy path 60s en dashboard | Nuevo → guardar → 1 gen → copiar JSON ✅ (gen opcional) |
+| F2 | Documentar flujo emprendedor + mapa docs para bots | README/HANDOFF/AGENTS alineados al código ✅ |
+| F3 | Variantes: rate-limit UX + cola | Toast / cooldown; gen-queue ✅ |
+| F4 | Side-by-side ancla vs última gen | Comparador visual ✅ |
+| F5 | Prompt packs free chatbot | 4 plantillas ✅ |
+| F6 | Happy path 60s en dashboard | Nuevo → guardar → copiar JSON ✅ (gen opcional) |
+| 2.5–2.6 | Pack campaña (lock + guión) | `copyCampaignPack` ✅ |
+| 1.1 / 1.2 | Import confirm + errores honestos + CTA pack | ✅ |
 
-**No hacer en esta fase:** multi-tenant, billing, OAuth, video full, requerir Gemini key.
+**No hacer en esta fase:** multi-tenant, billing, OAuth, video full, requerir Gemini key, implementar Replicate.
 
 ---
 
@@ -96,7 +98,7 @@
 | 1.4 | Toasts | ✅ |
 | 1.5 | Contador filtrado | ✅ |
 | 1.6 | DB portable | ✅ |
-| 1.1 / 1.2 | QA matrix / import confirm | pendiente ligero |
+| 1.1 / 1.2 | QA matrix / import confirm | ✅ (confirm + errores + CTA pack) |
 
 ---
 
@@ -118,6 +120,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-28 | Docs para bots (README/HANDOFF/AGENTS/ROADMAP) + import QA 1.1/1.2 | Checklist regresión; CTA post-import |
 | 2026-07-28 | **2.5–2.6** Pack campaña: character_lock + guión (+ producto) | `copyCampaignPack`; persist scripts en campaña |
 | 2026-07-28 | Usabilidad: ordenar flujo, F4, F6; seguridad: auth/session/git opt-in | Nav primario/secundario; save sin Pollinations; AUTO_GIT_BACKUP off |
 | 2026-07-27 | Unificar arranque + alinear `package.json` al lock; docs concepto prompts/JSON | `npm start`→`server.js`; etapa = usabilidad → seguridad |

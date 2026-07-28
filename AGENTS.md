@@ -1,79 +1,74 @@
-# influ-JSON — instrucciones para Grok / agentes
+# influ-JSON — instrucciones para agentes
 
 ## Qué es este proyecto
 
-**influ-JSON**: estudio local para generar **prompts + JSON** de influencers virtuales consistentes (desde cero o inspirados), anclar identidad con **`character_lock`**, y usar ese JSON en **chatbots gratuitos** para seguir desarrollando el personaje. UGC Studio, scripts y licensing rodean ese núcleo.
+Estudio local para generar **prompts + JSON** de influencers virtuales consistentes (desde cero o inspirados), anclar identidad con **`character_lock`**, y usar ese JSON en **chatbots gratuitos**. UGC Studio, scripts y licensing son **secundarios** alrededor de ese núcleo.
 
 Stack: Node/Express, better-sqlite3, front monolítico (`index.html` + `app.js` + `index.css`).
 
-## Filosofía de producto (crítica)
+## Al retomar (obligatorio)
 
-**Cero costo primero.** Pequeños emprendedores deben poder crear y mantener influencers **sin pagar** APIs de imagen ni face-lock hasta hacer crecer la marca.
+1. `git pull` (rama activa o `main` tras merge).
+2. Leer **[HANDOFF.md](./HANDOFF.md)** primero.
+3. Leer **[ROADMAP.md](./ROADMAP.md)** y, si hace falta contexto humano, **[README.md](./README.md)**.
+4. No implementar Replicate a menos que el usuario lo pida.
 
-| Siempre free | Opcional futuro (no romper free) |
-|--------------|----------------------------------|
+## Filosofía (no negociable)
+
+**Cero costo primero.** Sin tarjeta en el path básico.
+
+| Siempre free | Opcional futuro (nunca rompe free) |
+|--------------|-------------------------------------|
 | Pollinations + offline | Replicate InstantID/PuLID |
 | JSON `character_lock` → chatbots gratis | ComfyUI self-host |
 | Studio local + SQLite | Cualquier proveedor de pago |
 
-- **No** hagas que el path básico requiera `REPLICATE_API_TOKEN` o tarjeta.
-- Si implementas face-lock de pago: flag opt-in + fallback a Pollinations.
-- Documento maestro: **[ROADMAP.md](./ROADMAP.md)**. Continuidad: **[HANDOFF.md](./HANDOFF.md)**.
-
 ## Prioridad de trabajo (orden del usuario)
 
-1. **Prompts + JSON consistentes** (crear / inspirar → `character_lock` → chatbot free)
-2. **Usabilidad** (esta etapa — happy path claro, menos fricción)
-3. **Seguridad mínima** (siguiente etapa — endurecer antes de mercado)
-4. Replicate / video / features de pago (solo cuando free + UX estén sólidos)
+1. Prompts + JSON consistentes → chatbot free  
+2. **Usabilidad / estabilizar free path** (etapa reciente)  
+3. Seguridad para mercado (mínima ya en PR; endurecer después)  
+4. Replicate / video / pago — solo cuando free + UX estén sólidos  
 
 ## Convenciones técnicas
 
-- Servidor: **`npm start` → `node server.js`** (puerto 3000). `npm run start:minimal` es demo offline — **no** es producción.
-- Auth: `STUDIO_PIN` en `.env`. No commitear `.env`.
-- DB: `data/influ.sqlite` o `DATA_DIR` — ver `paths.js`.
-- Imagen: `image-provider.js` (default `pollinations`).
+- **`npm start` → `node server.js`** (puerto 3000). `npm run start:minimal` = demo — no producción.
+- Auth: `STUDIO_PIN` / `SESSION_SECRET` en `.env` (ver `.env.example`). No commitear `.env`.
+- Auto git backup del servidor: **off** salvo `AUTO_GIT_BACKUP=1`.
+- DB: `data/influ.sqlite` — ver `paths.js`.
+- Imagen: `image-provider.js` (default Pollinations; Replicate = stub).
 - Tras mutar personas: refrescar `state.personas` + grids.
-- UI en español; errores honestos (429, offline).
-- Tests: `npm test` → `node --test test/*.test.js`.
+- UI en español; errores honestos (429, offline, 401).
+- Tests: `npm test`.
 
 ## Happy path a proteger
 
 ```
-Crear/importar → portafolio → gen Pollinations o copiar JSON a chatbot free → export pack
+Crear/importar → guardar JSON → copiar pack chatbot
+(+ opcional: variante F4, pack campaña Script Engine)
 ```
 
-Regresión P0: “guardé y no aparece”, o free path roto por una feature de pago.
+Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ## Archivos calientes
 
 | Archivo | Rol |
 |---------|-----|
 | `server.js` | API Express (producción) |
-| `server-minimal.js` | Solo demo offline (`npm run start:minimal`) |
+| `server-minimal.js` | Demo offline only |
 | `db.js` | SQLite |
-| `app.js` | Front + `character_lock` + export chatbot |
+| `app.js` | Front + `character_lock` + packs + import |
 | `ai-service.js` | Pollinations / Gemini opcional |
-| `image-provider.js` | Free vs paid face-lock (paid = stub futuro) |
+| `image-provider.js` | Free vs paid stub |
 | `HANDOFF.md` | Foco entre plataformas |
-| `ROADMAP.md` | Plan y filosofía |
+| `README.md` | Entrada + checklist |
+| `ROADMAP.md` | Plan |
 
-## Sync Cursor ↔ Antigravity (GitHub)
+## Sync GitHub (obligatorio al terminar)
 
-El usuario alterna entre **Antigravity** (principal) y **Cursor**. Cada cambio debe quedar respaldado en GitHub.
+Remoto: `https://github.com/oscarkleinkopf/influ-json`
 
-**Remoto:** `https://github.com/oscarkleinkopf/influ-json` · rama `main`.
-
-### Al retomar
-
-1. `git pull origin main`
-2. Leer **[HANDOFF.md](./HANDOFF.md)**
-3. Leer **[ROADMAP.md](./ROADMAP.md)**
-4. No implementar Replicate a menos que el usuario lo pida
-
-### Al terminar una tarea
-
-1. Actualizar **HANDOFF.md** (log + foco + sesión)
-2. Si aplica, línea en log de **ROADMAP.md**
-3. `git add` → `git commit` → `git push origin main`
-4. Commit claro (`feat:` / `fix:` / `docs:`). **No** commitear `.env`
+1. Actualizar `HANDOFF.md` (log + foco + sesión)  
+2. Si aplica, log en `ROADMAP.md`  
+3. `git add` → `git commit` → `git push`  
+4. Prefijos: `feat:` / `fix:` / `docs:` — **nunca** `.env`
