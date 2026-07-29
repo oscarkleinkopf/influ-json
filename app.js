@@ -34,6 +34,7 @@ let state = {
 
 const HAPPY_PATH_COPY_KEY = 'influ_happy_path_copied_v1';
 const MEMBER_ONBOARD_DISMISS_PREFIX = 'influ_member_onboard_dismissed_';
+const FOUNDER_ONBOARD_DISMISS_PREFIX = 'influ_founder_onboard_dismissed_';
 
 function happyPathCopyStorageKey() {
   const id = state.currentProfile?.id;
@@ -42,6 +43,10 @@ function happyPathCopyStorageKey() {
 
 function memberOnboardDismissKey(profileId) {
   return `${MEMBER_ONBOARD_DISMISS_PREFIX}${profileId || 'unknown'}`;
+}
+
+function founderOnboardDismissKey(profileId) {
+  return `${FOUNDER_ONBOARD_DISMISS_PREFIX}${profileId || 'unknown'}`;
 }
 
 // Auth session token (stored in memory/sessionStorage)
@@ -334,15 +339,64 @@ function showMemberWelcomeModal() {
   modal.style.display = 'flex';
 }
 
+function isFounderOnboardingDismissed(profileId) {
+  if (!profileId) return true;
+  try {
+    return localStorage.getItem(founderOnboardDismissKey(profileId)) === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function dismissFounderOnboarding(profileId) {
+  if (!profileId) return;
+  try {
+    localStorage.setItem(founderOnboardDismissKey(profileId), '1');
+  } catch (e) {}
+}
+
+function hideFounderWelcomeModal() {
+  const modal = document.getElementById('founderWelcomeModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function showFounderWelcomeModal() {
+  const modal = document.getElementById('founderWelcomeModal');
+  if (!modal) return;
+  const name = state.currentProfile?.name;
+  const lead = document.getElementById('founderWelcomeLead');
+  if (lead) {
+    lead.textContent = name
+      ? `${name}: crea prompts + JSON (character_lock) y pégalos en chatbots gratis. Pollinations es opcional.`
+      : 'Crea prompts + JSON (character_lock) y pégalos en chatbots gratis. Pollinations es opcional.';
+  }
+  modal.style.display = 'flex';
+}
+
+/**
+ * Founder/admin: primer arranque con roster vacío (no bloquea si ya hay personas).
+ */
+function maybeShowFounderOnboarding() {
+  if (!isCurrentUserAdmin()) return;
+  const profileId = state.currentProfile?.id;
+  if (!profileId) return;
+  const emptyRoster = !Array.isArray(state.personas) || state.personas.length === 0;
+  if (!emptyRoster) return;
+  if (isFounderOnboardingDismissed(profileId)) return;
+  showFounderWelcomeModal();
+}
+
 /**
  * Muestra onboarding a members:
  * - justo tras canjear invitación, o
  * - primer login con roster vacío (si no lo descartaron).
+ * Admin/founder → maybeShowFounderOnboarding().
  */
 function maybeShowMemberOnboarding() {
   if (isCurrentUserAdmin()) {
     updateMemberEmptyRosterBanner();
     applyRoleBasedSettingsUi();
+    maybeShowFounderOnboarding();
     return;
   }
   applyRoleBasedSettingsUi();
@@ -375,6 +429,26 @@ function startMemberCreateFlow() {
   }, 80);
 }
 
+function startFounderCreateFlow({ importFlow = false } = {}) {
+  const profileId = state.currentProfile?.id;
+  dismissFounderOnboarding(profileId);
+  hideFounderWelcomeModal();
+  navigateToTab('persona-engine');
+  setTimeout(() => {
+    if (importFlow) {
+      document.getElementById('btnOpenImportModal')?.click();
+      return;
+    }
+    const nicheBtn = document.querySelector('[data-niche="beauty"]');
+    if (nicheBtn) nicheBtn.click();
+    else {
+      const card = document.getElementById('cardCreateScratch');
+      if (card) card.click();
+      else if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
+    }
+  }, 80);
+}
+
 function setupMemberOnboarding() {
   document.getElementById('btnCloseMemberWelcome')?.addEventListener('click', () => {
     dismissMemberOnboarding(state.currentProfile?.id);
@@ -391,7 +465,32 @@ function setupMemberOnboarding() {
     navigateToTab('como-usar');
   });
   document.getElementById('btnMemberEmptyCreate')?.addEventListener('click', startMemberCreateFlow);
+
+  // Founder / Administración
+  document.getElementById('btnCloseFounderWelcome')?.addEventListener('click', () => {
+    dismissFounderOnboarding(state.currentProfile?.id);
+    hideFounderWelcomeModal();
+  });
+  document.getElementById('btnFounderWelcomeSkip')?.addEventListener('click', () => {
+    dismissFounderOnboarding(state.currentProfile?.id);
+    hideFounderWelcomeModal();
+  });
+  document.getElementById('btnFounderWelcomeCreate')?.addEventListener('click', () => {
+    startFounderCreateFlow({ importFlow: false });
+  });
+  document.getElementById('btnFounderWelcomeImport')?.addEventListener('click', () => {
+    startFounderCreateFlow({ importFlow: true });
+  });
+  document.getElementById('btnFounderWelcomeGuide')?.addEventListener('click', () => {
+    dismissFounderOnboarding(state.currentProfile?.id);
+    hideFounderWelcomeModal();
+    navigateToTab('como-usar');
+  });
 }
+
+// Export helpers for tests / debugging
+window.founderOnboardDismissKey = founderOnboardDismissKey;
+window.maybeShowFounderOnboarding = maybeShowFounderOnboarding;
 
 function updateMemberEmptyRosterBanner() {
   const banner = document.getElementById('memberEmptyRosterBanner');
@@ -1159,9 +1258,10 @@ function updateDashboardStats() {
         </div>
         <div class="portfolio-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance || 'Latina'}</div>
         <div class="portfolio-card-actions">
-          <button class="btn btn-primary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
-          <button class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
-          <button class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
+          <button type="button" class="btn btn-primary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
+          <button type="button" class="btn btn-secondary btn-quick-copy-pack" style="font-size: 11px; padding: 6px 10px;" title="Copia pack cuerpo entero listo para ChatGPT/Gemini/Claude">Copiar pack</button>
+          <button type="button" class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
+          <button type="button" class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
         </div>
       </div>
     `;
@@ -1171,6 +1271,17 @@ function updateDashboardStats() {
       e.stopPropagation();
       selectPersona(p);
       navigateToTab('persona-engine');
+    });
+
+    card.querySelector('.btn-quick-copy-pack')?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try {
+        selectPersona(p);
+        await copyFreeChatbotPack('fullbody');
+      } catch (err) {
+        console.warn('quick copy pack:', err);
+        toastError('No se pudo copiar el pack.');
+      }
     });
 
     card.querySelector('.btn-quick-history').addEventListener('click', (e) => {
@@ -1275,6 +1386,11 @@ function setupHappyPathChecklist() {
           const card = document.getElementById('cardCreateScratch');
           if (card) card.click();
           else if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
+        }, 80);
+      } else if (action === 'import') {
+        navigateToTab('persona-engine');
+        setTimeout(() => {
+          document.getElementById('btnOpenImportModal')?.click();
         }, 80);
       } else if (action === 'save') {
         navigateToTab('persona-engine');

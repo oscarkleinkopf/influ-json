@@ -71,6 +71,8 @@ Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a l
 - **Matriz QA** (ficha del influencer): compara retrato ancla · cuerpo · spicy a ojo; checklist cara/tez/pelo (sin API de scoring).
 - **Importar**: Analizar = vista previa (no guarda). Confirmar = portafolio + anclas en segundo plano. Descartar no deja huérfanos.
 - **Guardar personaje** = JSON-first (sin Pollinations). **Guardar + retrato** es opcional.
+- **Portafolio**: botón «Copiar pack» en cada tarjeta (cuerpo entero → chatbot free).
+- Primer arranque (Administración, roster vacío): modal founder con preset Beauty / import / guía.
 - Auto-commit Git **apagado** por defecto; solo con `ENABLE_GIT_BACKUP=1`.
 - `npm run start:minimal` **no** es producción.
 
