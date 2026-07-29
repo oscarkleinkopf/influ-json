@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/chatbot-session-check-152f` (W11) |
-| **Commit base** | `main` Paso 0 (`208dc0d`) |
-| **PR actual** | W11 sesión chatbot (draft) |
-| **`main` remoto** | W1–W5e + W6 + W7–W10 + PLAN-NEXT |
-| **Etapa de producto** | Moat free — W11 en curso |
-| **Prioridad inmediata** | Merge W11 → W12…; **no Replicate** |
+| **Rama de trabajo** | `main` (W11 integrado) |
+| **Commit base** | `455e1fb` (W11 + fix CI) |
+| **PR actual** | #33 W11 (integrado en main; se puede cerrar) |
+| **`main` remoto** | Paso 0 + **W11** sesión chatbot |
+| **Etapa de producto** | Moat free → W12 historial lock |
+| **Prioridad inmediata** | **W12** character_lock history; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
