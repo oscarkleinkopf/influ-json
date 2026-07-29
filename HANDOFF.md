@@ -65,6 +65,8 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 **Siguiente:** W11 sesión chatbot (3 prompts + checklist).
 
+**Verificación Paso 0:** tests **133** pass · smoke **9/9**.
+
 **No tocado:** Replicate; implementación W11+ (aún no).
 
 
