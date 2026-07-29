@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **W5e routes/admin.js** | profiles/invites/backups/settings; server.js ~799; tests 110 + smoke 9/9; W5 ✅ |
 | 2026-07-29 | **W5d import+generation routes** | `routes/import.js` + `routes/generation.js`; server.js ~1064; tests 106 + smoke 9/9 |
 | 2026-07-29 | **W5c routes/personas.js** | CRUD+variants+license+export; server.js −~420; tests 101 + smoke 9/9 |
 | 2026-07-29 | **W5b prompt-builder.js** | UMD identity/skin/prompts/character_lock; app.js −~380; tests 96 + smoke 9/9 |
