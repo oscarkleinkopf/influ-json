@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/extract-import-flow-152f` (W5a, encima de W4) |
-| **Commit base** | `origin/cursor/phash-consistency-152f` @ `25b5aff` |
-| **PR actual** | W5a extract `import-flow.js` |
-| **`main` remoto** | pila #4–#16; PRs W1–W4 + PLAN abiertos |
+| **Rama de trabajo** | `cursor/extract-prompt-builder-152f` (W5b, encima de W5a) |
+| **Commit base** | `origin/cursor/extract-import-flow-152f` @ `52102eb` |
+| **PR actual** | W5b extract `prompt-builder.js` |
+| **`main` remoto** | pila #4–#16; PRs W1–W5a + PLAN abiertos |
 | **Etapa de producto** | Plan W5 mantenibilidad |
-| **Prioridad inmediata** | Tras W5a: **W5b** `prompt-builder.js` o merge W1–W5a; **no Replicate** |
+| **Prioridad inmediata** | Merge W1–W5b o **W5c** rutas Express; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 | **Última actualización** | 2026-07-29 |
@@ -48,15 +48,15 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** Continúa W5.
+**Pedido:** Continua (W5b).
 
-**Hecho (W5a):**
-- Extraído `import-flow.js` (UMD): helpers puros + `initImportModal(deps)`.
-- `app.js` deja un wrapper delgado; ~376 líneas menos en el monolito.
-- Servido en `/import-flow.js`; script antes de `app.js`.
-- Tests `import-flow.test.js` — suite **80** + smoke **9/9**.
+**Hecho (W5b):**
+- Extraído `prompt-builder.js` (UMD): `parseDetailedJSON`, `assembleCharacterLock`, identity/skin/prompt builders, variant framing, export chatbot.
+- `app.js` deja wrappers delgados; ~380 líneas menos en el monolito (~6481).
+- Servido en `/prompt-builder.js`; script antes de `app.js`.
+- Tests `prompt-builder.test.js`.
 
-**Siguiente:** W5b `prompt-builder.js` o rutas Express.
+**Siguiente:** W5c `routes/personas.js` o merge pila W1–W5b.
 
 **No tocado:** Replicate; desversionar mirrors.
 
@@ -107,8 +107,9 @@ Sin migrar a React. Extraer gradualmente de `app.js`:
 
 ```text
 chatbot-packs.js   ✅ (#16)
-import-flow.js     ← siguiente
-persona-engine.js
+import-flow.js     ✅ (W5a)
+prompt-builder.js  ✅ (W5b)
+routes/personas.js ← siguiente (W5c)
 queue-ui.js
 onboarding.js
 ```
@@ -144,6 +145,7 @@ Un módulo por commit, con `npm test` y smoke del happy path en cada extracción
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | W5b extract prompt-builder.js (UMD) | *(PR W5b)* |
 | 2026-07-29 | Cursor | W5a extract import-flow.js (UMD) | *(PR W5a)* |
 | 2026-07-29 | Cursor | W4 dHash consistencia ancla↔variante (gratis) | *(PR W4)* |
 | 2026-07-29 | Cursor | W3 magic bytes — validación imagen en import/upload | *(PR W3)* |
