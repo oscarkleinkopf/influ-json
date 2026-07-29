@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/founder-portfolio-ux-152f` |
-| **Commit base** | encima de `cursor/p0-git-security-152f` (#14) |
-| **PR actual** | **#15** — onboarding founder + Copiar pack portafolio |
-| **`main` remoto al escribir esto** | aún sin pila #4–#14 |
-| **Etapa de producto** | UX free residual (founder + atajos portafolio) |
-| **Prioridad inmediata** | Merge #4→#15; smoke; **no Replicate** |
+| **Rama de trabajo** | `cursor/import-cleanup-packs-152f` |
+| **Commit base** | encima de `cursor/founder-portfolio-ux-152f` (#15) |
+| **PR actual** | **#16** — discard preview refs + extract `chatbot-packs.js` |
+| **`main` remoto al escribir esto** | aún sin pila #4–#15 |
+| **Etapa de producto** | Paso 4 empezado (packs) + higiene import |
+| **Prioridad inmediata** | Merge #4→#16; smoke; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video completo y **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` |
 | **Última actualización** | 2026-07-29 |
@@ -54,6 +54,7 @@ PR reduzca su diff al avanzar `main`:
 | 10 | #13 | Import confirm sin persistir preview |
 | 11 | #14 | P0 auto-Git opt-in + paths/SSRF/ownership + UX JSON-first |
 | 12 | #15 | Onboarding founder + Copiar pack en portafolio |
+| 13 | #16 | Discard refs de import preview + `chatbot-packs.js` |
 
 PRs #1–#3 son anteriores y se solapan con la pila actual. **No mezclarlos a
 ciegas**: comprobar primero si su funcionalidad ya está en #4–#14; cerrar como
@@ -63,15 +64,14 @@ superseded si corresponde.
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** proseguir implementación (sin Replicate).
+**Pedido:** continuar (sin Replicate).
 
-**Hecho (esta rama #15):**
-- Modal **founder/admin** con roster vacío (preset Beauty / import / guía).
-- Botón **Copiar pack** (fullbody) en tarjetas del portafolio — ≤2 clics.
-- Checklist 60s: CTA «Importar foto».
-- Tests `founder-portfolio-ux.test.js`.
+**Hecho (esta rama #16):**
+- `POST /api/import-preview/discard` borra `ref_*` del preview al Descartar.
+- Extracción Paso 4: `chatbot-packs.js` (UMD) + tests.
+- Frontend usa `InfluChatbotPacks` al copiar packs.
 
-**Antes (PR #14):** git opt-in, safe-paths, ownership, JSON-first save.
+**Antes:** #15 founder/portafolio · #14 P0 seguridad/JSON-first.
 
 **No tocado:** Replicate; desversionar mirrors SQLite (requiere OK del owner).
 
@@ -134,14 +134,14 @@ Hecho: nav móvil, Guardar JSON-first / Guardar+retrato, checklist opcional,
 `pSkinToneHex` + picker, banner offline, onboarding founder admin, «Copiar pack»
 en tarjeta de portafolio, CTA Importar en checklist 60s.
 
-### Paso 4 — Mantenibilidad, después de estabilizar
+### Paso 4 — Mantenibilidad (en curso)
 
 Sin migrar a React. Extraer gradualmente de `app.js`:
 
 ```text
-import-flow.js
+chatbot-packs.js   ✅ (#16)
+import-flow.js     siguiente
 persona-engine.js
-chatbot-packs.js
 queue-ui.js
 onboarding.js
 ```
@@ -180,7 +180,8 @@ Registrar resultado exacto: paso, esperado, observado y captura/log si falla.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-29 | Cursor | Onboarding founder + Copiar pack portafolio | *(PR #15)* |
+| 2026-07-29 | Cursor | Discard import preview + extract chatbot-packs | *(PR #16)* |
+| 2026-07-29 | Cursor | Onboarding founder + Copiar pack portafolio | PR #15 |
 | 2026-07-29 | Cursor | P0 git opt-in + paths/SSRF/ownership + UX JSON-first | PR #14 |
 | 2026-07-29 | Cursor | 1.2 Import confirm (preview sin persistir) | PR #13 |
 | 2026-07-29 | Cursor | Matriz QA consistencia + banner 429 | PR #12 |
