@@ -213,7 +213,7 @@ Rama `cursor/untrack-data-mirrors-152f`:
 1. `git rm --cached influ.sqlite personas.json`; ambos en `.gitignore`.
 2. Fuente de verdad: `data/influ.sqlite`. `syncDbToWorkspace()` / `syncPersonasJson()` = no-op salvo `ENABLE_LEGACY_MIRRORS=1`. Export JSON en backups desde SQLite.
 3. Docs AGENTS/HANDOFF actualizados (sin `git restore` de mirrors).
-4. `git filter-repo` de historia — **opcional**, decisión del owner (no en este PR).
+4. `git filter-repo` — **hecho 2026-07-29** (owner): paths `influ.sqlite` / `personas.json` eliminados de toda la historia; force-push de refs.
 
 ---
 

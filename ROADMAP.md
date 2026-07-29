@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **W6 filter-repo historia** | Purgados `influ.sqlite`/`personas.json` de todos los commits; force-push |
 | 2026-07-29 | **W6 untrack mirrors** | `git rm --cached` + gitignore; sync opt-in `ENABLE_LEGACY_MIRRORS`; backup export desde SQLite |
 | 2026-07-29 | **Merge W1–W5e + PLAN → main** | FF tip + W1 + PLAN; tests 118 + smoke 9/9 |
 | 2026-07-29 | **W5e routes/admin.js** | profiles/invites/backups/settings; server.js ~799; tests 110 + smoke 9/9; W5 ✅ |

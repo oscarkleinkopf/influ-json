@@ -31,7 +31,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **`main` remoto** | W1–W5e + PLAN; W7–W10 en PRs aparte |
 | **Etapa de producto** | W6 en curso (OK owner); W7–W10 listos en PRs |
 | **Prioridad inmediata** | Merge W6 + pila W7–W10; **no Replicate** |
-| **En pausa** | OAuth, SMTP, video, **Replicate**; `git filter-repo` de historia (opcional owner) |
+| **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
 
@@ -58,7 +58,9 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 **Siguiente:** Merge W6; luego W7–W10. `filter-repo` de historia = opcional owner.
 
-**No tocado:** Replicate; historial git (sin filter-repo).
+**También:** `git filter-repo` eliminó `influ.sqlite` / `personas.json` de **toda** la historia (force-push de refs).
+
+**No tocado:** Replicate.
 
 
 ---
