@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **W5a import-flow.js** | UMD + deps inyectadas; app.js −~376 líneas; tests 80 + smoke |
 | 2026-07-29 | **W4 dHash consistencia** | `consistency-score.js`; chips UI; schema v7; tests 68 + smoke |
 | 2026-07-29 | **W3 magic bytes import** | `image-validation.js`; 400 + borrar basura; JPEG real en tests/smoke; 63+smoke |
 | 2026-07-29 | **W2 CI + smoke en repo** | `test/smoke.js` 9/9; workflow Actions; `npm run smoke` |

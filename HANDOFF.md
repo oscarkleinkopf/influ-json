@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/phash-consistency-152f` (W4, encima de W3) |
-| **Commit base** | `origin/cursor/import-image-validation-152f` @ `2ace7e4` |
-| **PR actual** | W4 dHash consistencia ancla↔variante |
-| **`main` remoto** | pila #4–#16; PRs W1–W3 + PLAN abiertos |
-| **Etapa de producto** | Plan W1→W10 |
-| **Prioridad inmediata** | Merge W1–W4 o **W5** `import-flow.js`; **no Replicate** |
+| **Rama de trabajo** | `cursor/extract-import-flow-152f` (W5a, encima de W4) |
+| **Commit base** | `origin/cursor/phash-consistency-152f` @ `25b5aff` |
+| **PR actual** | W5a extract `import-flow.js` |
+| **`main` remoto** | pila #4–#16; PRs W1–W4 + PLAN abiertos |
+| **Etapa de producto** | Plan W5 mantenibilidad |
+| **Prioridad inmediata** | Tras W5a: **W5b** `prompt-builder.js` o merge W1–W5a; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 | **Última actualización** | 2026-07-29 |
@@ -48,19 +48,17 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** Continúa W4.
+**Pedido:** Continúa W5.
 
-**Hecho (W4):**
-- `consistency-score.js`: dHash 64-bit + hamming + grades (≤8 ok / ≤14 warn / >14 bad).
-- Migración schema **v7**: columnas `consistency_*` en `persona_variants`.
-- Score al guardar variantes + `POST .../consistency/rescore`.
-- UI: chip en tarjetas de variante + resumen dHash en Matriz QA + botón recalcular.
-- Tooltip honest: **no es face-lock**.
-- Tests `consistency-score.test.js` — suite **68** + smoke **9/9**.
+**Hecho (W5a):**
+- Extraído `import-flow.js` (UMD): helpers puros + `initImportModal(deps)`.
+- `app.js` deja un wrapper delgado; ~376 líneas menos en el monolito.
+- Servido en `/import-flow.js`; script antes de `app.js`.
+- Tests `import-flow.test.js` — suite **80** + smoke **9/9**.
 
-**Siguiente:** mergear pila W1–W4 o W5 `import-flow.js`.
+**Siguiente:** W5b `prompt-builder.js` o rutas Express.
 
-**No tocado:** Replicate; desversionar mirrors; W4b vision Pollinations.
+**No tocado:** Replicate; desversionar mirrors.
 
 ---
 
@@ -146,6 +144,7 @@ Un módulo por commit, con `npm test` y smoke del happy path en cada extracción
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | W5a extract import-flow.js (UMD) | *(PR W5a)* |
 | 2026-07-29 | Cursor | W4 dHash consistencia ancla↔variante (gratis) | *(PR W4)* |
 | 2026-07-29 | Cursor | W3 magic bytes — validación imagen en import/upload | *(PR W3)* |
 | 2026-07-29 | Cursor | W2 CI GitHub Actions + `npm run smoke` (9 checks) | *(PR W2)* |
