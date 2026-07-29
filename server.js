@@ -153,6 +153,9 @@ app.get('/niche-presets.js', (req, res) => {
 app.get('/qa-matrix.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'qa-matrix.js'));
 });
+app.get('/chatbot-packs.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'chatbot-packs.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });
@@ -1624,6 +1627,45 @@ async function downloadOrResolveImage(inputUrl) {
 
   return { relativePath, filename, buffer };
 }
+
+/**
+ * Descarta archivos de un import preview (refs ref_* bajo assets/references o DATA_DIR).
+ * No toca avatares por defecto ni rutas fuera de zona segura.
+ */
+app.post('/api/import-preview/discard', (req, res) => {
+  const paths = Array.isArray(req.body?.imagePaths) ? req.body.imagePaths : [];
+  const removed = [];
+  const skipped = [];
+
+  for (const rel of paths) {
+    try {
+      const abs = resolveSafeAssetPath(String(rel || ''));
+      const base = path.basename(abs);
+      if (!/^ref_/i.test(base)) {
+        skipped.push(rel);
+        continue;
+      }
+      if (/influencer_(male|female)/i.test(base) || /nano_banana/i.test(base)) {
+        skipped.push(rel);
+        continue;
+      }
+      if (fs.existsSync(abs) && fs.lstatSync(abs).isFile()) {
+        fs.unlinkSync(abs);
+        removed.push(rel);
+      } else {
+        skipped.push(rel);
+      }
+      const scratchCopy = path.join(SCRATCH_DIR, 'references', base);
+      if (fs.existsSync(scratchCopy) && fs.lstatSync(scratchCopy).isFile()) {
+        try { fs.unlinkSync(scratchCopy); } catch (_) {}
+      }
+    } catch (_) {
+      skipped.push(rel);
+    }
+  }
+
+  res.json({ success: true, removed, skipped });
+});
 
 app.post('/api/upload-reference-url', async (req, res) => {
   const { url } = req.body;
