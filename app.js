@@ -107,14 +107,27 @@ async function authFetch(url, options = {}) {
 }
 
 function setupOfflineBanner() {
-  window.addEventListener('online', () => setOfflineBanner(false));
+  window.addEventListener('online', () => {
+    if (!isStudioOfflineMode()) setOfflineBanner(false);
+    else applyOfflineModeUi();
+  });
   window.addEventListener('offline', () => {
     setOfflineBanner(
       true,
       'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.'
     );
   });
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+  const syncToggles = (checked) => {
+    setStudioOfflineMode(!!checked);
+    const a = document.getElementById('offlineModeToggle');
+    const b = document.getElementById('offlineModeToggleBar');
+    if (a) a.checked = !!checked;
+    if (b) b.checked = !!checked;
+  };
+  document.getElementById('offlineModeToggle')?.addEventListener('change', (e) => syncToggles(e.target.checked));
+  document.getElementById('offlineModeToggleBar')?.addEventListener('change', (e) => syncToggles(e.target.checked));
+  applyOfflineModeUi();
+  if (typeof navigator !== 'undefined' && navigator.onLine === false && !isStudioOfflineMode()) {
     setOfflineBanner(
       true,
       'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.'
@@ -1389,7 +1402,7 @@ function updateDashboardStats() {
         <div class="portfolio-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance || 'Latina'}</div>
         <div class="portfolio-card-actions">
           <button type="button" class="btn btn-primary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
-          <button type="button" class="btn btn-secondary btn-quick-copy-pack" style="font-size: 11px; padding: 6px 10px;" title="Copia pack cuerpo entero listo para ChatGPT/Gemini/Claude">Copiar pack</button>
+          <button type="button" class="btn btn-secondary btn-quick-copy-pack" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia pack cuerpo entero listo para ChatGPT/Gemini/Claude">Copiar pack</button>
           <button type="button" class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
           <button type="button" class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
         </div>
@@ -1775,14 +1788,60 @@ window.loadPersonaVariants = loadPersonaVariants;
 
 function setGenerationButtonsDisabled(disabled) {
   // JSON-first: Guardar (sin retrato) nunca se bloquea por la cola Pollinations
+  // W8: modo offline también bloquea gens
+  const offline = typeof isStudioOfflineMode === 'function' && isStudioOfflineMode();
+  const locked = !!(disabled || offline);
   ['btnGenerateVariant', 'btnGenerateUgcImage', 'btnSavePersonaWithPortrait', 'btnStartBulkAdGeneration'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.disabled = !!disabled;
-    el.classList.toggle('is-queue-locked', !!disabled);
-    if (disabled) el.setAttribute('title', 'Espera a que termine la cola de generación');
+    el.disabled = locked;
+    el.classList.toggle('is-queue-locked', locked);
+    if (offline) el.setAttribute('title', 'Modo offline: usa Copiar pack / JSON (gratis)');
+    else if (disabled) el.setAttribute('title', 'Espera a que termine la cola de generación');
     else el.removeAttribute('title');
   });
+  document.querySelectorAll('[data-offline-highlight="pack"]').forEach((el) => {
+    el.classList.toggle('offline-pack-highlight', offline);
+  });
+}
+
+function offlineModeStorageKey() {
+  const pid = state.currentProfile?.id || 'default';
+  return `influ_offline_mode_${pid}`;
+}
+
+function isStudioOfflineMode() {
+  try {
+    return localStorage.getItem(offlineModeStorageKey()) === '1';
+  } catch (_) {
+    return false;
+  }
+}
+
+function setStudioOfflineMode(on) {
+  try {
+    localStorage.setItem(offlineModeStorageKey(), on ? '1' : '0');
+  } catch (_) {}
+  applyOfflineModeUi();
+}
+
+function applyOfflineModeUi() {
+  const on = isStudioOfflineMode();
+  const toggle = document.getElementById('offlineModeToggle');
+  if (toggle) toggle.checked = on;
+  const banner = document.getElementById('offlineBanner');
+  if (on) {
+    setOfflineBanner(true, 'Modo offline activo — generación Pollinations desactivada. Copia JSON / packs a chatbots gratis.');
+    if (banner) banner.dataset.source = 'mode';
+  } else if (!navigator.onLine) {
+    setOfflineBanner(true, 'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.');
+    if (banner) banner.dataset.source = 'network';
+  } else if (banner && banner.dataset.source === 'mode') {
+    setOfflineBanner(false);
+    banner.dataset.source = '';
+  }
+  setGenerationButtonsDisabled(false);
+  if (on) setGenerationButtonsDisabled(true);
 }
 
 function updateRateLimitBanner(q) {
@@ -1813,6 +1872,8 @@ function updateQueueStatusChip(q) {
   const cooldownSec = isCooling
     ? (Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30)
     : 0;
+  const pos = q.position || null;
+  const total = q.totalInWave || (pending + (busy ? 1 : 0)) || null;
 
   if (!busy && pending === 0 && !isCooling) {
     chip.style.display = 'none';
@@ -1825,6 +1886,8 @@ function updateQueueStatusChip(q) {
   chip.classList.toggle('busy', !!busy && !isCooling);
   if (isCooling) {
     text.textContent = `429 — reintento en ${cooldownSec}s`;
+  } else if (pos && total) {
+    text.textContent = `#${pos} de ${total}${q.currentLabel ? ` · ${q.currentLabel}` : ''}`;
   } else if (pending > 0) {
     text.textContent = `Cola: ${pending + (busy ? 1 : 0)} en espera`;
   } else {
@@ -2491,7 +2554,11 @@ const QueuePoller = {
       statusText = `Rate limit 429 — reintentando en ${cooldownSec}s…`;
       toastType = 'info';
     } else if (q.active || pendingCount > 0) {
-      if (pendingCount > 0) {
+      const pos = q.position;
+      const total = q.totalInWave || totalInQueue;
+      if (pos && total) {
+        statusText = `#${pos} de ${total}${q.currentLabel ? ` · ${q.currentLabel}` : ''}`;
+      } else if (pendingCount > 0) {
         statusText = `Cola ocupada · posición ${totalInQueue} (1 gen a la vez)`;
       } else {
         statusText = q.currentLabel ? `Generando: ${q.currentLabel}` : 'Generando imagen…';
@@ -2874,6 +2941,7 @@ function setupNichePresets() {
 
 function setupFreeChatbotPacks() {
   document.querySelectorAll('[data-free-pack]').forEach(btn => {
+    btn.setAttribute('data-offline-highlight', 'pack');
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const id = btn.getAttribute('data-free-pack');
