@@ -63,7 +63,9 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 - Pulido W11: **Abrir checklist**, status en ficha al seleccionar persona.
 - Sesión 3 prompts + badge Chatbot OK (ya en PR #33).
 
-**Siguiente:** Merge #33 → main; luego W12.
+**Siguiente:** **W12** historial / diff de `character_lock`.
+
+**Verificación W11:** tests **137** · smoke **9/9** · en `main`.
 
 **No tocado:** Replicate.
 
