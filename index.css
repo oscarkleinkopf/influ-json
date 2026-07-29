@@ -1821,14 +1821,22 @@ input:checked + .slider:before {
 
 .portfolio-card-actions {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-top: 8px;
 }
 
 .portfolio-card-actions button {
-  flex: 1;
+  flex: 1 1 calc(50% - 6px);
+  min-width: 96px;
   text-align: center;
   white-space: nowrap;
+}
+
+.portfolio-card-actions .btn-quick-copy-pack {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
 }
 
 /* Filter buttons styling */

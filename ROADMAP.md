@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **Founder onboarding + pack en portafolio** | Modal admin roster vacío; Copiar pack fullbody en tarjeta; CTA import |
 | 2026-07-29 | **P0 git/seguridad + UX JSON-first** | `ENABLE_GIT_BACKUP` opt-in; safe-paths; ownership gens; guardar sin Pollinations |
 | 2026-07-29 | **1.2 Import confirm** | Analizar sin guardar; Descartar limpio; Confirmar → roster + anclas |
 | 2026-07-29 | **Matriz QA + banner 429** | Slots ancla/cuerpo/spicy + checks; banner sticky rate-limit; tests |
