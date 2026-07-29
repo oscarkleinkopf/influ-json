@@ -117,7 +117,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
-| 2026-07-29 | **Paso 0 merge W6 + W7–W10 → main** | Conflictos HANDOFF/ROADMAP/db resueltos; tests+smoke |
+| 2026-07-29 | **Paso 0 merge W6 + W7–W10 + PLAN-NEXT → main** | Conflictos resueltos; tests+smoke |
+| 2026-07-29 | **PLAN-NEXT.md** | W11–W17 moat free; Replicate con señal |
 | 2026-07-29 | **W6 filter-repo historia** | Purgados `influ.sqlite`/`personas.json` de todos los commits; force-push |
 | 2026-07-29 | **W6 untrack mirrors** | `git rm --cached` + gitignore; sync opt-in `ENABLE_LEGACY_MIRRORS`; backup export desde SQLite |
 | 2026-07-29 | **W10 backup rotation + export studio** | `BACKUP_KEEP` default 10; `GET /api/export/studio` sin `.env` |

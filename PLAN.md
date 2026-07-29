@@ -286,10 +286,16 @@ Si dos bots trabajan en paralelo: no asignar W5 y cualquier W que toque `server.
 (`W1`, `W3`, `W7`, `W10`) al mismo tiempo — conflictos garantizados. Combinación segura:
 W1+W4, W2+W8, W3+W9, W7+W10.
 
+---
+
+## Continuación
+
+Tras mergear W6–W10, el runbook activo es **[PLAN-NEXT.md](./PLAN-NEXT.md)** (W11–W17: sesión chatbot, historial lock, packs, CTA, offline-first, badges, audit).
+
 ## Definition of done (todos los items)
 
 - [ ] `npm test` verde, incluidos tests nuevos del item.
 - [ ] Smoke 9/9 (o `npm run smoke` tras W2).
-- [ ] Mirrors restaurados, working tree limpio salvo archivos del item.
+- [ ] Working tree limpio salvo archivos del item (no `.env` / `data/` / `ref_*` de tests).
 - [ ] PR draft con descripción: qué, por qué, cómo se probó.
 - [ ] Fila en log de HANDOFF.md + foco actualizado; línea en ROADMAP.md si es entregable.

@@ -1,7 +1,7 @@
 # HANDOFF — continuidad Cursor ↔ Antigravity
 
 > **Leer esto primero** al retomar (Antigravity, Cursor, otro agente).
-> Plan: [ROADMAP.md](./ROADMAP.md) · Agentes: [AGENTS.md](./AGENTS.md) · README: [README.md](./README.md)
+> Plan activo: [PLAN-NEXT.md](./PLAN-NEXT.md) · Runbook W1–W10: [PLAN.md](./PLAN.md) · Roadmap: [ROADMAP.md](./ROADMAP.md) · Agentes: [AGENTS.md](./AGENTS.md) · README: [README.md](./README.md)
 
 ---
 
@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (Paso 0: W6 + W7–W10 integrados) |
-| **Commit base** | tip post-merge W6–W10 |
-| **PR actual** | — merges en main; siguiente PLAN-NEXT |
-| **`main` remoto** | W1–W5e + W6 + W7–W10 |
+| **Rama de trabajo** | `main` (Paso 0 completo + PLAN-NEXT) |
+| **Commit base** | tip post-merge W6–W10 + PLAN-NEXT |
+| **PR actual** | —; siguiente implementación W11 |
+| **`main` remoto** | W1–W5e + W6 + W7–W10 + PLAN-NEXT |
 | **Etapa de producto** | Moat free → [PLAN-NEXT.md](./PLAN-NEXT.md) W11–W17 |
-| **Prioridad inmediata** | Merge PLAN-NEXT (#32) si falta; arrancar W11; **no Replicate** |
+| **Prioridad inmediata** | Arrancar **W11** (sesión chatbot); **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
@@ -50,6 +50,7 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 |------:|---:|-----------|--------|
 | 1 | #31 | W6 untrack mirrors + filter-repo | **merged → main** |
 | 2–5 | #27–#30 | W7 metrics → W10 backup ZIP | **merged → main** |
+| docs | #32 | PLAN-NEXT W11–W17 | **merged → main** |
 
 ---
 
@@ -58,15 +59,13 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 **Pedido:** Continuar Paso 0 (merge W6 + W7–W10 a `main`).
 
 **Hecho:**
-- FF W6 (`untrack-data-mirrors`) → `main`.
-- Merge tip W10 (incluye W7–W9) resolviendo HANDOFF/ROADMAP/`db.js`.
-- W6+W10: backups exportan personas desde SQLite **y** rotan con `BACKUP_KEEP`.
+- FF W6 → `main`; merge tip W10 (W7–W9) + PLAN-NEXT (#32).
+- Backups: export personas desde SQLite (W6) + rotación `BACKUP_KEEP` (W10).
+- Runbook activo: [PLAN-NEXT.md](./PLAN-NEXT.md).
 
-**Siguiente:** PLAN-NEXT W11+ (sesión chatbot); merge #32 docs si aún abierto.
+**Siguiente:** W11 sesión chatbot (3 prompts + checklist).
 
-**También:** `git filter-repo` ya purgó mirrors de la historia.
-
-**No tocado:** Replicate.
+**No tocado:** Replicate; implementación W11+ (aún no).
 
 
 ---
@@ -148,7 +147,8 @@ Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 → main | *(main)* |
+| 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 + PLAN-NEXT → main | *(main)* |
+| 2026-07-29 | Cursor | PLAN-NEXT W11–W17 (moat free post W6–W10) | *(PR #32)* |
 | 2026-07-29 | Cursor | W6 desversionar mirrors + filter-repo | *(PR #31)* |
 | 2026-07-29 | Cursor | W7–W10 producto (metrics→queue→safe-delete→backup ZIP) | *(PRs #27–#30)* |
 | 2026-07-29 | Cursor | Merge W1–W5e → main | *(main)* |
