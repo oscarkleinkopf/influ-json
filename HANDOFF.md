@@ -53,9 +53,10 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 **Hecho:**
 - FF `cursor/routes-admin-152f` (W2–W5e) → `main`.
 - Merge W1 (`localhost-bind` + wizard PIN) con conflictos docs/package resueltos.
-- PLAN.md (#17) se mergea a continuación si falta.
+- Merge PLAN.md (#17) → `main`.
+- Post-merge: **118** tests + smoke **9/9**.
 
-**Siguiente:** Smoke post-merge; producto W7–W10.
+**Siguiente:** Producto W7–W10 (o W6 con OK owner).
 
 **No tocado:** Replicate; desversionar mirrors.
 
