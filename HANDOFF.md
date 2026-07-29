@@ -21,17 +21,41 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ---
 
-## Foco actual
+## Estado exacto al retomar
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa de producto** | **1.2 Import confirm** (este PR) — Semana 1 cerrada |
-| **Fase ROADMAP** | Free path completo; merge pila PRs |
-| **Prioridad inmediata** | Merge #4→#13; smoke con tester; **no Replicate** |
-| **En pausa** | OAuth, SMTP, Replicate |
-| **Servidor** | `npm start` → `server.js` |
-| **Última plataforma** | Cursor |
+| **Rama de trabajo** | `cursor/import-confirm-152f` |
+| **Commit funcional** | `e2bafdc` — 1.2 import confirm |
+| **PR actual** | **#13** (draft, base `main`) |
+| **`main` remoto al escribir esto** | `e618868` — todavía no contiene la pila #4–#13 |
+| **Etapa de producto** | Núcleo free + usabilidad terminados en la pila; toca integrar y endurecer |
+| **Prioridad inmediata** | Merge seguro + P0 de datos/seguridad; después UX free |
+| **En pausa** | OAuth, SMTP, video completo y **Replicate** |
+| **Servidor correcto** | `npm start` → `node server.js` |
 | **Última actualización** | 2026-07-29 |
+
+### Pila de PRs vigente
+
+Las ramas se construyeron una sobre otra. Integrar en este orden para que cada
+PR reduzca su diff al avanzar `main`:
+
+| Orden | PR | Contenido |
+|------:|---:|-----------|
+| 1 | #4 | Validador local `character_lock` |
+| 2 | #5 | Usabilidad F2–F6 + export ZIP |
+| 3 | #6 | Seguridad mínima + perfiles |
+| 4 | #7 | Administración + invitaciones |
+| 5 | #8 | Backup SQLite + ownership |
+| 6 | #9 | Onboarding member |
+| 7 | #10 | Presets de nicho + kit marca |
+| 8 | #11 | Guía gráfica «Cómo usar» |
+| 9 | #12 | Matriz QA + banner 429 |
+| 10 | #13 | Import confirm sin persistir preview |
+
+PRs #1–#3 son anteriores y se solapan con la pila actual. **No mezclarlos a
+ciegas**: comprobar primero si su funcionalidad ya está en #4–#13; cerrar como
+superseded si corresponde.
 
 ---
 
@@ -48,12 +72,153 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ---
 
-## Próximos pasos (robot que retome)
+## Protocolo de arranque para otro agente
 
-1. `git pull` → este archivo → `ROADMAP.md`.
-2. Merge pila PRs (#4…#13) en orden.
-3. Smoke: import → preview → descartar (no aparece) / confirmar (sí + variantes).
-4. Replicate **solo** si el usuario lo pide.
+Ejecutar en este orden:
+
+```bash
+git status --short
+git fetch origin main
+git pull origin cursor/import-confirm-152f
+npm test
+```
+
+Antes de probar:
+
+1. Confirmar que `npm test` incluye `DISABLE_GIT_BACKUP=1`.
+2. No ejecutar tests con auto-backup activo: `runGitBackup()` puede hacer
+   `git add .`, commit y push.
+3. No usar `git add .`; stagear archivos explícitos.
+4. No commitear `.env`, `influ.sqlite`, `personas.json`, `data/` ni
+   `assets/references/ref_*` creados por tests.
+5. Si tests ensucian datos versionados, restaurar solo esos archivos:
+
+```bash
+git restore influ.sqlite personas.json
+git status --short
+```
+
+No borrar `assets/references/` completo: contiene referencias versionadas.
+
+## Plan siguiente, con implementación y criterios
+
+### Paso 0 — Integrar la pila
+
+1. Revisar CI/diff de #4.
+2. Merge #4; refrescar #5 contra `main`; ejecutar `npm test`.
+3. Repetir hasta #13.
+4. Al final ejecutar el smoke manual descrito abajo.
+
+No añadir features durante este paso. Resolver conflictos preservando siempre:
+`character_lock`, ownership por perfil, Pollinations opcional y refresh del
+roster tras cada mutación.
+
+### Paso 1 — P0 datos: auto-Git debe ser opt-in
+
+**Archivos:** `server.js`, `.env.example`, `.gitignore`, tests nuevos.
+
+Cambios:
+
+1. Invertir la condición de `runGitBackup`: no ejecutar Git salvo
+   `ENABLE_GIT_BACKUP=1`.
+2. Las mutaciones normales deben responder éxito aunque Git esté desactivado.
+3. Mantener backup SQLite local desde Ajustes.
+4. El botón manual de sync debe informar claramente qué hará.
+5. Antes de desversionar `influ.sqlite`, `personas.json` o fotos existentes,
+   confirmar con el propietario dónde conservar el backup. No hacer `git rm`
+   ni reescribir historial de forma autónoma.
+
+Criterios:
+
+- Crear/editar/importar no ejecuta `git commit` ni `git push` por defecto.
+- `npm test` no modifica el repositorio.
+- Un test con `ENABLE_GIT_BACKUP` ausente verifica que `exec()` no se invoca.
+
+### Paso 2 — P0 seguridad: paths y ownership
+
+**Archivos:** `server.js`, `ai-service.js`, `db.js`,
+`test/backup-ownership.test.js` o test dedicado.
+
+Cambios:
+
+1. Crear `resolveSafeAssetPath()` que acepte únicamente rutas dentro de
+   `assets/references`, `assets/generated` o `DATA_DIR`.
+2. `/api/ai/analyze-photo` debe rechazar `../`, rutas absolutas y archivos fuera
+   de esas raíces con HTTP 400.
+3. `DELETE /api/generations/:id` debe resolver la persona asociada y comprobar
+   ownership antes de borrar.
+4. `/api/ai/generate-image` debe validar `personaId`; permitir
+   `new_persona` solo durante creación.
+5. Para URLs remotas, bloquear localhost, IP privadas y `169.254.169.254`;
+   aplicar timeout y límite de bytes.
+
+Criterios:
+
+- Miembro A no puede leer/borrar/generar contra recursos de B (404).
+- `../../../etc/passwd` devuelve 400 y nunca llega a `readFileSync`.
+- Tests de auth/ownership siguen verdes.
+
+### Paso 3 — P0/P1 UX gratis
+
+**Archivos:** `index.html`, `app.js`, `index.css`.
+
+Orden:
+
+1. Navegación móvil: `data-tab="personas"` → `persona-engine`; eliminar o
+   remapear `products` si no existe panel real.
+2. Separar **Guardar personaje** de **Guardar + generar retrato**. La opción
+   JSON-only debe ser el default y funcionar offline en menos de 3 s.
+3. Checklist 60s: Pollinations es opcional; copiar un pack debe permitir
+   completar el happy path sin haber generado imagen.
+4. Añadir `pSkinToneHex` y propagarlo al `character_lock`.
+5. Añadir banner offline: “Puedes seguir copiando JSON; generación pausada”.
+
+Criterios:
+
+- En móvil ningún botón deja pantalla vacía.
+- Crear → guardar → copiar pack funciona sin red externa.
+- El validador reconoce el HEX y no muestra aviso por ausencia.
+- Replicate no aparece ni se vuelve requisito.
+
+### Paso 4 — Mantenibilidad, después de estabilizar
+
+Sin migrar a React. Extraer gradualmente de `app.js`:
+
+```text
+import-flow.js
+persona-engine.js
+chatbot-packs.js
+queue-ui.js
+onboarding.js
+```
+
+Y de `server.js`: rutas `personas`, `import`, `generation`, `admin`.
+Un módulo por commit, con `npm test` y smoke del happy path en cada extracción.
+
+## Smoke manual obligatorio tras integrar
+
+Usar un perfil member y uno admin:
+
+1. Crear desde cero → Guardar → aparece en portafolio sin recargar.
+2. Copiar pack fullbody → contiene `character_lock`.
+3. Importar foto → Analizar → preview no aparece todavía en portafolio.
+4. Descartar → sigue sin aparecer.
+5. Repetir import → Confirmar → aparece una sola persona y se cargan variantes.
+6. Generar una variante → cola bloquea doble clic; si hay 429, muestra banner y
+   reintenta sola.
+7. Matriz QA → retrato/cuerpo/spicy; checks persisten al reabrir ficha.
+8. Perfil member no ve personas, productos ni campañas del admin.
+9. Export persona y kit marca → ZIP abre y contiene JSON + packs.
+
+Registrar resultado exacto: paso, esperado, observado y captura/log si falla.
+
+## Qué NO hacer
+
+- No implementar Replicate, Fal, billing, OAuth ni video completo.
+- No hacer que Gemini/Pollinations sean obligatorios para guardar o exportar.
+- No reemplazar SQLite por una plataforma cloud en esta etapa.
+- No introducir React solo para “ordenar” el monolito.
+- No exponer el puerto 3000 a Internet hasta completar Paso 2.
 
 ---
 
