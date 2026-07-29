@@ -1,7 +1,7 @@
 # HANDOFF — continuidad Cursor ↔ Antigravity
 
 > **Leer esto primero** al retomar (Antigravity, Cursor, otro agente).
-> Plan: [ROADMAP.md](./ROADMAP.md) · Agentes: [AGENTS.md](./AGENTS.md) · README: [README.md](./README.md)
+> Plan activo: [PLAN-NEXT.md](./PLAN-NEXT.md) · Runbook W1–W10: [PLAN.md](./PLAN.md) · Roadmap: [ROADMAP.md](./ROADMAP.md) · Agentes: [AGENTS.md](./AGENTS.md) · README: [README.md](./README.md)
 
 ---
 
@@ -25,13 +25,13 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (pila W1–W5e integrada) |
-| **Commit base** | tip W5e `fc64fa2` + merge W1 |
-| **PR actual** | — merge a main |
-| **`main` remoto** | W1–W5e + [PLAN.md](./PLAN.md) |
-| **Etapa de producto** | Post-W5: producto W7–W10 o W6 (OK owner) |
-| **Prioridad inmediata** | Producto W7–W10; **no Replicate** |
-| **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
+| **Rama de trabajo** | `cursor/plan-next-152f` |
+| **Commit base** | `main` post filter-repo (`acedb62` tip docs) |
+| **PR actual** | PLAN-NEXT (W11–W17) |
+| **`main` remoto** | W1–W5e + PLAN; **pendiente merge** W6 (#31) + W7–W10 (#27–#30) |
+| **Etapa de producto** | Integrar pila → moat free (`character_lock` / packs) |
+| **Prioridad inmediata** | 1) Merge Paso 0 · 2) W11–W17 en [PLAN-NEXT.md](./PLAN-NEXT.md) · **no Replicate** |
+| **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
 
@@ -44,21 +44,26 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 |------:|---:|-----------|--------|
 | 1–13 | #4–#16 | Validador → discard preview + `chatbot-packs.js` | **merged** |
 
+### Pila pendiente de merge (Paso 0 de PLAN-NEXT)
+
+| Orden | PR | Rama | Estado |
+|------:|---:|-------|--------|
+| 1 | #31 | W6 untrack + filter-repo | draft |
+| 2–5 | #27–#30 | W7→W10 (tip #30) | draft |
+
 ---
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** Merge primero (pila W1–W5e).
+**Pedido:** Crear un plan (post W6–W10).
 
 **Hecho:**
-- FF `cursor/routes-admin-152f` (W2–W5e) → `main`.
-- Merge W1 (`localhost-bind` + wizard PIN) con conflictos docs/package resueltos.
-- Merge PLAN.md (#17) → `main`.
-- Post-merge: **118** tests + smoke **9/9**.
+- Nuevo runbook **[PLAN-NEXT.md](./PLAN-NEXT.md)** — Paso 0 merges + W11–W17 (sesión chatbot, historial lock, packs, CTA 60s, offline-first, badges export, audit log).
+- Replicate solo con señal explícita (métricas + dolor W11).
 
-**Siguiente:** Producto W7–W10 (o W6 con OK owner).
+**Siguiente:** Owner mergea Paso 0; bots ejecutan W11+.
 
-**No tocado:** Replicate; desversionar mirrors.
+**No tocado:** Replicate; implementación de W11+ (solo plan).
 
 
 ---
@@ -115,7 +120,7 @@ routes/import.js + generation.js ✅ (W5d)
 routes/admin.js    ✅ (W5e) — W5 extracciones completas
 ```
 
-Extracciones W5 de `server.js` ✅. Siguiente: producto W7–W10 (ver PLAN.md).
+Extracciones W5 de `server.js` ✅. **Siguiente:** Paso 0 merges (W6–W10) → [PLAN-NEXT.md](./PLAN-NEXT.md) W11–W17.
 
 ## Smoke manual obligatorio (post-merge — resultado)
 
@@ -145,6 +150,8 @@ Extracciones W5 de `server.js` ✅. Siguiente: producto W7–W10 (ver PLAN.md).
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | PLAN-NEXT W11–W17 (moat free post W6–W10) | *(PR plan-next)* |
+| 2026-07-29 | Cursor | W6 + filter-repo historia mirrors | *(PR #31)* |
 | 2026-07-29 | Cursor | Merge W1–W5e → main | *(main)* |
 | 2026-07-29 | Cursor | W5e extract routes/admin.js | *(PR W5e)* |
 | 2026-07-29 | Cursor | W5d extract routes/import + generation | *(PR W5d)* |
