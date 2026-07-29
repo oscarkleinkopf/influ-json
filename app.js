@@ -514,8 +514,10 @@ function applyRoleBasedSettingsUi() {
   const title = document.getElementById('settingsModalTitle');
   const heading = document.getElementById('profilesSettingsHeading');
   const lead = document.getElementById('profilesSettingsLead');
+  const metrics = document.getElementById('genMetricsSettingsSection');
   if (keys) keys.style.display = isAdmin ? 'block' : 'none';
   if (hint) hint.style.display = isAdmin ? 'none' : 'block';
+  if (metrics) metrics.style.display = isAdmin ? 'block' : 'none';
   if (title) title.textContent = isAdmin ? 'Ajustes de Proveedores y Claves API' : 'Tu cuenta';
   if (heading) heading.textContent = isAdmin ? 'Perfiles de usuario (local)' : 'Tu perfil';
   if (lead) {
@@ -793,6 +795,40 @@ function formatBytes(n) {
   return `${(num / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/** W7 — métricas locales (solo admin). */
+async function refreshGenMetricsSettings() {
+  const line = document.getElementById('genMetricsLine');
+  const byProf = document.getElementById('genMetricsByProfile');
+  if (!line || !isCurrentUserAdmin()) return;
+  try {
+    const res = await authFetch('/api/metrics/generations?sinceDays=30');
+    if (res.status === 403) {
+      line.textContent = '';
+      if (byProf) byProf.innerHTML = '';
+      return;
+    }
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Error');
+    const t = data.summary?.totals || {};
+    line.textContent = `${t.portraits || 0} retratos · ${t.variants || 0} variantes · ${t.fail429 || 0} fallos 429 (últimos ${data.summary?.sinceDays || 30} días, free=Pollinations)`;
+    if (byProf) {
+      const rows = data.summary?.byProfile || [];
+      byProf.innerHTML = rows.length
+        ? rows.map((r) => {
+          const pid = r.profile_id || 'sin-perfil';
+          const name = (state.profiles || []).find((p) => p.id === pid)?.name || pid.slice(0, 8);
+          return `<div style="font-size:12px;color:var(--text-secondary);padding:6px 8px;background:rgba(0,0,0,0.25);border-radius:6px;">
+            <strong style="color:#fff;">${escapeLockHtml(name)}</strong>
+            — ${r.portraits || 0} retratos, ${r.variants || 0} variantes, ${r.fail_429 || 0}×429
+          </div>`;
+        }).join('')
+        : '<p style="font-size:12px;color:var(--text-muted);margin:0;">Aún no hay generaciones registradas en gen_metrics.</p>';
+    }
+  } catch (err) {
+    line.textContent = err.message || 'No se pudieron cargar métricas';
+  }
+}
+
 async function refreshBackupsSettingsList() {
   const list = document.getElementById('backupsList');
   const metaLine = document.getElementById('backupMetaLine');
@@ -867,6 +903,7 @@ function setupSettings() {
       applyRoleBasedSettingsUi();
       if (modal) modal.style.display = 'flex';
       refreshProfilesSettingsList();
+      if (isCurrentUserAdmin()) refreshGenMetricsSettings();
     });
   }
 
@@ -955,6 +992,10 @@ function setupSettings() {
     } catch (err) {
       toastError(err.message || 'No se pudo crear el backup');
     }
+  });
+
+  document.getElementById('btnRefreshGenMetrics')?.addEventListener('click', () => {
+    refreshGenMetricsSettings();
   });
 
   if (form) {

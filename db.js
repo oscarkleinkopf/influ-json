@@ -895,6 +895,97 @@ module.exports = {
     return { total: total.count, byType, byPersona };
   },
 
+  /**
+   * W7 — métrica local free vs paid (sin Replicate aún: provider=pollinations).
+   * @param {{ profile_id?: string, persona_id?: string, provider?: string, generation_type?: string, ok?: boolean, error_code?: string, duration_ms?: number }} row
+   */
+  recordGenMetric(row = {}) {
+    const { v4: uuidv4 } = require('uuid');
+    const id = row.id || `gm_${uuidv4().slice(0, 12)}`;
+    const ok = row.ok === false || row.ok === 0 ? 0 : 1;
+    db.prepare(`
+      INSERT INTO gen_metrics (id, profile_id, persona_id, provider, generation_type, ok, error_code, duration_ms)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      row.profile_id || null,
+      row.persona_id || null,
+      row.provider || 'pollinations',
+      row.generation_type || 'portrait',
+      ok,
+      row.error_code || null,
+      row.duration_ms != null ? Number(row.duration_ms) : null
+    );
+    return id;
+  },
+
+  /**
+   * Resumen de gen_metrics. Admin: todos los perfiles o filtro.
+   * Member: solo su profile_id.
+   */
+  getGenMetricsSummary({ profileId = null, sinceDays = 30 } = {}) {
+    const days = Math.max(1, Math.min(365, Number(sinceDays) || 30));
+    const params = [];
+    let where = `created_at >= datetime('now', ?)`;
+    params.push(`-${days} days`);
+    if (profileId) {
+      where += ' AND profile_id = ?';
+      params.push(profileId);
+    }
+
+    const totals = db.prepare(`
+      SELECT
+        COUNT(*) AS total,
+        SUM(CASE WHEN ok = 1 THEN 1 ELSE 0 END) AS ok_count,
+        SUM(CASE WHEN ok = 0 THEN 1 ELSE 0 END) AS fail_count,
+        SUM(CASE WHEN ok = 0 AND (error_code = '429' OR error_code LIKE '%429%') THEN 1 ELSE 0 END) AS fail_429,
+        SUM(CASE WHEN generation_type IN ('portrait', 'anchor_pack') AND ok = 1 THEN 1 ELSE 0 END) AS portraits,
+        SUM(CASE WHEN generation_type = 'variant' AND ok = 1 THEN 1 ELSE 0 END) AS variants,
+        SUM(CASE WHEN provider = 'pollinations' THEN 1 ELSE 0 END) AS provider_pollinations,
+        SUM(CASE WHEN provider != 'pollinations' THEN 1 ELSE 0 END) AS provider_other
+      FROM gen_metrics
+      WHERE ${where}
+    `).get(...params);
+
+    const byType = db.prepare(`
+      SELECT generation_type, COUNT(*) AS count,
+        SUM(CASE WHEN ok = 1 THEN 1 ELSE 0 END) AS ok_count,
+        SUM(CASE WHEN ok = 0 THEN 1 ELSE 0 END) AS fail_count
+      FROM gen_metrics
+      WHERE ${where}
+      GROUP BY generation_type
+      ORDER BY count DESC
+    `).all(...params);
+
+    const byProfile = db.prepare(`
+      SELECT profile_id,
+        COUNT(*) AS total,
+        SUM(CASE WHEN generation_type IN ('portrait', 'anchor_pack') AND ok = 1 THEN 1 ELSE 0 END) AS portraits,
+        SUM(CASE WHEN generation_type = 'variant' AND ok = 1 THEN 1 ELSE 0 END) AS variants,
+        SUM(CASE WHEN ok = 0 AND (error_code = '429' OR error_code LIKE '%429%') THEN 1 ELSE 0 END) AS fail_429
+      FROM gen_metrics
+      WHERE ${where}
+      GROUP BY profile_id
+      ORDER BY total DESC
+    `).all(...params);
+
+    return {
+      sinceDays: days,
+      totals: {
+        total: totals?.total || 0,
+        ok: totals?.ok_count || 0,
+        fail: totals?.fail_count || 0,
+        fail429: totals?.fail_429 || 0,
+        portraits: totals?.portraits || 0,
+        variants: totals?.variants || 0,
+        providerPollinations: totals?.provider_pollinations || 0,
+        providerOther: totals?.provider_other || 0
+      },
+      byType,
+      byProfile
+    };
+  },
+
   getAllWorkspaces() {
     return db.prepare('SELECT * FROM workspaces ORDER BY created_at ASC').all();
   },

@@ -119,24 +119,54 @@ function registerGenerationRoutes(app, deps) {
       genOptions.seed = Math.floor(Math.random() * 1000000);
     }
 
+    const t0 = Date.now();
     aiService.generateInfluencerImage(prompt, referenceUrl, genOptions)
       .then(imagePath => {
+        const durationMs = Date.now() - t0;
+        const genType = req.body.generationType || 'portrait';
         // Save to generation history
         try {
           dbService.saveGeneration({
             persona_id: personaId,
             prompt: req.body.prompt,
             image_path: imagePath,
-            generation_type: req.body.generationType || 'portrait',
+            generation_type: genType,
             metadata: JSON.stringify({ referenceImage: req.body.referenceImage || null })
           });
         } catch (histErr) {
           console.warn('Failed to save generation history:', histErr.message);
         }
+        try {
+          dbService.recordGenMetric({
+            profile_id: profileId,
+            persona_id: personaId,
+            provider: 'pollinations',
+            generation_type: genType,
+            ok: true,
+            duration_ms: durationMs
+          });
+        } catch (mErr) {
+          console.warn('[gen-metrics]', mErr.message);
+        }
         res.json({ success: true, imagePath });
       })
       .catch(err => {
-        res.status(500).json({ success: false, message: err.message });
+        const durationMs = Date.now() - t0;
+        const is429 = err.status === 429 || /429|rate limit|límite/i.test(err.message || '');
+        try {
+          dbService.recordGenMetric({
+            profile_id: profileId,
+            persona_id: personaId,
+            provider: 'pollinations',
+            generation_type: req.body.generationType || 'portrait',
+            ok: false,
+            error_code: is429 ? '429' : 'error',
+            duration_ms: durationMs
+          });
+        } catch (mErr) {
+          console.warn('[gen-metrics]', mErr.message);
+        }
+        res.status(is429 ? 429 : 500).json({ success: false, message: err.message, rateLimited: is429 });
       });
   });
 

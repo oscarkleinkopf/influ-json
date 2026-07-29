@@ -305,6 +305,25 @@ function registerAdminRoutes(app, deps) {
     }
   });
 
+  /**
+   * W7 — métricas locales de generación (solo Administración).
+   * Member → 403. Query: ?sinceDays=30&profileId= (opcional).
+   */
+  app.get('/api/metrics/generations', requireAdmin, (req, res) => {
+    try {
+      const sinceDays = Number(req.query.sinceDays || 30);
+      const profileId = req.query.profileId ? String(req.query.profileId) : null;
+      const summary = dbService.getGenMetricsSummary({ profileId, sinceDays });
+      res.json({
+        success: true,
+        freeTier: { imageGen: 'pollinations', note: 'Replicate aún no implementado — provider_other = 0' },
+        summary
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
 
 }
 
