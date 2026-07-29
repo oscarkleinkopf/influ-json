@@ -17,3 +17,5 @@ influ.sqlite-journal
 influ.sqlite-wal
 influ.sqlite-shm
 personas.json
+scratch/**/*.sqlite
+scratch/**/*.sqlite-*
