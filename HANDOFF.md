@@ -28,7 +28,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **Rama de trabajo** | `main` (pila W1–W5e integrada) |
 | **Commit base** | tip W5e `fc64fa2` + merge W1 |
 | **PR actual** | — merge a main |
-| **`main` remoto** | W1–W5e (+ PLAN pendiente #17) |
+| **`main` remoto** | W1–W5e + [PLAN.md](./PLAN.md) |
 | **Etapa de producto** | Post-W5: producto W7–W10 o W6 (OK owner) |
 | **Prioridad inmediata** | Smoke post-merge; luego W7–W10; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
