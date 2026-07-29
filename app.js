@@ -2428,6 +2428,28 @@ function showAppToast(message, opts = {}) {
     _toastHideTimer = null;
   }
 
+  // W9 — acción opcional (p. ej. Deshacer archive)
+  let actionBtn = banner.querySelector('.toast-action-btn');
+  if (opts.actionLabel && typeof opts.onAction === 'function') {
+    if (!actionBtn) {
+      actionBtn = document.createElement('button');
+      actionBtn.type = 'button';
+      actionBtn.className = 'toast-action-btn btn btn-secondary btn-sm';
+      actionBtn.style.cssText = 'margin-left:12px;font-size:11px;padding:4px 10px;flex-shrink:0;';
+      banner.appendChild(actionBtn);
+    }
+    actionBtn.textContent = opts.actionLabel;
+    actionBtn.style.display = 'inline-block';
+    actionBtn.onclick = (e) => {
+      e.preventDefault();
+      opts.onAction();
+      banner.classList.remove('show');
+    };
+  } else if (actionBtn) {
+    actionBtn.style.display = 'none';
+    actionBtn.onclick = null;
+  }
+
   textEl.textContent = message || '';
   if (iconEl) iconEl.innerHTML = TOAST_ICONS[type] || TOAST_ICONS.info;
 
@@ -2453,8 +2475,8 @@ function showAppToast(message, opts = {}) {
   if (type === 'loading' || opts.duration === null) return;
 
   let ms = opts.duration != null ? opts.duration : DEFAULT_TOAST_MS;
-  if (type === 'success' || type === 'error') {
-    ms = Math.max(MIN_TOAST_MS, ms);
+  if (type === 'success' || type === 'error' || opts.actionLabel) {
+    ms = Math.max(MIN_TOAST_MS, opts.actionLabel ? 8000 : ms);
   }
   _toastHideTimer = setTimeout(() => {
     banner.classList.remove('show');
