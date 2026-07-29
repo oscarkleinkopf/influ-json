@@ -106,7 +106,7 @@ test('Multi-Image Import & Background Variants Test Suite', async (t) => {
     assert.match(data.message, /máximo 4 fotos/i);
   });
 
-  await t.test('Import triggers non-blocking background variants and dual persistence in SQLite & personas.json', async () => {
+  await t.test('Import triggers non-blocking background variants persisted in SQLite', async () => {
     const formData = new FormData();
     const personaName = `DualSyncPersona_${Date.now()}`;
     formData.append('name', personaName);
@@ -135,18 +135,9 @@ test('Multi-Image Import & Background Variants Test Suite', async (t) => {
       attempts++;
     }
 
-    // 1. Verify SQLite persona_variants table
+    // Source of truth: SQLite persona_variants (W6 — no root personas.json mirror)
     const variantsInDb = dbService.getVariantsForPersona(personaId);
     assert.equal(variantsInDb.length, 4, 'Should generate 4 background variants in SQLite DB');
-
-    // 2. Verify personas.json dual persistence
-    const jsonPath = path.join(__dirname, '..', 'personas.json');
-    assert.ok(fs.existsSync(jsonPath), 'personas.json file must exist');
-
-    const jsonContent = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    const personaInJson = jsonContent.find(p => p.id === personaId);
-    assert.ok(personaInJson, 'Newly created persona should be present in personas.json');
-    assert.ok(Array.isArray(personaInJson.variants), 'Persona in personas.json should have a variants array');
-    assert.equal(personaInJson.variants.length, 4, 'Persona in personas.json should contain 4 variants');
+    assert.ok(dbService.getPersonaById(personaId), 'Persona must exist in SQLite');
   });
 });

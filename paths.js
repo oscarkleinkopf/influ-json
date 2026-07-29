@@ -26,7 +26,7 @@ const LEGACY_BRAIN_SCRATCH =
 
 const DB_FILENAME = 'influ.sqlite';
 const DB_PATH = path.join(DATA_DIR, DB_FILENAME);
-/** Mirror next to package root so existing git auto-backup keeps working. */
+/** Legacy root path — only used as one-time migration candidate (W6: no longer written by default). */
 const WORKSPACE_DB_MIRROR = path.join(PROJECT_ROOT, DB_FILENAME);
 
 function ensureDir(dir) {

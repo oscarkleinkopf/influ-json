@@ -14,9 +14,8 @@
 3. **Un work item = una rama `cursor/<nombre>-152f` + PR draft.** No mezclar items en un PR.
 4. **`npm test` verde antes de push** (el script ya fija `DISABLE_GIT_BACKUP=1`).
 5. **Smoke del happy path** tras cada item que toque `server.js` / `app.js` (ver §W2).
-6. No `git add .`. No commitear `.env`, `data/`, `influ.sqlite`, `personas.json`,
-   ni `assets/references/ref_*` generados por tests. Si se ensucian los mirrors:
-   `git restore influ.sqlite personas.json`.
+6. No `git add .`. No commitear `.env`, `data/`, ni `assets/references/ref_*` de tests.
+   `influ.sqlite` / `personas.json` en raíz están gitignore (W6).
 7. Cerrar cada sesión actualizando **HANDOFF.md** (log + foco) y, si aplica, **ROADMAP.md**.
 
 ### Gotchas técnicos conocidos (ahórrate el debug)
@@ -207,17 +206,14 @@ comportamiento observable; smoke 9/9 en cada PR.
 
 ---
 
-## W6 — Desversionar mirrors SQLite/JSON ⛔ bloqueado
+## W6 — Desversionar mirrors SQLite/JSON ✅ (OK owner 2026-07-29)
 
-Requiere **OK explícito del owner** (está anotado en HANDOFF desde PR #14).
+Rama `cursor/untrack-data-mirrors-152f`:
 
-Cuando llegue el OK, rama `cursor/untrack-data-mirrors-152f`:
-
-1. `git rm --cached influ.sqlite personas.json`; añadir ambos a `.gitignore`.
-2. La fuente de verdad ya es `data/influ.sqlite`; quitar `syncDbToWorkspace()` /
-   `syncPersonasJson()` de `db.js` o convertirlos en export bajo demanda (`/api/backups`).
-3. Actualizar AGENTS.md/HANDOFF (dejan de aplicar las reglas de restore).
-4. Considerar `git filter-repo` para historia — decisión del owner, no del bot.
+1. `git rm --cached influ.sqlite personas.json`; ambos en `.gitignore`.
+2. Fuente de verdad: `data/influ.sqlite`. `syncDbToWorkspace()` / `syncPersonasJson()` = no-op salvo `ENABLE_LEGACY_MIRRORS=1`. Export JSON en backups desde SQLite.
+3. Docs AGENTS/HANDOFF actualizados (sin `git restore` de mirrors).
+4. `git filter-repo` de historia — **opcional**, decisión del owner (no en este PR).
 
 ---
 

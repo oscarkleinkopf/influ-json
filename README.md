@@ -64,7 +64,7 @@ Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a l
 
 ## Datos y PIN
 
-- DB: `data/influ.sqlite` (portable; ver `paths.js`).
+- DB: `data/influ.sqlite` (portable; ver `paths.js`). Los mirrors `./influ.sqlite` y `./personas.json` **no se versionan** (W6); opt-in legacy: `ENABLE_LEGACY_MIRRORS=1`.
 - Auth local: `STUDIO_PIN` en `.env` (no lo subas a Git).
 - Perfil **Administración**: genera códigos de invitación en Ajustes. Quien canjea («Tengo una invitación» en el login) obtiene un perfil propio; influencers/productos/campañas **no se mezclan**.
 - **Backup local** (solo Administración): Ajustes → Backup SQLite → crea/restaura copias en `data/backups/` (tras restaurar, reinicia `npm start`).

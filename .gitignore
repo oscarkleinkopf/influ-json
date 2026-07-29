@@ -6,6 +6,14 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Working data dir (DB source of truth). Root influ.sqlite is mirrored for git backup.
+# Working data dir (DB source of truth).
 data/
 !data/.gitkeep
+
+# Legacy root mirrors (W6) — never commit live DB/roster copies.
+# Source of truth: data/influ.sqlite. Opt-in write: ENABLE_LEGACY_MIRRORS=1.
+influ.sqlite
+influ.sqlite-journal
+influ.sqlite-wal
+influ.sqlite-shm
+personas.json

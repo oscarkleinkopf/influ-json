@@ -18,9 +18,19 @@ const db = new Database(ACTIVE_DB_PATH);
 console.log(`[db] Opened SQLite at ${ACTIVE_DB_PATH}`);
 
 /**
- * Mirror active DB to project-root influ.sqlite for git auto-backup compatibility.
+ * Legacy root mirrors (W6): OFF by default.
+ * Opt-in only: ENABLE_LEGACY_MIRRORS=1 writes ./influ.sqlite and ./personas.json.
+ * Source of truth is always data/influ.sqlite (or DATA_DIR).
+ */
+function legacyMirrorsEnabled() {
+  return process.env.ENABLE_LEGACY_MIRRORS === '1';
+}
+
+/**
+ * Mirror active DB to project-root influ.sqlite (legacy; disabled unless ENABLE_LEGACY_MIRRORS=1).
  */
 function syncDbToWorkspace() {
+  if (!legacyMirrorsEnabled()) return;
   if (process.env.SKIP_DB_MIRROR === '1') return;
   try {
     fs.copyFileSync(ACTIVE_DB_PATH, WORKSPACE_DB_MIRROR);
@@ -168,23 +178,29 @@ function ensureDefaultStudioProfile() {
 ensureDefaultStudioProfile();
 
 /**
- * Dual Persistence: Synchronize SQLite personas and persona_variants to personas.json
+ * Build personas + variants payload for backup/export (does not write to disk).
+ */
+function buildPersonasExportPayload() {
+  const personas = db.prepare('SELECT * FROM personas WHERE archived = 0 ORDER BY created_at DESC').all().map(hydratePersona);
+  return personas.map(p => {
+    const variants = db.prepare(`
+      SELECT id, persona_id, pose, clothing, attitude, setting, image_path, created_at,
+             consistency_distance, consistency_grade, consistency_anchor
+      FROM persona_variants WHERE persona_id = ? ORDER BY created_at DESC
+    `).all(p.id);
+    return { ...p, variants };
+  });
+}
+
+/**
+ * Dual persistence to root personas.json — legacy; OFF unless ENABLE_LEGACY_MIRRORS=1.
+ * Prefer snapshot under data/backups/ via createBackupSnapshot / export studio.
  */
 function syncPersonasJson() {
+  if (!legacyMirrorsEnabled()) return;
   const jsonPath = path.join(__dirname, 'personas.json');
   try {
-    const personas = db.prepare('SELECT * FROM personas WHERE archived = 0 ORDER BY created_at DESC').all().map(hydratePersona);
-    const personasWithVariants = personas.map(p => {
-      const variants = db.prepare(`
-        SELECT id, persona_id, pose, clothing, attitude, setting, image_path, created_at,
-               consistency_distance, consistency_grade, consistency_anchor
-        FROM persona_variants WHERE persona_id = ? ORDER BY created_at DESC
-      `).all(p.id);
-      return {
-        ...p,
-        variants
-      };
-    });
+    const personasWithVariants = buildPersonasExportPayload();
     fs.writeFileSync(jsonPath, JSON.stringify(personasWithVariants, null, 2), 'utf8');
     console.log(`[db] Synchronized ${personasWithVariants.length} persona(s) with variants to personas.json`);
   } catch (err) {
@@ -415,6 +431,9 @@ migrateJsonSeedData();
 module.exports = {
   db,
   syncDbToWorkspace,
+  syncPersonasJson,
+  buildPersonasExportPayload,
+  legacyMirrorsEnabled,
   migrateJsonSeedData,
   /** Alias: las migraciones ya corren al cargar el módulo. */
   runMigrations() {
@@ -467,7 +486,6 @@ module.exports = {
 
   parseDetailedJSON,
   serializeDetailedJSON,
-  syncPersonasJson,
   ensureDefaultStudioProfile,
   
   savePersona(p) {
@@ -1140,8 +1158,8 @@ module.exports = {
   },
 
   /**
-   * Copia data/influ.sqlite (+ personas.json) a data/backups/.
-   * Esto es el backup de producto — no usa git.
+   * Copia data/influ.sqlite a data/backups/ y escribe un export JSON de personas
+   * junto al snapshot (sin tocar el mirror de raíz).
    */
   createBackupSnapshot(label = '') {
     const backupsDir = ensureDir(path.join(DATA_DIR, 'backups'));
@@ -1154,9 +1172,11 @@ module.exports = {
     // Checkpoint WAL so the copy is consistent
     try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch (_) {}
     fs.copyFileSync(ACTIVE_DB_PATH, destDb);
-    const personasJson = path.join(__dirname, 'personas.json');
-    if (fs.existsSync(personasJson)) {
-      fs.copyFileSync(personasJson, destJson);
+
+    try {
+      fs.writeFileSync(destJson, JSON.stringify(buildPersonasExportPayload(), null, 2), 'utf8');
+    } catch (err) {
+      console.warn('[db] Backup personas JSON skip:', err.message);
     }
 
     try {

@@ -25,13 +25,13 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (pila W1–W5e integrada) |
-| **Commit base** | tip W5e `fc64fa2` + merge W1 |
-| **PR actual** | — merge a main |
-| **`main` remoto** | W1–W5e + [PLAN.md](./PLAN.md) |
-| **Etapa de producto** | Post-W5: producto W7–W10 o W6 (OK owner) |
-| **Prioridad inmediata** | Producto W7–W10; **no Replicate** |
-| **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
+| **Rama de trabajo** | `cursor/untrack-data-mirrors-152f` (W6) |
+| **Commit base** | `main` post W1–W5e + PLAN |
+| **PR actual** | W6 untrack mirrors (draft) |
+| **`main` remoto** | W1–W5e + PLAN; W7–W10 en PRs aparte |
+| **Etapa de producto** | W6 en curso (OK owner); W7–W10 listos en PRs |
+| **Prioridad inmediata** | Merge W6 + pila W7–W10; **no Replicate** |
+| **En pausa** | OAuth, SMTP, video, **Replicate**; `git filter-repo` de historia (opcional owner) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
 
@@ -48,17 +48,17 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** Merge primero (pila W1–W5e).
+**Pedido:** Hacer W6 (OK owner — desversionar mirrors).
 
 **Hecho:**
-- FF `cursor/routes-admin-152f` (W2–W5e) → `main`.
-- Merge W1 (`localhost-bind` + wizard PIN) con conflictos docs/package resueltos.
-- Merge PLAN.md (#17) → `main`.
-- Post-merge: **118** tests + smoke **9/9**.
+- `git rm --cached` de `influ.sqlite` / `personas.json` + `.gitignore`.
+- `syncDbToWorkspace` / `syncPersonasJson` = no-op salvo `ENABLE_LEGACY_MIRRORS=1`.
+- Backup escribe export JSON de personas desde SQLite (no mirror raíz).
+- Docs AGENTS/HANDOFF/ROADMAP; tests `untrack-mirrors.test.js`.
 
-**Siguiente:** Producto W7–W10 (o W6 con OK owner).
+**Siguiente:** Merge W6; luego W7–W10. `filter-repo` de historia = opcional owner.
 
-**No tocado:** Replicate; desversionar mirrors.
+**No tocado:** Replicate; historial git (sin filter-repo).
 
 
 ---
@@ -77,14 +77,9 @@ Antes de probar:
 1. Confirmar que `npm test` incluye `DISABLE_GIT_BACKUP=1` (cinturón).
 2. Auto-Git es **opt-in** (`ENABLE_GIT_BACKUP=1`). No activar en tests.
 3. No usar `git add .`; stagear archivos explícitos.
-4. No commitear `.env`, `influ.sqlite`, `personas.json`, `data/` ni
-   `assets/references/ref_*` creados por tests.
-5. Si tests ensucian datos versionados:
-
-```bash
-git restore influ.sqlite personas.json
-git status --short
-```
+4. No commitear `.env`, `data/`, ni `assets/references/ref_*` creados por tests.
+   `influ.sqlite` / `personas.json` en raíz están **gitignore** (W6) — no hace falta `git restore`.
+5. Fuente de verdad: `data/influ.sqlite`. Mirrors raíz solo con `ENABLE_LEGACY_MIRRORS=1`.
 
 No borrar `assets/references/` completo: contiene referencias versionadas.
 
@@ -94,9 +89,9 @@ No borrar `assets/references/` completo: contiene referencias versionadas.
 
 Hecho 2026-07-29: tip → `main`, tests + smoke OK.
 
-### Paso 1 — P0 datos: auto-Git opt-in ✅ (PR #14)
+### Paso 1 — P0 datos: auto-Git opt-in ✅ (PR #14) + W6 mirrors ✅
 
-Pendiente (con OK del owner): desversionar mirrors `influ.sqlite` / `personas.json`.
+W6: desversionados `influ.sqlite` / `personas.json` (OK owner). Historial `filter-repo` opcional.
 
 ### Paso 2 — P0 seguridad: paths y ownership ✅ (PR #14)
 
@@ -115,7 +110,7 @@ routes/import.js + generation.js ✅ (W5d)
 routes/admin.js    ✅ (W5e) — W5 extracciones completas
 ```
 
-Extracciones W5 de `server.js` ✅. Siguiente: producto W7–W10 (ver PLAN.md).
+Extracciones W5 de `server.js` ✅. Producto: merge W7–W10 (ver PLAN.md).
 
 ## Smoke manual obligatorio (post-merge — resultado)
 
@@ -145,6 +140,7 @@ Extracciones W5 de `server.js` ✅. Siguiente: producto W7–W10 (ver PLAN.md).
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | W6 desversionar mirrors SQLite/JSON (OK owner) | *(PR W6)* |
 | 2026-07-29 | Cursor | Merge W1–W5e → main | *(main)* |
 | 2026-07-29 | Cursor | W5e extract routes/admin.js | *(PR W5e)* |
 | 2026-07-29 | Cursor | W5d extract routes/import + generation | *(PR W5d)* |

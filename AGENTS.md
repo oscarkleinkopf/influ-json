@@ -31,7 +31,7 @@ Stack: Node/Express, better-sqlite3, front monolítico (`index.html` + `app.js` 
 
 - Servidor: **`npm start` → `node server.js`** (puerto 3000). `npm run start:minimal` es demo offline — **no** es producción.
 - Auth: `STUDIO_PIN` en `.env`. No commitear `.env`.
-- DB: `data/influ.sqlite` o `DATA_DIR` — ver `paths.js`.
+- DB: `data/influ.sqlite` o `DATA_DIR` — ver `paths.js`. No versionar mirrors de raíz (`influ.sqlite` / `personas.json`; W6).
 - Imagen: `image-provider.js` (default `pollinations`).
 - Tras mutar personas: refrescar `state.personas` + grids.
 - UI en español; errores honestos (429, offline).
