@@ -30,7 +30,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **PR actual** | ninguno — pila **#4–#16 MERGED** en `main` |
 | **`main` remoto** | incluye validador → chatbot-packs |
 | **Etapa de producto** | Paso 4 (mantenibilidad) — siguiente: `import-flow.js` |
-| **Prioridad inmediata** | Extraer módulos de `app.js` / rutas de `server.js`; **no Replicate** |
+| **Prioridad inmediata** | Ejecutar **[PLAN.md](./PLAN.md)** (W1→W4, luego W5); **no Replicate** |
 | **En pausa** | OAuth, SMTP, video completo y **Replicate**; desversionar mirrors SQLite (OK owner) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 | **Última actualización** | 2026-07-29 |
