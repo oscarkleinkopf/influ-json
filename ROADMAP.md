@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **W1 bind localhost + setup PIN** | `HOST` default 127.0.0.1; wizard; SESSION_SECRET; 503 si público+PIN default; tests 67 |
 | 2026-07-29 | **Pila #4–#16 en `main` + smoke** | FF tip→main; tests 59; smoke API 9/9; free path OK |
 | 2026-07-29 | **Import discard + chatbot-packs.js** | Limpia refs preview; packs F5 extraídos del monolito |
 | 2026-07-29 | **Founder onboarding + pack en portafolio** | Modal admin roster vacío; Copiar pack fullbody en tarjeta; CTA import |
