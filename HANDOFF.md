@@ -25,10 +25,10 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa de producto** | **Matriz QA + banner 429** (este PR) |
-| **Fase ROADMAP** | Free path: consistencia a ojo + rate-limit honesto |
-| **Prioridad inmediata** | Merge pila PRs; smoke QA matrix + 429 |
-| **En pausa** | OAuth, SMTP, Replicate obligatorio |
+| **Etapa de producto** | **1.2 Import confirm** (este PR) — Semana 1 cerrada |
+| **Fase ROADMAP** | Free path completo; merge pila PRs |
+| **Prioridad inmediata** | Merge #4→#13; smoke con tester; **no Replicate** |
+| **En pausa** | OAuth, SMTP, Replicate |
 | **Servidor** | `npm start` → `server.js` |
 | **Última plataforma** | Cursor |
 | **Última actualización** | 2026-07-29 |
@@ -37,24 +37,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** continuar (matriz QA + UX 429).
+**Pedido:** terminar lo último del plan, sin Replicate.
 
 **Hecho:**
-- Panel **Matriz QA** en ficha: slots retrato / cuerpo / spicy + checklist cara/tez/pelo (localStorage).
-- Heurística gratis en `qa-matrix.js` (sin API de scoring); CTAs a copiar pack / generar.
-- Banner sticky **429** + chip «reintento en Ns — no pulses generar otra vez».
-- Tests `test/qa-matrix.test.js`.
+- **1.2 Import confirm:** `previewOnly=1` analiza sin guardar; Descartar no deja huérfanos; Confirmar → `POST /api/personas` + anclas en background.
+- Hint en UI + salud `character_lock` en preview.
+- Tests `test/import-confirm.test.js`.
 
-**No tocado:** Replicate, CSP.
+**No tocado:** Replicate.
 
 ---
 
 ## Próximos pasos (robot que retome)
 
 1. `git pull` → este archivo → `ROADMAP.md`.
-2. Merge pila multi-user + guía + este PR.
-3. Smoke: crear → gen → matriz QA marca checks; forzar 429 → banner/chip.
-4. Solo si el usuario lo pide: Replicate opt-in.
+2. Merge pila PRs (#4…#13) en orden.
+3. Smoke: import → preview → descartar (no aparece) / confirmar (sí + variantes).
+4. Replicate **solo** si el usuario lo pide.
 
 ---
 
@@ -62,7 +61,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-29 | Cursor | Matriz QA consistencia + banner 429 | *(este PR)* |
+| 2026-07-29 | Cursor | 1.2 Import confirm (preview sin persistir) | *(este PR)* |
+| 2026-07-29 | Cursor | Matriz QA consistencia + banner 429 | PR #12 |
 | 2026-07-28 | Cursor | Guía gráfica «Cómo usar» (hero + 4 pasos) | PR #11 |
 | 2026-07-28 | Cursor | Presets nicho + kit marca ZIP | PR #10 |
 | 2026-07-28 | Cursor | Onboarding member + Ajustes por rol | PR #9 |

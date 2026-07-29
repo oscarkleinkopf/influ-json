@@ -1902,6 +1902,9 @@ app.post(['/api/import-influencer', '/api/personas/import'], upload.array('photo
     const primaryImagePath = imagePaths[0];
     const personaName = req.body.name || analysis.identity.name || `Influencer_${Date.now().toString().slice(-4)}`;
     const profileId = req.session.profileId || resolveSessionProfile(req);
+    const previewOnly = ['1', 'true', 'yes', 'on'].includes(
+      String(req.body.previewOnly ?? req.query.previewOnly ?? '').toLowerCase()
+    );
     const persona = {
       name: personaName,
       gender: req.body.gender || analysis.identity.gender || "Female",
@@ -1921,7 +1924,24 @@ app.post(['/api/import-influencer', '/api/personas/import'], upload.array('photo
       forceCreate: true
     };
 
-    // Save to SQLite
+    // Generate UGC Video Scripts (works on draft payload; no DB id required)
+    const scriptTopic = req.body.scriptTopic || "Video UGC Promocional";
+    const videoScripts = await aiService.generateUgcVideoScripts(persona, scriptTopic);
+
+    // 1.2 import confirm: previewOnly = analizar sin guardar ni encolar variantes
+    if (previewOnly) {
+      return res.json({
+        success: true,
+        preview: true,
+        persona,
+        videoScripts,
+        imagePaths,
+        gitSynced: false,
+        message: 'Vista previa lista. Confirma para guardar en el portafolio.'
+      });
+    }
+
+    // Save to SQLite (legacy / confirm-via-import path)
     const savedPersona = dbService.savePersona(persona);
 
     // Trigger 4 background variants asynchronously (non-blocking)
@@ -1929,15 +1949,12 @@ app.post(['/api/import-influencer', '/api/personas/import'], upload.array('photo
       console.warn('[import] Error enqueuing background variants:', err.message);
     });
 
-    // Generate UGC Video Scripts
-    const scriptTopic = req.body.scriptTopic || "Video UGC Promocional";
-    const videoScripts = await aiService.generateUgcVideoScripts(savedPersona, scriptTopic);
-
     // Sync database and trigger Git auto-backup
     dbService.syncDbToWorkspace();
     runGitBackup((gitSuccess, msg) => {
       res.json({
         success: true,
+        preview: false,
         persona: savedPersona,
         videoScripts,
         gitSynced: gitSuccess,

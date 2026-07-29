@@ -1858,9 +1858,12 @@
         </div>
       </div>
 
-      <!-- Paso 3: Vista Previa y Confirmación -->
+      <!-- Paso 3: Vista Previa y Confirmación (1.2 — aún no en portafolio) -->
       <div id="importPreview" style="display: none;">
-        <h3 style="font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">📋 Perfil Analizado</h3>
+        <h3 style="font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">📋 Perfil Analizado</h3>
+        <p id="importConfirmHint" class="import-confirm-hint" style="display:none; font-size: 12px; color: #fde68a; margin: 0 0 14px; line-height: 1.4;">
+          Aún no está en tu portafolio. Revisa y confirma, o descarta.
+        </p>
         
         <div class="editor-form-group" style="margin-bottom: 20px;">
           <div>
@@ -1870,10 +1873,11 @@
         </div>
 
         <!-- Visual Summary -->
-        <div class="prompt-console" style="margin-top: 0; margin-bottom: 20px;">
+        <div class="prompt-console" style="margin-top: 0; margin-bottom: 12px;">
           <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px;">Resumen del Look y Facciones</span>
           <div id="importSummaryText" style="font-size: 11px; max-height: 100px; overflow-y: auto; color: var(--text-secondary); padding: 8px 12px; line-height: 1.6;">Cargando resumen...</div>
         </div>
+        <p id="importLockHealth" class="import-lock-health" style="display:none; font-size: 11px; color: #86efac; margin: 0 0 16px;"></p>
 
         <!-- JSON Output Preview -->
         <div class="prompt-console" style="margin-top: 0; margin-bottom: 20px; background: rgba(0,0,0,0.3);">
@@ -2109,6 +2113,6 @@
   <script src="character-lock-validator.js?v=1.0.0"></script>
   <script src="niche-presets.js?v=1.0.0"></script>
   <script src="qa-matrix.js?v=1.0.0"></script>
-  <script src="app.js?v=1.9.0"></script>
+  <script src="app.js?v=1.9.1"></script>
 </body>
 </html>
