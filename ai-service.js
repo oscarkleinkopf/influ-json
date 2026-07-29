@@ -57,7 +57,9 @@ module.exports = {
 
     try {
       const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
-      const absolutePath = path.resolve(imagePath);
+      // Defensa en profundidad: acotar lectura a assets/DATA_DIR
+      const { resolveSafeAssetPath } = require('./safe-paths');
+      const absolutePath = resolveSafeAssetPath(imagePath);
       const imgData = fs.readFileSync(absolutePath);
       
       const filePart = {
@@ -707,7 +709,8 @@ module.exports = {
       if (!localPath || localPath.includes('influencer_female.png') || localPath.includes('influencer_male.png')) {
         return null;
       }
-      const absolutePath = path.resolve(localPath);
+      const { resolveSafeAssetPath } = require('./safe-paths');
+      const absolutePath = resolveSafeAssetPath(localPath);
       if (!fs.existsSync(absolutePath) || fs.lstatSync(absolutePath).isDirectory()) {
         return null;
       }

@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/import-confirm-152f` |
-| **Commit funcional** | `e2bafdc` — 1.2 import confirm |
-| **PR actual** | **#13** (draft, base `main`) |
-| **`main` remoto al escribir esto** | `e618868` — todavía no contiene la pila #4–#13 |
-| **Etapa de producto** | Núcleo free + usabilidad terminados en la pila; toca integrar y endurecer |
-| **Prioridad inmediata** | Merge seguro + P0 de datos/seguridad; después UX free |
+| **Rama de trabajo** | `cursor/p0-git-security-152f` |
+| **Commit base** | encima de `cursor/import-confirm-152f` (#13) |
+| **PR actual** | **#14** (este) — P0 git/seguridad + UX free |
+| **`main` remoto al escribir esto** | aún sin pila #4–#13 |
+| **Etapa de producto** | P0 datos/seguridad + UX JSON-first en esta rama |
+| **Prioridad inmediata** | Merge #4→#14; smoke; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video completo y **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` |
 | **Última actualización** | 2026-07-29 |
@@ -52,23 +52,26 @@ PR reduzca su diff al avanzar `main`:
 | 8 | #11 | Guía gráfica «Cómo usar» |
 | 9 | #12 | Matriz QA + banner 429 |
 | 10 | #13 | Import confirm sin persistir preview |
+| 11 | #14 | P0 auto-Git opt-in + paths/SSRF/ownership + UX JSON-first |
 
 PRs #1–#3 son anteriores y se solapan con la pila actual. **No mezclarlos a
-ciegas**: comprobar primero si su funcionalidad ya está en #4–#13; cerrar como
+ciegas**: comprobar primero si su funcionalidad ya está en #4–#14; cerrar como
 superseded si corresponde.
 
 ---
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** terminar lo último del plan, sin Replicate.
+**Pedido:** continuar implementación (sin Replicate).
 
-**Hecho:**
-- **1.2 Import confirm:** `previewOnly=1` analiza sin guardar; Descartar no deja huérfanos; Confirmar → `POST /api/personas` + anclas en background.
-- Hint en UI + salud `character_lock` en preview.
-- Tests `test/import-confirm.test.js`.
+**Hecho (esta rama):**
+- Auto-Git **opt-in** (`ENABLE_GIT_BACKUP=1`); default off.
+- `safe-paths.js`: `resolveSafeAssetPath` + anti-SSRF.
+- Ownership en `DELETE /api/generations/:id` y `POST /api/ai/generate-image`.
+- UX: nav móvil, Guardar JSON-first / Guardar+retrato, hex tez, checklist opcional, banner offline.
+- Tests: `safe-paths.test.js`, `p0-security.test.js` (52 tests total).
 
-**No tocado:** Replicate.
+**No tocado:** Replicate; desversionar `influ.sqlite` del repo (requiere OK del owner).
 
 ---
 
@@ -85,9 +88,8 @@ npm test
 
 Antes de probar:
 
-1. Confirmar que `npm test` incluye `DISABLE_GIT_BACKUP=1`.
-2. No ejecutar tests con auto-backup activo: `runGitBackup()` puede hacer
-   `git add .`, commit y push.
+1. Confirmar que `npm test` incluye `DISABLE_GIT_BACKUP=1` (cinturón).
+2. Auto-Git ya es **opt-in** (`ENABLE_GIT_BACKUP=1`). No actives eso en tests.
 3. No usar `git add .`; stagear archivos explícitos.
 4. No commitear `.env`, `influ.sqlite`, `personas.json`, `data/` ni
    `assets/references/ref_*` creados por tests.
@@ -226,7 +228,8 @@ Registrar resultado exacto: paso, esperado, observado y captura/log si falla.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-29 | Cursor | 1.2 Import confirm (preview sin persistir) | *(este PR)* |
+| 2026-07-29 | Cursor | P0 git opt-in + paths/SSRF/ownership + UX JSON-first | *(PR #14)* |
+| 2026-07-29 | Cursor | 1.2 Import confirm (preview sin persistir) | PR #13 |
 | 2026-07-29 | Cursor | Matriz QA consistencia + banner 429 | PR #12 |
 | 2026-07-28 | Cursor | Guía gráfica «Cómo usar» (hero + 4 pasos) | PR #11 |
 | 2026-07-28 | Cursor | Presets nicho + kit marca ZIP | PR #10 |

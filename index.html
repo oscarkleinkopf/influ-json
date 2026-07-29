@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.3.0">
+  <link rel="stylesheet" href="index.css?v=1.3.1">
 </head>
 <body>
   <div class="app-container">
@@ -190,8 +190,8 @@
             <li class="happy-path-step" data-step="gen">
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
-                <strong>3. Generar 1 imagen</strong>
-                <p>Retrato al guardar o una variante en el vault (Pollinations, gratis).</p>
+                <strong>3. Generar 1 imagen <em style="font-weight:500;color:var(--text-muted);">(opcional)</em></strong>
+                <p>Pollinations es opcional. También puedes completar este paso solo copiando un pack al chatbot.</p>
                 <button type="button" class="btn btn-secondary btn-sm" data-happy-action="gen">Ir a variantes</button>
               </div>
             </li>
@@ -741,9 +741,19 @@
                     <input type="text" id="pSkinTone" list="dlSkinTone" placeholder="Selecciona o escribe..." value="Piel clara ligeramente bronceada">
                   </div>
                   <div>
+                    <label for="pSkinToneHex">Hex de tez (ancla free)</label>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                      <input type="color" id="pSkinToneHexPicker" value="#f0d5c0" title="Elegir color" style="width:42px; height:36px; padding:0; border:1px solid var(--glass-border); background:transparent; cursor:pointer;">
+                      <input type="text" id="pSkinToneHex" value="#f0d5c0" placeholder="#f0d5c0" pattern="^#?[0-9A-Fa-f]{6}$" style="flex:1;">
+                    </div>
+                  </div>
+                </div>
+                <div class="form-row" style="margin-top: 10px;">
+                  <div>
                     <label for="pSkinTexture">Textura de la Piel</label>
                     <input type="text" id="pSkinTexture" value="Piel suave con poros y pecas muy sutiles">
                   </div>
+                  <div></div>
                 </div>
                 <div class="form-row" style="margin-top: 10px;">
                   <div>
@@ -858,9 +868,12 @@
                 </div>
               </div>
               
-              <div style="margin-top: 10px; display: flex; gap: 8px;">
-                <button type="button" class="btn" id="btnSavePersona" style="flex: 2;">
-                  Guardar Persona en influ-JSON
+              <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn" id="btnSavePersona" style="flex: 2; min-width: 160px;">
+                  Guardar personaje
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnSavePersonaWithPortrait" style="flex: 1.5; min-width: 160px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #7dd3fc;" title="Opcional: genera retrato con Pollinations al guardar">
+                  Guardar + retrato
                 </button>
                 <button type="button" class="btn btn-secondary" id="btnCancelEditPersona" style="flex: 1.5; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
                   👁️ Ver Ficha
@@ -1958,6 +1971,12 @@
     <span id="rateLimitBannerText">Pollinations limitó peticiones (429). La cola espera y reintenta sola.</span>
   </div>
 
+  <!-- Banner offline: JSON-first sigue disponible -->
+  <div id="offlineBanner" class="offline-banner" style="display:none;" role="status" aria-live="polite">
+    <span class="offline-dot" aria-hidden="true"></span>
+    <span id="offlineBannerText">Sin conexión al Studio — puedes copiar JSON ya cargado; generación Pollinations pausada.</span>
+  </div>
+
   <!-- Onboarding member (post-invitación / roster vacío) -->
   <div id="memberWelcomeModal" class="login-modal-overlay" style="display:none;" role="dialog" aria-labelledby="memberWelcomeTitle">
     <div class="glass-card login-card" style="width:100%; max-width:440px; text-align:left; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.8); position:relative;">
@@ -1982,7 +2001,7 @@
   
   <!-- Mobile Bottom Fixed Navigation Bar -->
   <nav class="mobile-bottom-nav">
-    <button class="mobile-nav-item active" data-tab="personas" id="mbNavInfluencers">
+    <button class="mobile-nav-item active" data-tab="persona-engine" id="mbNavInfluencers">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span>Influencers</span>
     </button>
@@ -1990,9 +2009,9 @@
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
       <span>Studio</span>
     </button>
-    <button class="mobile-nav-item" data-tab="products" id="mbNavProducts">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-      <span>Catálogo</span>
+    <button class="mobile-nav-item" data-tab="como-usar" id="mbNavGuide">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>Cómo usar</span>
     </button>
     <button class="mobile-nav-item" data-tab="campaigns" id="mbNavCampaigns">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -2113,6 +2132,6 @@
   <script src="character-lock-validator.js?v=1.0.0"></script>
   <script src="niche-presets.js?v=1.0.0"></script>
   <script src="qa-matrix.js?v=1.0.0"></script>
-  <script src="app.js?v=1.9.1"></script>
+  <script src="app.js?v=1.9.2"></script>
 </body>
 </html>

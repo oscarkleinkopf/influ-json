@@ -25,6 +25,13 @@ const dbService = require('./db');
 const authService = require('./auth');
 const aiService = require('./ai-service');
 const genQueue = require('./gen-queue');
+const {
+  isGitBackupEnabled,
+  resolveSafeAssetPath,
+  assertSafeRemoteImageUrl,
+  UNSAFE_PATH,
+  UNSAFE_URL
+} = require('./safe-paths');
 
 // Initialize DB and migrate legacy JSON data if empty
 dbService.runMigrations();
@@ -170,16 +177,17 @@ const { DATA_DIR, ensureDir } = require('./paths');
 const SCRATCH_DIR = DATA_DIR;
 ensureDir(SCRATCH_DIR);
 
-// Git backup helper function
+// Git backup helper — OPT-IN (ENABLE_GIT_BACKUP=1). Default: off.
 function runGitBackup(callback) {
-  // Tests y scripts locales no deben commitear/pushear artefactos a main
-  if (process.env.DISABLE_GIT_BACKUP === '1') {
-    if (callback) callback(true, 'Git backup omitido (DISABLE_GIT_BACKUP=1)');
+  if (!isGitBackupEnabled()) {
+    if (callback) {
+      callback(true, 'Git backup omitido (requiere ENABLE_GIT_BACKUP=1; o DISABLE_GIT_BACKUP=1)');
+    }
     return;
   }
   const commitMsg = `Backup auto-sync: Campaign update ${new Date().toISOString()}`;
   const commands = `git add . && git commit -m "${commitMsg}" --allow-empty && git push origin main`;
-  
+
   // Call callback immediately to prevent blocking HTTP response
   if (callback) {
     callback(true, 'Git backup scheduled in background');
@@ -1152,6 +1160,21 @@ app.get('/api/personas/:id/generations', requireOwnedPersona, (req, res) => {
 
 app.delete('/api/generations/:id', (req, res) => {
   try {
+    const profileId = req.session.profileId || resolveSessionProfile(req);
+    const gen = dbService.getGenerationById(req.params.id);
+    if (!gen) {
+      return res.status(404).json({ success: false, message: 'Generación no encontrada.' });
+    }
+    const personaId = gen.persona_id;
+    if (personaId && personaId !== 'new_persona' && personaId !== 'unknown') {
+      const owned = dbService.assertPersonaOwnedBy(personaId, profileId);
+      if (!owned) {
+        return res.status(404).json({ success: false, message: 'Generación no encontrada.' });
+      }
+    } else if (!dbService.isAdminRole(req.session?.profileRole)) {
+      // orphan / new_persona: solo admin
+      return res.status(404).json({ success: false, message: 'Generación no encontrada.' });
+    }
     dbService.deleteGeneration(req.params.id);
     res.json({ success: true });
   } catch (err) {
@@ -1171,7 +1194,16 @@ app.get('/api/stats/generations', (req, res) => {
 // AI endpoints
 app.post('/api/ai/analyze-photo', (req, res) => {
   const { imagePath } = req.body;
-  aiService.analyzeReferencePhoto(imagePath)
+  let safePath;
+  try {
+    safePath = resolveSafeAssetPath(imagePath);
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      message: err.code === UNSAFE_PATH ? err.message : 'Ruta de archivo inválida.'
+    });
+  }
+  aiService.analyzeReferencePhoto(safePath)
     .then(result => {
       res.json({ success: true, analysis: result });
     })
@@ -1202,12 +1234,25 @@ app.post('/api/ai/generate-scripts', (req, res) => {
 
 app.post('/api/ai/generate-image', async (req, res) => {
   const { prompt, referenceLocalPath, options, framing } = req.body;
-  
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const personaId = req.body.personaId || 'new_persona';
+
+  if (personaId !== 'new_persona' && personaId !== 'unknown') {
+    const owned = dbService.assertPersonaOwnedBy(personaId, profileId);
+    if (!owned) {
+      return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
+    }
+  }
+
   let referenceUrl = null;
-  if (referenceLocalPath && !referenceLocalPath.startsWith('http')) {
+  if (referenceLocalPath && !String(referenceLocalPath).startsWith('http')) {
     try {
-      referenceUrl = await aiService.uploadToTmpFiles(referenceLocalPath);
+      const safeRef = resolveSafeAssetPath(referenceLocalPath);
+      referenceUrl = await aiService.uploadToTmpFiles(safeRef);
     } catch (e) {
+      if (e && e.code === UNSAFE_PATH) {
+        return res.status(400).json({ success: false, message: e.message });
+      }
       console.warn('Failed to upload reference photo for generation:', e);
     }
   }
@@ -1223,7 +1268,7 @@ app.post('/api/ai/generate-image', async (req, res) => {
       // Save to generation history
       try {
         dbService.saveGeneration({
-          persona_id: req.body.personaId || 'unknown',
+          persona_id: personaId,
           prompt: req.body.prompt,
           image_path: imagePath,
           generation_type: req.body.generationType || 'portrait',
@@ -1455,19 +1500,53 @@ app.post('/api/upload-reference', upload.single('photo'), (req, res) => {
 });
 
 async function downloadOrResolveImage(inputUrl) {
-  let targetUrl = inputUrl;
+  const MAX_BYTES = 15 * 1024 * 1024;
+  const FETCH_MS = 12000;
+
+  let parsed = assertSafeRemoteImageUrl(inputUrl);
+  let targetUrl = parsed.toString();
   console.log(`Resolving reference image URL: ${targetUrl}`);
 
   // Use Facebook bot User-Agent for social platforms so Instagram/TikTok return static OpenGraph meta tags
-  const isSocialPlatform = targetUrl.includes('instagram.com') || targetUrl.includes('tiktok.com') || targetUrl.includes('facebook.com');
+  const isSocialPlatform = /instagram\.com|tiktok\.com|facebook\.com/i.test(targetUrl);
   const botUserAgent = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
   const browserUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
-  let response = await fetch(targetUrl, {
-    headers: {
-      'User-Agent': isSocialPlatform ? botUserAgent : browserUserAgent
+  async function fetchWithLimit(url, userAgent) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_MS);
+    try {
+      const response = await fetch(url, {
+        headers: { 'User-Agent': userAgent },
+        redirect: 'manual',
+        signal: controller.signal
+      });
+      // Follow a small number of redirects manually, re-validating each hop
+      let current = response;
+      let hops = 0;
+      while ([301, 302, 303, 307, 308].includes(current.status) && hops < 3) {
+        const loc = current.headers.get('location');
+        if (!loc) break;
+        const next = assertSafeRemoteImageUrl(new URL(loc, url).toString()).toString();
+        current = await fetch(next, {
+          headers: { 'User-Agent': userAgent },
+          redirect: 'manual',
+          signal: controller.signal
+        });
+        url = next;
+        hops++;
+      }
+      return { response: current, finalUrl: url };
+    } finally {
+      clearTimeout(timer);
     }
-  });
+  }
+
+  let { response, finalUrl } = await fetchWithLimit(
+    targetUrl,
+    isSocialPlatform ? botUserAgent : browserUserAgent
+  );
+  targetUrl = finalUrl;
 
   if (!response.ok) {
     throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
@@ -1478,7 +1557,10 @@ async function downloadOrResolveImage(inputUrl) {
   // If page is HTML (e.g. Instagram/TikTok profile or web page), extract og:image or twitter:image
   if (contentType.includes('text/html')) {
     const htmlText = await response.text();
-    const ogMatch = htmlText.match(/<meta\s+[^>]*property=["']og:image(?::secure_url)?["']\s+[^>]*content=["']([^"']+)["']/i) 
+    if (Buffer.byteLength(htmlText, 'utf8') > MAX_BYTES) {
+      throw new Error('Respuesta HTML demasiado grande.');
+    }
+    const ogMatch = htmlText.match(/<meta\s+[^>]*property=["']og:image(?::secure_url)?["']\s+[^>]*content=["']([^"']+)["']/i)
                  || htmlText.match(/<meta\s+[^>]*content=["']([^"']+)["']\s+[^>]*property=["']og:image(?::secure_url)?["']/i);
     const twitterMatch = htmlText.match(/<meta\s+[^>]*name=["']twitter:image(?::src)?["']\s+[^>]*content=["']([^"']+)["']/i)
                       || htmlText.match(/<meta\s+[^>]*content=["']([^"']+)["']\s+[^>]*name=["']twitter:image(?::src)?["']/i);
@@ -1493,19 +1575,16 @@ async function downloadOrResolveImage(inputUrl) {
       // Unescape HTML entities (e.g., &amp; -> &) which break CDN query parameters
       extractedImage = extractedImage.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
       console.log(`Extracted OpenGraph/Twitter image URL from HTML page: ${extractedImage}`);
-      
+
       if (extractedImage.startsWith('http')) {
-        targetUrl = extractedImage;
+        targetUrl = assertSafeRemoteImageUrl(extractedImage).toString();
       } else {
         const parsedBase = new URL(inputUrl);
-        targetUrl = new URL(extractedImage, parsedBase.origin).toString();
+        targetUrl = assertSafeRemoteImageUrl(new URL(extractedImage, parsedBase.origin).toString()).toString();
       }
 
-      response = await fetch(targetUrl, {
-        headers: {
-          'User-Agent': browserUserAgent
-        }
-      });
+      ({ response, finalUrl } = await fetchWithLimit(targetUrl, browserUserAgent));
+      targetUrl = finalUrl;
       if (!response.ok) {
         throw new Error(`Error HTTP ${response.status} al descargar imagen extraída.`);
       }
@@ -1526,8 +1605,16 @@ async function downloadOrResolveImage(inputUrl) {
   const dir = path.dirname(absolutePath);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
+  const contentLength = Number(response.headers.get('content-length') || 0);
+  if (contentLength > MAX_BYTES) {
+    throw new Error('La imagen supera el límite de 15MB.');
+  }
+
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
+  if (buffer.length > MAX_BYTES) {
+    throw new Error('La imagen supera el límite de 15MB.');
+  }
   fs.writeFileSync(absolutePath, buffer);
 
   // Sync reference image to scratch directory
@@ -1560,7 +1647,8 @@ app.post('/api/upload-reference-url', async (req, res) => {
     });
   } catch (err) {
     console.error('Error downloading reference from URL:', err);
-    res.status(500).json({ success: false, message: `Error al descargar la imagen: ${err.message}` });
+    const status = err.code === UNSAFE_URL ? 400 : 500;
+    res.status(status).json({ success: false, message: `Error al descargar la imagen: ${err.message}` });
   }
 });
 

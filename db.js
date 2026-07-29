@@ -839,6 +839,11 @@ module.exports = {
     return db.prepare('SELECT * FROM generation_history WHERE persona_id = ? ORDER BY created_at DESC').all(personaId);
   },
 
+  getGenerationById(id) {
+    if (!id) return null;
+    return db.prepare('SELECT * FROM generation_history WHERE id = ?').get(id) || null;
+  },
+
   deleteGeneration(id) {
     db.prepare('DELETE FROM generation_history WHERE id = ?').run(id);
     syncDbToWorkspace();
