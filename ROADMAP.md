@@ -97,7 +97,7 @@
 | 1.5 | Contador filtrado | ✅ |
 | 1.6 | DB portable | ✅ |
 | 1.1 | QA matrix (retrato/cuerpo/spicy + checklist) | ✅ (panel ficha + `qa-matrix.js`) |
-| 1.2 | import confirm | pendiente ligero |
+| 1.2 | import confirm | ✅ (`previewOnly` → confirmar / descartar) |
 
 ---
 
@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **1.2 Import confirm** | Analizar sin guardar; Descartar limpio; Confirmar → roster + anclas |
 | 2026-07-29 | **Matriz QA + banner 429** | Slots ancla/cuerpo/spicy + checks; banner sticky rate-limit; tests |
 | 2026-07-28 | **Guía Cómo usar gráfica** | Tab hero + 4 pasos + CTAs; asset `assets/guides/como-usar-hero.png` |
 | 2026-07-28 | **Presets nicho + kit marca** | beauty/fitness/moda; `?kit=1` ZIP + guión 15s; tests 37 |

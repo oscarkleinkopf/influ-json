@@ -69,6 +69,7 @@ Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a l
 - **Kit marca**: botón «Descargar kit marca» → ZIP con packs chatbot + guión UGC ~15s (`?kit=1`).
 - **Cómo usar**: pestaña con guía visual del flujo gratis (sidebar → Cómo usar).
 - **Matriz QA** (ficha del influencer): compara retrato ancla · cuerpo · spicy a ojo; checklist cara/tez/pelo (sin API de scoring).
+- **Importar**: Analizar = vista previa (no guarda). Confirmar = portafolio + anclas en segundo plano. Descartar no deja huérfanos.
 - `npm run start:minimal` **no** es producción.
 
 ## Documentación

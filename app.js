@@ -6674,6 +6674,7 @@ function initImportModal() {
 
   let selectedFiles = []; // Array of File objects (max 4)
   let lastImportedPersona = null;
+  let importIsPreview = false; // true = analyze devolvió draft; aún no está en roster
 
   if (!modal) return;
 
@@ -6785,16 +6786,42 @@ function initImportModal() {
       filesFeedback.textContent = '';
     }
     lastImportedPersona = null;
+    importIsPreview = false;
+    const confirmHint = document.getElementById('importConfirmHint');
+    if (confirmHint) confirmHint.style.display = 'none';
   }
 
   function closeModal() {
     modal.style.display = 'none';
   }
 
+  /** Descartar preview: no deja huérfanos en el roster */
+  async function discardImportPreview() {
+    // Si por error quedó persistida (flujo legacy), borrarla
+    if (lastImportedPersona?.id && !importIsPreview) {
+      try {
+        await authFetch(`/api/personas/${lastImportedPersona.id}`, { method: 'DELETE' });
+        await reloadPersonasFromServer();
+        refreshPersonaLists();
+        toastInfo('Borrador de importación descartado.');
+      } catch (err) {
+        console.warn('discardImportPreview delete failed:', err);
+      }
+    } else if (importIsPreview) {
+      toastInfo('Vista previa descartada. No se guardó nada en el portafolio.');
+    }
+    lastImportedPersona = null;
+    importIsPreview = false;
+    closeModal();
+  }
+
   if (btnOpen) btnOpen.addEventListener('click', openModal);
-  if (btnClose) btnClose.addEventListener('click', closeModal);
+  if (btnClose) btnClose.addEventListener('click', () => {
+    if (preview && preview.style.display !== 'none') discardImportPreview();
+    else closeModal();
+  });
   if (btnCancelStep1) btnCancelStep1.addEventListener('click', closeModal);
-  if (btnCancelPreview) btnCancelPreview.addEventListener('click', closeModal);
+  if (btnCancelPreview) btnCancelPreview.addEventListener('click', discardImportPreview);
 
   const btnCopyImportJSON = document.getElementById('btnCopyImportJSON');
   if (btnCopyImportJSON) {
@@ -6821,7 +6848,7 @@ function initImportModal() {
       step1.style.display = 'none';
       loading.style.display = 'flex';
       preview.style.display = 'none';
-      toastLoading(customName ? `Analizando e importando "${customName}"...` : 'Analizando referencia e importando influencer...');
+      toastLoading(customName ? `Analizando "${customName}" (sin guardar aún)...` : 'Analizando referencia (sin guardar aún)...');
 
       const formData = new FormData();
       const filesToSend = selectedFiles.slice(0, 4);
@@ -6832,9 +6859,10 @@ function initImportModal() {
       if (imageUrl) formData.append('imageUrl', imageUrl);
       if (customName) formData.append('name', customName);
       if (scriptTopic) formData.append('scriptTopic', scriptTopic);
+      // 1.2: preview sin persistir — confirmar guarda en portafolio
+      formData.append('previewOnly', '1');
 
       try {
-        QueuePoller.start();
         const response = await authFetch('/api/import-influencer', {
           method: 'POST',
           body: formData
@@ -6846,19 +6874,21 @@ function initImportModal() {
         }
 
         lastImportedPersona = data.persona;
-        toastSuccess(`Análisis listo: ${lastImportedPersona?.name || 'influencer'}. Revisa y confirma.`);
-
-        try {
-          state.personas = await reloadPersonasFromServer({
-            id: lastImportedPersona?.id,
-            name: lastImportedPersona?.name
-          });
-        } catch (refreshErr) {
-          console.warn('Could not refresh persona list after import analyze:', refreshErr);
+        importIsPreview = data.preview !== false;
+        // Asegurar que no hay id de roster en el draft
+        if (importIsPreview && lastImportedPersona) {
+          delete lastImportedPersona.id;
         }
+        toastSuccess(`Análisis listo: ${lastImportedPersona?.name || 'influencer'}. Revisa y confirma para guardar.`);
 
         loading.style.display = 'none';
         preview.style.display = 'block';
+
+        const confirmHint = document.getElementById('importConfirmHint');
+        if (confirmHint) {
+          confirmHint.style.display = 'block';
+          confirmHint.textContent = 'Aún no está en tu portafolio. Revisa el JSON y pulsa «Crear Persona y Guardar», o Descartar.';
+        }
 
         if (suggestedNameInput) suggestedNameInput.value = lastImportedPersona.name;
 
@@ -6871,6 +6901,20 @@ function initImportModal() {
             <strong>Cabello:</strong> ${d.hair?.length || 'medio'}, ${d.hair?.texture || 'natural'}, color ${d.hair?.color || 'castaño'}<br>
             <strong>Estilo:</strong> ${d.aesthetic?.overall_vibe || lastImportedPersona.style}
           `;
+        }
+
+        // Salud del character_lock (si hay validador)
+        const healthEl = document.getElementById('importLockHealth');
+        const lockApi = window.InfluCharacterLockValidator || window.CharacterLockValidator;
+        if (healthEl && lockApi?.validateCharacterLock) {
+          try {
+            const report = lockApi.validateCharacterLock(lastImportedPersona.detailedJSON || lastImportedPersona);
+            healthEl.style.display = 'block';
+            healthEl.textContent = `Salud character_lock: ${report.score ?? '—'}/100 (${report.gradeLabel || report.grade || '—'})`;
+            healthEl.classList.toggle('is-weak', (report.score ?? 0) < 60 || report.grade === 'weak');
+          } catch (_) {
+            healthEl.style.display = 'none';
+          }
         }
 
         const importJsonEl = document.getElementById('importJsonOutput');
@@ -6925,19 +6969,30 @@ function initImportModal() {
         return;
       }
 
+      const confirmBtn = btnConfirm;
+      confirmBtn.disabled = true;
       try {
         lastImportedPersona.name = finalName;
         lastImportedPersona.handle = `@${finalName.toLowerCase().replace(/\s+/g, '')}_ugc`;
+        // Confirmar = INSERT nuevo (nunca update accidental)
+        delete lastImportedPersona.id;
+        lastImportedPersona.forceCreate = true;
+
+        toastLoading(`Guardando "${finalName}" en el portafolio...`);
+        QueuePoller.start();
 
         const saveRes = await authFetch('/api/personas', {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(lastImportedPersona)
         });
         const saveJson = await saveRes.json();
-        if (saveJson.success) {
-          state.personas = Array.isArray(saveJson.personas) ? saveJson.personas : state.personas;
-          if (saveJson.persona) lastImportedPersona = saveJson.persona;
+        if (!saveJson.success) {
+          throw new Error(saveJson.message || 'No se pudo guardar la persona.');
         }
+        if (Array.isArray(saveJson.personas)) state.personas = saveJson.personas;
+        if (saveJson.persona) lastImportedPersona = saveJson.persona;
+        importIsPreview = false;
 
         state.selectedPersona = lastImportedPersona;
 
@@ -6947,20 +7002,24 @@ function initImportModal() {
         });
         refreshPersonaLists();
 
-        toastSuccess(`¡Influencer "${finalName}" importado con éxito! Se están generando poses adicionales en segundo plano...`);
+        toastSuccess(`¡Influencer "${finalName}" importado! Aparece en portafolio; poses ancla en segundo plano…`);
         closeModal();
 
-        // Immediate navigation to Vault
+        // Prefer Persona Engine (ficha + vault de variantes) sobre tab vault genérica
         if (typeof navigateToTab === 'function') {
-          navigateToTab('vault');
+          navigateToTab('persona-engine');
         }
-        if (typeof loadPersonaVariants === 'function' && lastImportedPersona.id) {
+        if (typeof selectPersona === 'function' && lastImportedPersona) {
+          selectPersona(lastImportedPersona);
+        } else if (typeof loadPersonaVariants === 'function' && lastImportedPersona.id) {
           loadPersonaVariants(lastImportedPersona.id);
         }
 
       } catch (err) {
         console.error('Failed to confirm and save persona:', err);
         toastError(`Error al confirmar la creación: ${err.message}`);
+      } finally {
+        confirmBtn.disabled = false;
       }
     });
   }
