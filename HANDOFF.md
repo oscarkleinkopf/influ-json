@@ -56,16 +56,14 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** Continuar (W11 tras Paso 0).
+**Pedido:** Seguir con W11 (CI rojo + pulido).
 
 **Hecho:**
-- W11: `buildChatbotSessionCheck` (lock + prompts A/B/C).
-- UI: botón ficha + portafolio; modal checklist (cara/tez/pelo) en `localStorage`.
-- Badge **Chatbot OK** cuando las 3 marcas pasan.
+- Fix CI: `INSERT OR IGNORE` en migraciones + `--test-concurrency=1`.
+- Pulido W11: **Abrir checklist**, status en ficha al seleccionar persona.
+- Sesión 3 prompts + badge Chatbot OK (ya en PR #33).
 
-**Siguiente:** Merge W11; luego W12 historial `character_lock`.
-
-**Verificación:** tests chatbot-packs + suite; smoke 9/9.
+**Siguiente:** Merge #33 → main; luego W12.
 
 **No tocado:** Replicate.
 

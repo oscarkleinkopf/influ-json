@@ -82,7 +82,14 @@ test('W11 UI wires sesión chatbot', () => {
   assert.match(app, /copyChatbotSessionCheck/);
   assert.match(app, /setupChatbotSessionUi/);
   assert.match(app, /influ_chatbot_session_/);
+  assert.match(app, /refreshChatbotSessionSheetStatus/);
   assert.match(html, /btnChatbotSessionCheck/);
+  assert.match(html, /btnOpenChatbotChecklist/);
   assert.match(html, /chatbotSessionModal/);
   assert.match(html, /Probar en chatbot \(3 prompts\)/);
+});
+
+test('W11 migrations usan INSERT OR IGNORE (seguro bajo tests paralelos)', () => {
+  const js = fs.readFileSync(path.join(__dirname, '..', 'migrations.js'), 'utf8');
+  assert.match(js, /INSERT OR IGNORE INTO schema_migrations/);
 });

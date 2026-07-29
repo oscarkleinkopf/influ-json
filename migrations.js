@@ -296,10 +296,16 @@ function runMigrations(db) {
 
   const newly = [];
   const run = db.transaction(() => {
+    // Releer dentro de la transacción (tests en paralelo / conexiones concurrentes)
+    const appliedNow = new Set(
+      db.prepare('SELECT id FROM schema_migrations').all().map((r) => r.id)
+    );
     for (const m of MIGRATIONS) {
-      if (applied.has(m.id)) continue;
+      if (appliedNow.has(m.id) || applied.has(m.id)) continue;
       m.up(db);
-      db.prepare('INSERT INTO schema_migrations (id, name) VALUES (?, ?)').run(m.id, m.name);
+      db.prepare('INSERT OR IGNORE INTO schema_migrations (id, name) VALUES (?, ?)').run(m.id, m.name);
+      applied.add(m.id);
+      appliedNow.add(m.id);
       newly.push(`${m.id}:${m.name}`);
       console.log(`[migrations] Applied ${m.id} — ${m.name}`);
     }

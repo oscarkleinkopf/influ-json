@@ -2382,6 +2382,7 @@ function selectPersona(persona) {
     loadGenerationHistory(persona.id);
     loadCharacterBible("");
   }
+  try { refreshChatbotSessionSheetStatus(); } catch (_) {}
 }
 
 // Render Select grids in tabs
@@ -2985,6 +2986,13 @@ function setupChatbotSessionUi() {
   document.getElementById('btnChatbotSessionCheck')?.addEventListener('click', () => {
     copyChatbotSessionCheck({ openChecklist: true });
   });
+  document.getElementById('btnOpenChatbotChecklist')?.addEventListener('click', () => {
+    if (!state.selectedPersona && !document.getElementById('pName')?.value) {
+      toastInfo('Selecciona un influencer para ver el checklist.');
+      return;
+    }
+    openChatbotSessionChecklistModal();
+  });
   document.getElementById('btnCloseChatbotSession')?.addEventListener('click', () => {
     const modal = document.getElementById('chatbotSessionModal');
     if (modal) modal.style.display = 'none';
@@ -3005,6 +3013,7 @@ function setupChatbotSessionUi() {
     };
     const saved = saveChatbotSessionChecklist(p.id, checklist);
     updateChatbotSessionStatusLine(saved);
+    refreshChatbotSessionSheetStatus();
     renderPersonaGrids();
     const pass = isChatbotSessionPassingForPersona(p);
     toastSuccess(pass
@@ -3023,6 +3032,29 @@ function setupChatbotSessionUi() {
       });
     });
   });
+  refreshChatbotSessionSheetStatus();
+}
+
+function refreshChatbotSessionSheetStatus() {
+  const el = document.getElementById('chatbotSessionSheetStatus');
+  if (!el) return;
+  const p = state.selectedPersona;
+  if (!p?.id) {
+    el.textContent = 'Guarda el influencer para registrar el checklist de sesión.';
+    el.style.color = 'var(--text-muted)';
+    return;
+  }
+  const cl = loadChatbotSessionChecklist(p.id);
+  if (isChatbotSessionPassingForPersona(p)) {
+    el.textContent = '✓ Sesión chatbot OK (cara + tez + pelo).';
+    el.style.color = '#34d399';
+  } else if (cl.updatedAt) {
+    el.textContent = `Checklist incompleto o con fallos (última: ${String(cl.updatedAt).slice(0, 19).replace('T', ' ')}).`;
+    el.style.color = 'var(--text-secondary)';
+  } else {
+    el.textContent = 'Aún no hay checklist — copia la sesión, prueba en el chatbot free y marca las 3 casillas.';
+    el.style.color = 'var(--text-muted)';
+  }
 }
 
 /**
