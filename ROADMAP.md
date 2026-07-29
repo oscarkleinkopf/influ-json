@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **Merge W1–W5e → main** | Tip W2–W5e FF + W1 merge; PLAN aparte |
 | 2026-07-29 | **W5e routes/admin.js** | profiles/invites/backups/settings; server.js ~799; tests 110 + smoke 9/9; W5 ✅ |
 | 2026-07-29 | **W5d import+generation routes** | `routes/import.js` + `routes/generation.js`; server.js ~1064; tests 106 + smoke 9/9 |
 | 2026-07-29 | **W5c routes/personas.js** | CRUD+variants+license+export; server.js −~420; tests 101 + smoke 9/9 |
@@ -125,7 +126,7 @@
 | 2026-07-29 | **W4 dHash consistencia** | `consistency-score.js`; chips UI; schema v7; tests 68 + smoke |
 | 2026-07-29 | **W3 magic bytes import** | `image-validation.js`; 400 + borrar basura; JPEG real en tests/smoke; 63+smoke |
 | 2026-07-29 | **W2 CI + smoke en repo** | `test/smoke.js` 9/9; workflow Actions; `npm run smoke` |
-| 2026-07-29 | **W1 bind localhost + setup PIN** | Ver PR #18 (rama aparte) |
+| 2026-07-29 | **W1 bind localhost + setup PIN** | `HOST` default 127.0.0.1; wizard; SESSION_SECRET; 503 si público+PIN default |
 | 2026-07-29 | **Pila #4–#16 en `main` + smoke** | FF tip→main; tests 59; smoke API 9/9; free path OK |
 | 2026-07-29 | **Import discard + chatbot-packs.js** | Limpia refs preview; packs F5 extraídos del monolito |
 | 2026-07-29 | **Founder onboarding + pack en portafolio** | Modal admin roster vacío; Copiar pack fullbody en tarjeta; CTA import |

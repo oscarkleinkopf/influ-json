@@ -25,14 +25,14 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/routes-admin-152f` (W5e, encima de W5d) |
-| **Commit base** | `origin/cursor/routes-import-generation-152f` @ `2d76411` |
-| **PR actual** | W5e extract `routes/admin.js` |
-| **`main` remoto** | pila #4–#16; PRs W1–W5d + PLAN abiertos |
-| **Etapa de producto** | Plan W5 mantenibilidad — **extracciones W5 completas** |
-| **Prioridad inmediata** | Merge pila W1–W5e; luego W7–W10 o W6 (OK owner); **no Replicate** |
+| **Rama de trabajo** | `main` (pila W1–W5e integrada) |
+| **Commit base** | tip W5e `fc64fa2` + merge W1 |
+| **PR actual** | — merge a main |
+| **`main` remoto** | W1–W5e (+ PLAN pendiente #17) |
+| **Etapa de producto** | Post-W5: producto W7–W10 o W6 (OK owner) |
+| **Prioridad inmediata** | Smoke post-merge; luego W7–W10; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
-| **Servidor correcto** | `npm start` → `node server.js` |
+| **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
 
 ### Pila #4–#16 — INTEGRADA ✅
@@ -48,17 +48,17 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** Continua (W5e).
+**Pedido:** Merge primero (pila W1–W5e).
 
-**Hecho (W5e):**
-- Extraído `routes/admin.js`: profiles, invites (+ redeem público), backups, settings/keys.
-- `registerInviteRedeemRoute` antes de `requireAuth`; `registerAdminRoutes` tras import.
-- `server.js` ~799 líneas.
-- Tests `routes-admin.test.js` — suite **110** + smoke **9/9**.
+**Hecho:**
+- FF `cursor/routes-admin-152f` (W2–W5e) → `main`.
+- Merge W1 (`localhost-bind` + wizard PIN) con conflictos docs/package resueltos.
+- PLAN.md (#17) se mergea a continuación si falta.
 
-**Siguiente:** Merge pila W1–W5e, o producto W7–W10.
+**Siguiente:** Smoke post-merge; producto W7–W10.
 
 **No tocado:** Replicate; desversionar mirrors.
+
 
 ---
 
@@ -114,8 +114,7 @@ routes/import.js + generation.js ✅ (W5d)
 routes/admin.js    ✅ (W5e) — W5 extracciones completas
 ```
 
-Y de `server.js`: rutas `personas`, `import`, `generation`, `admin`.
-Un módulo por commit, con `npm test` y smoke del happy path en cada extracción.
+Extracciones W5 de `server.js` ✅. Siguiente: producto W7–W10 (ver PLAN.md).
 
 ## Smoke manual obligatorio (post-merge — resultado)
 
@@ -145,6 +144,7 @@ Un módulo por commit, con `npm test` y smoke del happy path en cada extracción
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | Merge W1–W5e → main | *(main)* |
 | 2026-07-29 | Cursor | W5e extract routes/admin.js | *(PR W5e)* |
 | 2026-07-29 | Cursor | W5d extract routes/import + generation | *(PR W5d)* |
 | 2026-07-29 | Cursor | W5c extract routes/personas.js | *(PR W5c)* |

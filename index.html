@@ -1967,9 +1967,29 @@
 
   <!-- Banner PIN por defecto (seguridad) -->
   <div id="pinDefaultBanner" class="pin-default-banner" style="display:none;" role="status">
-    <span>Tu PIN sigue siendo el valor por defecto (<code>1234</code>). Cámbialo en Ajustes → Perfiles o en <code>.env</code> (<code>STUDIO_PIN</code>).</span>
+    <span>Tu PIN sigue siendo el valor por defecto (<code>1234</code>). Cámbialo en el asistente o en Ajustes → Perfiles.</span>
     <button type="button" class="btn btn-secondary btn-sm" id="btnPinBannerSettings">Abrir perfiles</button>
     <button type="button" class="btn btn-secondary btn-sm" id="btnPinBannerDismiss" aria-label="Cerrar">✕</button>
+  </div>
+
+  <!-- Asistente primer arranque: cambiar PIN por defecto (bloqueante) -->
+  <div id="setupPinModal" class="login-modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="setupPinTitle">
+    <div class="glass-card login-card" style="width:100%; max-width:420px; text-align:left; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.8); position:relative;">
+      <p style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin:0 0 8px;">Primer arranque</p>
+      <h2 id="setupPinTitle" style="font-family:var(--font-display); font-size:22px; margin:0 0 8px; color:#fff;">Protege tu Studio</h2>
+      <p style="font-size:13px; color:var(--text-secondary); margin:0 0 16px; line-height:1.45;">
+        El PIN por defecto (<code>1234</code>) no es seguro. Elige uno nuevo (mín. 6 caracteres) antes de crear influencers.
+        El Studio escucha solo en localhost por defecto; si expones la red, este paso es obligatorio.
+      </p>
+      <form id="setupPinForm">
+        <label for="setupPinInput" style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:6px;">Nuevo PIN</label>
+        <input type="password" id="setupPinInput" required minlength="6" autocomplete="new-password" placeholder="••••••" style="width:100%; padding:12px; margin-bottom:12px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:18px; letter-spacing:6px; text-align:center;">
+        <label for="setupPinConfirmInput" style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:6px;">Confirmar PIN</label>
+        <input type="password" id="setupPinConfirmInput" required minlength="6" autocomplete="new-password" placeholder="••••••" style="width:100%; padding:12px; margin-bottom:12px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:18px; letter-spacing:6px; text-align:center;">
+        <p id="setupPinError" style="display:none; color:var(--danger); font-size:12px; margin:0 0 12px;"></p>
+        <button type="submit" class="btn" id="btnSetupPinSubmit" style="width:100%; padding:12px;">Guardar PIN y continuar</button>
+      </form>
+    </div>
   </div>
 
   <!-- Banner rate-limit Pollinations (429) -->
