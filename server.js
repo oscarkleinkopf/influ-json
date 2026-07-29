@@ -21,6 +21,10 @@ const sharp = require('sharp');
 // Load environment variables
 dotenv.config();
 
+// Persist SESSION_SECRET before auth session middleware is constructed
+const firstRun = require('./first-run');
+firstRun.ensureSessionSecret();
+
 const dbService = require('./db');
 const authService = require('./auth');
 const aiService = require('./ai-service');
@@ -38,11 +42,40 @@ dbService.runMigrations();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const LISTEN_HOST = firstRun.resolveListenHost();
 
 app.use(authService.securityHeaders);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(authService.sessionMiddleware);
+
+/**
+ * If Studio is bound publicly (0.0.0.0) with the default PIN, block API use
+ * until the admin changes the PIN via /api/setup/change-pin.
+ * Static assets + status + auth + setup remain reachable so the wizard works.
+ */
+app.use((req, res, next) => {
+  if (!firstRun.shouldBlockPublicDefaultPin(() => authService.isPinDefault())) {
+    return next();
+  }
+  const p = req.path || '';
+  const allowed =
+    p === '/api/status' ||
+    p === '/api/auth/login' ||
+    p === '/api/auth/logout' ||
+    p === '/api/auth/profiles' ||
+    p === '/api/auth/me' ||
+    p === '/api/setup/change-pin' ||
+    p.startsWith('/api/invites/redeem') ||
+    !p.startsWith('/api/');
+  if (allowed) return next();
+  return res.status(503).json({
+    success: false,
+    code: 'SETUP_REQUIRED',
+    message:
+      'Studio expuesto en red (HOST=0.0.0.0) con PIN por defecto. Cambia el PIN en el asistente de primer arranque antes de continuar.'
+  });
+});
 
 /** Resuelve perfil activo en sesión (o Bearer PIN → perfil). */
 function resolveSessionProfile(req) {
@@ -349,12 +382,19 @@ app.get('/api/status', (req, res) => {
   try {
     imageProviders = require('./image-provider').getProviderCapabilities();
   } catch (_) { /* optional module */ }
+  const pinIsDefault = authService.isPinDefault();
+  const listenHost = firstRun.resolveListenHost();
+  const publicBindUnsafe = firstRun.shouldBlockPublicDefaultPin(() => pinIsDefault);
   res.json({
     success: true,
     apiConnected: aiService.isApiConnected(),
     gitLinked: fs.existsSync(path.join(__dirname, '.git')),
     pinRequired: authService.isAuthEnabled(),
-    pinIsDefault: authService.isPinDefault(),
+    pinIsDefault,
+    setupRequired: pinIsDefault,
+    listenHost,
+    publicBind: firstRun.isPublicBind(listenHost),
+    publicBindUnsafe,
     authEnabled: authService.isAuthEnabled(),
     authenticated: !!(req.session && req.session.authenticated),
     profile: req.session?.profileId
@@ -369,6 +409,45 @@ app.get('/api/status', (req, res) => {
       paidFaceLock: 'optional_future_replicate'
     }
   });
+});
+
+/**
+ * Primer arranque: cambiar PIN por defecto (escribe STUDIO_PIN en .env + hash admin).
+ * Requiere sesión de Administración. Mínimo 6 caracteres; no admite 1234.
+ */
+app.post('/api/setup/change-pin', requireAuth, requireAdmin, (req, res) => {
+  try {
+    const { pin, confirmPin } = req.body || {};
+    const nextPin = firstRun.validateNewStudioPin(pin, confirmPin);
+
+    firstRun.upsertEnvVar('STUDIO_PIN', nextPin);
+    process.env.STUDIO_PIN = nextPin;
+
+    const adminId =
+      req.session?.profileId ||
+      dbService.ensureDefaultStudioProfile();
+    if (adminId) {
+      dbService.updateStudioProfile(adminId, { pin: nextPin });
+    }
+
+    if (req.session) {
+      req.session.authenticated = true;
+      req.session.profileId = adminId;
+    }
+
+    console.log('[setup] STUDIO_PIN actualizado (ya no es el valor por defecto).');
+    res.json({
+      success: true,
+      message: 'PIN actualizado. Guárdalo en un lugar seguro.',
+      pinIsDefault: authService.isPinDefault(),
+      setupRequired: authService.isPinDefault()
+    });
+  } catch (err) {
+    const status = err.code === 'PIN_TOO_SHORT' || err.code === 'PIN_MISMATCH' || err.code === 'PIN_STILL_DEFAULT'
+      ? 400
+      : 500;
+    res.status(status).json({ success: false, message: err.message, code: err.code || null });
+  }
 });
 
 // Image Generation Queue Status Endpoint
@@ -2126,10 +2205,33 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: err.message || 'Error interno del servidor.' });
 });
 
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
+function startHttpServer(port = PORT, host = LISTEN_HOST) {
+  if (firstRun.isPublicBind(host) && authService.isPinDefault()) {
+    console.warn('');
+    console.warn('╔══════════════════════════════════════════════════════════════════╗');
+    console.warn('║  AVISO DE SEGURIDAD                                              ║');
+    console.warn('║  HOST público + PIN por defecto (1234).                          ║');
+    console.warn('║  La API quedará en 503 hasta que cambies el PIN en el asistente. ║');
+    console.warn('║  Recomendado: HOST=127.0.0.1 (default) o cambia STUDIO_PIN.      ║');
+    console.warn('╚══════════════════════════════════════════════════════════════════╝');
+    console.warn('');
+  }
+
+  const server = app.listen(port, host, () => {
+    const where = host === '0.0.0.0' ? `todas las interfaces :${port}` : `${host}:${port}`;
+    console.log(`Server is running at http://${host === '0.0.0.0' ? '127.0.0.1' : host}:${port} (bind ${where})`);
+    if (authService.isPinDefault()) {
+      console.log('[setup] PIN por defecto activo — abre el Studio y completa el asistente de primer arranque.');
+    }
   });
+  return server;
+}
+
+if (require.main === module) {
+  startHttpServer();
 }
 
 module.exports = app;
+module.exports.LISTEN_HOST = LISTEN_HOST;
+module.exports.startHttpServer = startHttpServer;
+module.exports.resolveListenHost = firstRun.resolveListenHost;

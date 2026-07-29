@@ -146,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupQaMatrix', fn: setupQaMatrix },
     { name: 'setupOfflineBanner', fn: setupOfflineBanner },
     { name: 'setupSettings', fn: setupSettings },
+    { name: 'setupPinWizard', fn: setupPinWizard },
     { name: 'setupMemberOnboarding', fn: setupMemberOnboarding },
     { name: 'initImportModal', fn: initImportModal }
   ];
@@ -178,7 +179,10 @@ function checkAuthAndInit() {
         showLoginScreen();
       } else {
         if (status.authenticated || !status.pinRequired) {
-          fetchData().then(() => maybeShowPinDefaultBanner());
+          fetchData().then(() => {
+            maybeShowSetupPinWizard();
+            maybeShowPinDefaultBanner();
+          });
         } else {
           showLoginScreen();
         }
@@ -239,8 +243,11 @@ function setupLogin() {
         updateActiveProfileChip();
         hideLoginScreen();
         await fetchData();
+        maybeShowSetupPinWizard();
         maybeShowPinDefaultBanner();
-        maybeShowMemberOnboarding();
+        if (!state.pinIsDefault) {
+          maybeShowMemberOnboarding();
+        }
       } else {
         const msg = data.message || 'PIN incorrecto.';
         if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
@@ -533,10 +540,88 @@ function updateActiveProfileChip() {
 function maybeShowPinDefaultBanner() {
   const banner = document.getElementById('pinDefaultBanner');
   if (!banner) return;
+  // Si el modal de setup está visible, no hace falta el banner
+  const setupOpen = document.getElementById('setupPinModal')?.style.display === 'flex';
+  if (setupOpen) {
+    banner.style.display = 'none';
+    return;
+  }
   let dismissed = false;
   try { dismissed = sessionStorage.getItem('influ_pin_banner_dismissed') === '1'; } catch (e) {}
   if (state.pinIsDefault && !dismissed) banner.style.display = 'flex';
   else banner.style.display = 'none';
+}
+
+function showSetupPinModal() {
+  const modal = document.getElementById('setupPinModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  const err = document.getElementById('setupPinError');
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+  document.getElementById('setupPinInput')?.focus();
+  maybeShowPinDefaultBanner();
+}
+
+function hideSetupPinModal() {
+  const modal = document.getElementById('setupPinModal');
+  if (modal) modal.style.display = 'none';
+}
+
+/** Admin + PIN default → modal bloqueante de primer arranque. */
+function maybeShowSetupPinWizard() {
+  if (!state.pinIsDefault) {
+    hideSetupPinModal();
+    return;
+  }
+  // Solo Administración debe cambiar STUDIO_PIN global; members usan su propio PIN
+  const role = state.currentProfile?.role;
+  const isAdmin = role === 'admin' || role === 'owner' || !state.currentProfile;
+  if (!isAdmin) {
+    maybeShowPinDefaultBanner();
+    return;
+  }
+  showSetupPinModal();
+}
+
+function setupPinWizard() {
+  const form = document.getElementById('setupPinForm');
+  if (!form || form.dataset.bound === '1') return;
+  form.dataset.bound = '1';
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pin = document.getElementById('setupPinInput')?.value || '';
+    const confirmPin = document.getElementById('setupPinConfirmInput')?.value || '';
+    const errEl = document.getElementById('setupPinError');
+    const btn = document.getElementById('btnSetupPinSubmit');
+    if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    if (btn) btn.disabled = true;
+    try {
+      const res = await authFetch('/api/setup/change-pin', {
+        method: 'POST',
+        body: JSON.stringify({ pin, confirmPin })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        const msg = data.message || 'No se pudo guardar el PIN.';
+        if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+        toastError(msg);
+        return;
+      }
+      studioPin = pin;
+      try { sessionStorage.setItem('studioPin', pin); } catch (e) {}
+      state.pinIsDefault = !!data.pinIsDefault;
+      hideSetupPinModal();
+      maybeShowPinDefaultBanner();
+      toastSuccess(data.message || 'PIN actualizado.');
+      maybeShowFounderOnboarding();
+    } catch (err) {
+      const msg = err.message || 'Error de red al guardar el PIN.';
+      if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+      toastError(msg);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
 }
 
 function setupPinDefaultBanner() {
@@ -546,6 +631,10 @@ function setupPinDefaultBanner() {
     if (banner) banner.style.display = 'none';
   });
   document.getElementById('btnPinBannerSettings')?.addEventListener('click', () => {
+    if (state.pinIsDefault && (state.currentProfile?.role === 'admin' || state.currentProfile?.role === 'owner')) {
+      showSetupPinModal();
+      return;
+    }
     document.getElementById('btnOpenSettings')?.click();
     setTimeout(() => {
       document.getElementById('profilesSettingsSection')?.scrollIntoView({ behavior: 'smooth' });

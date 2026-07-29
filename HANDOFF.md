@@ -25,14 +25,14 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` @ `e354525` |
-| **Commit base** | tip de la pila #4→#16 (FF merge) |
-| **PR actual** | ninguno — pila **#4–#16 MERGED** en `main` |
-| **`main` remoto** | incluye validador → chatbot-packs |
-| **Etapa de producto** | Paso 4 (mantenibilidad) — siguiente: `import-flow.js` |
-| **Prioridad inmediata** | Extraer módulos de `app.js` / rutas de `server.js`; **no Replicate** |
+| **Rama de trabajo** | `cursor/localhost-bind-setup-152f` (W1) |
+| **Commit base** | encima de `main` @ `7076a06` |
+| **PR actual** | W1 bind localhost + wizard PIN |
+| **`main` remoto** | pila #4–#16 + docs smoke |
+| **Etapa de producto** | Plan W1→W10 — ver [PLAN.md](./PLAN.md) en PR #17 si aún no está en main |
+| **Prioridad inmediata** | Tras W1: **W2** (CI + smoke en repo); **no Replicate** |
 | **En pausa** | OAuth, SMTP, video completo y **Replicate**; desversionar mirrors SQLite (OK owner) |
-| **Servidor correcto** | `npm start` → `node server.js` |
+| **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
 
 ### Pila #4–#16 — INTEGRADA ✅
@@ -48,18 +48,18 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** continuar con (1) merge pila y (2) smoke.
+**Pedido:** continuar (ejecutar plan — W1).
 
-**Hecho:**
-- FF-merge tip `#16` → `main` y `git push origin main` (`e354525`).
-- `npm test`: **59/59 pass** (`DISABLE_GIT_BACKUP=1`).
-- Smoke API contra `:3000` (payload como `app.js`: flat + `detailedJSON`): **9/9 PASS**
-  - status pollinations · login admin · create→roster · pack fullbody con lock
-  - import preview sin persistir · discard · confirm una sola persona
-  - export ZIP + niches · member no ve/borra/exporta del admin
-- Artefacto: `/opt/cursor/artifacts/smoke-main-results.json`
+**Hecho (W1):**
+- Bind default `127.0.0.1` (`HOST` env); `first-run.js` genera `SESSION_SECRET` si falta.
+- `POST /api/setup/change-pin` (admin, min 6, no `1234`) escribe `.env` + hash admin.
+- Modal bloqueante `#setupPinModal` cuando `pinIsDefault`.
+- `HOST=0.0.0.0` + PIN default → API 503 (`SETUP_REQUIRED`) hasta cambiar PIN.
+- Tests: `test/localhost-bind.test.js` — suite **67** pass.
 
-**No tocado:** Replicate; desversionar `influ.sqlite` / `personas.json`; extracción `import-flow.js`.
+**Siguiente:** W2 CI + `test/smoke.js` (`cursor/ci-smoke-152f`).
+
+**No tocado:** Replicate; desversionar mirrors; W3+ magic bytes.
 
 ---
 
@@ -145,6 +145,7 @@ Un módulo por commit, con `npm test` y smoke del happy path en cada extracción
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | W1 bind localhost + wizard PIN / SESSION_SECRET | *(PR W1)* |
 | 2026-07-29 | Cursor | Merge pila #4–#16 → main + smoke 9/9 + tests 59/59 | `e354525` (main) |
 | 2026-07-29 | Cursor | Discard import preview + extract chatbot-packs | PR #16 |
 | 2026-07-29 | Cursor | Onboarding founder + Copiar pack portafolio | PR #15 |
