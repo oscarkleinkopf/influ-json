@@ -54,7 +54,7 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 - Extraído `routes/personas.js`: CRUD, variants, consistency, versions, license, generations, export ZIP.
 - `server.js` registra vía `registerPersonasRoutes` + lazy `triggerBackgroundVariants`.
 - `scoreVariantAgainstPersona` compartido (export del módulo).
-- Tests `routes-personas.test.js` — suite **101** + smoke pendiente.
+- Tests `routes-personas.test.js` — suite **101** + smoke **9/9**.
 
 **Siguiente:** W5d `routes/import.js` + `routes/generation.js` o merge pila.
 
