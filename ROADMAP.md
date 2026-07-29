@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **Pila #4–#16 en `main` + smoke** | FF tip→main; tests 59; smoke API 9/9; free path OK |
 | 2026-07-29 | **Import discard + chatbot-packs.js** | Limpia refs preview; packs F5 extraídos del monolito |
 | 2026-07-29 | **Founder onboarding + pack en portafolio** | Modal admin roster vacío; Copiar pack fullbody en tarjeta; CTA import |
 | 2026-07-29 | **P0 git/seguridad + UX JSON-first** | `ENABLE_GIT_BACKUP` opt-in; safe-paths; ownership gens; guardar sin Pollinations |
