@@ -63,6 +63,14 @@ const syncBanner = document.getElementById('syncBanner');
 const syncBannerText = document.getElementById('syncBannerText');
 
 // Unified authenticated fetch helper
+function setOfflineBanner(visible, message) {
+  const banner = document.getElementById('offlineBanner');
+  const text = document.getElementById('offlineBannerText');
+  if (!banner) return;
+  if (message && text) text.textContent = message;
+  banner.style.display = visible ? 'flex' : 'none';
+}
+
 async function authFetch(url, options = {}) {
   options.headers = options.headers || {};
   if (!(options.body instanceof FormData)) {
@@ -72,14 +80,41 @@ async function authFetch(url, options = {}) {
     options.headers['Authorization'] = `Bearer ${studioPin}`;
   }
 
-  const res = await fetch(url, options);
-  
-  if (res.status === 401) {
-    showLoginScreen();
-    throw new Error('Unauthorized');
+  try {
+    const res = await fetch(url, options);
+    setOfflineBanner(false);
+
+    if (res.status === 401) {
+      showLoginScreen();
+      throw new Error('Unauthorized');
+    }
+
+    return res;
+  } catch (err) {
+    if (err && err.message !== 'Unauthorized') {
+      setOfflineBanner(
+        true,
+        'Sin conexión al Studio — puedes copiar JSON ya cargado; generación Pollinations pausada.'
+      );
+    }
+    throw err;
   }
-  
-  return res;
+}
+
+function setupOfflineBanner() {
+  window.addEventListener('online', () => setOfflineBanner(false));
+  window.addEventListener('offline', () => {
+    setOfflineBanner(
+      true,
+      'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.'
+    );
+  });
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    setOfflineBanner(
+      true,
+      'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.'
+    );
+  }
 }
 
 // Init
@@ -104,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupComoUsarGuide', fn: setupComoUsarGuide },
     { name: 'setupSideBySideComparator', fn: setupSideBySideComparator },
     { name: 'setupQaMatrix', fn: setupQaMatrix },
+    { name: 'setupOfflineBanner', fn: setupOfflineBanner },
     { name: 'setupSettings', fn: setupSettings },
     { name: 'setupMemberOnboarding', fn: setupMemberOnboarding },
     { name: 'initImportModal', fn: initImportModal }
@@ -780,7 +816,14 @@ function setupSettings() {
 
 // Tab Switcher & Mobile Responsive Navigation Logic
 function setupTabs() {
-  const switchTab = (tabId) => {
+  // Alias legacy / mobile tabs → paneles reales
+  const TAB_ALIASES = {
+    personas: 'persona-engine',
+    products: 'ugc-studio'
+  };
+
+  const switchTab = (rawTabId) => {
+    const tabId = TAB_ALIASES[rawTabId] || rawTabId;
     state.activeTab = tabId;
     
     // Update sidebar nav items
@@ -792,9 +835,11 @@ function setupTabs() {
       }
     });
 
-    // Update mobile bottom nav items
+    // Update mobile bottom nav items (acepta alias o id real)
     document.querySelectorAll('.mobile-nav-item').forEach(mbItem => {
-      if (mbItem.getAttribute('data-tab') === tabId) {
+      const mbTab = mbItem.getAttribute('data-tab');
+      const resolved = TAB_ALIASES[mbTab] || mbTab;
+      if (resolved === tabId || mbTab === tabId) {
         mbItem.classList.add('active');
       } else {
         mbItem.classList.remove('active');
@@ -1182,10 +1227,13 @@ function getHappyPathStatus() {
   let copied = false;
   try { copied = localStorage.getItem(happyPathCopyStorageKey()) === '1'; } catch (e) {}
 
+  // Pollinations es opcional: copiar pack también completa el paso "gen"
+  const genDone = totalGens > 0 || hasVariants || copied;
+
   return {
     create: hasAny,
     save: hasActive || hasAny,
-    gen: totalGens > 0 || hasVariants,
+    gen: genDone,
     copy: copied
   };
 }
@@ -1432,7 +1480,8 @@ function loadPersonaVariants(personaId) {
 window.loadPersonaVariants = loadPersonaVariants;
 
 function setGenerationButtonsDisabled(disabled) {
-  ['btnGenerateVariant', 'btnGenerateUgcImage', 'btnSavePersona', 'btnStartBulkAdGeneration'].forEach(id => {
+  // JSON-first: Guardar (sin retrato) nunca se bloquea por la cola Pollinations
+  ['btnGenerateVariant', 'btnGenerateUgcImage', 'btnSavePersonaWithPortrait', 'btnStartBulkAdGeneration'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.disabled = !!disabled;
@@ -1830,6 +1879,12 @@ function selectPersona(persona) {
   }
   
   setInputValue('pSkinTone', detailed.facial_features?.skin_tone || 'Piel clara ligeramente bronceada');
+  setInputValue(
+    'pSkinToneHex',
+    detailed.facial_features?.skin_tone_hex
+      || detailed.character_lock?.must_match_every_image?.skin_tone_hex
+      || '#f0d5c0'
+  );
   setInputValue('pSkinTexture', detailed.facial_features?.skin_texture || 'Piel suave con poros y pecas muy sutiles');
   setInputValue('pEyebrows', detailed.facial_features?.eyebrows || detailed.facial_features?.eyebrow_style || 'Cejas castañas oscuras y pobladas');
   setInputValue('pLips', detailed.facial_features?.lips || (detailed.facial_features?.lip_color ? `${detailed.facial_features.lip_color} ${detailed.facial_features.lip_shape || ''}` : '') || 'Labios rosados naturales carnosos');
@@ -2294,6 +2349,20 @@ function getFullPersonaJSON() {
   base.facial_features.face_shape = document.getElementById('pFaceShape')?.value || base.facial_features.face_shape || 'Ovalada';
   base.facial_features.skin_tone = document.getElementById('pSkinTone')?.value || base.facial_features.skin_tone || 'Piel clara';
   base.facial_features.skin_texture = document.getElementById('pSkinTexture')?.value || base.facial_features.skin_texture || 'Suave';
+  {
+    const hexInput = (document.getElementById('pSkinToneHex')?.value || '').trim();
+    if (hexInput) {
+      const normalized = hexInput.startsWith('#') ? hexInput : `#${hexInput}`;
+      if (/^#[0-9a-fA-F]{6}$/.test(normalized)) {
+        base.facial_features.skin_tone_hex = normalized.toLowerCase();
+      }
+    } else if (!base.facial_features.skin_tone_hex) {
+      // Heurística free: tez clara → hex por defecto (anti-sesgo)
+      if (/clara|fair|light|porcelana|beige/i.test(base.facial_features.skin_tone || '')) {
+        base.facial_features.skin_tone_hex = '#f0d5c0';
+      }
+    }
+  }
   base.facial_features.eye_color = document.getElementById('pEyeColor')?.value || base.facial_features.eye_color || 'Marrón';
   
   const eyebrowsVal = document.getElementById('pEyebrows')?.value || base.facial_features.eyebrow_style || base.facial_features.eyebrows || 'Cejas naturales';
@@ -3042,8 +3111,26 @@ function setupPersonaEngine() {
   updateClothingDropdown();
   updateSettingDropdown();
   
-  document.getElementById('btnSavePersona').addEventListener('click', savePersona);
+  document.getElementById('btnSavePersona')?.addEventListener('click', () => savePersona({ withPortrait: false }));
+  document.getElementById('btnSavePersonaWithPortrait')?.addEventListener('click', () => savePersona({ withPortrait: true }));
   document.getElementById('btnDeletePersona').addEventListener('click', deletePersonaAction);
+
+  // Sync color picker ↔ hex text
+  const hexText = document.getElementById('pSkinToneHex');
+  const hexPicker = document.getElementById('pSkinToneHexPicker');
+  if (hexText && hexPicker) {
+    const syncPicker = () => {
+      const v = (hexText.value || '').trim();
+      const n = v.startsWith('#') ? v : `#${v}`;
+      if (/^#[0-9a-fA-F]{6}$/.test(n)) hexPicker.value = n.toLowerCase();
+    };
+    hexText.addEventListener('change', syncPicker);
+    hexText.addEventListener('input', syncPicker);
+    hexPicker.addEventListener('input', () => {
+      hexText.value = hexPicker.value;
+      try { compilePromptAndJSON(); } catch (_) {}
+    });
+  }
 
   const btnGenTraits = document.getElementById('btnGenerateTraits');
   if (btnGenTraits) {
@@ -3458,7 +3545,8 @@ function toastWithLockHealth(successMessage, personaJSON) {
   }
 }
 
-async function savePersona() {
+async function savePersona(opts = {}) {
+  const withPortrait = opts === true || opts?.withPortrait === true;
   const name = (document.getElementById('pName').value || '').trim();
   if (!name) {
     showSyncToast(false, 'Indica un nombre para el influencer antes de guardar.');
@@ -3481,28 +3569,35 @@ async function savePersona() {
   const promptText = document.getElementById('promptPreview').textContent;
   const influencerName = name || 'Influencer';
   toastLoading(creatingNew
-    ? `Creando influencer nuevo: ${influencerName}...`
-    : `Generando retrato virtual consistente con ${influencerName}...`);
+    ? (withPortrait
+      ? `Creando "${influencerName}" + retrato Pollinations...`
+      : `Guardando influencer "${influencerName}" (solo JSON)...`)
+    : (withPortrait
+      ? `Guardando y generando retrato de ${influencerName}...`
+      : `Guardando "${influencerName}"...`));
   
   let portraitPath = null;
-  try {
-    QueuePoller.start();
-    const imgRes = await authFetch('/api/ai/generate-image', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        prompt: promptText, 
-        // Never borrow another persona's face when creating new
-        referenceLocalPath: uploadedImagePath || (creatingNew ? null : state.selectedPersona?.image),
-        personaId: creatingNew ? 'new_persona' : (state.selectedPersona?.id || 'new_persona'),
-        generationType: 'portrait'
-      })
-    });
-    const imgData = await imgRes.json();
-    if (imgData.success && imgData.imagePath) {
-      portraitPath = imgData.imagePath;
+  // JSON-first: Pollinations solo si el usuario pide retrato
+  if (withPortrait) {
+    try {
+      QueuePoller.start();
+      const imgRes = await authFetch('/api/ai/generate-image', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: promptText,
+          // Never borrow another persona's face when creating new
+          referenceLocalPath: uploadedImagePath || (creatingNew ? null : state.selectedPersona?.image),
+          personaId: creatingNew ? 'new_persona' : (state.selectedPersona?.id || 'new_persona'),
+          generationType: 'portrait'
+        })
+      });
+      const imgData = await imgRes.json();
+      if (imgData.success && imgData.imagePath) {
+        portraitPath = imgData.imagePath;
+      }
+    } catch (err) {
+      console.warn('Image generation failed or offline. Using reference or existing image.');
     }
-  } catch (err) {
-    console.warn('Image generation failed or offline. Using reference or existing image.');
   }
 
   const finalImage = portraitPath
@@ -3576,15 +3671,13 @@ async function savePersona() {
         console.warn('Post-save /api/data refresh failed:', e);
       }
       
-      if (data.gitSynced) {
-        showSyncToast(true, creatingNew
-          ? `¡Influencer "${name}" creado como ficha nueva!`
-          : '¡Persona guardada y respaldada en GitHub con su retrato virtual!');
-      } else {
-        showSyncToast(false, creatingNew
-          ? `Influencer "${name}" creado localmente. Error en Git.`
-          : 'Guardado localmente. Error en Git.');
-      }
+      // Git sync es opt-in y no debe ensuciar el toast de negocio
+      showSyncToast(true, creatingNew
+        ? `¡Influencer "${name}" guardado en el portafolio!`
+        : (withPortrait
+          ? `¡Persona "${name}" guardada${portraitPath ? ' con retrato' : ''}!`
+          : `¡Persona "${name}" guardada!`));
+      renderHappyPathChecklist();
     } else {
       showSyncToast(false, data.message || 'No se pudo guardar la persona.');
     }
@@ -3592,6 +3685,8 @@ async function savePersona() {
     showSyncToast(false, 'Error de servidor al guardar.');
   }
 }
+
+window.savePersona = savePersona;
 
 // A/B Comparator Logic
 function setupABComparator() {

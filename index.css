@@ -3367,3 +3367,36 @@ button.is-queue-locked:disabled {
 .import-lock-health.is-weak {
   color: #fca5a5 !important;
 }
+
+/* ─── Offline banner (JSON-first) ───────────────────────── */
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  z-index: 239;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: linear-gradient(90deg, rgba(71, 85, 105, 0.35), rgba(30, 41, 59, 0.55));
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
+  font-size: 13px;
+  backdrop-filter: blur(12px);
+}
+
+.offline-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #94a3b8;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .offline-banner {
+    left: 0;
+    top: 52px;
+  }
+}
