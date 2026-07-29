@@ -30,7 +30,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **PR actual** | — merge a main |
 | **`main` remoto** | W1–W5e + [PLAN.md](./PLAN.md) |
 | **Etapa de producto** | Post-W5: producto W7–W10 o W6 (OK owner) |
-| **Prioridad inmediata** | Smoke post-merge; luego W7–W10; **no Replicate** |
+| **Prioridad inmediata** | Producto W7–W10; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
