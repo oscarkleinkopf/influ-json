@@ -1,5 +1,7 @@
 # influ-JSON — AI UGC Production Studio
 
+[![Test & smoke](https://github.com/oscarkleinkopf/influ-json/actions/workflows/test.yml/badge.svg)](https://github.com/oscarkleinkopf/influ-json/actions/workflows/test.yml)
+
 Estudio local para **crear prompts y JSON de influencers virtuales** consistentes — desde cero o inspirados en una foto — y usarlos en **chatbots gratuitos** (ChatGPT, Gemini, Claude, Meta) sin pagar APIs de imagen.
 
 ## Concepto central
@@ -30,7 +32,8 @@ Abrir `http://localhost:3000` (PIN por defecto: `1234`, configurable en `.env` c
 |---------|-------------|
 | `npm start` | **Studio completo** (`server.js` + SQLite) |
 | `npm run start:minimal` | Demo offline (sin SQLite; **no** usar para trabajo real) |
-| `npm test` | Tests (cola, import, validador, export) |
+| `npm test` | Tests (cola, import, validador, export, auth…) |
+| `npm run smoke` | Happy path API (9 checks: crear, pack, import, export, isolation) |
 
 ## Flujo emprendedor gratis (60 segundos)
 

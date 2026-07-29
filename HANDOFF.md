@@ -25,13 +25,13 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` @ `e354525` |
-| **Commit base** | tip de la pila #4→#16 (FF merge) |
-| **PR actual** | ninguno — pila **#4–#16 MERGED** en `main` |
-| **`main` remoto** | incluye validador → chatbot-packs |
-| **Etapa de producto** | Paso 4 (mantenibilidad) — siguiente: `import-flow.js` |
-| **Prioridad inmediata** | Extraer módulos de `app.js` / rutas de `server.js`; **no Replicate** |
-| **En pausa** | OAuth, SMTP, video completo y **Replicate**; desversionar mirrors SQLite (OK owner) |
+| **Rama de trabajo** | `cursor/ci-smoke-152f` (W2) · también PR W1 `#18` |
+| **Commit base** | encima de `main` @ `7076a06` |
+| **PR actual** | W2 CI + smoke en repo |
+| **`main` remoto** | pila #4–#16 + docs |
+| **Etapa de producto** | Plan W1→W10 — [PLAN.md](./PLAN.md) en PR #17 |
+| **Prioridad inmediata** | Merge W1 (#18) + W2; luego **W3** magic bytes; **no Replicate** |
+| **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 | **Última actualización** | 2026-07-29 |
 
@@ -48,18 +48,15 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** continuar con (1) merge pila y (2) smoke.
+**Pedido:** continuar (ejecutar PLAN — W1 luego W2).
 
 **Hecho:**
-- FF-merge tip `#16` → `main` y `git push origin main` (`e354525`).
-- `npm test`: **59/59 pass** (`DISABLE_GIT_BACKUP=1`).
-- Smoke API contra `:3000` (payload como `app.js`: flat + `detailedJSON`): **9/9 PASS**
-  - status pollinations · login admin · create→roster · pack fullbody con lock
-  - import preview sin persistir · discard · confirm una sola persona
-  - export ZIP + niches · member no ve/borra/exporta del admin
-- Artefacto: `/opt/cursor/artifacts/smoke-main-results.json`
+- **W1** (`cursor/localhost-bind-setup-152f`, PR #18): bind `127.0.0.1`, wizard PIN, SESSION_SECRET, 503 si público+default.
+- **W2** (esta rama): `test/smoke.js` (9/9), `npm run smoke`, `.github/workflows/test.yml`, badge README.
 
-**No tocado:** Replicate; desversionar `influ.sqlite` / `personas.json`; extracción `import-flow.js`.
+**Siguiente:** W3 magic bytes en import (actualiza blobs falsos en tests + smoke).
+
+**No tocado:** Replicate; desversionar mirrors.
 
 ---
 
@@ -145,6 +142,8 @@ Un módulo por commit, con `npm test` y smoke del happy path en cada extracción
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | W2 CI GitHub Actions + `npm run smoke` (9 checks) | *(PR W2)* |
+| 2026-07-29 | Cursor | W1 bind localhost + wizard PIN / SESSION_SECRET | PR #18 |
 | 2026-07-29 | Cursor | Merge pila #4–#16 → main + smoke 9/9 + tests 59/59 | `e354525` (main) |
 | 2026-07-29 | Cursor | Discard import preview + extract chatbot-packs | PR #16 |
 | 2026-07-29 | Cursor | Onboarding founder + Copiar pack portafolio | PR #15 |
