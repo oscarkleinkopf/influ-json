@@ -61,11 +61,11 @@ No asignar dos bots al mismo archivo caliente (`app.js`, `server.js`) a la vez.
 
 ---
 
-## W11 — Sesión chatbot: 3 prompts de prueba + checklist
+## W11 — Sesión chatbot: 3 prompts de prueba + checklist ✅
 
 **Por qué:** el emprendedor necesita *saber* si el JSON ancla bien la cara **sin** pagar face-lock.
 
-**Rama:** `cursor/chatbot-session-check-152f`
+**Rama:** `cursor/chatbot-session-check-152f` (implementado 2026-07-29)
 
 **Archivos:** `chatbot-packs.js` (o nuevo `chatbot-session.js` UMD), `app.js`, `index.html`, tests.
 

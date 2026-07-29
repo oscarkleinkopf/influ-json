@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (Paso 0 completo + PLAN-NEXT) |
-| **Commit base** | tip post-merge W6–W10 + PLAN-NEXT |
-| **PR actual** | —; siguiente implementación W11 |
+| **Rama de trabajo** | `cursor/chatbot-session-check-152f` (W11) |
+| **Commit base** | `main` Paso 0 (`208dc0d`) |
+| **PR actual** | W11 sesión chatbot (draft) |
 | **`main` remoto** | W1–W5e + W6 + W7–W10 + PLAN-NEXT |
-| **Etapa de producto** | Moat free → [PLAN-NEXT.md](./PLAN-NEXT.md) W11–W17 |
-| **Prioridad inmediata** | Arrancar **W11** (sesión chatbot); **no Replicate** |
+| **Etapa de producto** | Moat free — W11 en curso |
+| **Prioridad inmediata** | Merge W11 → W12…; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
@@ -56,18 +56,18 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** Continuar Paso 0 (merge W6 + W7–W10 a `main`).
+**Pedido:** Continuar (W11 tras Paso 0).
 
 **Hecho:**
-- FF W6 → `main`; merge tip W10 (W7–W9) + PLAN-NEXT (#32).
-- Backups: export personas desde SQLite (W6) + rotación `BACKUP_KEEP` (W10).
-- Runbook activo: [PLAN-NEXT.md](./PLAN-NEXT.md).
+- W11: `buildChatbotSessionCheck` (lock + prompts A/B/C).
+- UI: botón ficha + portafolio; modal checklist (cara/tez/pelo) en `localStorage`.
+- Badge **Chatbot OK** cuando las 3 marcas pasan.
 
-**Siguiente:** W11 sesión chatbot (3 prompts + checklist).
+**Siguiente:** Merge W11; luego W12 historial `character_lock`.
 
-**Verificación Paso 0:** tests **133** pass · smoke **9/9**.
+**Verificación:** tests chatbot-packs + suite; smoke 9/9.
 
-**No tocado:** Replicate; implementación W11+ (aún no).
+**No tocado:** Replicate.
 
 
 ---
@@ -149,6 +149,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | W11 sesión chatbot 3 prompts + checklist | *(PR W11)* |
 | 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 + PLAN-NEXT → main | *(main)* |
 | 2026-07-29 | Cursor | PLAN-NEXT W11–W17 (moat free post W6–W10) | *(PR #32)* |
 | 2026-07-29 | Cursor | W6 desversionar mirrors + filter-repo | *(PR #31)* |

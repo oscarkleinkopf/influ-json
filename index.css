@@ -1783,6 +1783,23 @@ input:checked + .slider:before {
   letter-spacing: 0.5px;
 }
 
+.portfolio-badge.badge-chatbot-ok {
+  left: auto;
+  right: 12px;
+  top: 44px;
+  background: rgba(52, 211, 153, 0.9);
+  border-color: rgba(52, 211, 153, 0.35);
+  font-size: 9px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+#chatbotSessionModal .chatbot-session-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: #34d399;
+}
+
 .portfolio-card-info {
   padding: 16px;
   display: flex;

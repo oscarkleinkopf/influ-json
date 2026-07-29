@@ -654,6 +654,12 @@
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px; text-align: left;">Spicy (realista)</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px; text-align: left;">Producto en mano</button>
                 </div>
+                <button type="button" class="btn btn-sm" id="btnChatbotSessionCheck" data-offline-highlight="pack" style="width: 100%; margin-top: 10px; font-size: 11px; padding: 10px 12px; background: rgba(52, 211, 153, 0.2); border: 1px solid rgba(52, 211, 153, 0.45); color: #fff;">
+                  Probar en chatbot (3 prompts)
+                </button>
+                <p style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;">
+                  Copia un bloque con lock + retrato + cuerpo + producto. Valida identidad en ChatGPT free sin pagar face-lock.
+                </p>
                 <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; margin-top: 10px; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
                 <button type="button" class="btn btn-sm" id="btnExportBrandKitSheet" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px; background: var(--accent-gradient); border: none;">🎁 Descargar kit marca (packs + guión)</button>
               </div>
@@ -2201,12 +2207,42 @@
     </div>
   </div>
 
+  <!-- W11 — Checklist post sesión chatbot (localStorage, sin API) -->
+  <div id="chatbotSessionModal" class="login-modal-overlay" style="display:none;" role="dialog" aria-labelledby="chatbotSessionTitle">
+    <div class="login-card" style="max-width:420px; width:92%;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
+        <div>
+          <h2 id="chatbotSessionTitle" style="font-family: var(--font-display); font-size: 18px; margin: 0; color: #fff;">Checklist sesión chatbot</h2>
+          <p id="chatbotSessionSubtitle" style="font-size:12px; color:var(--text-secondary); margin:6px 0 0; line-height:1.4;">Tras generar A/B/C en el chatbot free, marca si se mantuvo la identidad.</p>
+        </div>
+        <button type="button" id="btnCloseChatbotSession" class="btn btn-secondary btn-sm" style="padding:6px 10px;">Cerrar</button>
+      </div>
+      <p id="chatbotSessionPersonaName" style="font-size:13px; color:#34d399; margin:0 0 14px;"></p>
+      <div class="chatbot-session-checks" style="display:flex; flex-direction:column; gap:10px;">
+        <label class="chatbot-session-row" style="display:flex; align-items:center; gap:10px; font-size:13px; color:#fff;">
+          <input type="checkbox" id="chkSessionFace" data-session-check="face"> ¿Misma cara en A, B y C?
+        </label>
+        <label class="chatbot-session-row" style="display:flex; align-items:center; gap:10px; font-size:13px; color:#fff;">
+          <input type="checkbox" id="chkSessionSkin" data-session-check="skin"> ¿Misma tez (no se oscureció / blanqueó)?
+        </label>
+        <label class="chatbot-session-row" style="display:flex; align-items:center; gap:10px; font-size:13px; color:#fff;">
+          <input type="checkbox" id="chkSessionHair" data-session-check="hair"> ¿Mismo pelo (color / largo / textura)?
+        </label>
+      </div>
+      <p id="chatbotSessionStatus" style="font-size:12px; color:var(--text-muted); margin:14px 0 0; line-height:1.4;"></p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
+        <button type="button" id="btnSaveChatbotSession" class="btn btn-sm" style="flex:1; min-width:120px; padding:10px 12px;">Guardar checklist</button>
+        <button type="button" id="btnRecopyChatbotSession" class="btn btn-secondary btn-sm" data-offline-highlight="pack" style="flex:1; min-width:120px; padding:10px 12px;">Volver a copiar bloque</button>
+      </div>
+    </div>
+  </div>
+
   <script src="character-lock-validator.js?v=1.0.0"></script>
   <script src="niche-presets.js?v=1.0.0"></script>
   <script src="qa-matrix.js?v=1.0.0"></script>
-  <script src="chatbot-packs.js?v=1.0.0"></script>
+  <script src="chatbot-packs.js?v=1.1.0"></script>
   <script src="import-flow.js?v=1.0.0"></script>
   <script src="prompt-builder.js?v=1.0.0"></script>
-  <script src="app.js?v=1.9.5"></script>
+  <script src="app.js?v=1.9.6"></script>
 </body>
 </html>

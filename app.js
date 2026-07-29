@@ -152,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupGallery', fn: setupGallery },
     { name: 'setupVariantManager', fn: setupVariantManager },
     { name: 'setupFreeChatbotPacks', fn: setupFreeChatbotPacks },
+    { name: 'setupChatbotSessionUi', fn: setupChatbotSessionUi },
     { name: 'setupHappyPathChecklist', fn: setupHappyPathChecklist },
     { name: 'setupNichePresets', fn: setupNichePresets },
     { name: 'setupComoUsarGuide', fn: setupComoUsarGuide },
@@ -1396,6 +1397,7 @@ function updateDashboardStats() {
         <img src="${p.image || 'assets/influencer_female.png'}" alt="${p.name || 'Influencer'}" onerror="this.src='assets/influencer_female.png'">
         <span class="portfolio-badge badge-style">${p.style || 'Lifestyle'}</span>
         ${isArchivedPersona(p) ? '<span class="portfolio-badge badge-archived">Archivado</span>' : ''}
+        ${isChatbotSessionPassingForPersona(p) ? '<span class="portfolio-badge badge-chatbot-ok" title="Checklist chatbot: cara + tez + pelo OK">Chatbot OK</span>' : ''}
       </div>
       <div class="portfolio-card-info">
         <div class="portfolio-card-title-row">
@@ -1406,6 +1408,7 @@ function updateDashboardStats() {
         <div class="portfolio-card-actions">
           <button type="button" class="btn btn-primary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
           <button type="button" class="btn btn-secondary btn-quick-copy-pack" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia pack cuerpo entero listo para ChatGPT/Gemini/Claude">Copiar pack</button>
+          <button type="button" class="btn btn-secondary btn-quick-session" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia sesión 3 prompts + abre checklist">Probar chatbot</button>
           <button type="button" class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
           <button type="button" class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
         </div>
@@ -1427,6 +1430,17 @@ function updateDashboardStats() {
       } catch (err) {
         console.warn('quick copy pack:', err);
         toastError('No se pudo copiar el pack.');
+      }
+    });
+
+    card.querySelector('.btn-quick-session')?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try {
+        selectPersona(p);
+        await copyChatbotSessionCheck({ openChecklist: true });
+      } catch (err) {
+        console.warn('quick session:', err);
+        toastError('No se pudo copiar la sesión.');
       }
     });
 
@@ -2857,6 +2871,160 @@ async function copyFreeChatbotPack(packId) {
   }
 }
 
+/** W11 — localStorage key for chatbot session checklist */
+function chatbotSessionStorageKey(personaId) {
+  const pid = personaId || state.selectedPersona?.id || 'draft';
+  const profile = state.currentProfile?.id || 'local';
+  return `influ_chatbot_session_${profile}_${pid}`;
+}
+
+function loadChatbotSessionChecklist(personaId) {
+  const empty = (typeof InfluChatbotPacks !== 'undefined' && InfluChatbotPacks.emptySessionChecklist)
+    ? InfluChatbotPacks.emptySessionChecklist()
+    : { face: null, skin: null, hair: null, updatedAt: null };
+  try {
+    const raw = localStorage.getItem(chatbotSessionStorageKey(personaId));
+    if (!raw) return empty;
+    const parsed = JSON.parse(raw);
+    return {
+      face: parsed.face === true ? true : parsed.face === false ? false : null,
+      skin: parsed.skin === true ? true : parsed.skin === false ? false : null,
+      hair: parsed.hair === true ? true : parsed.hair === false ? false : null,
+      updatedAt: parsed.updatedAt || null
+    };
+  } catch (_) {
+    return empty;
+  }
+}
+
+function saveChatbotSessionChecklist(personaId, checklist) {
+  const payload = {
+    face: checklist.face === true,
+    skin: checklist.skin === true,
+    hair: checklist.hair === true,
+    updatedAt: new Date().toISOString()
+  };
+  localStorage.setItem(chatbotSessionStorageKey(personaId), JSON.stringify(payload));
+  return payload;
+}
+
+function isChatbotSessionPassingForPersona(p) {
+  if (!p?.id) return false;
+  const cl = loadChatbotSessionChecklist(p.id);
+  if (typeof InfluChatbotPacks !== 'undefined' && InfluChatbotPacks.isSessionChecklistPassing) {
+    return InfluChatbotPacks.isSessionChecklistPassing(cl);
+  }
+  return cl.face === true && cl.skin === true && cl.hair === true;
+}
+
+function buildChatbotSessionCheckText() {
+  if (typeof InfluChatbotPacks === 'undefined' || !InfluChatbotPacks.buildChatbotSessionCheck) {
+    throw new Error('chatbot-packs.js no cargado (sesión W11)');
+  }
+  return InfluChatbotPacks.buildChatbotSessionCheck(getFullPersonaJSON(), {
+    productData: state.selectedProduct,
+    fallbackName: state.selectedPersona?.name || document.getElementById('pName')?.value,
+    nicheLabel: getFullPersonaJSON()?.character_lock?.niche || ''
+  });
+}
+
+function openChatbotSessionChecklistModal() {
+  const modal = document.getElementById('chatbotSessionModal');
+  if (!modal) return;
+  const p = state.selectedPersona;
+  const name = p?.name || document.getElementById('pName')?.value || 'Influencer';
+  const nameEl = document.getElementById('chatbotSessionPersonaName');
+  if (nameEl) nameEl.textContent = name;
+  const cl = loadChatbotSessionChecklist(p?.id);
+  const face = document.getElementById('chkSessionFace');
+  const skin = document.getElementById('chkSessionSkin');
+  const hair = document.getElementById('chkSessionHair');
+  if (face) face.checked = cl.face === true;
+  if (skin) skin.checked = cl.skin === true;
+  if (hair) hair.checked = cl.hair === true;
+  updateChatbotSessionStatusLine(cl);
+  modal.style.display = 'flex';
+}
+
+function updateChatbotSessionStatusLine(cl) {
+  const el = document.getElementById('chatbotSessionStatus');
+  if (!el) return;
+  const passing = typeof InfluChatbotPacks !== 'undefined' && InfluChatbotPacks.isSessionChecklistPassing
+    ? InfluChatbotPacks.isSessionChecklistPassing(cl)
+    : (cl.face && cl.skin && cl.hair);
+  if (passing) {
+    el.textContent = '✓ Identidad OK en chatbot free — puedes confiar en el character_lock para packs.';
+    el.style.color = '#34d399';
+  } else if (cl.face === false || cl.skin === false || cl.hair === false) {
+    el.textContent = 'Hay fallos: re-pega el CHARACTER LOCK, ajusta tez/pelo en ficha y repite la sesión.';
+    el.style.color = 'var(--danger)';
+  } else {
+    el.textContent = 'Marca las tres casillas cuando compares A / B / C en el chatbot.';
+    el.style.color = 'var(--text-muted)';
+  }
+}
+
+async function copyChatbotSessionCheck({ openChecklist = true } = {}) {
+  try {
+    if (!state.selectedPersona && !document.getElementById('pName')?.value) {
+      toastInfo('Selecciona o crea un influencer antes de la sesión chatbot.');
+      return;
+    }
+    const text = buildChatbotSessionCheckText();
+    await navigator.clipboard.writeText(text);
+    markHappyPathCopied();
+    toastWithLockHealth('Sesión 3 prompts copiada — pégala en ChatGPT/Gemini/Claude free', getFullPersonaJSON());
+    if (openChecklist) openChatbotSessionChecklistModal();
+  } catch (err) {
+    console.error(err);
+    toastError('No se pudo copiar la sesión: ' + (err.message || 'error'));
+  }
+}
+
+function setupChatbotSessionUi() {
+  document.getElementById('btnChatbotSessionCheck')?.addEventListener('click', () => {
+    copyChatbotSessionCheck({ openChecklist: true });
+  });
+  document.getElementById('btnCloseChatbotSession')?.addEventListener('click', () => {
+    const modal = document.getElementById('chatbotSessionModal');
+    if (modal) modal.style.display = 'none';
+  });
+  document.getElementById('chatbotSessionModal')?.addEventListener('click', (e) => {
+    if (e.target?.id === 'chatbotSessionModal') e.target.style.display = 'none';
+  });
+  document.getElementById('btnSaveChatbotSession')?.addEventListener('click', () => {
+    const p = state.selectedPersona;
+    if (!p?.id) {
+      toastInfo('Guarda el influencer primero para persistir el checklist.');
+      return;
+    }
+    const checklist = {
+      face: !!document.getElementById('chkSessionFace')?.checked,
+      skin: !!document.getElementById('chkSessionSkin')?.checked,
+      hair: !!document.getElementById('chkSessionHair')?.checked
+    };
+    const saved = saveChatbotSessionChecklist(p.id, checklist);
+    updateChatbotSessionStatusLine(saved);
+    renderPersonaGrids();
+    const pass = isChatbotSessionPassingForPersona(p);
+    toastSuccess(pass
+      ? `Checklist OK para «${p.name}» — badge Chatbot OK en portafolio`
+      : `Checklist guardado para «${p.name}»`);
+  });
+  document.getElementById('btnRecopyChatbotSession')?.addEventListener('click', () => {
+    copyChatbotSessionCheck({ openChecklist: false });
+  });
+  ['chkSessionFace', 'chkSessionSkin', 'chkSessionHair'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('change', () => {
+      updateChatbotSessionStatusLine({
+        face: !!document.getElementById('chkSessionFace')?.checked,
+        skin: !!document.getElementById('chkSessionSkin')?.checked,
+        hair: !!document.getElementById('chkSessionHair')?.checked
+      });
+    });
+  });
+}
+
 /**
  * 2.5–2.6 — Descarga ZIP del influencer (lock + packs + imágenes + licencia).
  * kit=true → kit marca (+ guión UGC).
@@ -2975,6 +3143,7 @@ function setupFreeChatbotPacks() {
   });
   window.copyFreeChatbotPack = copyFreeChatbotPack;
   window.buildFreeChatbotPack = buildFreeChatbotPack;
+  window.copyChatbotSessionCheck = copyChatbotSessionCheck;
   window.FREE_CHATBOT_PACKS = FREE_CHATBOT_PACKS;
 }
 

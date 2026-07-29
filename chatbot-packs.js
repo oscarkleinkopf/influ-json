@@ -127,6 +127,107 @@ AL FINAL
 `;
   }
 
+  /**
+   * W11 — Bloque único para validar identity en chatbot free (3 prompts).
+   * @param {object} personaJSON
+   * @param {{ productData?: object, fallbackName?: string, nicheLabel?: string }} [opts]
+   */
+  function buildChatbotSessionCheck(personaJSON, opts = {}) {
+    const json = personaJSON && typeof personaJSON === 'object' ? personaJSON : {};
+    const lock = json.character_lock || {};
+    const must = lock.must_match_every_image || {};
+    const name = must.name || json.identity?.name || opts.fallbackName || 'Influencer';
+    const niche = lock.niche || opts.nicheLabel || '';
+    const compactLock = {
+      version: lock.version || 1,
+      free_tier: true,
+      niche: niche || undefined,
+      must_match_every_image: must,
+      may_vary_per_image: lock.may_vary_per_image || ['pose', 'outfit', 'setting', 'lighting'],
+      free_chatbot_system: lock.free_chatbot_system || 'Mantén la misma persona del JSON en todas las imágenes.'
+    };
+
+    let productHint = 'un frasco/caja genérica de beauty';
+    const prod = opts.productData;
+    if (prod && (prod.name || prod.benefit)) {
+      productHint = `${prod.name || 'Producto'}${prod.benefit ? ` (${prod.benefit})` : ''}`;
+    }
+
+    const promptA = `PROMPT A — RETRATO ANCLA
+Genera UNA imagen UGC selfie / primer plano de rostro:
+• MISMA cara, ojos, cejas y tez del CHARACTER LOCK
+• Encaje de cabeza y hombros; luz natural de ventana
+• Cabello según el lock (${must.hair_color || 'color'} · ${must.hair_length || 'largo'})
+• Estilo foto de celular amateur, no beauty CGI
+• NO cambiar identidad`;
+
+    const promptB = `PROMPT B — CUERPO ENTERO
+${FREE_CHATBOT_PACKS.fullbody.sceneInstruction}`;
+
+    const promptC = `PROMPT C — PRODUCTO / NICHO${niche ? ` (${niche})` : ''}
+Genera UNA imagen UGC del influencer mostrando producto:
+• Sostiene ${productHint} cerca de la cámara (mano visible)
+• Rostro reconocible según CHARACTER LOCK (misma cara y tez)
+• Plano medio o selfie con producto
+• Fondo interior simple; luz de ventana
+• Estilo review TikTok/Reels — no anuncio de TV`;
+
+    return `═══════════════════════════════════════════
+SESIÓN DE PRUEBA — 3 PROMPTS (cero costo)
+Influencer: ${name}
+Pega TODO este bloque en ChatGPT / Gemini / Claude / Meta (gratis).
+Objetivo: comprobar si el character_lock ancla cara + tez + pelo.
+═══════════════════════════════════════════
+
+${compactLock.free_chatbot_system}
+
+───────────────────────────────────────────
+CHARACTER LOCK (compacto — obligatorio)
+───────────────────────────────────────────
+${JSON.stringify(compactLock, null, 2)}
+
+RESUMEN FIJO:
+• ${must.name || name} · ${must.age || ''} · ${must.gender || ''} · ${must.ethnicity || ''}
+• Cara: ${must.face_shape || '—'} | ojos ${must.eye_color || '—'}
+• Piel: ${must.skin_tone || '—'}${must.skin_tone_hex ? ' ' + must.skin_tone_hex : ''} (NO cambiar)
+• Cabello: ${must.hair_color || ''} · ${must.hair_texture || ''} · ${must.hair_length || ''}
+
+───────────────────────────────────────────
+CÓMO USAR
+───────────────────────────────────────────
+1) Genera PROMPT A, luego B, luego C (una imagen cada uno).
+2) No reescribas el CHARACTER LOCK entre prompts.
+3) Vuelve al Studio y marca el checklist: ¿misma cara? ¿misma tez? ¿mismo pelo?
+
+───────────────────────────────────────────
+${promptA}
+
+───────────────────────────────────────────
+${promptB}
+
+───────────────────────────────────────────
+${promptC}
+
+───────────────────────────────────────────
+AL FINAL
+───────────────────────────────────────────
+Responde en español: "OK — sesión 3 prompts para ${name}".
+Si cara/tez/pelo cambian entre A/B/C, dilo explícitamente.
+`;
+  }
+
+  const SESSION_CHECK_KEYS = ['face', 'skin', 'hair'];
+
+  function emptySessionChecklist() {
+    return { face: null, skin: null, hair: null, updatedAt: null };
+  }
+
+  /** @returns {boolean} true si las 3 marcas son true */
+  function isSessionChecklistPassing(checklist) {
+    if (!checklist || typeof checklist !== 'object') return false;
+    return SESSION_CHECK_KEYS.every((k) => checklist[k] === true);
+  }
+
   function listPackIds() {
     return Object.keys(FREE_CHATBOT_PACKS);
   }
@@ -134,6 +235,10 @@ AL FINAL
   return {
     FREE_CHATBOT_PACKS,
     buildFreeChatbotPack,
+    buildChatbotSessionCheck,
+    SESSION_CHECK_KEYS,
+    emptySessionChecklist,
+    isSessionChecklistPassing,
     listPackIds
   };
 });
