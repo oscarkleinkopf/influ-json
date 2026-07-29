@@ -199,6 +199,15 @@ const MIGRATIONS = [
         CREATE INDEX IF NOT EXISTS idx_studio_invites_code ON studio_invites(code);
       `);
     }
+  },
+  {
+    id: 7,
+    name: 'persona_variants_consistency',
+    up(db) {
+      addColumnIfMissing(db, 'persona_variants', 'consistency_distance', 'INTEGER');
+      addColumnIfMissing(db, 'persona_variants', 'consistency_grade', 'TEXT');
+      addColumnIfMissing(db, 'persona_variants', 'consistency_anchor', 'TEXT');
+    }
   }
 ];
 
