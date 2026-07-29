@@ -118,7 +118,7 @@ routes/import.js + generation.js ✅ (W5d)
 routes/admin.js    ✅ (W5e) — W5 extracciones completas
 ```
 
-Extracciones W5 de `server.js` ✅. Producto: merge W7–W10 (ver PLAN.md).
+Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente:** [PLAN-NEXT.md](./PLAN-NEXT.md) W11–W17.
 
 ## Smoke manual obligatorio (post-merge — resultado)
 
