@@ -57,7 +57,7 @@ Un bloque JSON con lo que **debe** repetirse en cada imagen (cara, tez, pelo, si
 | Pollinations (en Studio) | Bocetos rápidos locales; acepta límites de consistencia y 429 ocasional |
 | Pack + chatbot free | Seguir desarrollando el personaje sin tarjeta ni GPU |
 
-Si ves **429 / espera Ns** en la barra lateral: la cola genera **1 imagen a la vez** y enfría sola. No spamees el botón.
+Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a la vez** y enfría sola. No pulses generar otra vez.
 
 ## Datos y PIN
 
@@ -68,6 +68,7 @@ Si ves **429 / espera Ns** en la barra lateral: la cola genera **1 imagen a la v
 - **Presets de nicho** (Persona Engine): Beauty / Fitness / Moda rellenan el formulario y refuerzan el `character_lock`.
 - **Kit marca**: botón «Descargar kit marca» → ZIP con packs chatbot + guión UGC ~15s (`?kit=1`).
 - **Cómo usar**: pestaña con guía visual del flujo gratis (sidebar → Cómo usar).
+- **Matriz QA** (ficha del influencer): compara retrato ancla · cuerpo · spicy a ojo; checklist cara/tez/pelo (sin API de scoring).
 - `npm run start:minimal` **no** es producción.
 
 ## Documentación

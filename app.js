@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupNichePresets', fn: setupNichePresets },
     { name: 'setupComoUsarGuide', fn: setupComoUsarGuide },
     { name: 'setupSideBySideComparator', fn: setupSideBySideComparator },
+    { name: 'setupQaMatrix', fn: setupQaMatrix },
     { name: 'setupSettings', fn: setupSettings },
     { name: 'setupMemberOnboarding', fn: setupMemberOnboarding },
     { name: 'initImportModal', fn: initImportModal }
@@ -1302,6 +1303,128 @@ function setupSideBySideComparator() {
   }
 }
 
+const QA_CHECKS_KEY_PREFIX = 'influ_qa_checks_';
+
+function qaChecksStorageKey(personaId) {
+  return `${QA_CHECKS_KEY_PREFIX}${personaId || 'none'}`;
+}
+
+function loadQaChecks(personaId) {
+  const api = window.InfluQaMatrix;
+  const empty = api?.emptyChecks?.() || { face: false, skin: false, hair: false };
+  if (!personaId) return empty;
+  try {
+    const raw = localStorage.getItem(qaChecksStorageKey(personaId));
+    if (!raw) return empty;
+    return { ...empty, ...JSON.parse(raw) };
+  } catch (_) {
+    return empty;
+  }
+}
+
+function saveQaChecks(personaId, checks) {
+  if (!personaId) return;
+  try {
+    localStorage.setItem(qaChecksStorageKey(personaId), JSON.stringify(checks || {}));
+  } catch (_) {}
+}
+
+let _qaMatrixRenderSeq = 0;
+
+async function renderQaMatrix() {
+  const panel = document.getElementById('qaMatrixPanel');
+  const slotsEl = document.getElementById('qaMatrixSlots');
+  const checksEl = document.getElementById('qaMatrixChecks');
+  const scoreEl = document.getElementById('qaMatrixScore');
+  const api = window.InfluQaMatrix;
+  if (!panel || !slotsEl || !checksEl || !api) return;
+
+  const persona = state.selectedPersona;
+  if (!persona?.id) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  const renderSeq = ++_qaMatrixRenderSeq;
+  const personaId = persona.id;
+  panel.style.display = 'block';
+  let generations = [];
+  try {
+    const res = await authFetch(`/api/personas/${personaId}/generations`);
+    if (res.ok) {
+      const data = await res.json();
+      generations = data.generations || data || [];
+    }
+  } catch (_) {}
+
+  // Evitar sobrescribir si el usuario cambió de persona o hubo otro render
+  if (renderSeq !== _qaMatrixRenderSeq || state.selectedPersona?.id !== personaId) return;
+
+  const slots = api.pickQaMatrixSlots(persona, state.activeVariants || [], generations);
+  const defs = api.SLOT_DEFS;
+
+  slotsEl.innerHTML = defs.map((def) => {
+    const slot = slots[def.id];
+    if (slot?.image_path) {
+      return `
+        <div class="qa-slot">
+          <div class="qa-slot-label">${escapeLockHtml(def.label)}</div>
+          <img src="${escapeLockHtml(slot.image_path)}" alt="${escapeLockHtml(def.label)}" loading="lazy">
+        </div>`;
+    }
+    const packBtn = def.pack
+      ? `<button type="button" class="btn btn-secondary btn-sm" data-qa-pack="${def.pack}" style="font-size:10px;padding:6px 8px;">Copiar pack</button>`
+      : `<button type="button" class="btn btn-secondary btn-sm" data-qa-goto-gen style="font-size:10px;padding:6px 8px;">Generar variante</button>`;
+    return `
+      <div class="qa-slot">
+        <div class="qa-slot-label">${escapeLockHtml(def.label)}</div>
+        <div class="qa-slot-empty">
+          <span>Sin imagen aún</span>
+          ${packBtn}
+        </div>
+      </div>`;
+  }).join('');
+
+  const checks = loadQaChecks(persona.id);
+  checksEl.innerHTML = api.CHECKS.map((c) => `
+    <label class="qa-check">
+      <input type="checkbox" data-qa-check="${c.id}" ${checks[c.id] ? 'checked' : ''}>
+      ${escapeLockHtml(c.label)}
+    </label>
+  `).join('');
+
+  const summary = api.summarizeChecks(checks);
+  if (scoreEl) {
+    scoreEl.textContent = `${summary.done} / ${summary.total}`;
+    scoreEl.classList.toggle('is-ok', summary.allOk);
+  }
+
+  slotsEl.querySelectorAll('[data-qa-pack]').forEach((btn) => {
+    btn.addEventListener('click', () => copyFreeChatbotPack(btn.getAttribute('data-qa-pack')));
+  });
+  slotsEl.querySelector('[data-qa-goto-gen]')?.addEventListener('click', () => {
+    document.getElementById('variantManagerSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  checksEl.querySelectorAll('[data-qa-check]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const next = loadQaChecks(persona.id);
+      next[input.getAttribute('data-qa-check')] = !!input.checked;
+      saveQaChecks(persona.id, next);
+      const sum = api.summarizeChecks(next);
+      if (scoreEl) {
+        scoreEl.textContent = `${sum.done} / ${sum.total}`;
+        scoreEl.classList.toggle('is-ok', sum.allOk);
+      }
+      if (sum.allOk) toastSuccess('QA OK: cara, tez y pelo base alineados');
+    });
+  });
+}
+
+function setupQaMatrix() {
+  // Render se dispara desde loadVariants / selectPersona
+  window.renderQaMatrix = renderQaMatrix;
+}
+
 /** Alias legacy — QueuePoller / import llamaban loadPersonaVariants */
 function loadPersonaVariants(personaId) {
   return loadVariantsForPersona(personaId);
@@ -1319,9 +1442,26 @@ function setGenerationButtonsDisabled(disabled) {
   });
 }
 
+function updateRateLimitBanner(q) {
+  const banner = document.getElementById('rateLimitBanner');
+  const text = document.getElementById('rateLimitBannerText');
+  if (!banner) return;
+  const isCooling = !!(q && (q.isCoolingDown || q.rateLimitActive));
+  if (!isCooling) {
+    banner.style.display = 'none';
+    return;
+  }
+  const cooldownSec = Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30;
+  if (text) {
+    text.textContent = `Pollinations respondió 429. Cola en pausa — reintento automático en ${cooldownSec}s. No pulses generar otra vez.`;
+  }
+  banner.style.display = 'flex';
+}
+
 function updateQueueStatusChip(q) {
   const chip = document.getElementById('queueStatusChip');
   const text = document.getElementById('queueStatusChipText');
+  updateRateLimitBanner(q);
   if (!chip || !text) return;
 
   const isCooling = q.isCoolingDown || q.rateLimitActive;
@@ -1341,7 +1481,7 @@ function updateQueueStatusChip(q) {
   chip.classList.toggle('cooling', !!isCooling);
   chip.classList.toggle('busy', !!busy && !isCooling);
   if (isCooling) {
-    text.textContent = `429 — espera ${cooldownSec}s`;
+    text.textContent = `429 — reintento en ${cooldownSec}s`;
   } else if (pending > 0) {
     text.textContent = `Cola: ${pending + (busy ? 1 : 0)} en espera`;
   } else {
@@ -1747,6 +1887,9 @@ function selectPersona(persona) {
   if (editorTitle) {
     editorTitle.textContent = "Ficha de Influencer";
   }
+
+  // Matriz QA: mostrar panel enseguida (slots se rellenan al cargar variantes/gens)
+  try { renderQaMatrix(); } catch (_) {}
 
   const sheetImg = document.getElementById('sheetProfileImg');
   if (sheetImg) {
@@ -5869,8 +6012,10 @@ async function loadVariantsForPersona(personaId) {
     const res = await authFetch(`/api/personas/${personaId}/variants`);
     state.activeVariants = await res.json();
     renderVariantVaultGrid();
+    renderQaMatrix();
   } catch (err) {
     grid.innerHTML = '<div style="color: #ff6b6b; font-size: 13px;">Error al cargar poses.</div>';
+    renderQaMatrix();
   }
 }
 
@@ -5887,10 +6032,12 @@ function renderVariantVaultGrid() {
       </div>
     `;
     updateSideBySideComparator(null);
+    renderQaMatrix();
     return;
   }
 
   updateSideBySideComparator(state.activeVariants[0]);
+  renderQaMatrix();
 
   state.activeVariants.forEach(v => {
     const card = document.createElement('div');

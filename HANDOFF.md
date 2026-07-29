@@ -25,25 +25,25 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Etapa de producto** | **Guía «Cómo usar» gráfica** (este PR) + presets/kit en la pila |
-| **Fase ROADMAP** | Free path entendible visualmente para testers invitados |
-| **Prioridad inmediata** | Merge PRs; smoke con tester real |
+| **Etapa de producto** | **Matriz QA + banner 429** (este PR) |
+| **Fase ROADMAP** | Free path: consistencia a ojo + rate-limit honesto |
+| **Prioridad inmediata** | Merge pila PRs; smoke QA matrix + 429 |
 | **En pausa** | OAuth, SMTP, Replicate obligatorio |
 | **Servidor** | `npm start` → `server.js` |
 | **Última plataforma** | Cursor |
-| **Última actualización** | 2026-07-28 |
+| **Última actualización** | 2026-07-29 |
 
 ---
 
-## Sesión reciente (Cursor, 2026-07-28)
+## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** generar un «Cómo usar» de alta calidad gráfica.
+**Pedido:** continuar (matriz QA + UX 429).
 
 **Hecho:**
-- Nueva pestaña **Cómo usar** con hero full-bleed (`assets/guides/como-usar-hero.png`).
-- Flujo visual en 4 pasos + regla de oro + CTAs a crear / packs / kit / checklist.
-- Entrada desde sidebar, Resumen y onboarding member («Ver checklist» → guía).
-- CSS con motion (fade-up + ken burns suave).
+- Panel **Matriz QA** en ficha: slots retrato / cuerpo / spicy + checklist cara/tez/pelo (localStorage).
+- Heurística gratis en `qa-matrix.js` (sin API de scoring); CTAs a copiar pack / generar.
+- Banner sticky **429** + chip «reintento en Ns — no pulses generar otra vez».
+- Tests `test/qa-matrix.test.js`.
 
 **No tocado:** Replicate, CSP.
 
@@ -52,8 +52,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 ## Próximos pasos (robot que retome)
 
 1. `git pull` → este archivo → `ROADMAP.md`.
-2. Merge pila multi-user + este PR.
-3. Smoke: preset Beauty → crear → kit marca → pegar pack en chatbot free.
+2. Merge pila multi-user + guía + este PR.
+3. Smoke: crear → gen → matriz QA marca checks; forzar 429 → banner/chip.
 4. Solo si el usuario lo pide: Replicate opt-in.
 
 ---
@@ -62,7 +62,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-28 | Cursor | Guía gráfica «Cómo usar» (hero + 4 pasos) | *(este PR)* |
+| 2026-07-29 | Cursor | Matriz QA consistencia + banner 429 | *(este PR)* |
+| 2026-07-28 | Cursor | Guía gráfica «Cómo usar» (hero + 4 pasos) | PR #11 |
 | 2026-07-28 | Cursor | Presets nicho + kit marca ZIP | PR #10 |
 | 2026-07-28 | Cursor | Onboarding member + Ajustes por rol | PR #9 |
 | 2026-07-28 | Cursor | Backup UI + ownership API | PR #8 |
