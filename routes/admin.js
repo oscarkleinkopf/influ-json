@@ -68,7 +68,8 @@ function registerAdminRoutes(app, deps) {
     requireAdmin,
     publicProfileDTO,
     dataDir,
-    rootDir = path.join(__dirname, '..')
+    rootDir = path.join(__dirname, '..'),
+    createZipArchive = null
   } = deps;
 
   // Profiles CRUD (local multi-user) — crear/borrar perfiles: solo Administración
@@ -194,6 +195,9 @@ function registerAdminRoutes(app, deps) {
   app.get('/api/backups', requireAdmin, (req, res) => {
     try {
       const meta = dbService.getBackupMeta();
+      const keep = typeof dbService.getBackupKeepLimit === 'function'
+        ? dbService.getBackupKeepLimit()
+        : 10;
       const snapshots = dbService.listBackupSnapshots().map((s) => ({
         filename: s.filename,
         size: s.size,
@@ -202,6 +206,7 @@ function registerAdminRoutes(app, deps) {
       res.json({
         success: true,
         schemaVersion: dbService.getSchemaVersion(),
+        keep,
         meta,
         snapshots
       });
@@ -221,7 +226,8 @@ function registerAdminRoutes(app, deps) {
           filename: path.basename(snap.dbPath),
           dbPath: snap.dbPath,
           schemaVersion: snap.schemaVersion,
-          createdAt: snap.createdAt
+          createdAt: snap.createdAt,
+          rotation: snap.rotation || null
         }
       });
     } catch (err) {
@@ -268,6 +274,66 @@ function registerAdminRoutes(app, deps) {
       res.download(resolved, filename);
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
+  /**
+   * W10 — Export studio completo (ZIP): data/ + assets/ + .env.example.
+   * Nunca incluye `.env` (secretos). Solo Administración.
+   */
+  app.get('/api/export/studio', requireAdmin, (req, res) => {
+    if (typeof createZipArchive !== 'function') {
+      return res.status(500).json({ success: false, message: 'ZIP no disponible en este proceso.' });
+    }
+    try {
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      res.attachment(`influ_studio_export_${stamp}.zip`);
+
+      const archive = createZipArchive({ zlib: { level: 9 } });
+      archive.on('error', (err) => {
+        if (!res.headersSent) {
+          res.status(500).json({ success: false, message: err.message });
+        }
+      });
+      archive.pipe(res);
+
+      const skipEnv = (entry) => {
+        const base = path.basename(entry.name || '');
+        if (base === '.env') return false;
+        return entry;
+      };
+
+      if (dataDir && fs.existsSync(dataDir)) {
+        archive.directory(dataDir, 'data', skipEnv);
+      }
+
+      const assetsDir = path.join(rootDir, 'assets');
+      if (fs.existsSync(assetsDir)) {
+        archive.directory(assetsDir, 'assets', skipEnv);
+      }
+
+      const envExample = path.join(rootDir, '.env.example');
+      if (fs.existsSync(envExample)) {
+        archive.file(envExample, { name: '.env.example' });
+      }
+
+      archive.append(
+        [
+          'influ-JSON — export studio (cero costo)',
+          '',
+          'Contiene: data/ (SQLite + backups), assets/, .env.example',
+          'NO contiene: .env (secretos). Copia .env.example → .env y ajusta PIN/claves.',
+          'Tras restaurar data/, reinicia: npm start',
+          ''
+        ].join('\n'),
+        { name: 'README_EXPORT.txt' }
+      );
+
+      archive.finalize();
+    } catch (err) {
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, message: err.message });
+      }
     }
   });
 

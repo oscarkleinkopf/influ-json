@@ -492,7 +492,8 @@ registerAdminRoutes(app, {
   requireAdmin,
   publicProfileDTO,
   dataDir: DATA_DIR,
-  rootDir: __dirname
+  rootDir: __dirname,
+  createZipArchive
 });
 
 

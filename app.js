@@ -855,9 +855,12 @@ async function refreshBackupsSettingsList() {
     const data = await res.json();
     if (!data.success) throw new Error(data.message || 'Error');
     if (metaLine) {
+      const keep = data.keep != null ? data.keep : 10;
+      const keepHint = document.getElementById('backupKeepHint');
+      if (keepHint) keepHint.textContent = String(keep);
       const last = data.meta?.last_backup_at
-        ? `Último backup: ${escapeLockHtml(String(data.meta.last_backup_at))} · schema v${data.schemaVersion || '?'}`
-        : `Schema v${data.schemaVersion || '?'} · aún no hay backups registrados`;
+        ? `Último backup: ${escapeLockHtml(String(data.meta.last_backup_at))} · schema v${data.schemaVersion || '?'} · keep ${keep}`
+        : `Schema v${data.schemaVersion || '?'} · keep ${keep} · aún no hay backups registrados`;
       metaLine.innerHTML = last;
     }
     list.innerHTML = (data.snapshots || []).map(s => `
@@ -5809,45 +5812,98 @@ async function deletePersonaAction() {
     toastInfo('Primero selecciona un influencer guardado para eliminarlo.');
     return;
   }
-  
-  if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente al influencer "${state.selectedPersona.name}"? Esta acción no se puede deshacer.`)) {
+
+  const persona = state.selectedPersona;
+  const name = persona.name || 'Influencer';
+  const id = persona.id;
+  const isAdmin = isCurrentUserAdmin();
+
+  // W9 — por defecto archiva (recuperable). Admin puede purgar con confirmación de nombre.
+  let hardDelete = false;
+  if (isAdmin) {
+    const choice = window.prompt(
+      `«${name}»\n\nEnter = archivar (recomendado, reversible).\nEscribe el nombre exacto para BORRAR permanente:\n`,
+      ''
+    );
+    if (choice === null) return; // cancel
+    hardDelete = String(choice).trim() === String(name).trim() && String(choice).trim().length > 0;
+    if (String(choice).trim() && !hardDelete) {
+      toastError('Nombre no coincide — no se borró. Usa Enter vacío para archivar.');
+      return;
+    }
+  } else if (!confirm(`¿Archivar a «${name}»?\n\nNo se borra del todo: puedes desarchivar después. (Borrado permanente solo Administración.)`)) {
     return;
   }
-  
-  setGitSyncingState();
-  try {
-    const res = await authFetch(`/api/personas/${state.selectedPersona.id}`, {
-      method: 'DELETE'
-    });
-    const data = await res.json();
-    if (data.success) {
-      state.personas = data.personas;
-      // Select the first persona if available
+
+  if (hardDelete) {
+    if (!confirm(`⚠️ BORRADO PERMANENTE de «${name}». No hay deshacer. ¿Continuar?`)) return;
+    setGitSyncingState();
+    try {
+      const res = await authFetch(`/api/personas/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Error');
+      state.personas = data.personas || [];
       state.selectedPersona = state.personas.length > 0 ? state.personas[0] : null;
-      
       updateDashboardStats();
       renderPersonaGrids();
       populateActiveUgcData();
-      
-      if (state.selectedPersona) {
-        selectPersona(state.selectedPersona);
-      } else {
-        // Clear form
+      if (state.selectedPersona) selectPersona(state.selectedPersona);
+      else {
         document.getElementById('pName').value = '';
         document.getElementById('pAge').value = '';
         document.getElementById('pStyle').value = '';
         document.getElementById('pSetting').value = '';
         updateClothingDropdown('');
       }
-      
-      if (data.gitSynced) {
-        showSyncToast(true, '¡Influencer eliminado y cambios respaldados en GitHub!');
-      } else {
-        showSyncToast(false, 'Eliminado localmente. Error en Git.');
-      }
+      toastSuccess(`«${name}» eliminado permanentemente`);
+    } catch (err) {
+      toastError(err.message || 'Error al eliminar');
     }
+    return;
+  }
+
+  // Soft delete = archive
+  try {
+    const res = await authFetch(`/api/personas/${id}/archive`, {
+      method: 'POST',
+      body: JSON.stringify({ archived: true })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Error');
+    state.personas = data.personas || state.personas;
+    const archived = (state.personas || []).find((p) => p.id === id) || { ...persona, archived: 1 };
+    state.selectedPersona = archived;
+    updateDashboardStats();
+    renderPersonaGrids();
+    populateActiveUgcData();
+    selectPersona(archived);
+    toastSuccess(`«${name}» archivado`, {
+      duration: 8000,
+      actionLabel: 'Deshacer',
+      onAction: async () => {
+        try {
+          const undo = await authFetch(`/api/personas/${id}/archive`, {
+            method: 'POST',
+            body: JSON.stringify({ archived: false })
+          });
+          const undoData = await undo.json();
+          if (!undoData.success) throw new Error(undoData.message || 'Error');
+          state.personas = undoData.personas || state.personas;
+          const restored = (state.personas || []).find((p) => p.id === id);
+          if (restored) {
+            state.selectedPersona = restored;
+            selectPersona(restored);
+          }
+          updateDashboardStats();
+          renderPersonaGrids();
+          toastSuccess(`«${name}» restaurado`);
+        } catch (e) {
+          toastError(e.message || 'No se pudo desarchivar');
+        }
+      }
+    });
   } catch (err) {
-    showSyncToast(false, 'Error de servidor al eliminar.');
+    toastError(err.message || 'Error al archivar');
   }
 }
 

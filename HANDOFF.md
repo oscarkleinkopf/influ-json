@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (pila W1–W5e integrada) |
-| **Commit base** | tip W5e `fc64fa2` + merge W1 |
-| **PR actual** | — merge a main |
-| **`main` remoto** | W1–W5e + [PLAN.md](./PLAN.md) |
-| **Etapa de producto** | Post-W5: producto W7–W10 o W6 (OK owner) |
-| **Prioridad inmediata** | Producto W7–W10; **no Replicate** |
+| **Rama de trabajo** | pila W7–W10 (tips apilados; merge en orden) |
+| **Commit base** | `main` post W1–W5e + PLAN |
+| **PR actual** | #27 W7 → #28 W8 → #29 W9 → #30 W10 (draft) |
+| **`main` remoto** | W1–W5e + PLAN; **aún sin** W7–W10 |
+| **Etapa de producto** | W7–W10 listos para merge; luego W6 (OK owner) o UX |
+| **Prioridad inmediata** | Merge W7→W10 en orden; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
@@ -44,19 +44,28 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 |------:|---:|-----------|--------|
 | 1–13 | #4–#16 | Validador → discard preview + `chatbot-packs.js` | **merged** |
 
+### Pila producto W7–W10 (merge en orden)
+
+| Orden | Rama | Contenido | PR |
+|------:|------|-----------|----|
+| 1 | `cursor/gen-metrics-152f` | `gen_metrics` + Ajustes admin | #27 |
+| 2 | `cursor/queue-offline-ux-152f` | cola `#N de M` + modo offline | #28 |
+| 3 | `cursor/safe-delete-152f` | Eliminar = archivar + Deshacer | #29 |
+| 4 | `cursor/backup-rotation-152f` | rotación BACKUP_KEEP + export studio ZIP | #30 |
+
 ---
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** Merge primero (pila W1–W5e).
+**Pedido:** Continuar W7 a W10.
 
 **Hecho:**
-- FF `cursor/routes-admin-152f` (W2–W5e) → `main`.
-- Merge W1 (`localhost-bind` + wizard PIN) con conflictos docs/package resueltos.
-- Merge PLAN.md (#17) → `main`.
-- Post-merge: **118** tests + smoke **9/9**.
+- W7 métricas `gen_metrics` (schema v8) + API/UI admin.
+- W8 cola posición + modo offline (localStorage).
+- W9 borrado seguro (archive + undo; admin purge con nombre).
+- W10 rotación backups (`BACKUP_KEEP` default 10) + `GET /api/export/studio` (sin `.env`).
 
-**Siguiente:** Producto W7–W10 (o W6 con OK owner).
+**Siguiente:** Merge W7→W10 en orden a `main`; W6 solo con OK owner.
 
 **No tocado:** Replicate; desversionar mirrors.
 
@@ -145,6 +154,7 @@ Extracciones W5 de `server.js` ✅. Siguiente: producto W7–W10 (ver PLAN.md).
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | W7–W10 producto (metrics→queue→safe-delete→backup ZIP) | *(PRs #27–#30)* |
 | 2026-07-29 | Cursor | Merge W1–W5e → main | *(main)* |
 | 2026-07-29 | Cursor | W5e extract routes/admin.js | *(PR W5e)* |
 | 2026-07-29 | Cursor | W5d extract routes/import + generation | *(PR W5d)* |

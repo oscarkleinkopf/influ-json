@@ -1231,12 +1231,44 @@ module.exports = {
   },
 
   /**
+   * Límite de snapshots a conservar (W10). Env BACKUP_KEEP, default 10, mínimo 1.
+   */
+  getBackupKeepLimit() {
+    const raw = parseInt(String(process.env.BACKUP_KEEP || '10'), 10);
+    if (!Number.isFinite(raw) || raw < 1) return 10;
+    return raw;
+  },
+
+  /**
+   * Borra los .sqlite más antiguos (y su *_personas.json) dejando solo `keep` más recientes.
+   */
+  pruneBackupSnapshots(keep = null) {
+    const limit = keep == null ? this.getBackupKeepLimit() : Math.max(1, parseInt(keep, 10) || 1);
+    const snaps = this.listBackupSnapshots(); // newest first
+    const toRemove = snaps.slice(limit);
+    let pruned = 0;
+    for (const s of toRemove) {
+      try {
+        if (fs.existsSync(s.path)) fs.unlinkSync(s.path);
+        pruned += 1;
+      } catch (_) {}
+      const twin = s.path.replace(/\.sqlite$/i, '_personas.json');
+      try {
+        if (fs.existsSync(twin)) fs.unlinkSync(twin);
+      } catch (_) {}
+    }
+    return { keep: limit, totalBefore: snaps.length, pruned, remaining: Math.min(snaps.length, limit) };
+  },
+
+  /**
    * Copia data/influ.sqlite (+ personas.json) a data/backups/.
    * Esto es el backup de producto — no usa git.
+   * Tras crear, rota según BACKUP_KEEP (default 10).
    */
   createBackupSnapshot(label = '') {
     const backupsDir = ensureDir(path.join(DATA_DIR, 'backups'));
-    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    // hrtime evita colisiones de mtime/ISO en ráfagas (tests / restore)
+    const stamp = `${new Date().toISOString().replace(/[:.]/g, '-')}_${String(process.hrtime.bigint()).slice(-8)}`;
     const safeLabel = String(label || 'manual').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 40);
     const base = `influ_${stamp}_${safeLabel}`;
     const destDb = path.join(backupsDir, `${base}.sqlite`);
@@ -1256,13 +1288,22 @@ module.exports = {
       `).run(destDb);
     } catch (_) {}
 
+    // Evitar colisiones de mtime en rotación rápida (tests / ráfagas)
+    try {
+      const now = Date.now();
+      fs.utimesSync(destDb, now / 1000, now / 1000);
+    } catch (_) {}
+
+    const rotation = this.pruneBackupSnapshots();
+
     syncDbToWorkspace();
     return {
       ok: true,
       dbPath: destDb,
       personasJsonPath: fs.existsSync(destJson) ? destJson : null,
       schemaVersion: getSchemaVersion(db),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      rotation
     };
   },
 
@@ -1276,7 +1317,10 @@ module.exports = {
         const st = fs.statSync(abs);
         return { filename: f, path: abs, size: st.size, mtime: st.mtime.toISOString() };
       })
-      .sort((a, b) => (a.mtime < b.mtime ? 1 : -1));
+      .sort((a, b) => {
+        if (a.mtime !== b.mtime) return a.mtime < b.mtime ? 1 : -1;
+        return a.filename < b.filename ? 1 : -1; // ISO+hrtime: más nuevo al inicio
+      });
   },
 
   /**
