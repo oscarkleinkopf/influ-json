@@ -1563,6 +1563,25 @@ async function renderQaMatrix() {
     scoreEl.classList.toggle('is-ok', summary.allOk);
   }
 
+  const dhashEl = document.getElementById('qaMatrixDhash');
+  if (dhashEl) {
+    const scored = (state.activeVariants || []).filter((v) => v && v.consistency_distance != null);
+    if (!scored.length) {
+      dhashEl.textContent = 'dHash —';
+      dhashEl.className = 'qa-matrix-dhash';
+    } else {
+      const avg = scored.reduce((a, v) => a + Number(v.consistency_distance), 0) / scored.length;
+      let worst = 'ok';
+      for (const v of scored) {
+        if (v.consistency_grade === 'bad') worst = 'bad';
+        else if (v.consistency_grade === 'warn' && worst !== 'bad') worst = 'warn';
+      }
+      dhashEl.textContent = `dHash ~${avg.toFixed(1)} · ${scored.length} var.`;
+      dhashEl.className = `qa-matrix-dhash is-${worst}`;
+      dhashEl.title = 'Promedio distancia dHash vs imagen ancla (composición/color). No es face-lock.';
+    }
+  }
+
   slotsEl.querySelectorAll('[data-qa-pack]').forEach((btn) => {
     btn.addEventListener('click', () => copyFreeChatbotPack(btn.getAttribute('data-qa-pack')));
   });
@@ -1585,8 +1604,37 @@ async function renderQaMatrix() {
 }
 
 function setupQaMatrix() {
-  // Render se dispara desde loadVariants / selectPersona
   window.renderQaMatrix = renderQaMatrix;
+  const btn = document.getElementById('btnRescoreConsistency');
+  if (btn && btn.dataset.bound !== '1') {
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', async () => {
+      const personaId = state.selectedPersona?.id;
+      if (!personaId) return;
+      btn.disabled = true;
+      try {
+        const res = await authFetch(`/api/personas/${personaId}/consistency/rescore`, {
+          method: 'POST',
+          body: JSON.stringify({ onlyMissing: false })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Error al recalcular');
+        state.activeVariants = data.variants || state.activeVariants;
+        renderVariantVaultGrid();
+        renderQaMatrix();
+        const avg = data.summary?.avgDistance;
+        toastSuccess(
+          avg != null
+            ? `dHash recalculado (promedio ${avg}). Señal de composición/color, no face-lock.`
+            : 'dHash recalculado.'
+        );
+      } catch (err) {
+        toastError(err.message || 'No se pudo recalcular dHash');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
 }
 
 /** Alias legacy — QueuePoller / import llamaban loadPersonaVariants */
@@ -6125,12 +6173,36 @@ async function loadVariantsForPersona(personaId) {
   try {
     const res = await authFetch(`/api/personas/${personaId}/variants`);
     state.activeVariants = await res.json();
+    // Recalcular scores faltantes en background (gratis, local)
+    const missing = (state.activeVariants || []).some((v) => v && v.consistency_distance == null && v.image_path);
+    if (missing) {
+      try {
+        const scoreRes = await authFetch(`/api/personas/${personaId}/consistency/rescore`, {
+          method: 'POST',
+          body: JSON.stringify({ onlyMissing: true })
+        });
+        const scoreData = await scoreRes.json();
+        if (scoreData.success && Array.isArray(scoreData.variants)) {
+          state.activeVariants = scoreData.variants;
+        }
+      } catch (_) { /* non-blocking */ }
+    }
     renderVariantVaultGrid();
     renderQaMatrix();
   } catch (err) {
     grid.innerHTML = '<div style="color: #ff6b6b; font-size: 13px;">Error al cargar poses.</div>';
     renderQaMatrix();
   }
+}
+
+function consistencyChipHtml(v) {
+  const grade = v?.consistency_grade;
+  const dist = v?.consistency_distance;
+  if (dist == null && !grade) return '';
+  const tone = grade === 'ok' ? 'ok' : grade === 'warn' ? 'warn' : grade === 'bad' ? 'bad' : 'muted';
+  const label = grade === 'ok' ? 'OK' : grade === 'warn' ? 'Revisar' : grade === 'bad' ? 'Drift' : '—';
+  const title = `dHash vs ancla: distancia ${dist ?? '—'}. Señal de composición/color — no es face-lock.`;
+  return `<span class="variant-consistency-chip is-${tone}" title="${title}">${label}${dist != null ? ` · ${dist}` : ''}</span>`;
 }
 
 function renderVariantVaultGrid() {
@@ -6159,6 +6231,7 @@ function renderVariantVaultGrid() {
     card.style = 'position: relative; border-radius: var(--border-radius-md); overflow: hidden; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer;';
     card.innerHTML = `
       <img src="${v.image_path}" style="width: 100%; aspect-ratio: 1; object-fit: cover; display: block;" title="Haz clic para ver la imagen en tamaño grande">
+      ${consistencyChipHtml(v)}
       <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; opacity: 0; transition: opacity 0.2s ease;" class="variant-zoom-icon">🔍</div>
       <div style="padding: 10px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); position: absolute; bottom: 0; left: 0; right: 0; transform: translateY(100%); transition: transform 0.2s ease;" class="variant-hover-actions">
         <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -6189,7 +6262,7 @@ function renderVariantVaultGrid() {
     card.addEventListener('click', (e) => {
       if (e.target.tagName === 'BUTTON') return;
       
-      const promptDetails = `Pose: ${v.pose || 'N/A'}\nVestuario: ${v.clothing || 'N/A'}\nActitud: ${v.attitude || 'N/A'}\nEntorno: ${v.setting || 'N/A'}`;
+      const promptDetails = `Pose: ${v.pose || 'N/A'}\nVestuario: ${v.clothing || 'N/A'}\nActitud: ${v.attitude || 'N/A'}\nEntorno: ${v.setting || 'N/A'}\ndHash: ${v.consistency_distance ?? '—'} (${v.consistency_grade || 'sin score'})`;
       
       openHistoryModal({
         id: v.id,

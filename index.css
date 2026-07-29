@@ -3256,6 +3256,59 @@ button.is-queue-locked:disabled {
   color: #6ee7b7;
 }
 
+.qa-matrix-head-scores {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.qa-matrix-dhash {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.qa-matrix-dhash.is-ok { color: #6bcb77; }
+.qa-matrix-dhash.is-warn { color: #e8c547; }
+.qa-matrix-dhash.is-bad { color: #ff6b6b; }
+
+.variant-consistency-chip {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #ddd;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.variant-consistency-chip.is-ok {
+  color: #b8f0c0;
+  border: 1px solid rgba(107, 203, 119, 0.45);
+}
+
+.variant-consistency-chip.is-warn {
+  color: #f5e6a3;
+  border: 1px solid rgba(232, 197, 71, 0.45);
+}
+
+.variant-consistency-chip.is-bad {
+  color: #ffb3b3;
+  border: 1px solid rgba(255, 107, 107, 0.45);
+}
+
+.variant-consistency-chip.is-muted {
+  color: #aaa;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .qa-matrix-slots {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

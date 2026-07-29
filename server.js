@@ -33,6 +33,7 @@ const {
   UNSAFE_URL
 } = require('./safe-paths');
 const imageValidation = require('./image-validation');
+const consistencyScore = require('./consistency-score');
 
 // Initialize DB and migrate legacy JSON data if empty
 dbService.runMigrations();
@@ -712,6 +713,62 @@ app.get('/api/personas/:id/variants', requireOwnedPersona, (req, res) => {
   res.json(dbService.getVariantsForPersona(req.params.id));
 });
 
+/**
+ * Recalcula dHash ancla↔variante (gratis, local). Señal de composición/color, no face-lock.
+ */
+app.post('/api/personas/:id/consistency/rescore', requireOwnedPersona, async (req, res) => {
+  try {
+    const persona = req.persona;
+    const anchor = persona.image || null;
+    if (!anchor) {
+      return res.status(400).json({
+        success: false,
+        message: 'La persona no tiene imagen ancla para comparar.'
+      });
+    }
+    const variants = dbService.getVariantsForPersona(persona.id) || [];
+    const onlyMissing = req.body?.onlyMissing === true;
+    const updated = [];
+    for (const v of variants) {
+      if (onlyMissing && v.consistency_distance != null) {
+        updated.push(v);
+        continue;
+      }
+      if (!v.image_path) continue;
+      try {
+        const score = await consistencyScore.scoreAgainstAnchor(anchor, v.image_path);
+        const row = dbService.updateVariantConsistency(v.id, {
+          distance: score.distance,
+          grade: score.grade,
+          anchor
+        });
+        updated.push(row);
+      } catch (err) {
+        console.warn(`[consistency] rescore failed for ${v.id}:`, err.message);
+        updated.push(v);
+      }
+    }
+    const summary = consistencyScore.summarizeScores(updated);
+    res.json({
+      success: true,
+      variants: updated,
+      summary,
+      note: 'Señal grosera de composición/color — no es face-lock.'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/personas/:id/consistency/summary', requireOwnedPersona, (req, res) => {
+  const variants = dbService.getVariantsForPersona(req.params.id) || [];
+  res.json({
+    success: true,
+    summary: consistencyScore.summarizeScores(variants),
+    note: 'Señal grosera de composición/color — no es face-lock.'
+  });
+});
+
 // Persona Anchor Pack endpoint (4 official face anchor reference photos)
 app.get('/api/personas/:id/anchor-pack', requireOwnedPersona, (req, res) => {
   try {
@@ -732,6 +789,26 @@ app.get('/api/personas/:id/anchor-pack', requireOwnedPersona, (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+/** dHash ancla↔variante (gratis). No bloquea si falla. */
+async function scoreVariantAgainstPersona(persona, imagePath) {
+  const anchor = persona?.image || null;
+  if (!anchor || !imagePath) return null;
+  if (String(anchor) === String(imagePath)) {
+    return { distance: 0, grade: 'ok', consistency_anchor: anchor };
+  }
+  try {
+    const score = await consistencyScore.scoreAgainstAnchor(anchor, imagePath);
+    return {
+      distance: score.distance,
+      grade: score.grade,
+      consistency_anchor: anchor
+    };
+  } catch (err) {
+    console.warn('[consistency] score skipped:', err.message);
+    return null;
+  }
+}
 
 app.post('/api/personas/:id/variants', requireOwnedPersona, async (req, res) => {
   const { pose, clothing, attitude, setting } = req.body;
@@ -795,15 +872,19 @@ app.post('/api/personas/:id/variants', requireOwnedPersona, async (req, res) => 
     seed,
     framing
   })
-    .then(imagePath => {
+    .then(async (imagePath) => {
       if (imagePath) {
+        const scored = await scoreVariantAgainstPersona(persona, imagePath);
         const variant = dbService.saveVariant({
           persona_id: req.params.id,
           pose,
           clothing,
           attitude,
           setting,
-          image_path: imagePath
+          image_path: imagePath,
+          consistency_distance: scored?.distance ?? null,
+          consistency_grade: scored?.grade ?? null,
+          consistency_anchor: scored?.consistency_anchor ?? null
         });
         // Save to generation history
         try {
@@ -822,7 +903,9 @@ app.post('/api/personas/:id/variants', requireOwnedPersona, async (req, res) => 
               identityLock,
               seed,
               framing,
-              referenceLocalPath
+              referenceLocalPath,
+              consistency_distance: scored?.distance ?? null,
+              consistency_grade: scored?.grade ?? null
             })
           });
         } catch (histErr) {
@@ -1796,13 +1879,17 @@ async function triggerBackgroundVariants(persona) {
       });
 
       if (imagePath) {
+        const scored = await scoreVariantAgainstPersona(persona, imagePath);
         dbService.saveVariant({
           persona_id: persona.id,
           pose: spec.pose,
           clothing: spec.clothing,
           attitude: spec.attitude,
           setting: spec.setting,
-          image_path: imagePath
+          image_path: imagePath,
+          consistency_distance: scored?.distance ?? null,
+          consistency_grade: scored?.grade ?? null,
+          consistency_anchor: scored?.consistency_anchor ?? null
         });
 
         dbService.saveGeneration({
@@ -1810,7 +1897,12 @@ async function triggerBackgroundVariants(persona) {
           prompt,
           image_path: imagePath,
           generation_type: 'anchor_pack',
-          metadata: JSON.stringify({ ...spec, seed })
+          metadata: JSON.stringify({
+            ...spec,
+            seed,
+            consistency_distance: scored?.distance ?? null,
+            consistency_grade: scored?.grade ?? null
+          })
         });
 
         console.log(`[anchor-pack] Generated anchor ${i + 1}/4 (${spec.anchorType}) for ${persona.name}: ${imagePath}`);

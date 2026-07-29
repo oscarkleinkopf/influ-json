@@ -658,18 +658,22 @@
                 <button type="button" class="btn btn-sm" id="btnExportBrandKitSheet" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px; background: var(--accent-gradient); border: none;">🎁 Descargar kit marca (packs + guión)</button>
               </div>
 
-              <!-- Matriz QA consistencia (gratis, a ojo) -->
+              <!-- Matriz QA consistencia (gratis, a ojo + dHash local) -->
               <div id="qaMatrixPanel" class="qa-matrix-panel" style="display:none;">
                 <div class="qa-matrix-head">
                   <div>
                     <h4>Matriz QA de consistencia</h4>
-                    <p>Retrato · cuerpo · spicy. Marca a ojo si es la misma persona — sin API de scoring.</p>
+                    <p>Retrato · cuerpo · spicy. Marca a ojo si es la misma persona. El chip dHash es señal grosera de composición/color — <strong>no face-lock</strong>.</p>
                   </div>
-                  <span id="qaMatrixScore" class="qa-matrix-score">0 / 3</span>
+                  <div class="qa-matrix-head-scores">
+                    <span id="qaMatrixDhash" class="qa-matrix-dhash" title="Promedio dHash vs ancla (composición/color)">dHash —</span>
+                    <span id="qaMatrixScore" class="qa-matrix-score">0 / 3</span>
+                  </div>
                 </div>
                 <div id="qaMatrixSlots" class="qa-matrix-slots"></div>
                 <div id="qaMatrixChecks" class="qa-matrix-checks"></div>
-                <p id="qaMatrixHint" class="qa-matrix-hint">Si falla cara o tez: re-pega el CHARACTER LOCK y regenera el slot débil.</p>
+                <p id="qaMatrixHint" class="qa-matrix-hint">Si falla cara o tez: re-pega el CHARACTER LOCK y regenera el slot débil. dHash alto ≠ cara distinta necesariamente.</p>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnRescoreConsistency" style="margin-top:8px;font-size:11px;">Recalcular dHash vs ancla</button>
               </div>
             </div>
             

@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/import-image-validation-152f` (W3, encima de W2) |
-| **Commit base** | `origin/cursor/ci-smoke-152f` @ `af4cf28` |
-| **PR actual** | W3 magic bytes / validación de imagen en import |
-| **`main` remoto** | pila #4–#16; PRs W1 #18, W2 #19, PLAN #17 abiertos |
+| **Rama de trabajo** | `cursor/phash-consistency-152f` (W4, encima de W3) |
+| **Commit base** | `origin/cursor/import-image-validation-152f` @ `2ace7e4` |
+| **PR actual** | W4 dHash consistencia ancla↔variante |
+| **`main` remoto** | pila #4–#16; PRs W1–W3 + PLAN abiertos |
 | **Etapa de producto** | Plan W1→W10 |
-| **Prioridad inmediata** | Tras W3: **W4** pHash consistencia o merge W1–W3; **no Replicate** |
+| **Prioridad inmediata** | Merge W1–W4 o **W5** `import-flow.js`; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 | **Última actualización** | 2026-07-29 |
@@ -48,18 +48,19 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** Continúa W3.
+**Pedido:** Continúa W4.
 
-**Hecho (W3):**
-- `image-validation.js`: `assertValidImageBuffer/File` vía sharp; rechaza SVG/basura.
-- Gate en `/api/import-influencer`, `/api/upload-reference`, download URL.
-- Ya no se guarda “original” inválido si sharp falla al optimizar.
-- Tests import + smoke usan JPEG sintético real (`makeTestJpegBuffer`).
-- `test/import-image-validation.test.js` — suite **63** + smoke **9/9**.
+**Hecho (W4):**
+- `consistency-score.js`: dHash 64-bit + hamming + grades (≤8 ok / ≤14 warn / >14 bad).
+- Migración schema **v7**: columnas `consistency_*` en `persona_variants`.
+- Score al guardar variantes + `POST .../consistency/rescore`.
+- UI: chip en tarjetas de variante + resumen dHash en Matriz QA + botón recalcular.
+- Tooltip honest: **no es face-lock**.
+- Tests `consistency-score.test.js` — suite **68** + smoke **9/9**.
 
-**Siguiente:** W4 pHash, o mergear PRs #17–W3.
+**Siguiente:** mergear pila W1–W4 o W5 `import-flow.js`.
 
-**No tocado:** Replicate; desversionar mirrors.
+**No tocado:** Replicate; desversionar mirrors; W4b vision Pollinations.
 
 ---
 
@@ -145,6 +146,7 @@ Un módulo por commit, con `npm test` y smoke del happy path en cada extracción
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | W4 dHash consistencia ancla↔variante (gratis) | *(PR W4)* |
 | 2026-07-29 | Cursor | W3 magic bytes — validación imagen en import/upload | *(PR W3)* |
 | 2026-07-29 | Cursor | W2 CI GitHub Actions + `npm run smoke` (9 checks) | *(PR W2)* |
 | 2026-07-29 | Cursor | W1 bind localhost + wizard PIN / SESSION_SECRET | PR #18 |

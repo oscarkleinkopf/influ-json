@@ -175,7 +175,11 @@ function syncPersonasJson() {
   try {
     const personas = db.prepare('SELECT * FROM personas WHERE archived = 0 ORDER BY created_at DESC').all().map(hydratePersona);
     const personasWithVariants = personas.map(p => {
-      const variants = db.prepare('SELECT id, persona_id, pose, clothing, attitude, setting, image_path, created_at FROM persona_variants WHERE persona_id = ? ORDER BY created_at DESC').all(p.id);
+      const variants = db.prepare(`
+        SELECT id, persona_id, pose, clothing, attitude, setting, image_path, created_at,
+               consistency_distance, consistency_grade, consistency_anchor
+        FROM persona_variants WHERE persona_id = ? ORDER BY created_at DESC
+      `).all(p.id);
       return {
         ...p,
         variants
@@ -805,9 +809,39 @@ module.exports = {
     const { v4: uuidv4 } = require('uuid');
     const id = uuidv4();
     db.prepare(`
-      INSERT INTO persona_variants (id, persona_id, pose, clothing, attitude, setting, image_path)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(id, v.persona_id, v.pose, v.clothing, v.attitude, v.setting, v.image_path);
+      INSERT INTO persona_variants (
+        id, persona_id, pose, clothing, attitude, setting, image_path,
+        consistency_distance, consistency_grade, consistency_anchor
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      v.persona_id,
+      v.pose,
+      v.clothing,
+      v.attitude,
+      v.setting,
+      v.image_path,
+      v.consistency_distance != null ? Number(v.consistency_distance) : null,
+      v.consistency_grade || null,
+      v.consistency_anchor || null
+    );
+    syncDbToWorkspace();
+    syncPersonasJson();
+    return db.prepare('SELECT * FROM persona_variants WHERE id = ?').get(id);
+  },
+
+  updateVariantConsistency(id, { distance, grade, anchor } = {}) {
+    db.prepare(`
+      UPDATE persona_variants
+      SET consistency_distance = ?, consistency_grade = ?, consistency_anchor = ?
+      WHERE id = ?
+    `).run(
+      distance != null ? Number(distance) : null,
+      grade || null,
+      anchor || null,
+      id
+    );
     syncDbToWorkspace();
     syncPersonasJson();
     return db.prepare('SELECT * FROM persona_variants WHERE id = ?').get(id);
