@@ -115,72 +115,22 @@ No añadir features durante este paso. Resolver conflictos preservando siempre:
 `character_lock`, ownership por perfil, Pollinations opcional y refresh del
 roster tras cada mutación.
 
-### Paso 1 — P0 datos: auto-Git debe ser opt-in
+### Paso 1 — P0 datos: auto-Git opt-in ✅ (PR #14)
 
-**Archivos:** `server.js`, `.env.example`, `.gitignore`, tests nuevos.
+Hecho: `runGitBackup` solo con `ENABLE_GIT_BACKUP=1`; tests en
+`safe-paths.test.js`. Pendiente (con OK del owner): desversionar mirrors
+`influ.sqlite` / `personas.json` del repo.
 
-Cambios:
+### Paso 2 — P0 seguridad: paths y ownership ✅ (PR #14)
 
-1. Invertir la condición de `runGitBackup`: no ejecutar Git salvo
-   `ENABLE_GIT_BACKUP=1`.
-2. Las mutaciones normales deben responder éxito aunque Git esté desactivado.
-3. Mantener backup SQLite local desde Ajustes.
-4. El botón manual de sync debe informar claramente qué hará.
-5. Antes de desversionar `influ.sqlite`, `personas.json` o fotos existentes,
-   confirmar con el propietario dónde conservar el backup. No hacer `git rm`
-   ni reescribir historial de forma autónoma.
+Hecho: `safe-paths.js`, analyze-photo 400, ownership generations/generate-image,
+SSRF en download URL + redirects. Tests `p0-security.test.js`.
 
-Criterios:
+### Paso 3 — P0/P1 UX gratis ✅ parcial (PR #14)
 
-- Crear/editar/importar no ejecuta `git commit` ni `git push` por defecto.
-- `npm test` no modifica el repositorio.
-- Un test con `ENABLE_GIT_BACKUP` ausente verifica que `exec()` no se invoca.
-
-### Paso 2 — P0 seguridad: paths y ownership
-
-**Archivos:** `server.js`, `ai-service.js`, `db.js`,
-`test/backup-ownership.test.js` o test dedicado.
-
-Cambios:
-
-1. Crear `resolveSafeAssetPath()` que acepte únicamente rutas dentro de
-   `assets/references`, `assets/generated` o `DATA_DIR`.
-2. `/api/ai/analyze-photo` debe rechazar `../`, rutas absolutas y archivos fuera
-   de esas raíces con HTTP 400.
-3. `DELETE /api/generations/:id` debe resolver la persona asociada y comprobar
-   ownership antes de borrar.
-4. `/api/ai/generate-image` debe validar `personaId`; permitir
-   `new_persona` solo durante creación.
-5. Para URLs remotas, bloquear localhost, IP privadas y `169.254.169.254`;
-   aplicar timeout y límite de bytes.
-
-Criterios:
-
-- Miembro A no puede leer/borrar/generar contra recursos de B (404).
-- `../../../etc/passwd` devuelve 400 y nunca llega a `readFileSync`.
-- Tests de auth/ownership siguen verdes.
-
-### Paso 3 — P0/P1 UX gratis
-
-**Archivos:** `index.html`, `app.js`, `index.css`.
-
-Orden:
-
-1. Navegación móvil: `data-tab="personas"` → `persona-engine`; eliminar o
-   remapear `products` si no existe panel real.
-2. Separar **Guardar personaje** de **Guardar + generar retrato**. La opción
-   JSON-only debe ser el default y funcionar offline en menos de 3 s.
-3. Checklist 60s: Pollinations es opcional; copiar un pack debe permitir
-   completar el happy path sin haber generado imagen.
-4. Añadir `pSkinToneHex` y propagarlo al `character_lock`.
-5. Añadir banner offline: “Puedes seguir copiando JSON; generación pausada”.
-
-Criterios:
-
-- En móvil ningún botón deja pantalla vacía.
-- Crear → guardar → copiar pack funciona sin red externa.
-- El validador reconoce el HEX y no muestra aviso por ausencia.
-- Replicate no aparece ni se vuelve requisito.
+Hecho: nav móvil, Guardar JSON-first / Guardar+retrato, checklist opcional,
+`pSkinToneHex` + picker, banner offline. Pendiente ligero: onboarding founder
+admin y «Copiar pack» en tarjeta de portafolio.
 
 ### Paso 4 — Mantenibilidad, después de estabilizar
 
