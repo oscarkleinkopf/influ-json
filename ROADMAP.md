@@ -96,7 +96,8 @@
 | 1.4 | Toasts | ✅ |
 | 1.5 | Contador filtrado | ✅ |
 | 1.6 | DB portable | ✅ |
-| 1.1 / 1.2 | QA matrix / import confirm | pendiente ligero |
+| 1.1 | QA matrix (retrato/cuerpo/spicy + checklist) | ✅ (panel ficha + `qa-matrix.js`) |
+| 1.2 | import confirm | pendiente ligero |
 
 ---
 
@@ -104,7 +105,7 @@
 
 | # | Tarea | Estado |
 |---|--------|--------|
-| 2.3 | Estados 429 / offline | ✅ (chip cola + disable gens) |
+| 2.3 | Estados 429 / offline | ✅ (chip + banner sticky + disable gens) |
 | 2.4 | Side-by-side ancla | ✅ (F4) |
 | 2.5–2.6 | Script + export pack | ✅ ZIP persona (`/api/export/persona/:id`) |
 | JSON chatbot | character_lock | ✅ |
@@ -116,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **Matriz QA + banner 429** | Slots ancla/cuerpo/spicy + checks; banner sticky rate-limit; tests |
 | 2026-07-28 | **Guía Cómo usar gráfica** | Tab hero + 4 pasos + CTAs; asset `assets/guides/como-usar-hero.png` |
 | 2026-07-28 | **Presets nicho + kit marca** | beauty/fitness/moda; `?kit=1` ZIP + guión 15s; tests 37 |
 | 2026-07-28 | **Onboarding member** | Modal post-invite; Ajustes por rol; keys solo admin; tests 34 |

@@ -143,6 +143,9 @@ app.get('/character-lock-validator.js', (req, res) => {
 app.get('/niche-presets.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'niche-presets.js'));
 });
+app.get('/qa-matrix.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'qa-matrix.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });
