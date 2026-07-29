@@ -12,6 +12,7 @@ const dbService = require('../db');
 const aiService = require('../ai-service');
 const genQueue = require('../gen-queue');
 const app = require('../server');
+const { makeTestJpegBuffer } = require('../image-validation');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -66,7 +67,8 @@ test('Multi-Image Import & Background Variants Test Suite', async (t) => {
     const formData = new FormData();
     formData.append('name', 'SpeedTestPersona');
     for (let i = 1; i <= 3; i++) {
-      formData.append('photo', new Blob([Buffer.from(`fake-img-content-${i}`)], { type: 'image/jpeg' }), `img${i}.jpg`);
+      const jpeg = await makeTestJpegBuffer({ background: `#a${i}8${i}6c` });
+      formData.append('photo', new Blob([jpeg], { type: 'image/jpeg' }), `img${i}.jpg`);
     }
 
     const start = Date.now();
@@ -108,7 +110,8 @@ test('Multi-Image Import & Background Variants Test Suite', async (t) => {
     const formData = new FormData();
     const personaName = `DualSyncPersona_${Date.now()}`;
     formData.append('name', personaName);
-    formData.append('photo', new Blob([Buffer.from('fake-img-content')], { type: 'image/jpeg' }), 'photo.jpg');
+    const jpeg = await makeTestJpegBuffer({ background: '#d4a574' });
+    formData.append('photo', new Blob([jpeg], { type: 'image/jpeg' }), 'photo.jpg');
 
     const res = await fetch(`${baseUrl}/api/import-influencer`, {
       method: 'POST',

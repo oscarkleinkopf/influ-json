@@ -11,6 +11,7 @@ const dbService = require('../db');
 const aiService = require('../ai-service');
 const genQueue = require('../gen-queue');
 const app = require('../server');
+const { makeTestJpegBuffer } = require('../image-validation');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -63,11 +64,12 @@ test('1.2 import confirm: previewOnly no persiste; confirmar guarda + variantes'
   await t.test('previewOnly no crea fila en SQLite ni encola variantes', async () => {
     const name = `PreviewOnly_${Date.now()}`;
     const before = dbService.getAllPersonas().filter((p) => p.name === name).length;
+    const jpeg = await makeTestJpegBuffer({ background: '#c49a6c' });
 
     const formData = new FormData();
     formData.append('name', name);
     formData.append('previewOnly', '1');
-    formData.append('photo', new Blob([Buffer.from('fake-img')], { type: 'image/jpeg' }), 'p.jpg');
+    formData.append('photo', new Blob([jpeg], { type: 'image/jpeg' }), 'p.jpg');
 
     const res = await fetch(`${baseUrl}/api/import-influencer`, {
       method: 'POST',
@@ -86,17 +88,17 @@ test('1.2 import confirm: previewOnly no persiste; confirmar guarda + variantes'
     const after = dbService.getAllPersonas().filter((p) => p.name === name).length;
     assert.equal(after, before, 'previewOnly no debe insertar en SQLite');
 
-    // Cola no debería haber encolado anclas por este preview
     const q = genQueue.getStatus();
     assert.ok(q.pendingCount === 0 || !String(q.currentTaskInfo || '').includes(name));
   });
 
   await t.test('confirmar via POST /api/personas persiste y encola variantes', async () => {
     const name = `ConfirmImport_${Date.now()}`;
+    const jpeg = await makeTestJpegBuffer({ background: '#b8896a' });
     const formData = new FormData();
     formData.append('name', name);
     formData.append('previewOnly', '1');
-    formData.append('photo', new Blob([Buffer.from('fake-img-2')], { type: 'image/jpeg' }), 'p2.jpg');
+    formData.append('photo', new Blob([jpeg], { type: 'image/jpeg' }), 'p2.jpg');
 
     const previewRes = await fetch(`${baseUrl}/api/import-influencer`, {
       method: 'POST',
@@ -135,7 +137,6 @@ test('1.2 import confirm: previewOnly no persiste; confirmar guarda + variantes'
     const variantsInDb = dbService.getVariantsForPersona(personaId);
     assert.equal(variantsInDb.length, 4, 'Tras confirmar deben generarse 4 anclas');
 
-    // cleanup
     dbService.deletePersona(personaId);
   });
 });
