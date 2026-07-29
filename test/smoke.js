@@ -18,6 +18,7 @@ process.env.GEN_429_COOLDOWN_MS = process.env.GEN_429_COOLDOWN_MS || '50';
 
 const http = require('node:http');
 const { buildFreeChatbotPack } = require('../chatbot-packs');
+const { makeTestJpegBuffer } = require('../image-validation');
 const app = require('../server');
 
 const PIN = (process.env.STUDIO_PIN || '1234').trim();
@@ -162,7 +163,8 @@ async function runSmoke(base) {
     const form = new FormData();
     form.append('name', importName);
     form.append('previewOnly', '1');
-    form.append('photo', new Blob([Buffer.from('fake-smoke-img')], { type: 'image/jpeg' }), 'smoke.jpg');
+    const jpeg = await makeTestJpegBuffer({ background: '#c49a6c' });
+    form.append('photo', new Blob([jpeg], { type: 'image/jpeg' }), 'smoke.jpg');
     const res = await fetch(`${base}/api/import-influencer`, {
       method: 'POST',
       headers: { Cookie: adminCookie, Authorization: `Bearer ${PIN}` },
@@ -215,11 +217,8 @@ async function runSmoke(base) {
     const form = new FormData();
     form.append('name', importName);
     form.append('previewOnly', '1');
-    form.append(
-      'photo',
-      new Blob([Buffer.from('fake-smoke-img-2')], { type: 'image/jpeg' }),
-      'smoke2.jpg'
-    );
+    const jpeg2 = await makeTestJpegBuffer({ background: '#b8896a' });
+    form.append('photo', new Blob([jpeg2], { type: 'image/jpeg' }), 'smoke2.jpg');
     const preview = await (
       await fetch(`${base}/api/import-influencer`, {
         method: 'POST',

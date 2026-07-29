@@ -32,6 +32,7 @@ const {
   UNSAFE_PATH,
   UNSAFE_URL
 } = require('./safe-paths');
+const imageValidation = require('./image-validation');
 
 // Initialize DB and migrate legacy JSON data if empty
 dbService.runMigrations();
@@ -1476,13 +1477,23 @@ app.get('/api/niches', (req, res) => {
 });
 
 // Upload reference photo endpoint
-app.post('/api/upload-reference', upload.single('photo'), (req, res) => {
+app.post('/api/upload-reference', upload.single('photo'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No se recibió ningún archivo.' });
   }
 
   const relativePath = `assets/references/${req.file.filename}`;
   const absolutePath = path.join(__dirname, relativePath);
+
+  try {
+    await imageValidation.assertValidImageFile(absolutePath);
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      code: err.code || 'INVALID_IMAGE',
+      message: err.message || 'El archivo no es una imagen válida.'
+    });
+  }
 
   // Sync reference image to scratch directory
   const scratchRefsDir = path.join(SCRATCH_DIR, 'references');
@@ -1618,6 +1629,15 @@ async function downloadOrResolveImage(inputUrl) {
   if (buffer.length > MAX_BYTES) {
     throw new Error('La imagen supera el límite de 15MB.');
   }
+
+  try {
+    await imageValidation.assertValidImageBuffer(buffer);
+  } catch (err) {
+    const e = new Error(err.message || 'La URL no apunta a una imagen válida.');
+    e.code = err.code || 'INVALID_IMAGE';
+    throw e;
+  }
+
   fs.writeFileSync(absolutePath, buffer);
 
   // Sync reference image to scratch directory
@@ -1810,6 +1830,20 @@ app.post(['/api/import-influencer', '/api/personas/import'], upload.array('photo
     // 1. Process files upload
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
+        const abs = path.join(__dirname, 'assets', 'references', file.filename);
+        try {
+          await imageValidation.assertValidImageFile(abs);
+        } catch (valErr) {
+          // Borrar el resto de archivos de este request que ya pasaron
+          for (const f of req.files) {
+            imageValidation.safeUnlink(path.join(__dirname, 'assets', 'references', f.filename));
+          }
+          return res.status(400).json({
+            success: false,
+            code: valErr.code || 'INVALID_IMAGE',
+            message: valErr.message || 'El archivo no es una imagen válida.'
+          });
+        }
         filenames.push(file.filename);
         imagePaths.push(`assets/references/${file.filename}`);
       }
@@ -1878,7 +1912,15 @@ app.post(['/api/import-influencer', '/api/personas/import'], upload.array('photo
           fs.renameSync(tempPath, fullPath);
           console.log(`Image optimized with sharp: ${imgPath}`);
         } catch (optErr) {
-          console.warn(`Failed to optimize image ${imgPath} with sharp, using original:`, optErr.message);
+          // Ya validamos magic bytes arriba; si sharp falla al re-encode, no dejamos basura
+          console.warn(`Failed to optimize image ${imgPath} with sharp:`, optErr.message);
+          imageValidation.safeUnlink(fullPath);
+          imageValidation.safeUnlink(fullPath + '_opt.jpg');
+          return res.status(400).json({
+            success: false,
+            code: 'INVALID_IMAGE',
+            message: 'No se pudo procesar la imagen. Usa JPG, PNG, WebP o GIF válido.'
+          });
         }
       }
 

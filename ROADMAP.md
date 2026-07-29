@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **W3 magic bytes import** | `image-validation.js`; 400 + borrar basura; JPEG real en tests/smoke; 63+smoke |
 | 2026-07-29 | **W2 CI + smoke en repo** | `test/smoke.js` 9/9; workflow Actions; `npm run smoke` |
 | 2026-07-29 | **W1 bind localhost + setup PIN** | Ver PR #18 (rama aparte) |
 | 2026-07-29 | **Pila #4–#16 en `main` + smoke** | FF tip→main; tests 59; smoke API 9/9; free path OK |

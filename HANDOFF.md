@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ci-smoke-152f` (W2) · también PR W1 `#18` |
-| **Commit base** | encima de `main` @ `7076a06` |
-| **PR actual** | W2 CI + smoke en repo |
-| **`main` remoto** | pila #4–#16 + docs |
-| **Etapa de producto** | Plan W1→W10 — [PLAN.md](./PLAN.md) en PR #17 |
-| **Prioridad inmediata** | Merge W1 (#18) + W2; luego **W3** magic bytes; **no Replicate** |
+| **Rama de trabajo** | `cursor/import-image-validation-152f` (W3, encima de W2) |
+| **Commit base** | `origin/cursor/ci-smoke-152f` @ `af4cf28` |
+| **PR actual** | W3 magic bytes / validación de imagen en import |
+| **`main` remoto** | pila #4–#16; PRs W1 #18, W2 #19, PLAN #17 abiertos |
+| **Etapa de producto** | Plan W1→W10 |
+| **Prioridad inmediata** | Tras W3: **W4** pHash consistencia o merge W1–W3; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate**; desversionar mirrors (OK owner) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 | **Última actualización** | 2026-07-29 |
@@ -48,13 +48,16 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** continuar (ejecutar PLAN — W1 luego W2).
+**Pedido:** Continúa W3.
 
-**Hecho:**
-- **W1** (`cursor/localhost-bind-setup-152f`, PR #18): bind `127.0.0.1`, wizard PIN, SESSION_SECRET, 503 si público+default.
-- **W2** (esta rama): `test/smoke.js` (9/9), `npm run smoke`, `.github/workflows/test.yml`, badge README.
+**Hecho (W3):**
+- `image-validation.js`: `assertValidImageBuffer/File` vía sharp; rechaza SVG/basura.
+- Gate en `/api/import-influencer`, `/api/upload-reference`, download URL.
+- Ya no se guarda “original” inválido si sharp falla al optimizar.
+- Tests import + smoke usan JPEG sintético real (`makeTestJpegBuffer`).
+- `test/import-image-validation.test.js` — suite **63** + smoke **9/9**.
 
-**Siguiente:** W3 magic bytes en import (actualiza blobs falsos en tests + smoke).
+**Siguiente:** W4 pHash, o mergear PRs #17–W3.
 
 **No tocado:** Replicate; desversionar mirrors.
 
@@ -142,6 +145,7 @@ Un módulo por commit, con `npm test` y smoke del happy path en cada extracción
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-29 | Cursor | W3 magic bytes — validación imagen en import/upload | *(PR W3)* |
 | 2026-07-29 | Cursor | W2 CI GitHub Actions + `npm run smoke` (9 checks) | *(PR W2)* |
 | 2026-07-29 | Cursor | W1 bind localhost + wizard PIN / SESSION_SECRET | PR #18 |
 | 2026-07-29 | Cursor | Merge pila #4–#16 → main + smoke 9/9 + tests 59/59 | `e354525` (main) |
