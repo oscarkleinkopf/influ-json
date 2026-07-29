@@ -54,7 +54,7 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 - Extraído `prompt-builder.js` (UMD): `parseDetailedJSON`, `assembleCharacterLock`, identity/skin/prompt builders, variant framing, export chatbot.
 - `app.js` deja wrappers delgados; ~380 líneas menos en el monolito (~6481).
 - Servido en `/prompt-builder.js`; script antes de `app.js`.
-- Tests `prompt-builder.test.js`.
+- Tests `prompt-builder.test.js` — suite **96** + smoke **9/9**.
 
 **Siguiente:** W5c `routes/personas.js` o merge pila W1–W5b.
 
