@@ -107,14 +107,27 @@ async function authFetch(url, options = {}) {
 }
 
 function setupOfflineBanner() {
-  window.addEventListener('online', () => setOfflineBanner(false));
+  window.addEventListener('online', () => {
+    if (!isStudioOfflineMode()) setOfflineBanner(false);
+    else applyOfflineModeUi();
+  });
   window.addEventListener('offline', () => {
     setOfflineBanner(
       true,
       'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.'
     );
   });
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+  const syncToggles = (checked) => {
+    setStudioOfflineMode(!!checked);
+    const a = document.getElementById('offlineModeToggle');
+    const b = document.getElementById('offlineModeToggleBar');
+    if (a) a.checked = !!checked;
+    if (b) b.checked = !!checked;
+  };
+  document.getElementById('offlineModeToggle')?.addEventListener('change', (e) => syncToggles(e.target.checked));
+  document.getElementById('offlineModeToggleBar')?.addEventListener('change', (e) => syncToggles(e.target.checked));
+  applyOfflineModeUi();
+  if (typeof navigator !== 'undefined' && navigator.onLine === false && !isStudioOfflineMode()) {
     setOfflineBanner(
       true,
       'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.'
@@ -514,8 +527,10 @@ function applyRoleBasedSettingsUi() {
   const title = document.getElementById('settingsModalTitle');
   const heading = document.getElementById('profilesSettingsHeading');
   const lead = document.getElementById('profilesSettingsLead');
+  const metrics = document.getElementById('genMetricsSettingsSection');
   if (keys) keys.style.display = isAdmin ? 'block' : 'none';
   if (hint) hint.style.display = isAdmin ? 'none' : 'block';
+  if (metrics) metrics.style.display = isAdmin ? 'block' : 'none';
   if (title) title.textContent = isAdmin ? 'Ajustes de Proveedores y Claves API' : 'Tu cuenta';
   if (heading) heading.textContent = isAdmin ? 'Perfiles de usuario (local)' : 'Tu perfil';
   if (lead) {
@@ -793,6 +808,40 @@ function formatBytes(n) {
   return `${(num / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/** W7 — métricas locales (solo admin). */
+async function refreshGenMetricsSettings() {
+  const line = document.getElementById('genMetricsLine');
+  const byProf = document.getElementById('genMetricsByProfile');
+  if (!line || !isCurrentUserAdmin()) return;
+  try {
+    const res = await authFetch('/api/metrics/generations?sinceDays=30');
+    if (res.status === 403) {
+      line.textContent = '';
+      if (byProf) byProf.innerHTML = '';
+      return;
+    }
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Error');
+    const t = data.summary?.totals || {};
+    line.textContent = `${t.portraits || 0} retratos · ${t.variants || 0} variantes · ${t.fail429 || 0} fallos 429 (últimos ${data.summary?.sinceDays || 30} días, free=Pollinations)`;
+    if (byProf) {
+      const rows = data.summary?.byProfile || [];
+      byProf.innerHTML = rows.length
+        ? rows.map((r) => {
+          const pid = r.profile_id || 'sin-perfil';
+          const name = (state.profiles || []).find((p) => p.id === pid)?.name || pid.slice(0, 8);
+          return `<div style="font-size:12px;color:var(--text-secondary);padding:6px 8px;background:rgba(0,0,0,0.25);border-radius:6px;">
+            <strong style="color:#fff;">${escapeLockHtml(name)}</strong>
+            — ${r.portraits || 0} retratos, ${r.variants || 0} variantes, ${r.fail_429 || 0}×429
+          </div>`;
+        }).join('')
+        : '<p style="font-size:12px;color:var(--text-muted);margin:0;">Aún no hay generaciones registradas en gen_metrics.</p>';
+    }
+  } catch (err) {
+    line.textContent = err.message || 'No se pudieron cargar métricas';
+  }
+}
+
 async function refreshBackupsSettingsList() {
   const list = document.getElementById('backupsList');
   const metaLine = document.getElementById('backupMetaLine');
@@ -806,9 +855,12 @@ async function refreshBackupsSettingsList() {
     const data = await res.json();
     if (!data.success) throw new Error(data.message || 'Error');
     if (metaLine) {
+      const keep = data.keep != null ? data.keep : 10;
+      const keepHint = document.getElementById('backupKeepHint');
+      if (keepHint) keepHint.textContent = String(keep);
       const last = data.meta?.last_backup_at
-        ? `Último backup: ${escapeLockHtml(String(data.meta.last_backup_at))} · schema v${data.schemaVersion || '?'}`
-        : `Schema v${data.schemaVersion || '?'} · aún no hay backups registrados`;
+        ? `Último backup: ${escapeLockHtml(String(data.meta.last_backup_at))} · schema v${data.schemaVersion || '?'} · keep ${keep}`
+        : `Schema v${data.schemaVersion || '?'} · keep ${keep} · aún no hay backups registrados`;
       metaLine.innerHTML = last;
     }
     list.innerHTML = (data.snapshots || []).map(s => `
@@ -867,6 +919,7 @@ function setupSettings() {
       applyRoleBasedSettingsUi();
       if (modal) modal.style.display = 'flex';
       refreshProfilesSettingsList();
+      if (isCurrentUserAdmin()) refreshGenMetricsSettings();
     });
   }
 
@@ -955,6 +1008,10 @@ function setupSettings() {
     } catch (err) {
       toastError(err.message || 'No se pudo crear el backup');
     }
+  });
+
+  document.getElementById('btnRefreshGenMetrics')?.addEventListener('click', () => {
+    refreshGenMetricsSettings();
   });
 
   if (form) {
@@ -1348,7 +1405,7 @@ function updateDashboardStats() {
         <div class="portfolio-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance || 'Latina'}</div>
         <div class="portfolio-card-actions">
           <button type="button" class="btn btn-primary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
-          <button type="button" class="btn btn-secondary btn-quick-copy-pack" style="font-size: 11px; padding: 6px 10px;" title="Copia pack cuerpo entero listo para ChatGPT/Gemini/Claude">Copiar pack</button>
+          <button type="button" class="btn btn-secondary btn-quick-copy-pack" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia pack cuerpo entero listo para ChatGPT/Gemini/Claude">Copiar pack</button>
           <button type="button" class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
           <button type="button" class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
         </div>
@@ -1734,14 +1791,60 @@ window.loadPersonaVariants = loadPersonaVariants;
 
 function setGenerationButtonsDisabled(disabled) {
   // JSON-first: Guardar (sin retrato) nunca se bloquea por la cola Pollinations
+  // W8: modo offline también bloquea gens
+  const offline = typeof isStudioOfflineMode === 'function' && isStudioOfflineMode();
+  const locked = !!(disabled || offline);
   ['btnGenerateVariant', 'btnGenerateUgcImage', 'btnSavePersonaWithPortrait', 'btnStartBulkAdGeneration'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.disabled = !!disabled;
-    el.classList.toggle('is-queue-locked', !!disabled);
-    if (disabled) el.setAttribute('title', 'Espera a que termine la cola de generación');
+    el.disabled = locked;
+    el.classList.toggle('is-queue-locked', locked);
+    if (offline) el.setAttribute('title', 'Modo offline: usa Copiar pack / JSON (gratis)');
+    else if (disabled) el.setAttribute('title', 'Espera a que termine la cola de generación');
     else el.removeAttribute('title');
   });
+  document.querySelectorAll('[data-offline-highlight="pack"]').forEach((el) => {
+    el.classList.toggle('offline-pack-highlight', offline);
+  });
+}
+
+function offlineModeStorageKey() {
+  const pid = state.currentProfile?.id || 'default';
+  return `influ_offline_mode_${pid}`;
+}
+
+function isStudioOfflineMode() {
+  try {
+    return localStorage.getItem(offlineModeStorageKey()) === '1';
+  } catch (_) {
+    return false;
+  }
+}
+
+function setStudioOfflineMode(on) {
+  try {
+    localStorage.setItem(offlineModeStorageKey(), on ? '1' : '0');
+  } catch (_) {}
+  applyOfflineModeUi();
+}
+
+function applyOfflineModeUi() {
+  const on = isStudioOfflineMode();
+  const toggle = document.getElementById('offlineModeToggle');
+  if (toggle) toggle.checked = on;
+  const banner = document.getElementById('offlineBanner');
+  if (on) {
+    setOfflineBanner(true, 'Modo offline activo — generación Pollinations desactivada. Copia JSON / packs a chatbots gratis.');
+    if (banner) banner.dataset.source = 'mode';
+  } else if (!navigator.onLine) {
+    setOfflineBanner(true, 'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.');
+    if (banner) banner.dataset.source = 'network';
+  } else if (banner && banner.dataset.source === 'mode') {
+    setOfflineBanner(false);
+    banner.dataset.source = '';
+  }
+  setGenerationButtonsDisabled(false);
+  if (on) setGenerationButtonsDisabled(true);
 }
 
 function updateRateLimitBanner(q) {
@@ -1772,6 +1875,8 @@ function updateQueueStatusChip(q) {
   const cooldownSec = isCooling
     ? (Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30)
     : 0;
+  const pos = q.position || null;
+  const total = q.totalInWave || (pending + (busy ? 1 : 0)) || null;
 
   if (!busy && pending === 0 && !isCooling) {
     chip.style.display = 'none';
@@ -1784,6 +1889,8 @@ function updateQueueStatusChip(q) {
   chip.classList.toggle('busy', !!busy && !isCooling);
   if (isCooling) {
     text.textContent = `429 — reintento en ${cooldownSec}s`;
+  } else if (pos && total) {
+    text.textContent = `#${pos} de ${total}${q.currentLabel ? ` · ${q.currentLabel}` : ''}`;
   } else if (pending > 0) {
     text.textContent = `Cola: ${pending + (busy ? 1 : 0)} en espera`;
   } else {
@@ -2324,6 +2431,28 @@ function showAppToast(message, opts = {}) {
     _toastHideTimer = null;
   }
 
+  // W9 — acción opcional (p. ej. Deshacer archive)
+  let actionBtn = banner.querySelector('.toast-action-btn');
+  if (opts.actionLabel && typeof opts.onAction === 'function') {
+    if (!actionBtn) {
+      actionBtn = document.createElement('button');
+      actionBtn.type = 'button';
+      actionBtn.className = 'toast-action-btn btn btn-secondary btn-sm';
+      actionBtn.style.cssText = 'margin-left:12px;font-size:11px;padding:4px 10px;flex-shrink:0;';
+      banner.appendChild(actionBtn);
+    }
+    actionBtn.textContent = opts.actionLabel;
+    actionBtn.style.display = 'inline-block';
+    actionBtn.onclick = (e) => {
+      e.preventDefault();
+      opts.onAction();
+      banner.classList.remove('show');
+    };
+  } else if (actionBtn) {
+    actionBtn.style.display = 'none';
+    actionBtn.onclick = null;
+  }
+
   textEl.textContent = message || '';
   if (iconEl) iconEl.innerHTML = TOAST_ICONS[type] || TOAST_ICONS.info;
 
@@ -2349,8 +2478,8 @@ function showAppToast(message, opts = {}) {
   if (type === 'loading' || opts.duration === null) return;
 
   let ms = opts.duration != null ? opts.duration : DEFAULT_TOAST_MS;
-  if (type === 'success' || type === 'error') {
-    ms = Math.max(MIN_TOAST_MS, ms);
+  if (type === 'success' || type === 'error' || opts.actionLabel) {
+    ms = Math.max(MIN_TOAST_MS, opts.actionLabel ? 8000 : ms);
   }
   _toastHideTimer = setTimeout(() => {
     banner.classList.remove('show');
@@ -2450,7 +2579,11 @@ const QueuePoller = {
       statusText = `Rate limit 429 — reintentando en ${cooldownSec}s…`;
       toastType = 'info';
     } else if (q.active || pendingCount > 0) {
-      if (pendingCount > 0) {
+      const pos = q.position;
+      const total = q.totalInWave || totalInQueue;
+      if (pos && total) {
+        statusText = `#${pos} de ${total}${q.currentLabel ? ` · ${q.currentLabel}` : ''}`;
+      } else if (pendingCount > 0) {
         statusText = `Cola ocupada · posición ${totalInQueue} (1 gen a la vez)`;
       } else {
         statusText = q.currentLabel ? `Generando: ${q.currentLabel}` : 'Generando imagen…';
@@ -2833,6 +2966,7 @@ function setupNichePresets() {
 
 function setupFreeChatbotPacks() {
   document.querySelectorAll('[data-free-pack]').forEach(btn => {
+    btn.setAttribute('data-offline-highlight', 'pack');
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const id = btn.getAttribute('data-free-pack');
@@ -5678,45 +5812,98 @@ async function deletePersonaAction() {
     toastInfo('Primero selecciona un influencer guardado para eliminarlo.');
     return;
   }
-  
-  if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente al influencer "${state.selectedPersona.name}"? Esta acción no se puede deshacer.`)) {
+
+  const persona = state.selectedPersona;
+  const name = persona.name || 'Influencer';
+  const id = persona.id;
+  const isAdmin = isCurrentUserAdmin();
+
+  // W9 — por defecto archiva (recuperable). Admin puede purgar con confirmación de nombre.
+  let hardDelete = false;
+  if (isAdmin) {
+    const choice = window.prompt(
+      `«${name}»\n\nEnter = archivar (recomendado, reversible).\nEscribe el nombre exacto para BORRAR permanente:\n`,
+      ''
+    );
+    if (choice === null) return; // cancel
+    hardDelete = String(choice).trim() === String(name).trim() && String(choice).trim().length > 0;
+    if (String(choice).trim() && !hardDelete) {
+      toastError('Nombre no coincide — no se borró. Usa Enter vacío para archivar.');
+      return;
+    }
+  } else if (!confirm(`¿Archivar a «${name}»?\n\nNo se borra del todo: puedes desarchivar después. (Borrado permanente solo Administración.)`)) {
     return;
   }
-  
-  setGitSyncingState();
-  try {
-    const res = await authFetch(`/api/personas/${state.selectedPersona.id}`, {
-      method: 'DELETE'
-    });
-    const data = await res.json();
-    if (data.success) {
-      state.personas = data.personas;
-      // Select the first persona if available
+
+  if (hardDelete) {
+    if (!confirm(`⚠️ BORRADO PERMANENTE de «${name}». No hay deshacer. ¿Continuar?`)) return;
+    setGitSyncingState();
+    try {
+      const res = await authFetch(`/api/personas/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Error');
+      state.personas = data.personas || [];
       state.selectedPersona = state.personas.length > 0 ? state.personas[0] : null;
-      
       updateDashboardStats();
       renderPersonaGrids();
       populateActiveUgcData();
-      
-      if (state.selectedPersona) {
-        selectPersona(state.selectedPersona);
-      } else {
-        // Clear form
+      if (state.selectedPersona) selectPersona(state.selectedPersona);
+      else {
         document.getElementById('pName').value = '';
         document.getElementById('pAge').value = '';
         document.getElementById('pStyle').value = '';
         document.getElementById('pSetting').value = '';
         updateClothingDropdown('');
       }
-      
-      if (data.gitSynced) {
-        showSyncToast(true, '¡Influencer eliminado y cambios respaldados en GitHub!');
-      } else {
-        showSyncToast(false, 'Eliminado localmente. Error en Git.');
-      }
+      toastSuccess(`«${name}» eliminado permanentemente`);
+    } catch (err) {
+      toastError(err.message || 'Error al eliminar');
     }
+    return;
+  }
+
+  // Soft delete = archive
+  try {
+    const res = await authFetch(`/api/personas/${id}/archive`, {
+      method: 'POST',
+      body: JSON.stringify({ archived: true })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Error');
+    state.personas = data.personas || state.personas;
+    const archived = (state.personas || []).find((p) => p.id === id) || { ...persona, archived: 1 };
+    state.selectedPersona = archived;
+    updateDashboardStats();
+    renderPersonaGrids();
+    populateActiveUgcData();
+    selectPersona(archived);
+    toastSuccess(`«${name}» archivado`, {
+      duration: 8000,
+      actionLabel: 'Deshacer',
+      onAction: async () => {
+        try {
+          const undo = await authFetch(`/api/personas/${id}/archive`, {
+            method: 'POST',
+            body: JSON.stringify({ archived: false })
+          });
+          const undoData = await undo.json();
+          if (!undoData.success) throw new Error(undoData.message || 'Error');
+          state.personas = undoData.personas || state.personas;
+          const restored = (state.personas || []).find((p) => p.id === id);
+          if (restored) {
+            state.selectedPersona = restored;
+            selectPersona(restored);
+          }
+          updateDashboardStats();
+          renderPersonaGrids();
+          toastSuccess(`«${name}» restaurado`);
+        } catch (e) {
+          toastError(e.message || 'No se pudo desarchivar');
+        }
+      }
+    });
   } catch (err) {
-    showSyncToast(false, 'Error de servidor al eliminar.');
+    toastError(err.message || 'Error al archivar');
   }
 }
 

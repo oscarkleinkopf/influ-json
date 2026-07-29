@@ -913,6 +913,97 @@ module.exports = {
     return { total: total.count, byType, byPersona };
   },
 
+  /**
+   * W7 — métrica local free vs paid (sin Replicate aún: provider=pollinations).
+   * @param {{ profile_id?: string, persona_id?: string, provider?: string, generation_type?: string, ok?: boolean, error_code?: string, duration_ms?: number }} row
+   */
+  recordGenMetric(row = {}) {
+    const { v4: uuidv4 } = require('uuid');
+    const id = row.id || `gm_${uuidv4().slice(0, 12)}`;
+    const ok = row.ok === false || row.ok === 0 ? 0 : 1;
+    db.prepare(`
+      INSERT INTO gen_metrics (id, profile_id, persona_id, provider, generation_type, ok, error_code, duration_ms)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      row.profile_id || null,
+      row.persona_id || null,
+      row.provider || 'pollinations',
+      row.generation_type || 'portrait',
+      ok,
+      row.error_code || null,
+      row.duration_ms != null ? Number(row.duration_ms) : null
+    );
+    return id;
+  },
+
+  /**
+   * Resumen de gen_metrics. Admin: todos los perfiles o filtro.
+   * Member: solo su profile_id.
+   */
+  getGenMetricsSummary({ profileId = null, sinceDays = 30 } = {}) {
+    const days = Math.max(1, Math.min(365, Number(sinceDays) || 30));
+    const params = [];
+    let where = `created_at >= datetime('now', ?)`;
+    params.push(`-${days} days`);
+    if (profileId) {
+      where += ' AND profile_id = ?';
+      params.push(profileId);
+    }
+
+    const totals = db.prepare(`
+      SELECT
+        COUNT(*) AS total,
+        SUM(CASE WHEN ok = 1 THEN 1 ELSE 0 END) AS ok_count,
+        SUM(CASE WHEN ok = 0 THEN 1 ELSE 0 END) AS fail_count,
+        SUM(CASE WHEN ok = 0 AND (error_code = '429' OR error_code LIKE '%429%') THEN 1 ELSE 0 END) AS fail_429,
+        SUM(CASE WHEN generation_type IN ('portrait', 'anchor_pack') AND ok = 1 THEN 1 ELSE 0 END) AS portraits,
+        SUM(CASE WHEN generation_type = 'variant' AND ok = 1 THEN 1 ELSE 0 END) AS variants,
+        SUM(CASE WHEN provider = 'pollinations' THEN 1 ELSE 0 END) AS provider_pollinations,
+        SUM(CASE WHEN provider != 'pollinations' THEN 1 ELSE 0 END) AS provider_other
+      FROM gen_metrics
+      WHERE ${where}
+    `).get(...params);
+
+    const byType = db.prepare(`
+      SELECT generation_type, COUNT(*) AS count,
+        SUM(CASE WHEN ok = 1 THEN 1 ELSE 0 END) AS ok_count,
+        SUM(CASE WHEN ok = 0 THEN 1 ELSE 0 END) AS fail_count
+      FROM gen_metrics
+      WHERE ${where}
+      GROUP BY generation_type
+      ORDER BY count DESC
+    `).all(...params);
+
+    const byProfile = db.prepare(`
+      SELECT profile_id,
+        COUNT(*) AS total,
+        SUM(CASE WHEN generation_type IN ('portrait', 'anchor_pack') AND ok = 1 THEN 1 ELSE 0 END) AS portraits,
+        SUM(CASE WHEN generation_type = 'variant' AND ok = 1 THEN 1 ELSE 0 END) AS variants,
+        SUM(CASE WHEN ok = 0 AND (error_code = '429' OR error_code LIKE '%429%') THEN 1 ELSE 0 END) AS fail_429
+      FROM gen_metrics
+      WHERE ${where}
+      GROUP BY profile_id
+      ORDER BY total DESC
+    `).all(...params);
+
+    return {
+      sinceDays: days,
+      totals: {
+        total: totals?.total || 0,
+        ok: totals?.ok_count || 0,
+        fail: totals?.fail_count || 0,
+        fail429: totals?.fail_429 || 0,
+        portraits: totals?.portraits || 0,
+        variants: totals?.variants || 0,
+        providerPollinations: totals?.provider_pollinations || 0,
+        providerOther: totals?.provider_other || 0
+      },
+      byType,
+      byProfile
+    };
+  },
+
   getAllWorkspaces() {
     return db.prepare('SELECT * FROM workspaces ORDER BY created_at ASC').all();
   },
@@ -1158,12 +1249,43 @@ module.exports = {
   },
 
   /**
+   * Límite de snapshots a conservar (W10). Env BACKUP_KEEP, default 10, mínimo 1.
+   */
+  getBackupKeepLimit() {
+    const raw = parseInt(String(process.env.BACKUP_KEEP || '10'), 10);
+    if (!Number.isFinite(raw) || raw < 1) return 10;
+    return raw;
+  },
+
+  /**
+   * Borra los .sqlite más antiguos (y su *_personas.json) dejando solo `keep` más recientes.
+   */
+  pruneBackupSnapshots(keep = null) {
+    const limit = keep == null ? this.getBackupKeepLimit() : Math.max(1, parseInt(keep, 10) || 1);
+    const snaps = this.listBackupSnapshots(); // newest first
+    const toRemove = snaps.slice(limit);
+    let pruned = 0;
+    for (const s of toRemove) {
+      try {
+        if (fs.existsSync(s.path)) fs.unlinkSync(s.path);
+        pruned += 1;
+      } catch (_) {}
+      const twin = s.path.replace(/\.sqlite$/i, '_personas.json');
+      try {
+        if (fs.existsSync(twin)) fs.unlinkSync(twin);
+      } catch (_) {}
+    }
+    return { keep: limit, totalBefore: snaps.length, pruned, remaining: Math.min(snaps.length, limit) };
+  },
+
+  /**
    * Copia data/influ.sqlite a data/backups/ y escribe un export JSON de personas
-   * junto al snapshot (sin tocar el mirror de raíz).
+   * desde SQLite (W6 — sin mirror de raíz). Tras crear, rota según BACKUP_KEEP (W10).
    */
   createBackupSnapshot(label = '') {
     const backupsDir = ensureDir(path.join(DATA_DIR, 'backups'));
-    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    // hrtime evita colisiones de mtime/ISO en ráfagas (tests / restore)
+    const stamp = `${new Date().toISOString().replace(/[:.]/g, '-')}_${String(process.hrtime.bigint()).slice(-8)}`;
     const safeLabel = String(label || 'manual').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 40);
     const base = `influ_${stamp}_${safeLabel}`;
     const destDb = path.join(backupsDir, `${base}.sqlite`);
@@ -1185,13 +1307,22 @@ module.exports = {
       `).run(destDb);
     } catch (_) {}
 
+    // Evitar colisiones de mtime en rotación rápida (tests / ráfagas)
+    try {
+      const now = Date.now();
+      fs.utimesSync(destDb, now / 1000, now / 1000);
+    } catch (_) {}
+
+    const rotation = this.pruneBackupSnapshots();
+
     syncDbToWorkspace();
     return {
       ok: true,
       dbPath: destDb,
       personasJsonPath: fs.existsSync(destJson) ? destJson : null,
       schemaVersion: getSchemaVersion(db),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      rotation
     };
   },
 
@@ -1205,7 +1336,10 @@ module.exports = {
         const st = fs.statSync(abs);
         return { filename: f, path: abs, size: st.size, mtime: st.mtime.toISOString() };
       })
-      .sort((a, b) => (a.mtime < b.mtime ? 1 : -1));
+      .sort((a, b) => {
+        if (a.mtime !== b.mtime) return a.mtime < b.mtime ? 1 : -1;
+        return a.filename < b.filename ? 1 : -1; // ISO+hrtime: más nuevo al inicio
+      });
   },
 
   /**

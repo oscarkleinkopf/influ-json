@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/untrack-data-mirrors-152f` (W6) |
-| **Commit base** | `main` post W1–W5e + PLAN |
-| **PR actual** | W6 untrack mirrors (draft) |
-| **`main` remoto** | W1–W5e + PLAN; W7–W10 en PRs aparte |
-| **Etapa de producto** | W6 en curso (OK owner); W7–W10 listos en PRs |
-| **Prioridad inmediata** | Merge W6 + pila W7–W10; **no Replicate** |
+| **Rama de trabajo** | `main` (Paso 0: W6 + W7–W10 integrados) |
+| **Commit base** | tip post-merge W6–W10 |
+| **PR actual** | — merges en main; siguiente PLAN-NEXT |
+| **`main` remoto** | W1–W5e + W6 + W7–W10 |
+| **Etapa de producto** | Moat free → [PLAN-NEXT.md](./PLAN-NEXT.md) W11–W17 |
+| **Prioridad inmediata** | Merge PLAN-NEXT (#32) si falta; arrancar W11; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-29 |
@@ -44,21 +44,27 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 |------:|---:|-----------|--------|
 | 1–13 | #4–#16 | Validador → discard preview + `chatbot-packs.js` | **merged** |
 
+### Pila W6 + W7–W10 — INTEGRADA ✅ (Paso 0)
+
+| Orden | PR | Contenido | Estado |
+|------:|---:|-----------|--------|
+| 1 | #31 | W6 untrack mirrors + filter-repo | **merged → main** |
+| 2–5 | #27–#30 | W7 metrics → W10 backup ZIP | **merged → main** |
+
 ---
 
 ## Sesión reciente (Cursor, 2026-07-29)
 
-**Pedido:** Hacer W6 (OK owner — desversionar mirrors).
+**Pedido:** Continuar Paso 0 (merge W6 + W7–W10 a `main`).
 
 **Hecho:**
-- `git rm --cached` de `influ.sqlite` / `personas.json` + `.gitignore`.
-- `syncDbToWorkspace` / `syncPersonasJson` = no-op salvo `ENABLE_LEGACY_MIRRORS=1`.
-- Backup escribe export JSON de personas desde SQLite (no mirror raíz).
-- Docs AGENTS/HANDOFF/ROADMAP; tests `untrack-mirrors.test.js`.
+- FF W6 (`untrack-data-mirrors`) → `main`.
+- Merge tip W10 (incluye W7–W9) resolviendo HANDOFF/ROADMAP/`db.js`.
+- W6+W10: backups exportan personas desde SQLite **y** rotan con `BACKUP_KEEP`.
 
-**Siguiente:** Merge W6; luego W7–W10. `filter-repo` de historia = opcional owner.
+**Siguiente:** PLAN-NEXT W11+ (sesión chatbot); merge #32 docs si aún abierto.
 
-**También:** `git filter-repo` eliminó `influ.sqlite` / `personas.json` de **toda** la historia (force-push de refs).
+**También:** `git filter-repo` ya purgó mirrors de la historia.
 
 **No tocado:** Replicate.
 
@@ -142,7 +148,9 @@ Extracciones W5 de `server.js` ✅. Producto: merge W7–W10 (ver PLAN.md).
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-29 | Cursor | W6 desversionar mirrors SQLite/JSON (OK owner) | *(PR W6)* |
+| 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 → main | *(main)* |
+| 2026-07-29 | Cursor | W6 desversionar mirrors + filter-repo | *(PR #31)* |
+| 2026-07-29 | Cursor | W7–W10 producto (metrics→queue→safe-delete→backup ZIP) | *(PRs #27–#30)* |
 | 2026-07-29 | Cursor | Merge W1–W5e → main | *(main)* |
 | 2026-07-29 | Cursor | W5e extract routes/admin.js | *(PR W5e)* |
 | 2026-07-29 | Cursor | W5d extract routes/import + generation | *(PR W5d)* |

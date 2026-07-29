@@ -68,7 +68,8 @@ function registerAdminRoutes(app, deps) {
     requireAdmin,
     publicProfileDTO,
     dataDir,
-    rootDir = path.join(__dirname, '..')
+    rootDir = path.join(__dirname, '..'),
+    createZipArchive = null
   } = deps;
 
   // Profiles CRUD (local multi-user) — crear/borrar perfiles: solo Administración
@@ -194,6 +195,9 @@ function registerAdminRoutes(app, deps) {
   app.get('/api/backups', requireAdmin, (req, res) => {
     try {
       const meta = dbService.getBackupMeta();
+      const keep = typeof dbService.getBackupKeepLimit === 'function'
+        ? dbService.getBackupKeepLimit()
+        : 10;
       const snapshots = dbService.listBackupSnapshots().map((s) => ({
         filename: s.filename,
         size: s.size,
@@ -202,6 +206,7 @@ function registerAdminRoutes(app, deps) {
       res.json({
         success: true,
         schemaVersion: dbService.getSchemaVersion(),
+        keep,
         meta,
         snapshots
       });
@@ -221,7 +226,8 @@ function registerAdminRoutes(app, deps) {
           filename: path.basename(snap.dbPath),
           dbPath: snap.dbPath,
           schemaVersion: snap.schemaVersion,
-          createdAt: snap.createdAt
+          createdAt: snap.createdAt,
+          rotation: snap.rotation || null
         }
       });
     } catch (err) {
@@ -271,6 +277,66 @@ function registerAdminRoutes(app, deps) {
     }
   });
 
+  /**
+   * W10 — Export studio completo (ZIP): data/ + assets/ + .env.example.
+   * Nunca incluye `.env` (secretos). Solo Administración.
+   */
+  app.get('/api/export/studio', requireAdmin, (req, res) => {
+    if (typeof createZipArchive !== 'function') {
+      return res.status(500).json({ success: false, message: 'ZIP no disponible en este proceso.' });
+    }
+    try {
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      res.attachment(`influ_studio_export_${stamp}.zip`);
+
+      const archive = createZipArchive({ zlib: { level: 9 } });
+      archive.on('error', (err) => {
+        if (!res.headersSent) {
+          res.status(500).json({ success: false, message: err.message });
+        }
+      });
+      archive.pipe(res);
+
+      const skipEnv = (entry) => {
+        const base = path.basename(entry.name || '');
+        if (base === '.env') return false;
+        return entry;
+      };
+
+      if (dataDir && fs.existsSync(dataDir)) {
+        archive.directory(dataDir, 'data', skipEnv);
+      }
+
+      const assetsDir = path.join(rootDir, 'assets');
+      if (fs.existsSync(assetsDir)) {
+        archive.directory(assetsDir, 'assets', skipEnv);
+      }
+
+      const envExample = path.join(rootDir, '.env.example');
+      if (fs.existsSync(envExample)) {
+        archive.file(envExample, { name: '.env.example' });
+      }
+
+      archive.append(
+        [
+          'influ-JSON — export studio (cero costo)',
+          '',
+          'Contiene: data/ (SQLite + backups), assets/, .env.example',
+          'NO contiene: .env (secretos). Copia .env.example → .env y ajusta PIN/claves.',
+          'Tras restaurar data/, reinicia: npm start',
+          ''
+        ].join('\n'),
+        { name: 'README_EXPORT.txt' }
+      );
+
+      archive.finalize();
+    } catch (err) {
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, message: err.message });
+      }
+    }
+  });
+
   // Settings Endpoint — Update API Keys in .env safely via GUI (solo Administración)
   app.post('/api/settings/keys', requireAdmin, (req, res) => {
     try {
@@ -302,6 +368,25 @@ function registerAdminRoutes(app, deps) {
       });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  /**
+   * W7 — métricas locales de generación (solo Administración).
+   * Member → 403. Query: ?sinceDays=30&profileId= (opcional).
+   */
+  app.get('/api/metrics/generations', requireAdmin, (req, res) => {
+    try {
+      const sinceDays = Number(req.query.sinceDays || 30);
+      const profileId = req.query.profileId ? String(req.query.profileId) : null;
+      const summary = dbService.getGenMetricsSummary({ profileId, sinceDays });
+      res.json({
+        success: true,
+        freeTier: { imageGen: 'pollinations', note: 'Replicate aún no implementado — provider_other = 0' },
+        summary
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
     }
   });
 

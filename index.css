@@ -3455,6 +3455,23 @@ button.is-queue-locked:disabled {
   flex-shrink: 0;
 }
 
+.offline-mode-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.offline-pack-highlight {
+  outline: 2px solid rgba(16, 185, 129, 0.75) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  animation: offlinePackPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes offlinePackPulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25); }
+  50% { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.12); }
+}
+
 @media (max-width: 900px) {
   .offline-banner {
     left: 0;

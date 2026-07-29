@@ -4,6 +4,7 @@
  * - Minimum gap between jobs to reduce HTTP 429
  * - Tracks last rate-limit time for status/UX
  * - Automatic task retry on HTTP 429 rate limit
+ * - W8: posición visible (#N de M) por ola de encolado
  */
 
 const getMinGapMs = () => (process.env.GEN_MIN_GAP_MS !== undefined ? Number(process.env.GEN_MIN_GAP_MS) : 10000);
@@ -17,6 +18,11 @@ let lastRateLimitedAt = 0;
 let queueLength = 0;
 let currentLabel = null;
 
+/** W8 — ola actual: tamaño al encolar + índice del job en curso (1-based). */
+let waveSize = 0;
+let wavePosition = 0;
+let waveActive = false;
+
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
@@ -29,10 +35,15 @@ function getStatus() {
   const in429Cooldown = lastRateLimitedAt ? since429 < cooldownMs : false;
   const cooldownRemainingMs = in429Cooldown ? Math.max(0, cooldownMs - since429) : 0;
   const gapLeft = Math.max(0, minGapMs - (now - lastJobFinishedAt));
+  const pendingCount = queueLength;
+  const totalInWave = waveActive
+    ? Math.max(waveSize, wavePosition + pendingCount)
+    : pendingCount + (busy ? 1 : 0);
+  const position = busy ? wavePosition : (pendingCount > 0 ? wavePosition + 1 : null);
 
   return {
     active: busy,
-    pendingCount: queueLength,
+    pendingCount,
     isCoolingDown: !!in429Cooldown,
     cooldownRemainingMs,
     currentTaskInfo: busy ? { label: currentLabel, startedAt: lastJobStartedAt } : null,
@@ -43,6 +54,10 @@ function getStatus() {
     rateLimitCooldownMs: cooldownMs,
     lastRateLimitedAt: lastRateLimitedAt || null,
     rateLimitActive: !!in429Cooldown,
+    /** W8 — posición 1-based del job activo (o del próximo) en la ola. */
+    position: position || null,
+    totalInWave: totalInWave || null,
+    waveSize: waveActive ? waveSize : null,
     retryAfterSeconds: in429Cooldown
       ? Math.ceil(cooldownRemainingMs / 1000)
       : busy
@@ -68,8 +83,16 @@ function markRateLimited() {
  */
 function enqueue(label, jobFn) {
   queueLength += 1;
+  if (!waveActive) {
+    waveActive = true;
+    waveSize = 0;
+    wavePosition = 0;
+  }
+  waveSize += 1;
+
   const job = chain.then(async () => {
     queueLength = Math.max(0, queueLength - 1);
+    wavePosition += 1;
 
     const cooldownMs = getCooldownMs();
     const minGapMs = getMinGapMs();
@@ -94,7 +117,7 @@ function enqueue(label, jobFn) {
     busy = true;
     currentLabel = label || 'generate';
     lastJobStartedAt = Date.now();
-    console.log(`[gen-queue] START "${currentLabel}" (queue left: ${queueLength})`);
+    console.log(`[gen-queue] START "${currentLabel}" (#${wavePosition} de ${waveSize}, queue left: ${queueLength})`);
 
     let attempts = 0;
     const maxRetries = 2; // Allow up to 2 automatic retries on 429
@@ -125,6 +148,11 @@ function enqueue(label, jobFn) {
       currentLabel = null;
       lastJobFinishedAt = Date.now();
       console.log(`[gen-queue] END (took ${lastJobFinishedAt - lastJobStartedAt}ms)`);
+      if (queueLength === 0) {
+        waveActive = false;
+        waveSize = 0;
+        wavePosition = 0;
+      }
     }
   });
 
@@ -133,11 +161,25 @@ function enqueue(label, jobFn) {
   return job;
 }
 
+/** Test helper — reset wave counters (no-op in prod). */
+function _resetForTests() {
+  chain = Promise.resolve();
+  busy = false;
+  queueLength = 0;
+  currentLabel = null;
+  waveSize = 0;
+  wavePosition = 0;
+  waveActive = false;
+  lastJobStartedAt = 0;
+  lastJobFinishedAt = 0;
+  lastRateLimitedAt = 0;
+}
+
 module.exports = {
   enqueue,
   getStatus,
   markRateLimited,
+  _resetForTests,
   get MIN_GAP_MS() { return getMinGapMs(); },
   get RATE_LIMIT_COOLDOWN_MS() { return getCooldownMs(); }
 };
-

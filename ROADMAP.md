@@ -117,8 +117,13 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-29 | **Paso 0 merge W6 + W7–W10 → main** | Conflictos HANDOFF/ROADMAP/db resueltos; tests+smoke |
 | 2026-07-29 | **W6 filter-repo historia** | Purgados `influ.sqlite`/`personas.json` de todos los commits; force-push |
 | 2026-07-29 | **W6 untrack mirrors** | `git rm --cached` + gitignore; sync opt-in `ENABLE_LEGACY_MIRRORS`; backup export desde SQLite |
+| 2026-07-29 | **W10 backup rotation + export studio** | `BACKUP_KEEP` default 10; `GET /api/export/studio` sin `.env` |
+| 2026-07-29 | **W9 borrado seguro** | Eliminar → archive + toast Deshacer; purge admin con nombre |
+| 2026-07-29 | **W8 cola + offline** | `#N de M` en wave; modo offline localStorage |
+| 2026-07-29 | **W7 gen_metrics** | schema v8; hooks gen; Ajustes admin |
 | 2026-07-29 | **Merge W1–W5e + PLAN → main** | FF tip + W1 + PLAN; tests 118 + smoke 9/9 |
 | 2026-07-29 | **W5e routes/admin.js** | profiles/invites/backups/settings; server.js ~799; tests 110 + smoke 9/9; W5 ✅ |
 | 2026-07-29 | **W5d import+generation routes** | `routes/import.js` + `routes/generation.js`; server.js ~1064; tests 106 + smoke 9/9 |

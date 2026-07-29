@@ -208,6 +208,27 @@ const MIGRATIONS = [
       addColumnIfMissing(db, 'persona_variants', 'consistency_grade', 'TEXT');
       addColumnIfMissing(db, 'persona_variants', 'consistency_anchor', 'TEXT');
     }
+  },
+  {
+    id: 8,
+    name: 'gen_metrics',
+    up(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS gen_metrics (
+          id TEXT PRIMARY KEY,
+          profile_id TEXT,
+          persona_id TEXT,
+          provider TEXT NOT NULL DEFAULT 'pollinations',
+          generation_type TEXT NOT NULL DEFAULT 'portrait',
+          ok INTEGER NOT NULL DEFAULT 1,
+          error_code TEXT,
+          duration_ms INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_gen_metrics_profile ON gen_metrics(profile_id);
+        CREATE INDEX IF NOT EXISTS idx_gen_metrics_created ON gen_metrics(created_at);
+      `);
+    }
   }
 ];
 

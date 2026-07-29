@@ -1998,10 +1998,20 @@
     <span id="rateLimitBannerText">Pollinations limitó peticiones (429). La cola espera y reintenta sola.</span>
   </div>
 
-  <!-- Banner offline: JSON-first sigue disponible -->
+  <!-- Banner offline: JSON-first sigue disponible + toggle modo offline (W8) -->
   <div id="offlineBanner" class="offline-banner" style="display:none;" role="status" aria-live="polite">
     <span class="offline-dot" aria-hidden="true"></span>
     <span id="offlineBannerText">Sin conexión al Studio — puedes copiar JSON ya cargado; generación Pollinations pausada.</span>
+    <label class="offline-mode-toggle" style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; white-space:nowrap;">
+      <input type="checkbox" id="offlineModeToggle" />
+      Modo offline
+    </label>
+  </div>
+  <div id="offlineModeBar" class="offline-mode-bar" style="display:flex; align-items:center; gap:10px; padding:6px 14px; background:rgba(0,0,0,0.35); border-bottom:1px solid var(--glass-border); font-size:12px; color:var(--text-secondary);">
+    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+      <input type="checkbox" id="offlineModeToggleBar" />
+      <span><strong style="color:#fff;">Modo offline</strong> — desactiva Pollinations; prioriza copiar packs JSON</span>
+    </label>
   </div>
 
   <!-- Onboarding member (post-invitación / roster vacío) -->
@@ -2110,6 +2120,17 @@
         <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
       </div>
 
+      <div id="genMetricsSettingsSection" style="display:none;">
+        <h3 style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Métricas de generación (local)</h3>
+        <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+          Contadores gratis en SQLite: cuántos retratos / variantes / fallos 429 por perfil. Prepara la decisión de Replicate sin pagarlo.
+        </p>
+        <p id="genMetricsLine" style="font-size:13px; color:#a7f3d0; margin:0 0 8px; line-height:1.5;"></p>
+        <div id="genMetricsByProfile" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;"></div>
+        <button type="button" id="btnRefreshGenMetrics" class="btn btn-secondary btn-sm" style="font-size:11px;">Actualizar métricas</button>
+        <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
+      </div>
+
       <div id="memberSettingsHint" style="display:none; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
         Tu cuenta es de <strong style="color:#fff;">tester invitado</strong>. El Studio ya funciona gratis (Pollinations + JSON). Aquí solo gestionas tu PIN y cierras sesión.
       </div>
@@ -2164,7 +2185,7 @@
         <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
         <h3 style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Backup SQLite (Administración)</h3>
         <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
-          Copia local de la base en <code>data/backups/</code>. Gratis, sin nube. Restaurar pide reiniciar el servidor.
+          Copia local de la base en <code>data/backups/</code>. Gratis, sin nube. Se conservan los últimos <strong id="backupKeepHint">10</strong> (env <code>BACKUP_KEEP</code>). Restaurar pide reiniciar el servidor.
         </p>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:end;">
           <div style="flex:1; min-width:140px;">
@@ -2172,6 +2193,7 @@
             <input id="backupLabelInput" type="text" placeholder="antes_demo" maxlength="40" style="width:100%; padding:8px; background:rgba(0,0,0,0.4); border:1px solid var(--glass-border); border-radius:6px; color:#fff; font-size:12px;">
           </div>
           <button type="button" id="btnCreateBackup" class="btn btn-sm" style="padding:10px 12px;">Crear backup</button>
+          <a id="btnExportStudioZip" class="btn btn-secondary btn-sm" href="/api/export/studio" style="padding:10px 12px; text-decoration:none;">Export studio ZIP</a>
         </div>
         <p id="backupMetaLine" style="font-size:11px; color:var(--text-muted); margin:0 0 10px;"></p>
         <div id="backupsList" style="display:flex; flex-direction:column; gap:8px;"></div>

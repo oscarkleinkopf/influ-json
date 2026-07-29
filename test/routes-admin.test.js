@@ -43,5 +43,6 @@ test('routes/admin.js monta profiles, invites, backups, settings', () => {
   assert.match(js, /\/api\/invites/);
   assert.match(js, /\/api\/invites\/redeem/);
   assert.match(js, /\/api\/backups/);
+  assert.match(js, /\/api\/export\/studio/);
   assert.match(js, /\/api\/settings\/keys/);
 });

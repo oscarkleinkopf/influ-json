@@ -247,6 +247,8 @@ function registerPersonasRoutes(app, deps) {
         ? 'fullbody'
         : (/primer plano|close-up|portrait|rostro|headshot/i.test(`${pose} ${prompt}`) ? 'portrait' : 'medium'));
 
+    const t0 = Date.now();
+    const profileId = req.profileId || req.session?.profileId;
     aiService.generateInfluencerImage(prompt, referenceUrl, {
       photoreal,
       identityLock,
@@ -254,6 +256,7 @@ function registerPersonasRoutes(app, deps) {
       framing
     })
       .then(async (imagePath) => {
+        const durationMs = Date.now() - t0;
         if (imagePath) {
           const scored = await scoreVariant(persona, imagePath);
           const variant = dbService.saveVariant({
@@ -292,19 +295,55 @@ function registerPersonasRoutes(app, deps) {
           } catch (histErr) {
             console.warn('Failed to save variant generation history:', histErr.message);
           }
+          try {
+            dbService.recordGenMetric({
+              profile_id: profileId,
+              persona_id: req.params.id,
+              provider: 'pollinations',
+              generation_type: 'variant',
+              ok: true,
+              duration_ms: durationMs
+            });
+          } catch (mErr) {
+            console.warn('[gen-metrics]', mErr.message);
+          }
           runGitBackup((gitSuccess, msg) => {
             res.json({ success: true, variant, variants: dbService.getVariantsForPersona(req.params.id), gitSynced: gitSuccess, gitMessage: msg });
           });
         } else {
+          try {
+            dbService.recordGenMetric({
+              profile_id: profileId,
+              persona_id: req.params.id,
+              provider: 'pollinations',
+              generation_type: 'variant',
+              ok: false,
+              error_code: 'empty',
+              duration_ms: durationMs
+            });
+          } catch (_) {}
           res.status(500).json({ success: false, message: 'La generación de la pose falló.' });
         }
       })
       .catch(err => {
+        const durationMs = Date.now() - t0;
         const status = err.status === 429 ? 429 : 500;
+        const is429 = status === 429 || /429|rate limit|límite/i.test(err.message || '');
+        try {
+          dbService.recordGenMetric({
+            profile_id: profileId,
+            persona_id: req.params.id,
+            provider: 'pollinations',
+            generation_type: 'variant',
+            ok: false,
+            error_code: is429 ? '429' : 'error',
+            duration_ms: durationMs
+          });
+        } catch (_) {}
         res.status(status).json({
           success: false,
           message: err.message || 'La generación de la pose falló.',
-          rateLimited: /429|rate limit|límite/i.test(err.message || '')
+          rateLimited: is429
         });
       });
   });
