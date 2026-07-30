@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-30 | **W14 happy-path CTA** | Roster vacío Crear/Importar; post-save → pack; gen = boceto opcional |
 | 2026-07-30 | **W13 pack library** | Menú Packs en portafolio + último pack localStorage + recopy |
 | 2026-07-30 | **W12 historial lock** | Revisiones character_lock (cap 20), diff, restore — PR #34 |
 | 2026-07-29 | **W11 sesión chatbot** | 3 prompts + checklist localStorage; badge Chatbot OK |

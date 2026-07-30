@@ -26,7 +26,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | Campo | Valor |
 |-------|--------|
 | **Rama de trabajo** | `cursor/merge-w12-w17-152f` (integración) |
-| **Commit base** | stack W12+W13… → main |
+| **Commit base** | stack W12–W17 → main |
 | **PR actual** | Merge stack W12–W17 (draft) |
 | **`main` remoto** | Paso 0 + **W11** (W12–W17 vía este PR) |
 | **Etapa de producto** | Moat free → cierre W11–W17 |
@@ -59,8 +59,8 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 **Pedido:** Continuar con merge sugerido W12→W17.
 
 **Hecho (parcial mientras se apila):**
-- W12 historial lock + W13 pack library en rama de integración.
-- Sigue apilando W14–W17.
+- Integrando W12–W17 en `cursor/merge-w12-w17-152f`.
+- Conflictos de app/HANDOFF/CSS resueltos conservando ambas UXs.
 
 **Siguiente:** Tip integrado verificado → PR único a `main`.
 
@@ -146,6 +146,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-30 | Cursor | W14 happy-path CTA (Crear/Importar → pack) | PR #36 |
 | 2026-07-30 | Cursor | W13 biblioteca Packs (menú + último pack) | PR #35 |
 | 2026-07-30 | Cursor | W12 historial / diff / restore character_lock | PR #34 |
 | 2026-07-29 | Cursor | W11 sesión chatbot 3 prompts + checklist | *(PR W11)* |

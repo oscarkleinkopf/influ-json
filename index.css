@@ -1850,7 +1850,13 @@ input:checked + .slider:before {
   white-space: nowrap;
 }
 
-.portfolio-card-actions .btn-quick-copy-pack,
+.portfolio-card-actions .btn-quick-copy-pack {
+  background: rgba(52, 211, 153, 0.18);
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  color: #a7f3d0;
+  font-weight: 600;
+}
+
 .portfolio-card-actions .btn-quick-packs {
   background: rgba(56, 189, 248, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.35);
@@ -3110,6 +3116,7 @@ button.is-queue-locked:disabled {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 10px 14px;
   margin-bottom: 14px;
   padding: 12px 14px;
@@ -3123,6 +3130,76 @@ button.is-queue-locked:disabled {
 
 .member-empty-banner strong {
   color: #fff;
+}
+
+.member-empty-banner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 200px;
+}
+
+/* W14 — empty roster + next CTA */
+.empty-roster-panel {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 36px 24px;
+  border-radius: var(--border-radius-md);
+  border: 1px dashed rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.05);
+}
+
+.empty-roster-title {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: #fff;
+}
+
+.empty-roster-lead {
+  margin: 0 auto 18px;
+  max-width: 420px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.empty-roster-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.happy-path-next-cta {
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.happy-path-next-label {
+  margin: 0 0 4px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #34d399;
+}
+
+.happy-path-next-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.happy-path-next-hint {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 /* ─── Cómo usar (guía gráfica) ─────────────────────────────── */

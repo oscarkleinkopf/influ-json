@@ -128,22 +128,22 @@ No asignar dos bots al mismo archivo caliente (`app.js`, `server.js`) a la vez.
 
 ---
 
-## W14 — Happy path 60s: un solo CTA post-login
+## W14 — Happy path 60s: un solo CTA post-login ✅
 
 **Por qué:** founder/member ven demasiadas puertas (tabs, gen, settings) antes del primer pack.
 
-**Rama:** `cursor/happy-path-cta-152f`
+**Rama:** `cursor/happy-path-cta-152f` (implementado 2026-07-30)
 
-**Archivos:** `app.js`, `index.html`, onboarding existente.
+**Archivos:** `app.js`, `index.html`, `index.css`, onboarding existente.
 
 **Implementación:**
 
-1. Si roster vacío (founder): un panel — **Crear** | **Importar** | (secundario) Cómo usar.
-2. Tras primer save: CTA único **Copiar pack fullbody** (no “generar imagen”).
-3. Gen Pollinations queda como acción secundaria (“Boceto local opcional”).
-4. Member vacío: mismo patrón sin admin chrome.
+1. Roster vacío: panel **Crear** | **Importar** | Cómo usar (founder + member).
+2. Tras primer save: toast CTA **Copiar pack fullbody** (+ `#happyPathNextCta`).
+3. Gen Pollinations → “Boceto local opcional” (secondary).
+4. Checklist reordenado: copy antes que gen; member modal con Importar.
 
-**Tests:** copy-pack sigue en smoke; no se exige `GEMINI_API_KEY` ni gen para completar el flujo.
+**Tests:** `test/happy-path-cta.test.js`; smoke copy-pack sin Gemini/gen.
 
 **Criterio de hecho:** primer influencer → pack en clipboard sin pasar por generación.
 
