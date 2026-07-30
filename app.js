@@ -1577,6 +1577,17 @@ function updateDashboardStats() {
       openExportReadyFromBadge(p, e.currentTarget.getAttribute('data-export-status'));
     });
 
+    card.querySelector('.btn-quick-copy-pack')?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try {
+        selectPersona(p);
+        await copyFreeChatbotPack('fullbody');
+        if (lastPackHint) lastPackHint.textContent = formatLastPackStatusText(loadLastCopiedPack(p.id));
+      } catch (err) {
+        console.warn('quick copy pack:', err);
+        toastError('No se pudo copiar el pack.');
+      }
+    });
 
     // W13 — menú Packs (fullbody / bikini / spicy / product)
     const packToggle = card.querySelector('.btn-quick-packs');
