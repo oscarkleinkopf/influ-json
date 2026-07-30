@@ -1425,7 +1425,9 @@ function updateDashboardStats() {
     `;
 
     const lastPackHint = card.querySelector('.portfolio-last-pack');
-    if (lastPackHint) lastPackHint.textContent = formatLastPackStatusText(loadLastCopiedPack(p.id));
+    if (lastPackHint) {
+      lastPackHint.textContent = formatLastPackStatusText(loadLastCopiedPack(p.id), { empty: '' });
+    }
 
     // Click on card selects influencer and navigates
     card.querySelector('.btn-quick-select').addEventListener('click', (e) => {
@@ -2915,8 +2917,10 @@ function saveLastCopiedPack(personaId, packId) {
   return payload;
 }
 
-function formatLastPackStatusText(record) {
-  if (!record?.packId) return 'Aún no has copiado un pack de este influencer.';
+function formatLastPackStatusText(record, opts = {}) {
+  if (!record?.packId) {
+    return opts.empty != null ? opts.empty : 'Aún no has copiado un pack de este influencer.';
+  }
   const label = (typeof InfluChatbotPacks !== 'undefined' && InfluChatbotPacks.packLabel)
     ? InfluChatbotPacks.packLabel(record.packId)
     : (FREE_CHATBOT_PACKS[record.packId]?.label || record.packId);
