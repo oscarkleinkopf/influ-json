@@ -66,7 +66,7 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 **Siguiente:** Merge W12 → **W13** biblioteca de packs por persona.
 
-**Verificación W12:** correr `npm test` + `npm run smoke` en la rama.
+**Verificación W12:** tests **142** · smoke **9/9** · PR [#34](https://github.com/oscarkleinkopf/influ-json/pull/34).
 
 **No tocado:** Replicate.
 
