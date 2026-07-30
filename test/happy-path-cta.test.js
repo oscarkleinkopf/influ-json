@@ -33,14 +33,14 @@ test('W14: post-save CTA pack + gen demoted a boceto opcional', () => {
   const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
-  assert.match(app, /Copiar pack fullbody/);
+  assert.match(app, /Copiar JSON \(recomendado\)|Copiar pack fullbody/);
   assert.match(app, /creatingNew[\s\S]{0,200}toastSuccess/);
-  assert.match(app, /actionLabel:\s*'Copiar pack fullbody'/);
+  assert.match(app, /actionLabel:\s*'Copiar JSON \(recomendado\)'|actionLabel:\s*'Copiar pack fullbody'/);
   assert.match(app, /data-happy-action="copy-pack"|data-happy-next="copy-pack"|copy-pack/);
 
-  assert.match(html, /Boceto local opcional/);
+  assert.match(html, /Generar boceto \(gratis, inestable\)|Boceto local opcional/);
   assert.match(html, /id="btnSavePersonaWithPortrait"/);
-  assert.match(html, /btnSavePersonaWithPortrait[\s\S]{0,500}Boceto local opcional/);
+  assert.match(html, /btnSavePersonaWithPortrait[\s\S]{0,500}Generar boceto \(gratis, inestable\)|btnSavePersonaWithPortrait[\s\S]{0,500}Boceto local opcional/);
   assert.match(html, /class="btn btn-secondary" id="btnGenerateVariant"/);
   assert.match(html, /id="happyPathNextCta"/);
 
@@ -55,5 +55,5 @@ test('W14: happy path ordena copy antes que gen opcional', () => {
   const genIdx = html.indexOf('data-step="gen"');
   assert.ok(copyIdx > 0 && genIdx > 0);
   assert.ok(copyIdx < genIdx, 'copy debe ir antes que gen en el checklist');
-  assert.match(html, /copiar pack/i);
+  assert.match(html, /copiar (JSON|pack)/i);
 });

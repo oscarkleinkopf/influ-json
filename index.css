@@ -3485,6 +3485,15 @@ button.is-queue-locked:disabled {
   flex-shrink: 0;
 }
 
+#btnRateLimitGoOffline {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.vault-empty-offline .btn {
+  min-width: 160px;
+}
+
 @keyframes rateLimitPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.88; }
