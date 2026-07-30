@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/merge-w12-w17-152f` (integración) |
 | **Commit base** | stack W12–W17 → main |
-| **PR actual** | Merge stack W12–W17 (draft) |
+| **PR actual** | [#40](https://github.com/oscarkleinkopf/influ-json/pull/40) merge W12–W17 (draft) |
 | **`main` remoto** | Paso 0 + **W11** (W12–W17 vía este PR) |
 | **Etapa de producto** | Moat free → cierre W11–W17 |
 | **Prioridad inmediata** | Merge este PR → `main`; **no Replicate** |
