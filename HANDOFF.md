@@ -66,7 +66,7 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 **Siguiente:** Merge W12–W15 → **W16** badges export-ready.
 
-**Verificación W15:** correr `npm test` + `npm run smoke`.
+**Verificación W15:** tests **138** · smoke **9/9**.
 
 **No tocado:** Replicate.
 
