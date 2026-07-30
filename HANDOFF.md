@@ -150,7 +150,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-30 | Cursor | W15 offline-first (copy recomendado, 429→offline) | *(PR W15)* |
+| 2026-07-30 | Cursor | W15 offline-first (copy recomendado, 429→offline) | PR #37 |
 | 2026-07-30 | Cursor | W14 happy-path CTA | PR #36 |
 | 2026-07-30 | Cursor | W13 biblioteca Packs | PR #35 |
 | 2026-07-30 | Cursor | W12 historial character_lock | PR #34 |
