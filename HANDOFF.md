@@ -65,7 +65,7 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 **Siguiente:** Merge W12–W16 → **W17** audit log.
 
-**Verificación W16:** correr `npm test` + `npm run smoke`.
+**Verificación W16:** tests **140** · smoke **9/9**.
 
 **No tocado:** Replicate.
 
