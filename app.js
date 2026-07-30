@@ -612,9 +612,11 @@ function applyRoleBasedSettingsUi() {
   const heading = document.getElementById('profilesSettingsHeading');
   const lead = document.getElementById('profilesSettingsLead');
   const metrics = document.getElementById('genMetricsSettingsSection');
+  const auditLog = document.getElementById('auditLogSettingsSection');
   if (keys) keys.style.display = isAdmin ? 'block' : 'none';
   if (hint) hint.style.display = isAdmin ? 'none' : 'block';
   if (metrics) metrics.style.display = isAdmin ? 'block' : 'none';
+  if (auditLog) auditLog.style.display = isAdmin ? 'block' : 'none';
   if (title) title.textContent = isAdmin ? 'Ajustes de Proveedores y Claves API' : 'Tu cuenta';
   if (heading) heading.textContent = isAdmin ? 'Perfiles de usuario (local)' : 'Tu perfil';
   if (lead) {
@@ -760,6 +762,7 @@ async function refreshProfilesSettingsList() {
     if (isAdmin) {
       refreshInvitesSettingsList();
       refreshBackupsSettingsList();
+      refreshAuditLogSettings();
     }
 
     const visibleProfiles = isAdmin
@@ -926,6 +929,53 @@ async function refreshGenMetricsSettings() {
   }
 }
 
+const AUDIT_ACTION_LABELS = {
+  'persona.archive': 'Archivar',
+  'persona.unarchive': 'Desarchivar',
+  'persona.delete': 'Borrar',
+  'persona.export': 'Exportar persona',
+  'backup.create': 'Backup',
+  'studio.export': 'Export studio'
+};
+
+/** W17 — audit log (solo admin, solo lectura). */
+async function refreshAuditLogSettings() {
+  const list = document.getElementById('auditLogList');
+  if (!list || !isCurrentUserAdmin()) return;
+  list.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin:0;">Cargando…</p>';
+  try {
+    const res = await authFetch('/api/audit/events?limit=50');
+    if (res.status === 403) {
+      list.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin:0;">Solo Administración.</p>';
+      return;
+    }
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Error');
+    const events = Array.isArray(data.events) ? data.events : [];
+    if (!events.length) {
+      list.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin:0;">Aún no hay eventos. Archiva, exporta o crea un backup para ver el rastro.</p>';
+      return;
+    }
+    list.innerHTML = events.map((ev) => {
+      const when = String(ev.created_at || '').slice(0, 19).replace('T', ' ');
+      const actor = escapeLockHtml(ev.actor_name || (ev.actor_profile_id || '—').toString().slice(0, 8));
+      const action = escapeLockHtml(AUDIT_ACTION_LABELS[ev.action] || ev.action || '—');
+      const entity = escapeLockHtml(
+        ev.meta?.name || ev.entity_id || ev.entity_type || '—'
+      );
+      const kit = ev.meta?.kit ? ' · kit' : '';
+      return `<div class="audit-log-row" style="font-size:11px;color:var(--text-secondary);padding:7px 9px;background:rgba(0,0,0,0.25);border-radius:6px;line-height:1.4;">
+        <span style="color:var(--text-muted);">${escapeLockHtml(when)}</span>
+        · <strong style="color:#fff;">${actor}</strong>
+        · <span style="color:#a7f3d0;">${action}</span>
+        · ${entity}${kit}
+      </div>`;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = `<p style="font-size:12px;color:var(--danger);margin:0;">${escapeLockHtml(err.message || 'Error')}</p>`;
+  }
+}
+
 async function refreshBackupsSettingsList() {
   const list = document.getElementById('backupsList');
   const metaLine = document.getElementById('backupMetaLine');
@@ -1003,7 +1053,10 @@ function setupSettings() {
       applyRoleBasedSettingsUi();
       if (modal) modal.style.display = 'flex';
       refreshProfilesSettingsList();
-      if (isCurrentUserAdmin()) refreshGenMetricsSettings();
+      if (isCurrentUserAdmin()) {
+        refreshGenMetricsSettings();
+        refreshAuditLogSettings();
+      }
     });
   }
 
@@ -1096,6 +1149,10 @@ function setupSettings() {
 
   document.getElementById('btnRefreshGenMetrics')?.addEventListener('click', () => {
     refreshGenMetricsSettings();
+  });
+
+  document.getElementById('btnRefreshAuditLog')?.addEventListener('click', () => {
+    refreshAuditLogSettings();
   });
 
   if (form) {

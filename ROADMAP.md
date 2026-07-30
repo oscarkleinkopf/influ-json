@@ -117,6 +117,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-30 | **Merge stack W12–W17** | Rama integración; v9+v10; PR único a main |
+| 2026-07-30 | **W17 audit log** | schema v10; hooks archive/delete/export/backup; Ajustes admin |
 | 2026-07-30 | **W16 export-ready** | Badges Listo/Revisar/Sin ancla + filtros portafolio |
 | 2026-07-30 | **W15 offline-first** | Copy recomendado vs boceto — PR #37 |
 | 2026-07-30 | **W14 happy-path CTA** | PR #36 |

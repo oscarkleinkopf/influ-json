@@ -193,24 +193,24 @@ No asignar dos bots al mismo archivo caliente (`app.js`, `server.js`) a la vez.
 
 ---
 
-## W17 — Seguridad mínima de mercado: audit log local
+## W17 — Seguridad mínima de mercado: audit log local ✅
 
 **Por qué:** antes de vender el Studio a un equipo chico, hace falta rastro de quién archivó/borró/exportó.
 
-**Rama:** `cursor/audit-log-152f`
+**Rama:** `cursor/audit-log-152f` (implementado 2026-07-30)
 
-**Archivos:** `db.js` + migration, hooks en archive/delete/export/backup, UI Ajustes admin.
+**Archivos:** `migrations.js` v10, `db.js`, hooks en `routes/personas.js` + `routes/admin.js`, UI Ajustes admin, `test/audit-log.test.js`.
 
 **Implementación:**
 
 1. Tabla `audit_events`: id, profile_id, actor_profile_id, action, entity_type, entity_id, meta_json, created_at.
-2. Acciones: `persona.archive`, `persona.delete`, `persona.export`, `backup.create`, `studio.export`.
-3. UI admin: últimas 50 filas, solo lectura.
-4. Member no ve el log global.
+2. Acciones: `persona.archive` / `unarchive`, `persona.delete`, `persona.export`, `backup.create`, `studio.export`.
+3. UI admin: últimas 50 filas, solo lectura (`#auditLogSettingsSection`).
+4. Member → 403 en `GET /api/audit/events`.
 
 **Tests:** archive escribe evento; member 403 al listar; export persona registra actor.
 
-**Criterio de hecho:** un admin puede responder “quién borró a X” sin abrir SQLite a mano.
+**Criterio de hecho:** ✅ un admin puede responder “quién borró a X” sin abrir SQLite a mano.
 
 ---
 

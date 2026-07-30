@@ -2170,6 +2170,16 @@
         <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
       </div>
 
+      <div id="auditLogSettingsSection" style="display:none;">
+        <h3 style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Audit log (local)</h3>
+        <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+          Últimas 50 acciones sensibles: archivar, borrar, exportar, backup. Solo lectura — solo Administración.
+        </p>
+        <div id="auditLogList" class="audit-log-list" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; margin-bottom:12px;"></div>
+        <button type="button" id="btnRefreshAuditLog" class="btn btn-secondary btn-sm" style="font-size:11px;">Actualizar log</button>
+        <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
+      </div>
+
       <div id="memberSettingsHint" style="display:none; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
         Tu cuenta es de <strong style="color:#fff;">tester invitado</strong>. El Studio ya funciona gratis (Pollinations + JSON). Aquí solo gestionas tu PIN y cierras sesión.
       </div>
@@ -2276,6 +2286,6 @@
   <script src="chatbot-packs.js?v=1.2.0"></script>
   <script src="import-flow.js?v=1.0.0"></script>
   <script src="prompt-builder.js?v=1.0.0"></script>
-  <script src="app.js?v=1.10.1"></script>
+  <script src="app.js?v=1.10.2"></script>
 </body>
 </html>

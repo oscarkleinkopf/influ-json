@@ -58,14 +58,14 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 **Pedido:** Continuar con merge sugerido W12→W17.
 
-**Hecho (parcial mientras se apila):**
-- Integrando W12–W17 en `cursor/merge-w12-w17-152f`.
-- Conflictos de app/HANDOFF/CSS resueltos conservando ambas UXs.
+**Hecho:**
+- Rama `cursor/merge-w12-w17-152f` apila W12–W17 con conflictos resueltos.
+- Migraciones: v9 `character_lock_revisions` + v10 `audit_events`.
+- UX combinada: Packs menu + Copiar JSON (recomendado) + badges Listo/Revisar + audit log admin.
 
-**Siguiente:** Tip integrado verificado → PR único a `main`.
+**Siguiente:** Owner mergea este PR → `main`; cerrar #34–#39 como superseded. Replicate en pausa.
 
 **No tocado:** Replicate.
-
 
 ---
 
@@ -146,6 +146,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-30 | Cursor | W17 audit log local (admin, v10) | *(PR W17)* |
 | 2026-07-30 | Cursor | W16 badges Listo / Revisar / Sin ancla | PR #38 |
 | 2026-07-30 | Cursor | W15 offline-first | PR #37 |
 | 2026-07-30 | Cursor | W15 offline-first (copy recomendado, 429→offline) | PR #37 |
