@@ -23,9 +23,9 @@ async function withServer(fn) {
   }
 }
 
-test('migración v9 audit_events está definida', () => {
+test('migración v10 audit_events está definida', () => {
   const { MIGRATIONS } = require('../migrations');
-  const m = MIGRATIONS.find((x) => x.id === 9);
+  const m = MIGRATIONS.find((x) => x.id === 10);
   assert.ok(m);
   assert.equal(m.name, 'audit_events');
 });

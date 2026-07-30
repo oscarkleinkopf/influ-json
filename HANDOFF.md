@@ -59,7 +59,7 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 **Pedido:** Continuar W17 audit log.
 
 **Hecho:**
-- Migración **v9** `audit_events` + `recordAuditEvent` / `listAuditEvents`.
+- Migración **v10** `audit_events` + `recordAuditEvent` / `listAuditEvents` (v9 = W12 lock revisions).
 - Hooks: archive/unarchive, delete, export persona, backup.create, studio.export.
 - `GET /api/audit/events` (admin); member 403.
 - UI Ajustes: sección Audit log (últimas 50) + Actualizar.
@@ -149,7 +149,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-30 | Cursor | W17 audit log local (admin, v9) | *(PR W17)* |
+| 2026-07-30 | Cursor | W17 audit log local (admin, v10) | *(PR W17)* |
 | 2026-07-29 | Cursor | W11 sesión chatbot 3 prompts + checklist | *(PR W11)* |
 | 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 + PLAN-NEXT → main | *(main)* |
 | 2026-07-29 | Cursor | PLAN-NEXT W11–W17 (moat free post W6–W10) | *(PR #32)* |

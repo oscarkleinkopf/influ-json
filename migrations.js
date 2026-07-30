@@ -230,8 +230,9 @@ const MIGRATIONS = [
       `);
     }
   },
+  // id 9 reserved for W12 character_lock_revisions (merge order W12 → … → W17).
   {
-    id: 9,
+    id: 10,
     name: 'audit_events',
     up(db) {
       db.exec(`

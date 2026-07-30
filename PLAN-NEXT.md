@@ -199,7 +199,7 @@ No asignar dos bots al mismo archivo caliente (`app.js`, `server.js`) a la vez.
 
 **Rama:** `cursor/audit-log-152f` (implementado 2026-07-30)
 
-**Archivos:** `migrations.js` v9, `db.js`, hooks en `routes/personas.js` + `routes/admin.js`, UI Ajustes admin, `test/audit-log.test.js`.
+**Archivos:** `migrations.js` v10, `db.js`, hooks en `routes/personas.js` + `routes/admin.js`, UI Ajustes admin, `test/audit-log.test.js`.
 
 **Implementación:**
 
