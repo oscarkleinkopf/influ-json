@@ -20,7 +20,7 @@ test('app.js tiene onboarding founder y copiar pack en portafolio', () => {
   assert.match(js, /founderOnboardDismissKey/);
   assert.match(js, /btn-quick-copy-pack/);
   assert.match(js, /copyFreeChatbotPack\('fullbody'\)/);
-  assert.match(js, /action === 'import'/);
+  assert.match(js, /runHappyPathAction|action === 'import'|data-happy-next="import"/);
 });
 
 test('founder dismiss key es estable por perfil', () => {

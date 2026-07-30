@@ -25,15 +25,15 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (W11 integrado) |
-| **Commit base** | `455e1fb` (W11 + fix CI) |
-| **PR actual** | #33 W11 (integrado en main; se puede cerrar) |
-| **`main` remoto** | Paso 0 + **W11** sesión chatbot |
-| **Etapa de producto** | Moat free → W12 historial lock |
-| **Prioridad inmediata** | **W12** character_lock history; **no Replicate** |
+| **Rama de trabajo** | `cursor/happy-path-cta-152f` (W14) |
+| **Commit base** | tip de esta rama (W14 happy-path CTA) |
+| **PR actual** | W14 draft · abiertos: W12 #34, W13 #35 |
+| **`main` remoto** | Paso 0 + **W11** (W12–W14 pendientes de merge) |
+| **Etapa de producto** | Moat free → W15 offline-first copy |
+| **Prioridad inmediata** | Merge #34→#35→W14 → **W15**; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-07-29 |
+| **Última actualización** | 2026-07-30 |
 
 ### Pila #4–#16 — INTEGRADA ✅
 

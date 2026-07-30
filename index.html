@@ -156,19 +156,27 @@
           </div>
         </div>
 
-        <!-- F6 — Happy path 60s -->
+        <!-- F6/W14 — Happy path 60s (CTA único) -->
         <div class="glass-card" id="happyPathCard" style="margin-top: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
             <div>
               <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Arranque en 60 segundos</h2>
-              <p style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Crear → guardar → generar → copiar JSON a un chatbot gratis. Sin tarjeta.</p>
+              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Crear → guardar → <strong>copiar pack</strong> a un chatbot gratis. Gen local es opcional.</p>
             </div>
             <span id="happyPathProgress" class="happy-path-progress">0 / 4</span>
           </div>
+          <!-- W14 — un solo CTA según estado (vacío / post-save / listo) -->
+          <div id="happyPathNextCta" class="happy-path-next-cta" style="display:none;" role="region" aria-label="Siguiente paso"></div>
           <div id="memberEmptyRosterBanner" class="member-empty-banner" style="display:none;" role="status">
-            <strong>Tu portafolio está vacío.</strong>
-            <span>Empieza creando tu primer influencer — solo tú lo verás en este perfil.</span>
-            <button type="button" class="btn btn-secondary btn-sm" id="btnMemberEmptyCreate">Crear ahora</button>
+            <div class="member-empty-banner-copy">
+              <strong>Tu portafolio está vacío.</strong>
+              <span>Solo tú verás lo que crees en este perfil. Empieza aquí — sin gen obligatoria.</span>
+            </div>
+            <div class="empty-roster-actions">
+              <button type="button" class="btn btn-sm" id="btnMemberEmptyCreate">Crear</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnMemberEmptyImport">Importar</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnMemberEmptyGuide">Cómo usar</button>
+            </div>
           </div>
           <ol id="happyPathChecklist" class="happy-path-list">
             <li class="happy-path-step" data-step="create">
@@ -186,24 +194,24 @@
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
                 <strong>2. Guardar influencer</strong>
-                <p>Completa nombre, tez y rasgos → «Crear Influencer» / Guardar.</p>
+                <p>Completa nombre, tez y rasgos → «Guardar personaje» (solo JSON).</p>
                 <button type="button" class="btn btn-secondary btn-sm" data-happy-action="save">Ir a guardar</button>
-              </div>
-            </li>
-            <li class="happy-path-step" data-step="gen">
-              <span class="happy-path-check" aria-hidden="true">○</span>
-              <div>
-                <strong>3. Generar 1 imagen <em style="font-weight:500;color:var(--text-muted);">(opcional)</em></strong>
-                <p>Pollinations es opcional. También puedes completar este paso solo copiando un pack al chatbot.</p>
-                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="gen">Ir a variantes</button>
               </div>
             </li>
             <li class="happy-path-step" data-step="copy">
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
-                <strong>4. Copiar JSON / pack chatbot</strong>
-                <p>Usa «Copiar para Chatbot» o un pack gratis (cuerpo entero, bikini…).</p>
-                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="copy">Ir a packs</button>
+                <strong>3. Copiar pack fullbody</strong>
+                <p>El producto es el JSON: pégalo en ChatGPT / Gemini / Claude free.</p>
+                <button type="button" class="btn btn-sm" data-happy-action="copy-pack">Copiar pack fullbody</button>
+              </div>
+            </li>
+            <li class="happy-path-step" data-step="gen">
+              <span class="happy-path-check" aria-hidden="true">○</span>
+              <div>
+                <strong>4. Boceto local <em style="font-weight:500;color:var(--text-muted);">(opcional)</em></strong>
+                <p>Pollinations es un boceto — no hace falta para completar el flujo.</p>
+                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="gen">Boceto local opcional</button>
               </div>
             </li>
           </ol>
@@ -889,8 +897,8 @@
                 <button type="button" class="btn" id="btnSavePersona" style="flex: 2; min-width: 160px;">
                   Guardar personaje
                 </button>
-                <button type="button" class="btn btn-secondary" id="btnSavePersonaWithPortrait" style="flex: 1.5; min-width: 160px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #7dd3fc;" title="Opcional: genera retrato con Pollinations al guardar">
-                  Guardar + retrato
+                <button type="button" class="btn btn-secondary" id="btnSavePersonaWithPortrait" style="flex: 1.5; min-width: 160px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #7dd3fc;" title="Opcional: boceto local Pollinations al guardar — no es face-lock">
+                  Boceto local opcional
                 </button>
                 <button type="button" class="btn btn-secondary" id="btnCancelEditPersona" style="flex: 1.5; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
                   👁️ Ver Ficha
@@ -1292,8 +1300,8 @@
                   </select>
                 </div>
 
-                <button type="button" class="btn" id="btnGenerateVariant" style="width: 100%; margin-top: 8px;">
-                  🤖 Generar Variante / Pose
+                <button type="button" class="btn btn-secondary" id="btnGenerateVariant" style="width: 100%; margin-top: 8px;" title="Pollinations: boceto local opcional — el JSON/pack es el producto">
+                  Boceto local opcional (variante)
                 </button>
                 
                 <div class="analysis-status-card" id="variantGenStatus" style="display: none; padding: 12px; margin-top: 8px;">
@@ -1486,8 +1494,8 @@
               <div>
                 <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">Generación & Producción AI</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                  <button class="btn" id="btnGenerateUgcImage" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    🤖 Generar Imagen AI con Prompt
+                  <button class="btn btn-secondary" id="btnGenerateUgcImage" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Boceto local opcional (Pollinations)">
+                    Boceto local opcional
                   </button>
                   <button class="btn btn-secondary" id="btnExportUgcChatbot" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     📋 Copiar Prompt para Chatbots Gratis
@@ -2034,13 +2042,14 @@
         Este perfil es solo tuyo. No verás ni mezclarás creaciones de Administración u otros testers.
       </p>
       <ol style="margin:0 0 20px; padding-left:18px; font-size:13px; color:var(--text-secondary); line-height:1.55;">
-        <li style="margin-bottom:8px;"><strong style="color:#fff;">Crear</strong> un influencer (desde cero o con foto)</li>
-        <li style="margin-bottom:8px;"><strong style="color:#fff;">Guardar</strong> — aparece en tu portafolio</li>
-        <li style="margin-bottom:8px;"><strong style="color:#fff;">Copiar JSON</strong> a ChatGPT / Gemini / Claude free (o 1 gen Pollinations)</li>
+        <li style="margin-bottom:8px;"><strong style="color:#fff;">Crear o importar</strong> un influencer</li>
+        <li style="margin-bottom:8px;"><strong style="color:#fff;">Guardar</strong> — aparece en tu portafolio (solo JSON)</li>
+        <li style="margin-bottom:8px;"><strong style="color:#fff;">Copiar pack fullbody</strong> a ChatGPT / Gemini / Claude free</li>
       </ol>
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <button type="button" class="btn" id="btnMemberWelcomeCreate" style="width:100%; padding:12px;">Empezar: crear influencer</button>
-        <button type="button" class="btn btn-secondary" id="btnMemberWelcomeDashboard" style="width:100%; padding:10px; font-size:12px;">Ver guía Cómo usar</button>
+        <button type="button" class="btn" id="btnMemberWelcomeCreate" style="width:100%; padding:12px;">Crear</button>
+        <button type="button" class="btn btn-secondary" id="btnMemberWelcomeImport" style="width:100%; padding:10px; font-size:12px;">Importar</button>
+        <button type="button" class="btn btn-secondary" id="btnMemberWelcomeDashboard" style="width:100%; padding:10px; font-size:12px;">Cómo usar</button>
         <button type="button" id="btnMemberWelcomeSkip" style="background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">Ahora no</button>
       </div>
     </div>
@@ -2061,9 +2070,9 @@
         <li style="margin-bottom:8px;"><strong style="color:#fff;">Copiar pack</strong> → ChatGPT / Gemini / Claude free</li>
       </ol>
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <button type="button" class="btn" id="btnFounderWelcomeCreate" style="width:100%; padding:12px;">Empezar con preset Beauty</button>
-        <button type="button" class="btn btn-secondary" id="btnFounderWelcomeImport" style="width:100%; padding:10px; font-size:12px;">Importar desde foto</button>
-        <button type="button" class="btn btn-secondary" id="btnFounderWelcomeGuide" style="width:100%; padding:10px; font-size:12px;">Ver guía Cómo usar</button>
+        <button type="button" class="btn" id="btnFounderWelcomeCreate" style="width:100%; padding:12px;">Crear</button>
+        <button type="button" class="btn btn-secondary" id="btnFounderWelcomeImport" style="width:100%; padding:10px; font-size:12px;">Importar</button>
+        <button type="button" class="btn btn-secondary" id="btnFounderWelcomeGuide" style="width:100%; padding:10px; font-size:12px;">Cómo usar</button>
         <button type="button" id="btnFounderWelcomeSkip" style="background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">Ahora no</button>
       </div>
     </div>
@@ -2247,6 +2256,6 @@
   <script src="chatbot-packs.js?v=1.1.0"></script>
   <script src="import-flow.js?v=1.0.0"></script>
   <script src="prompt-builder.js?v=1.0.0"></script>
-  <script src="app.js?v=1.9.6"></script>
+  <script src="app.js?v=1.9.9"></script>
 </body>
 </html>

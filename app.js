@@ -438,10 +438,16 @@ function maybeShowMemberOnboarding() {
   showMemberWelcomeModal();
 }
 
-function startMemberCreateFlow() {
-  const profileId = state.currentProfile?.id;
-  dismissMemberOnboarding(profileId);
-  hideMemberWelcomeModal();
+/** W14 — crear desde cero (sin forzar preset de nicho). */
+function startCreateScratchFlow({ dismissFounder = false, dismissMember = false } = {}) {
+  if (dismissFounder) {
+    dismissFounderOnboarding(state.currentProfile?.id);
+    hideFounderWelcomeModal();
+  }
+  if (dismissMember) {
+    dismissMemberOnboarding(state.currentProfile?.id);
+    hideMemberWelcomeModal();
+  }
   navigateToTab('persona-engine');
   setTimeout(() => {
     const card = document.getElementById('cardCreateScratch');
@@ -450,24 +456,32 @@ function startMemberCreateFlow() {
   }, 80);
 }
 
-function startFounderCreateFlow({ importFlow = false } = {}) {
-  const profileId = state.currentProfile?.id;
-  dismissFounderOnboarding(profileId);
-  hideFounderWelcomeModal();
+function startImportFlow({ dismissFounder = false, dismissMember = false } = {}) {
+  if (dismissFounder) {
+    dismissFounderOnboarding(state.currentProfile?.id);
+    hideFounderWelcomeModal();
+  }
+  if (dismissMember) {
+    dismissMemberOnboarding(state.currentProfile?.id);
+    hideMemberWelcomeModal();
+  }
   navigateToTab('persona-engine');
   setTimeout(() => {
-    if (importFlow) {
-      document.getElementById('btnOpenImportModal')?.click();
-      return;
-    }
-    const nicheBtn = document.querySelector('[data-niche="beauty"]');
-    if (nicheBtn) nicheBtn.click();
-    else {
-      const card = document.getElementById('cardCreateScratch');
-      if (card) card.click();
-      else if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
-    }
+    document.getElementById('btnOpenImportModal')?.click();
   }, 80);
+}
+
+function startMemberCreateFlow() {
+  startCreateScratchFlow({ dismissMember: true });
+}
+
+function startMemberImportFlow() {
+  startImportFlow({ dismissMember: true });
+}
+
+function startFounderCreateFlow({ importFlow = false } = {}) {
+  if (importFlow) startImportFlow({ dismissFounder: true });
+  else startCreateScratchFlow({ dismissFounder: true });
 }
 
 function setupMemberOnboarding() {
@@ -480,12 +494,17 @@ function setupMemberOnboarding() {
     hideMemberWelcomeModal();
   });
   document.getElementById('btnMemberWelcomeCreate')?.addEventListener('click', startMemberCreateFlow);
+  document.getElementById('btnMemberWelcomeImport')?.addEventListener('click', startMemberImportFlow);
   document.getElementById('btnMemberWelcomeDashboard')?.addEventListener('click', () => {
     dismissMemberOnboarding(state.currentProfile?.id);
     hideMemberWelcomeModal();
     navigateToTab('como-usar');
   });
   document.getElementById('btnMemberEmptyCreate')?.addEventListener('click', startMemberCreateFlow);
+  document.getElementById('btnMemberEmptyImport')?.addEventListener('click', startMemberImportFlow);
+  document.getElementById('btnMemberEmptyGuide')?.addEventListener('click', () => {
+    navigateToTab('como-usar');
+  });
 
   // Founder / Administración
   document.getElementById('btnCloseFounderWelcome')?.addEventListener('click', () => {
@@ -1347,34 +1366,61 @@ function updateDashboardStats() {
   if (filtered.length === 0) {
     const hasSearch = !!(state.portfolioSearchQuery || '').trim();
     const hasFilter = state.portfolioFilter !== 'all';
-    personaGrid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 40px 20px; font-size: 14px;">
-        <div style="font-size: 28px; margin-bottom: 10px;">🔍</div>
-        <div style="margin-bottom: 8px; color: #fff; font-weight: 600;">0 influencers en esta vista</div>
-        <div style="margin-bottom: 16px; font-size: 13px;">
-          ${hasSearch || hasFilter
-            ? 'No hay coincidencias con la búsqueda o el filtro actual.'
-            : 'Aún no hay influencers en el roster.'}
+    const trulyEmpty = !hasSearch && !hasFilter && (!Array.isArray(state.personas) || state.personas.length === 0);
+    if (trulyEmpty) {
+      // W14 — un panel: Crear | Importar | Cómo usar (founder y member)
+      personaGrid.innerHTML = `
+        <div class="empty-roster-panel" id="emptyRosterPanel">
+          <h3 class="empty-roster-title">Empieza tu primer influencer</h3>
+          <p class="empty-roster-lead">Crea o importa un personaje, guarda el JSON y copia el pack a un chatbot gratis. Sin tarjeta ni gen obligatoria.</p>
+          <div class="empty-roster-actions">
+            <button type="button" class="btn" id="btnEmptyRosterCreate">Crear</button>
+            <button type="button" class="btn btn-secondary" id="btnEmptyRosterImport">Importar</button>
+            <button type="button" class="btn btn-secondary" id="btnEmptyRosterGuide">Cómo usar</button>
+          </div>
         </div>
-        ${hasSearch || hasFilter ? `
-          <button type="button" class="btn btn-secondary btn-sm" id="btnClearPortfolioFilters" style="margin: 0 4px;">
-            Limpiar búsqueda y ver todos
-          </button>
-        ` : ''}
-      </div>
-    `;
-    const clearBtn = document.getElementById('btnClearPortfolioFilters');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        state.portfolioFilter = 'all';
-        const bAll = document.getElementById('btnPortfolioAll');
-        const bAct = document.getElementById('btnPortfolioActive');
-        const bArc = document.getElementById('btnPortfolioArchived');
-        if (bAll) bAll.classList.add('active');
-        if (bAct) bAct.classList.remove('active');
-        if (bArc) bArc.classList.remove('active');
-        clearPortfolioSearch();
+      `;
+      document.getElementById('btnEmptyRosterCreate')?.addEventListener('click', () => {
+        if (isCurrentUserAdmin()) startFounderCreateFlow({ importFlow: false });
+        else startMemberCreateFlow();
       });
+      document.getElementById('btnEmptyRosterImport')?.addEventListener('click', () => {
+        if (isCurrentUserAdmin()) startFounderCreateFlow({ importFlow: true });
+        else startMemberImportFlow();
+      });
+      document.getElementById('btnEmptyRosterGuide')?.addEventListener('click', () => {
+        navigateToTab('como-usar');
+      });
+    } else {
+      personaGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 40px 20px; font-size: 14px;">
+          <div style="font-size: 28px; margin-bottom: 10px;">🔍</div>
+          <div style="margin-bottom: 8px; color: #fff; font-weight: 600;">0 influencers en esta vista</div>
+          <div style="margin-bottom: 16px; font-size: 13px;">
+            ${hasSearch || hasFilter
+              ? 'No hay coincidencias con la búsqueda o el filtro actual.'
+              : 'Aún no hay influencers en el roster.'}
+          </div>
+          ${hasSearch || hasFilter ? `
+            <button type="button" class="btn btn-secondary btn-sm" id="btnClearPortfolioFilters" style="margin: 0 4px;">
+              Limpiar búsqueda y ver todos
+            </button>
+          ` : ''}
+        </div>
+      `;
+      const clearBtn = document.getElementById('btnClearPortfolioFilters');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          state.portfolioFilter = 'all';
+          const bAll = document.getElementById('btnPortfolioAll');
+          const bAct = document.getElementById('btnPortfolioActive');
+          const bArc = document.getElementById('btnPortfolioArchived');
+          if (bAll) bAll.classList.add('active');
+          if (bAct) bAct.classList.remove('active');
+          if (bArc) bArc.classList.remove('active');
+          clearPortfolioSearch();
+        });
+      }
     }
     return;
   }
@@ -1406,8 +1452,8 @@ function updateDashboardStats() {
         </div>
         <div class="portfolio-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance || 'Latina'}</div>
         <div class="portfolio-card-actions">
-          <button type="button" class="btn btn-primary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
-          <button type="button" class="btn btn-secondary btn-quick-copy-pack" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia pack cuerpo entero listo para ChatGPT/Gemini/Claude">Copiar pack</button>
+          <button type="button" class="btn btn-quick-copy-pack" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia pack cuerpo entero listo para ChatGPT/Gemini/Claude">Copiar pack fullbody</button>
+          <button type="button" class="btn btn-secondary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
           <button type="button" class="btn btn-secondary btn-quick-session" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia sesión 3 prompts + abre checklist">Probar chatbot</button>
           <button type="button" class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
           <button type="button" class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
@@ -1485,9 +1531,10 @@ function setPortfolioFilter(filter) {
 }
 
 /**
- * F6 — Happy path 60s checklist (Resumen).
- * Pasos: crear → guardar → 1 gen → copiar JSON.
+ * F6/W14 — Happy path 60s checklist (Resumen).
+ * Pasos: crear → guardar → copiar pack → boceto opcional.
  * El paso «copiar» se marca en localStorage al usar cualquier botón de export chatbot.
+ * Pollinations NO es obligatorio: copiar pack también completa "gen".
  */
 function getHappyPathStatus() {
   const personas = Array.isArray(state.personas) ? state.personas : [];
@@ -1514,6 +1561,90 @@ function markHappyPathCopied() {
   renderHappyPathChecklist();
 }
 
+/** W14 — CTA único según estado (vacío / post-save / listo). */
+function renderHappyPathNextCta() {
+  const box = document.getElementById('happyPathNextCta');
+  if (!box) return;
+  const status = getHappyPathStatus();
+  const empty = !status.create;
+
+  if (empty) {
+    box.style.display = 'block';
+    box.innerHTML = `
+      <p class="happy-path-next-label">Siguiente paso</p>
+      <p class="happy-path-next-title">Crea o importa tu primer influencer</p>
+      <div class="empty-roster-actions">
+        <button type="button" class="btn btn-sm" data-happy-next="create">Crear</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-happy-next="import">Importar</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-happy-next="guide">Cómo usar</button>
+      </div>
+    `;
+  } else if (!status.copy) {
+    box.style.display = 'block';
+    const name = state.selectedPersona?.name || state.personas?.[0]?.name || 'tu influencer';
+    box.innerHTML = `
+      <p class="happy-path-next-label">Siguiente paso</p>
+      <p class="happy-path-next-title">Copia el pack fullbody de «${String(name).replace(/[<>&"]/g, '')}»</p>
+      <p class="happy-path-next-hint">Pégalo en ChatGPT / Gemini / Claude free. Gen local no hace falta.</p>
+      <div class="empty-roster-actions">
+        <button type="button" class="btn btn-sm" data-happy-next="copy-pack" data-offline-highlight="pack">Copiar pack fullbody</button>
+      </div>
+    `;
+  } else {
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+
+  box.querySelectorAll('[data-happy-next]').forEach((btn) => {
+    btn.addEventListener('click', () => runHappyPathAction(btn.getAttribute('data-happy-next')));
+  });
+}
+
+async function runHappyPathAction(action) {
+  if (action === 'create') {
+    if (isCurrentUserAdmin()) startFounderCreateFlow({ importFlow: false });
+    else startMemberCreateFlow();
+  } else if (action === 'import') {
+    if (isCurrentUserAdmin()) startFounderCreateFlow({ importFlow: true });
+    else startMemberImportFlow();
+  } else if (action === 'guide') {
+    navigateToTab('como-usar');
+  } else if (action === 'save') {
+    navigateToTab('persona-engine');
+    setTimeout(() => {
+      const form = document.getElementById('personaForm');
+      if (form) form.style.display = 'block';
+      document.getElementById('btnSavePersona')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
+  } else if (action === 'gen') {
+    navigateToTab('persona-engine');
+    setTimeout(() => {
+      document.getElementById('variantManagerSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
+  } else if (action === 'copy') {
+    navigateToTab('persona-engine');
+    setTimeout(() => {
+      document.getElementById('btnCopyChatbotPrompt')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
+  } else if (action === 'copy-pack') {
+    try {
+      if (!state.selectedPersona && state.personas?.[0]) {
+        selectPersona(state.personas[0]);
+      }
+      if (!state.selectedPersona && !document.getElementById('pName')?.value) {
+        toastInfo('Guarda un influencer primero; luego copia el pack fullbody.');
+        runHappyPathAction('create');
+        return;
+      }
+      await copyFreeChatbotPack('fullbody');
+    } catch (err) {
+      console.warn('happy path copy-pack:', err);
+      toastError('No se pudo copiar el pack.');
+    }
+  }
+}
+
 function renderHappyPathChecklist() {
   const list = document.getElementById('happyPathChecklist');
   const progress = document.getElementById('happyPathProgress');
@@ -1521,7 +1652,8 @@ function renderHappyPathChecklist() {
   if (!list) return;
 
   const status = getHappyPathStatus();
-  const steps = ['create', 'save', 'gen', 'copy'];
+  // Orden visual W14: create → save → copy → gen(opcional)
+  const steps = ['create', 'save', 'copy', 'gen'];
   let done = 0;
   steps.forEach(step => {
     const li = list.querySelector(`[data-step="${step}"]`);
@@ -1534,42 +1666,13 @@ function renderHappyPathChecklist() {
   });
   if (progress) progress.textContent = `${done} / 4`;
   if (doneMsg) doneMsg.style.display = done === 4 ? 'block' : 'none';
+  renderHappyPathNextCta();
 }
 
 function setupHappyPathChecklist() {
   document.querySelectorAll('[data-happy-action]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const action = btn.getAttribute('data-happy-action');
-      if (action === 'create') {
-        navigateToTab('persona-engine');
-        setTimeout(() => {
-          const card = document.getElementById('cardCreateScratch');
-          if (card) card.click();
-          else if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
-        }, 80);
-      } else if (action === 'import') {
-        navigateToTab('persona-engine');
-        setTimeout(() => {
-          document.getElementById('btnOpenImportModal')?.click();
-        }, 80);
-      } else if (action === 'save') {
-        navigateToTab('persona-engine');
-        setTimeout(() => {
-          const form = document.getElementById('personaForm');
-          if (form) form.style.display = 'block';
-          document.getElementById('btnSavePersona')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 80);
-      } else if (action === 'gen') {
-        navigateToTab('persona-engine');
-        setTimeout(() => {
-          document.getElementById('variantManagerSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 120);
-      } else if (action === 'copy') {
-        navigateToTab('persona-engine');
-        setTimeout(() => {
-          document.getElementById('btnCopyChatbotPrompt')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 120);
-      }
+      runHappyPathAction(btn.getAttribute('data-happy-action'));
     });
   });
   renderHappyPathChecklist();
@@ -3860,12 +3963,21 @@ async function savePersona(opts = {}) {
         console.warn('Post-save /api/data refresh failed:', e);
       }
       
-      // Git sync es opt-in y no debe ensuciar el toast de negocio
-      showSyncToast(true, creatingNew
-        ? `¡Influencer "${name}" guardado en el portafolio!`
-        : (withPortrait
+      // W14 — tras primer save: CTA único = copiar pack (no generar imagen)
+      if (creatingNew) {
+        toastSuccess(`«${name}» guardado. Siguiente: copia el pack fullbody (sin gen).`, {
+          actionLabel: 'Copiar pack fullbody',
+          onAction: () => {
+            copyFreeChatbotPack('fullbody');
+          },
+          duration: 10000,
+          gitOk: true
+        });
+      } else {
+        showSyncToast(true, withPortrait
           ? `¡Persona "${name}" guardada${portraitPath ? ' con retrato' : ''}!`
-          : `¡Persona "${name}" guardada!`));
+          : `¡Persona "${name}" guardada!`);
+      }
       renderHappyPathChecklist();
     } else {
       showSyncToast(false, data.message || 'No se pudo guardar la persona.');
