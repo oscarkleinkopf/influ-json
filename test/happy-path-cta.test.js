@@ -41,7 +41,7 @@ test('W14: post-save CTA pack + gen demoted a boceto opcional', () => {
   assert.match(html, /Boceto local opcional/);
   assert.match(html, /id="btnSavePersonaWithPortrait"/);
   assert.match(html, /btnSavePersonaWithPortrait[\s\S]{0,500}Boceto local opcional/);
-  assert.match(html, /id="btnGenerateVariant"[^>]*class="[^"]*btn-secondary/);
+  assert.match(html, /class="btn btn-secondary" id="btnGenerateVariant"/);
   assert.match(html, /id="happyPathNextCta"/);
 
   // No exige Gemini ni Replicate para el flujo
