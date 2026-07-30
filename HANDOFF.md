@@ -66,7 +66,7 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 **Siguiente:** Merge W12 (#34) + W13 → **W14** happy-path CTA.
 
-**Verificación W13:** correr `npm test` + `npm run smoke` en la rama.
+**Verificación W13:** tests **140** · smoke **9/9** · PR [#35](https://github.com/oscarkleinkopf/influ-json/pull/35).
 
 **No tocado:** Replicate.
 
@@ -150,7 +150,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-07-30 | Cursor | W13 biblioteca Packs (menú + último pack) | *(PR W13)* |
+| 2026-07-30 | Cursor | W13 biblioteca Packs (menú + último pack) | PR #35 |
 | 2026-07-30 | Cursor | W12 historial / diff / restore character_lock | PR #34 |
 | 2026-07-29 | Cursor | W11 sesión chatbot 3 prompts + checklist | *(PR W11)* |
 | 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 + PLAN-NEXT → main | *(main)* |
