@@ -54,20 +54,21 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ---
 
-## Sesión reciente (Cursor, 2026-07-29)
+## Sesión reciente (Cursor, 2026-07-30)
 
-**Pedido:** Seguir con W11 (CI rojo + pulido).
+**Pedido:** Continuar (tras estado W12) → W14.
 
 **Hecho:**
-- Fix CI: `INSERT OR IGNORE` en migraciones + `--test-concurrency=1`.
-- Pulido W11: **Abrir checklist**, status en ficha al seleccionar persona.
-- Sesión 3 prompts + badge Chatbot OK (ya en PR #33).
+- Roster vacío: panel **Crear | Importar | Cómo usar** (founder + member).
+- Tras primer save: toast CTA **Copiar pack fullbody**.
+- Gen Pollinations → «Boceto local opcional»; checklist copy antes que gen.
+- `#happyPathNextCta` según estado.
 
-**Siguiente:** **W12** historial / diff de `character_lock`.
+**Siguiente:** Merge W12 (#34) + W13 (#35) + W14 → **W15** offline-first.
 
-**Verificación W11:** tests **137** · smoke **9/9** · en `main`.
+**Verificación W14:** tests **140** · smoke **9/9**.
 
-**No tocado:** Replicate.
+**No tocado:** Replicate. (W12/W13 siguen draft — no mergeados desde el agente.)
 
 
 ---
@@ -149,6 +150,9 @@ Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-30 | Cursor | W14 happy-path CTA (Crear/Importar → pack) | *(PR W14)* |
+| 2026-07-30 | Cursor | W13 biblioteca Packs | PR #35 |
+| 2026-07-30 | Cursor | W12 historial character_lock | PR #34 |
 | 2026-07-29 | Cursor | W11 sesión chatbot 3 prompts + checklist | *(PR W11)* |
 | 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 + PLAN-NEXT → main | *(main)* |
 | 2026-07-29 | Cursor | PLAN-NEXT W11–W17 (moat free post W6–W10) | *(PR #32)* |
