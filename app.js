@@ -1673,7 +1673,7 @@ async function runHappyPathAction(action) {
         selectPersona(state.personas[0]);
       }
       if (!state.selectedPersona && !document.getElementById('pName')?.value) {
-        toastInfo('Guarda un influencer primero; luego copia el pack fullbody.');
+        toastInfo('Guarda un influencer primero; luego Copiar JSON (recomendado).');
         runHappyPathAction('create');
         return;
       }
