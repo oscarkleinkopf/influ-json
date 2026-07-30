@@ -153,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupVariantManager', fn: setupVariantManager },
     { name: 'setupFreeChatbotPacks', fn: setupFreeChatbotPacks },
     { name: 'setupChatbotSessionUi', fn: setupChatbotSessionUi },
+    { name: 'setupLockRevisions', fn: setupLockRevisions },
     { name: 'setupHappyPathChecklist', fn: setupHappyPathChecklist },
     { name: 'setupNichePresets', fn: setupNichePresets },
     { name: 'setupComoUsarGuide', fn: setupComoUsarGuide },
@@ -2383,6 +2384,7 @@ function selectPersona(persona) {
     loadCharacterBible("");
   }
   try { refreshChatbotSessionSheetStatus(); } catch (_) {}
+  try { refreshLockRevisions(); } catch (_) {}
 }
 
 // Render Select grids in tabs
@@ -3713,6 +3715,166 @@ function escapeLockHtml(s) {
 }
 
 /**
+ * W12 — Historial de character_lock (revisiones locales, cap 20).
+ */
+function setupLockRevisions() {
+  document.getElementById('btnRefreshLockRevisions')?.addEventListener('click', () => {
+    refreshLockRevisions({ force: true });
+  });
+  const list = document.getElementById('lockRevisionsList');
+  if (list && !list.dataset.bound) {
+    list.dataset.bound = '1';
+    list.addEventListener('click', async (e) => {
+      const btn = e.target?.closest?.('[data-lock-rev-action]');
+      if (!btn) return;
+      const revId = btn.getAttribute('data-rev-id');
+      const action = btn.getAttribute('data-lock-rev-action');
+      if (!revId || !action) return;
+      if (action === 'diff') {
+        await showLockRevisionDiff(revId);
+      } else if (action === 'restore') {
+        await restoreLockRevision(revId);
+      }
+    });
+  }
+}
+
+function formatLockRevisionWhen(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(String(iso).includes('T') ? iso : String(iso).replace(' ', 'T') + 'Z');
+    if (Number.isNaN(d.getTime())) return String(iso).slice(0, 19);
+    return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
+  } catch (_) {
+    return String(iso).slice(0, 19);
+  }
+}
+
+async function refreshLockRevisions(opts = {}) {
+  const panel = document.getElementById('lockRevisionsPanel');
+  const list = document.getElementById('lockRevisionsList');
+  const diffEl = document.getElementById('lockRevisionDiff');
+  if (!panel || !list) return;
+
+  const personaId = state.selectedPersona?.id;
+  if (!personaId) {
+    panel.style.display = 'none';
+    list.innerHTML = '';
+    if (diffEl) {
+      diffEl.style.display = 'none';
+      diffEl.textContent = '';
+    }
+    return;
+  }
+
+  panel.style.display = 'block';
+  if (!opts.force && list.dataset.personaId === personaId && list.childElementCount) {
+    return;
+  }
+  list.dataset.personaId = personaId;
+  list.innerHTML = '<div class="lock-revisions-empty">Cargando versiones…</div>';
+  if (diffEl) {
+    diffEl.style.display = 'none';
+    diffEl.textContent = '';
+  }
+
+  try {
+    const res = await authFetch(`/api/personas/${personaId}/lock-revisions`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      list.innerHTML = `<div class="lock-revisions-empty">${escapeLockHtml(data.message || 'No se pudo cargar el historial.')}</div>`;
+      return;
+    }
+    const revisions = Array.isArray(data.revisions) ? data.revisions : [];
+    if (!revisions.length) {
+      list.innerHTML = '<div class="lock-revisions-empty">Aún no hay versiones. Guarda el influencer para anclar el primer lock.</div>';
+      return;
+    }
+    list.innerHTML = revisions.map((r, idx) => {
+      const score = r.health_score != null ? `${r.health_score}%` : '—';
+      const source = escapeLockHtml(r.source || 'save');
+      const when = escapeLockHtml(formatLockRevisionWhen(r.created_at));
+      const latest = idx === 0 ? ' <span class="lock-rev-badge">actual</span>' : '';
+      return `
+        <div class="lock-rev-row" data-rev-id="${escapeLockHtml(r.id)}">
+          <div class="lock-rev-meta">
+            <span class="lock-rev-when">${when}</span>
+            <span class="lock-rev-source">${source}${latest}</span>
+            <span class="lock-rev-score">salud ${escapeLockHtml(score)}</span>
+          </div>
+          <div class="lock-rev-actions">
+            <button type="button" class="btn btn-secondary btn-sm" data-lock-rev-action="diff" data-rev-id="${escapeLockHtml(r.id)}">Diff</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-lock-rev-action="restore" data-rev-id="${escapeLockHtml(r.id)}" ${idx === 0 ? 'disabled title="Ya es la versión actual"' : ''}>Restaurar</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = `<div class="lock-revisions-empty">${escapeLockHtml(err.message || 'Error de red')}</div>`;
+  }
+}
+
+function formatLockDiffText(diff) {
+  if (!diff || !Array.isArray(diff.changes) || !diff.changes.length) {
+    return 'Sin diferencias vs el lock actual.';
+  }
+  return diff.changes.map((c) => {
+    const before = c.before == null ? '∅' : (typeof c.before === 'string' ? c.before : JSON.stringify(c.before));
+    const after = c.after == null ? '∅' : (typeof c.after === 'string' ? c.after : JSON.stringify(c.after));
+    return `• ${c.path}\n  revisión: ${before}\n  actual:   ${after}`;
+  }).join('\n\n');
+}
+
+async function showLockRevisionDiff(revId) {
+  const personaId = state.selectedPersona?.id;
+  const diffEl = document.getElementById('lockRevisionDiff');
+  if (!personaId || !diffEl) return;
+  diffEl.style.display = 'block';
+  diffEl.textContent = 'Comparando…';
+  try {
+    const res = await authFetch(`/api/personas/${personaId}/lock-revisions/${revId}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      diffEl.textContent = data.message || 'No se pudo obtener el diff.';
+      return;
+    }
+    const header = `Diff revisión → lock actual (${(data.diff?.changes || []).length} cambio(s))\n\n`;
+    diffEl.textContent = header + formatLockDiffText(data.diff);
+  } catch (err) {
+    diffEl.textContent = err.message || 'Error de red';
+  }
+}
+
+async function restoreLockRevision(revId) {
+  const personaId = state.selectedPersona?.id;
+  if (!personaId) return;
+  const ok = window.confirm(
+    '¿Restaurar esta versión del character_lock?\n\nSe sobrescribe el lock actual y se guarda una nueva revisión. El resto de la ficha no se borra.'
+  );
+  if (!ok) return;
+  try {
+    toastLoading('Restaurando character_lock…');
+    const res = await authFetch(`/api/personas/${personaId}/lock-revisions/${revId}/restore`, {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      toastError(data.message || 'No se pudo restaurar.');
+      return;
+    }
+    if (Array.isArray(data.personas)) state.personas = data.personas;
+    const saved = data.persona || state.personas.find((p) => p.id === personaId);
+    if (saved) {
+      try { selectPersona(saved); } catch (e) { console.warn(e); }
+    }
+    toastSuccess('character_lock restaurado. Revisa salud y packs free.');
+    await refreshLockRevisions({ force: true });
+  } catch (err) {
+    toastError(err.message || 'Error al restaurar.');
+  }
+}
+
+/**
  * F1 — Copiar nunca se bloquea (happy path free primero), pero si el lock
  * tiene errores/avisos el toast lo dice con el problema más grave.
  */
@@ -3866,6 +4028,16 @@ async function savePersona(opts = {}) {
         : (withPortrait
           ? `¡Persona "${name}" guardada${portraitPath ? ' con retrato' : ''}!`
           : `¡Persona "${name}" guardada!`));
+      if (data.lockRevision?.created || data.lockRevision?.healthDropped) {
+        try { await refreshLockRevisions({ force: true }); } catch (_) {}
+      }
+      if (data.lockRevision?.healthDropped) {
+        const prev = data.lockRevision.previousHealthScore;
+        const next = data.lockRevision.healthScore;
+        toastInfo(
+          `Ojo: el character_lock bajó de salud (${prev ?? '?'}% → ${next ?? '?'}%). Revisa «Versiones del character_lock» si perdiste cara/tez/pelo.`
+        );
+      }
       renderHappyPathChecklist();
     } else {
       showSyncToast(false, data.message || 'No se pudo guardar la persona.');

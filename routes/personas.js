@@ -69,6 +69,8 @@ function registerPersonasRoutes(app, deps) {
     }
 
     const persona = dbService.savePersona({ ...body, profile_id: profileId });
+    const lockRevision = persona?.lockRevision || null;
+    if (persona && persona.lockRevision) delete persona.lockRevision;
     if (isNew && persona && persona.id) {
       try {
         dbService.updateGenerationPersonaId('new_persona', persona.id);
@@ -85,6 +87,7 @@ function registerPersonasRoutes(app, deps) {
         personas: dbService.getAllPersonas(profileId),
         persona,
         created: isNew,
+        lockRevision,
         gitSynced: gitSuccess,
         gitMessage: msg
       });
@@ -107,6 +110,61 @@ function registerPersonasRoutes(app, deps) {
     runGitBackup((gitSuccess, msg) => {
       res.json({ success: true, personas: dbService.getAllPersonas(profileId), persona, gitSynced: gitSuccess, gitMessage: msg });
     });
+  });
+
+  // W12 — Historial character_lock
+  app.get('/api/personas/:id/lock-revisions', requireOwnedPersona, (req, res) => {
+    try {
+      const profileId = req.profileId;
+      const revisions = dbService.listCharacterLockRevisions(req.params.id, profileId);
+      if (revisions === null) {
+        return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
+      }
+      res.json({ success: true, revisions });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
+  app.get('/api/personas/:id/lock-revisions/:revId', requireOwnedPersona, (req, res) => {
+    try {
+      const profileId = req.profileId;
+      const rev = dbService.getCharacterLockRevision(req.params.id, req.params.revId, profileId);
+      if (!rev) {
+        return res.status(404).json({ success: false, message: 'Revisión no encontrada.' });
+      }
+      const currentLock = dbService.extractCharacterLock(req.persona.detailedJSON);
+      let diff = null;
+      try {
+        const CharacterLockValidator = require('../character-lock-validator');
+        diff = CharacterLockValidator.diffCharacterLocks(rev.lock, currentLock);
+      } catch (_) {}
+      res.json({ success: true, revision: rev, currentLock, diff });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
+  app.post('/api/personas/:id/lock-revisions/:revId/restore', requireOwnedPersona, (req, res) => {
+    try {
+      const profileId = req.profileId;
+      const persona = dbService.restoreCharacterLockRevision(req.params.id, req.params.revId, profileId);
+      if (!persona) {
+        return res.status(404).json({ success: false, message: 'No se pudo restaurar la revisión.' });
+      }
+      runGitBackup((gitSuccess, msg) => {
+        res.json({
+          success: true,
+          persona,
+          personas: dbService.getAllPersonas(profileId),
+          lockRevision: persona.lockRevision || null,
+          gitSynced: gitSuccess,
+          gitMessage: msg
+        });
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
   });
 
   // Persona Variants endpoints

@@ -212,5 +212,50 @@
     return { score, grade, gradeLabel, errors, warnings, infos, summary };
   }
 
-  return { validateCharacterLock, isValidHex, hexBrightness };
+  /**
+   * Diff superficial de two character_lock objects (must_match + meta).
+   * @returns {{ changes: Array<{ path: string, before: *, after: * }>, changed: boolean }}
+   */
+  function diffCharacterLocks(beforeLock, afterLock) {
+    const a = (beforeLock && typeof beforeLock === 'object') ? beforeLock : {};
+    const b = (afterLock && typeof afterLock === 'object') ? afterLock : {};
+    const changes = [];
+    const metaKeys = ['niche', 'version', 'free_tier', 'brand_voice', 'free_chatbot_system'];
+    for (const k of metaKeys) {
+      const av = a[k];
+      const bv = b[k];
+      if (JSON.stringify(av) !== JSON.stringify(bv)) {
+        changes.push({ path: k, before: av ?? null, after: bv ?? null });
+      }
+    }
+    const am = a.must_match_every_image || {};
+    const bm = b.must_match_every_image || {};
+    const keys = new Set([...Object.keys(am), ...Object.keys(bm)]);
+    for (const k of keys) {
+      if (JSON.stringify(am[k]) !== JSON.stringify(bm[k])) {
+        changes.push({ path: `must_match_every_image.${k}`, before: am[k] ?? null, after: bm[k] ?? null });
+      }
+    }
+    return { changes, changed: changes.length > 0 };
+  }
+
+  /** true si el score nuevo es claramente peor (umbral 8 pts o grade drop). */
+  function didLockHealthDrop(prevScore, nextScore, prevGrade, nextGrade) {
+    const ps = Number(prevScore);
+    const ns = Number(nextScore);
+    if (!Number.isFinite(ps) || !Number.isFinite(ns)) return false;
+    const gradeRank = { solid: 3, ok: 2, weak: 1 };
+    const pr = gradeRank[prevGrade] || 0;
+    const nr = gradeRank[nextGrade] || 0;
+    if (nr < pr) return true;
+    return ns <= ps - 8;
+  }
+
+  return {
+    validateCharacterLock,
+    isValidHex,
+    hexBrightness,
+    diffCharacterLocks,
+    didLockHealthDrop
+  };
 });

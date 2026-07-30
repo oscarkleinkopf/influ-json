@@ -1054,6 +1054,15 @@
                 </div>
               </div>
               <div id="lockHealthPanel" class="lock-health" style="display:none;"></div>
+              <div id="lockRevisionsPanel" class="lock-revisions" style="display:none;">
+                <div class="lock-revisions-head">
+                  <strong>Versiones del character_lock</strong>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshLockRevisions" style="padding:4px 8px;font-size:10px;">Actualizar</button>
+                </div>
+                <p class="lock-revisions-hint">Historial local (máx. 20). Restaura si tocaste el JSON y perdiste cara/tez/pelo.</p>
+                <div id="lockRevisionsList" class="lock-revisions-list"></div>
+                <pre id="lockRevisionDiff" class="lock-revision-diff" style="display:none;"></pre>
+              </div>
               <div class="prompt-text" id="promptPreview">Cargando prompt...</div>
               <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
                 <div style="font-size: 10px; text-transform: uppercase; color: #34d399; font-weight: 700; margin-bottom: 8px;">🆓 Packs gratis (F5) — pegar en chatbot free</div>
@@ -2241,12 +2250,12 @@
     </div>
   </div>
 
-  <script src="character-lock-validator.js?v=1.0.0"></script>
+  <script src="character-lock-validator.js?v=1.1.0"></script>
   <script src="niche-presets.js?v=1.0.0"></script>
   <script src="qa-matrix.js?v=1.0.0"></script>
   <script src="chatbot-packs.js?v=1.1.0"></script>
   <script src="import-flow.js?v=1.0.0"></script>
   <script src="prompt-builder.js?v=1.0.0"></script>
-  <script src="app.js?v=1.9.6"></script>
+  <script src="app.js?v=1.9.7"></script>
 </body>
 </html>

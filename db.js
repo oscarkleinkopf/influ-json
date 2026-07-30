@@ -543,7 +543,10 @@ module.exports = {
       );
       syncDbToWorkspace();
       syncPersonasJson();
-      return this.getPersonaById(existing.id);
+      const updated = this.getPersonaById(existing.id);
+      const lockRev = this.recordCharacterLockRevisionIfChanged(updated, 'save');
+      if (lockRev) updated.lockRevision = lockRev;
+      return updated;
     }
 
     // INSERT new persona (forceCreate, missing id, or unknown id)
@@ -573,7 +576,202 @@ module.exports = {
     );
     syncDbToWorkspace();
     syncPersonasJson();
-    return this.getPersonaById(id);
+    const created = this.getPersonaById(id);
+    const lockRev = this.recordCharacterLockRevisionIfChanged(created, 'create');
+    if (lockRev) created.lockRevision = lockRev;
+    return created;
+  },
+
+  /**
+   * W12 — Extrae character_lock de detailedJSON (objeto o string).
+   */
+  extractCharacterLock(detailedJSON) {
+    const d = parseDetailedJSON(detailedJSON);
+    const lock = d && d.character_lock;
+    return lock && typeof lock === 'object' ? lock : null;
+  },
+
+  /**
+   * W12 — Guarda revisión si el lock cambió. Cap 20 por persona.
+   * @returns {null|{ id, created, healthScore, previousHealthScore, healthDropped, grade }}
+   */
+  recordCharacterLockRevisionIfChanged(persona, source = 'save') {
+    if (!persona?.id) return null;
+    const lock = this.extractCharacterLock(persona.detailedJSON);
+    if (!lock) return null;
+
+    const lockJson = JSON.stringify(lock);
+    const latest = db.prepare(`
+      SELECT id, lock_json, health_score FROM character_lock_revisions
+      WHERE persona_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1
+    `).get(persona.id);
+
+    if (latest && latest.lock_json === lockJson) {
+      return {
+        id: latest.id,
+        created: false,
+        healthScore: latest.health_score,
+        previousHealthScore: latest.health_score,
+        healthDropped: false,
+        grade: null
+      };
+    }
+
+    let healthScore = null;
+    let grade = null;
+    try {
+      const CharacterLockValidator = require('./character-lock-validator');
+      const personaJSON = typeof persona.detailedJSON === 'object'
+        ? persona.detailedJSON
+        : parseDetailedJSON(persona.detailedJSON);
+      const v = CharacterLockValidator.validateCharacterLock(personaJSON || { character_lock: lock });
+      healthScore = v.score;
+      grade = v.grade;
+    } catch (_) {}
+
+    const prevScore = latest ? latest.health_score : null;
+    let healthDropped = false;
+    if (prevScore != null && healthScore != null) {
+      try {
+        const CharacterLockValidator = require('./character-lock-validator');
+        let prevGrade = null;
+        try {
+          const prevLock = JSON.parse(latest.lock_json);
+          const prevV = CharacterLockValidator.validateCharacterLock({ character_lock: prevLock });
+          prevGrade = prevV.grade;
+        } catch (_) {}
+        healthDropped = CharacterLockValidator.didLockHealthDrop(prevScore, healthScore, prevGrade, grade);
+      } catch (_) {
+        healthDropped = healthScore <= prevScore - 8;
+      }
+    }
+
+    const { v4: uuidv4 } = require('uuid');
+    const revId = uuidv4();
+    db.prepare(`
+      INSERT INTO character_lock_revisions (id, persona_id, profile_id, lock_json, source, health_score)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+      revId,
+      persona.id,
+      persona.profile_id || null,
+      lockJson,
+      String(source || 'save').slice(0, 40),
+      healthScore
+    );
+
+    // Cap N=20 (más nuevas primero)
+    const old = db.prepare(`
+      SELECT id FROM character_lock_revisions
+      WHERE persona_id = ?
+      ORDER BY created_at DESC, rowid DESC
+      LIMIT -1 OFFSET 20
+    `).all(persona.id);
+    if (old.length) {
+      const del = db.prepare('DELETE FROM character_lock_revisions WHERE id = ?');
+      for (const row of old) del.run(row.id);
+    }
+
+    return {
+      id: revId,
+      created: true,
+      healthScore,
+      previousHealthScore: prevScore,
+      healthDropped,
+      grade
+    };
+  },
+
+  listCharacterLockRevisions(personaId, profileId = null) {
+    if (profileId) {
+      const owned = this.assertPersonaOwnedBy(personaId, profileId);
+      if (!owned) return null;
+    }
+    return db.prepare(`
+      SELECT id, persona_id, profile_id, source, health_score, created_at, lock_json
+      FROM character_lock_revisions
+      WHERE persona_id = ?
+      ORDER BY created_at DESC, rowid DESC
+      LIMIT 20
+    `).all(personaId).map((r) => {
+      let lock = null;
+      try { lock = JSON.parse(r.lock_json); } catch (_) {}
+      return {
+        id: r.id,
+        persona_id: r.persona_id,
+        profile_id: r.profile_id,
+        source: r.source,
+        health_score: r.health_score,
+        created_at: r.created_at,
+        lock
+      };
+    });
+  },
+
+  getCharacterLockRevision(personaId, revisionId, profileId = null) {
+    if (profileId) {
+      const owned = this.assertPersonaOwnedBy(personaId, profileId);
+      if (!owned) return null;
+    }
+    const r = db.prepare(`
+      SELECT id, persona_id, profile_id, source, health_score, created_at, lock_json
+      FROM character_lock_revisions
+      WHERE id = ? AND persona_id = ?
+    `).get(revisionId, personaId);
+    if (!r) return null;
+    let lock = null;
+    try { lock = JSON.parse(r.lock_json); } catch (_) {}
+    return {
+      id: r.id,
+      persona_id: r.persona_id,
+      profile_id: r.profile_id,
+      source: r.source,
+      health_score: r.health_score,
+      created_at: r.created_at,
+      lock
+    };
+  },
+
+  /**
+   * Restaura character_lock en detailedJSON y guarda (crea revisión source=restore).
+   */
+  restoreCharacterLockRevision(personaId, revisionId, profileId = null) {
+    const owned = profileId ? this.assertPersonaOwnedBy(personaId, profileId) : this.getPersonaById(personaId);
+    if (!owned) return null;
+    const rev = this.getCharacterLockRevision(personaId, revisionId, profileId);
+    if (!rev || !rev.lock) return null;
+
+    const detailed = parseDetailedJSON(owned.detailedJSON) || {};
+    detailed.character_lock = rev.lock;
+    // Sync must_match fields into face/hair/body when present (best-effort)
+    const must = rev.lock.must_match_every_image || {};
+    if (must.skin_tone || must.skin_tone_hex) {
+      detailed.facial_features = detailed.facial_features || {};
+      if (must.skin_tone) detailed.facial_features.skin_tone = must.skin_tone;
+      if (must.skin_tone_hex) detailed.facial_features.skin_tone_hex = must.skin_tone_hex;
+      if (must.eye_color) detailed.facial_features.eye_color = must.eye_color;
+    }
+    if (must.hair_color || must.hair_texture || must.hair_length) {
+      detailed.hair = detailed.hair || {};
+      if (must.hair_color) detailed.hair.color = must.hair_color;
+      if (must.hair_texture) detailed.hair.texture = must.hair_texture;
+      if (must.hair_length) detailed.hair.length = must.hair_length;
+    }
+
+    const saved = this.savePersona({
+      ...owned,
+      id: personaId,
+      detailedJSON: detailed,
+      profile_id: owned.profile_id || profileId,
+      forceCreate: false
+    });
+    if (saved?.lockRevision?.id && saved.lockRevision.created) {
+      try {
+        db.prepare(`UPDATE character_lock_revisions SET source = 'restore' WHERE id = ?`).run(saved.lockRevision.id);
+        saved.lockRevision.source = 'restore';
+      } catch (_) {}
+    }
+    return saved;
   },
 
   getVersionsForPersona(personaId) {

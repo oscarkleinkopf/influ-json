@@ -229,6 +229,25 @@ const MIGRATIONS = [
         CREATE INDEX IF NOT EXISTS idx_gen_metrics_created ON gen_metrics(created_at);
       `);
     }
+  },
+  {
+    id: 9,
+    name: 'character_lock_revisions',
+    up(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS character_lock_revisions (
+          id TEXT PRIMARY KEY,
+          persona_id TEXT NOT NULL,
+          profile_id TEXT,
+          lock_json TEXT NOT NULL,
+          source TEXT NOT NULL DEFAULT 'save',
+          health_score INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_lock_revisions_persona ON character_lock_revisions(persona_id, created_at DESC);
+      `);
+    }
   }
 ];
 

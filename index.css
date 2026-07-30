@@ -2718,6 +2718,123 @@ input:checked + .slider:before {
 }
 
 /* ============================================
+   W12 — Character lock revisions
+   ============================================ */
+.lock-revisions {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: var(--border-radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+}
+
+.lock-revisions-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-primary);
+}
+
+.lock-revisions-hint {
+  margin: 4px 0 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.lock-revisions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.lock-revisions-empty {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+.lock-rev-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--border-radius-sm);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid transparent;
+}
+
+.lock-rev-row:hover {
+  border-color: var(--glass-border);
+}
+
+.lock-rev-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  min-width: 0;
+}
+
+.lock-rev-when {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.lock-rev-source {
+  text-transform: lowercase;
+}
+
+.lock-rev-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 5px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 3px;
+}
+
+.lock-rev-score {
+  color: var(--text-muted);
+}
+
+.lock-rev-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.lock-rev-actions .btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.lock-revision-diff {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  max-height: 160px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-sm);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ============================================
    F6 — Happy path 60s checklist
    ============================================ */
 .happy-path-progress {

@@ -86,22 +86,22 @@ No asignar dos bots al mismo archivo caliente (`app.js`, `server.js`) a la vez.
 
 ---
 
-## W12 — Historial / diff de `character_lock`
+## W12 — Historial / diff de `character_lock` ✅
 
 **Por qué:** hoy el lock se sobrescribe; no se ve qué cambió ni si se rompió identidad.
 
-**Rama:** `cursor/character-lock-history-152f`
+**Rama:** `cursor/character-lock-history-152f` (implementado 2026-07-30)
 
-**Archivos:** `db.js` + `migrations.js` (tabla `character_lock_revisions`: persona_id, profile_id, lock_json, source, created_at), hooks en save/import, UI ficha, `character-lock-validator.js`.
+**Archivos:** `db.js` + `migrations.js` (tabla `character_lock_revisions`: persona_id, profile_id, lock_json, source, health_score, created_at), hooks en save, UI ficha, `character-lock-validator.js`, routes.
 
 **Implementación:**
 
-1. En cada save/import que mute `detailedJSON.character_lock`, insertar revisión (cap N=20 por persona).
-2. UI: “Versiones del lock” → ver diff textual (campos identity/skin/hair/body).
-3. Acción **Restaurar esta versión** (escribe lock actual + nueva revisión).
-4. Validador: aviso si la revisión nueva baja el score de salud vs la anterior.
+1. En cada save que mute `detailedJSON.character_lock`, insertar revisión (cap N=20 por persona).
+2. UI: “Versiones del character_lock” → Diff textual (must_match + meta) vs actual.
+3. Acción **Restaurar** (escribe lock + nueva revisión `source=restore`).
+4. Validador: toast si la revisión nueva baja el score de salud vs la anterior.
 
-**Tests:** save crea revisión; restore vuelve al JSON previo; member no ve revisiones ajenas.
+**Tests:** `test/character-lock-history.test.js` — save crea revisión; restore vuelve al JSON previo; member 404.
 
 **Criterio de hecho:** se puede deshacer un “toqué el JSON y perdí la cara” sin backup completo.
 

@@ -25,15 +25,15 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (W11 integrado) |
-| **Commit base** | `455e1fb` (W11 + fix CI) |
-| **PR actual** | #33 W11 (integrado en main; se puede cerrar) |
-| **`main` remoto** | Paso 0 + **W11** sesión chatbot |
-| **Etapa de producto** | Moat free → W12 historial lock |
-| **Prioridad inmediata** | **W12** character_lock history; **no Replicate** |
+| **Rama de trabajo** | `cursor/character-lock-history-152f` (W12) |
+| **Commit base** | tip de esta rama (W12 historial lock) |
+| **PR actual** | W12 draft (historial character_lock) |
+| **`main` remoto** | Paso 0 + **W11** (W12 pendiente de merge) |
+| **Etapa de producto** | Moat free → W13 pack library |
+| **Prioridad inmediata** | Merge W12 → **W13** biblioteca de packs; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-07-29 |
+| **Última actualización** | 2026-07-30 |
 
 ### Pila #4–#16 — INTEGRADA ✅
 
@@ -54,18 +54,19 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ---
 
-## Sesión reciente (Cursor, 2026-07-29)
+## Sesión reciente (Cursor, 2026-07-30)
 
-**Pedido:** Seguir con W11 (CI rojo + pulido).
+**Pedido:** Continuar con W12.
 
 **Hecho:**
-- Fix CI: `INSERT OR IGNORE` en migraciones + `--test-concurrency=1`.
-- Pulido W11: **Abrir checklist**, status en ficha al seleccionar persona.
-- Sesión 3 prompts + badge Chatbot OK (ya en PR #33).
+- Migración v9 `character_lock_revisions` + hooks en `savePersona`.
+- API list/diff/restore con ownership.
+- UI ficha: Versiones del lock, Diff, Restaurar + toast si baja salud.
+- `diffCharacterLocks` / `didLockHealthDrop` en validador.
 
-**Siguiente:** **W12** historial / diff de `character_lock`.
+**Siguiente:** Merge W12 → **W13** biblioteca de packs por persona.
 
-**Verificación W11:** tests **137** · smoke **9/9** · en `main`.
+**Verificación W12:** correr `npm test` + `npm run smoke` en la rama.
 
 **No tocado:** Replicate.
 
@@ -119,7 +120,7 @@ routes/import.js + generation.js ✅ (W5d)
 routes/admin.js    ✅ (W5e) — W5 extracciones completas
 ```
 
-Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente:** [PLAN-NEXT.md](./PLAN-NEXT.md) W11–W17.
+Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. **Siguiente:** [PLAN-NEXT.md](./PLAN-NEXT.md) W13–W17.
 
 ## Smoke manual obligatorio (post-merge — resultado)
 
@@ -149,6 +150,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-30 | Cursor | W12 historial / diff / restore character_lock | *(PR W12)* |
 | 2026-07-29 | Cursor | W11 sesión chatbot 3 prompts + checklist | *(PR W11)* |
 | 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 + PLAN-NEXT → main | *(main)* |
 | 2026-07-29 | Cursor | PLAN-NEXT W11–W17 (moat free post W6–W10) | *(PR #32)* |
