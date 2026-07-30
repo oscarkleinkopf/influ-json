@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/character-lock-history-152f` (W12) |
-| **Commit base** | tip de esta rama (W12 historial lock) |
-| **PR actual** | W12 draft (historial character_lock) |
-| **`main` remoto** | Paso 0 + **W11** (W12 pendiente de merge) |
-| **Etapa de producto** | Moat free → W13 pack library |
-| **Prioridad inmediata** | Merge W12 → **W13** biblioteca de packs; **no Replicate** |
+| **Rama de trabajo** | `cursor/merge-w12-w17-152f` (integración) |
+| **Commit base** | stack W12+W13… → main |
+| **PR actual** | Merge stack W12–W17 (draft) |
+| **`main` remoto** | Paso 0 + **W11** (W12–W17 vía este PR) |
+| **Etapa de producto** | Moat free → cierre W11–W17 |
+| **Prioridad inmediata** | Merge este PR → `main`; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-30 |
@@ -56,17 +56,13 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ## Sesión reciente (Cursor, 2026-07-30)
 
-**Pedido:** Continuar con W12.
+**Pedido:** Continuar con merge sugerido W12→W17.
 
-**Hecho:**
-- Migración v9 `character_lock_revisions` + hooks en `savePersona`.
-- API list/diff/restore con ownership.
-- UI ficha: Versiones del lock, Diff, Restaurar + toast si baja salud.
-- `diffCharacterLocks` / `didLockHealthDrop` en validador.
+**Hecho (parcial mientras se apila):**
+- W12 historial lock + W13 pack library en rama de integración.
+- Sigue apilando W14–W17.
 
-**Siguiente:** Merge W12 → **W13** biblioteca de packs por persona.
-
-**Verificación W12:** tests **142** · smoke **9/9** · PR [#34](https://github.com/oscarkleinkopf/influ-json/pull/34).
+**Siguiente:** Tip integrado verificado → PR único a `main`.
 
 **No tocado:** Replicate.
 
@@ -150,6 +146,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-30 | Cursor | W13 biblioteca Packs (menú + último pack) | PR #35 |
 | 2026-07-30 | Cursor | W12 historial / diff / restore character_lock | PR #34 |
 | 2026-07-29 | Cursor | W11 sesión chatbot 3 prompts + checklist | *(PR W11)* |
 | 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 + PLAN-NEXT → main | *(main)* |

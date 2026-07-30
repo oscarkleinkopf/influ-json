@@ -117,7 +117,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
-| 2026-07-30 | **W12 historial lock** | Revisiones character_lock (cap 20), diff, restore, aviso salud |
+| 2026-07-30 | **W13 pack library** | Menú Packs en portafolio + último pack localStorage + recopy |
+| 2026-07-30 | **W12 historial lock** | Revisiones character_lock (cap 20), diff, restore — PR #34 |
 | 2026-07-29 | **W11 sesión chatbot** | 3 prompts + checklist localStorage; badge Chatbot OK |
 | 2026-07-29 | **Paso 0 merge W6 + W7–W10 + PLAN-NEXT → main** | Conflictos resueltos; tests+smoke |
 | 2026-07-29 | **PLAN-NEXT.md** | W11–W17 moat free; Replicate con señal |

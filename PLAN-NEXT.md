@@ -107,22 +107,22 @@ No asignar dos bots al mismo archivo caliente (`app.js`, `server.js`) a la vez.
 
 ---
 
-## W13 — Biblioteca de packs por persona (un clic)
+## W13 — Biblioteca de packs por persona (un clic) ✅
 
 **Por qué:** los 4 packs free existen, pero el hábito es frágil; falta “última copia” y atajos en portafolio.
 
-**Rama:** `cursor/pack-library-152f`
+**Rama:** `cursor/pack-library-152f` (implementado 2026-07-30)
 
-**Archivos:** `chatbot-packs.js`, `app.js`, `index.html`, CSS mínimo.
+**Archivos:** `chatbot-packs.js`, `app.js`, `index.html`, `index.css`.
 
 **Implementación:**
 
-1. En tarjeta de portafolio: menú **Packs** → fullbody / bikini / spicy / producto (ya hay fullbody; completar).
-2. Tras copiar: toast con “Volver a copiar último pack” (memoria por `personaId` en `localStorage`).
-3. En ficha: misma biblioteca + contador “copiado hace Xs”.
-4. Opcional: `?pack=fullbody` en export ZIP ya cubierto — no duplicar servidor.
+1. En tarjeta de portafolio: menú **Packs ▾** → fullbody / bikini / spicy / product.
+2. Tras copiar: toast con “Volver a copiar último pack” (`influ_last_pack_${profile}_${personaId}`).
+3. En ficha + panel prompt: status “Último: … · copiado hace Xs” + botón recopy.
+4. Export ZIP: sin cambios de servidor (sigue enviando los 4 packs).
 
-**Tests:** cada tipo de pack incluye `character_lock`; UI no llama APIs de pago.
+**Tests:** `test/pack-library.test.js` — 4 packs con `character_lock`; UI sin APIs de pago.
 
 **Criterio de hecho:** desde portafolio se copia cualquier pack free en un clic sin abrir la ficha completa.
 
