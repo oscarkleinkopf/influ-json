@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/merge-w12-w17-152f` (integración) |
-| **Commit base** | stack W12–W17 → main |
-| **PR actual** | [#40](https://github.com/oscarkleinkopf/influ-json/pull/40) merge W12–W17 (draft) |
-| **`main` remoto** | Paso 0 + **W11** (W12–W17 vía este PR) |
-| **Etapa de producto** | Moat free → cierre W11–W17 |
-| **Prioridad inmediata** | Merge este PR → `main`; **no Replicate** |
+| **Rama de trabajo** | `main` (W11–W17 integrado) |
+| **Commit base** | `cbdae55` (merge stack W12–W17) |
+| **PR actual** | #40 **MERGED** · #34–#39 también merged vía tip |
+| **`main` remoto** | Paso 0 + **W11–W17** moat free |
+| **Etapa de producto** | Moat free cerrado → validar en uso real |
+| **Prioridad inmediata** | Usar happy path (JSON → chatbot free) 2–3 días; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-07-30 |
@@ -52,18 +52,27 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 | 2–5 | #27–#30 | W7 metrics → W10 backup ZIP | **merged → main** |
 | docs | #32 | PLAN-NEXT W11–W17 | **merged → main** |
 
+### Pila W12–W17 — INTEGRADA ✅ (2026-07-30)
+
+FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#40 **MERGED**.
+
+| Orden | PR | Contenido | Estado |
+|------:|---:|-----------|--------|
+| 1–6 | #34–#39 | W12 historial → W17 audit | **merged** (vía tip #40) |
+| tip | #40 | Stack integración W12–W17 | **merged → main** |
+
 ---
 
 ## Sesión reciente (Cursor, 2026-07-30)
 
-**Pedido:** Continuar con merge sugerido W12→W17.
+**Pedido:** Mergear stack W12–W17 a `main`.
 
 **Hecho:**
-- Rama `cursor/merge-w12-w17-152f` apila W12–W17 con conflictos resueltos.
-- Migraciones: v9 `character_lock_revisions` + v10 `audit_events`.
-- UX combinada: Packs menu + Copiar JSON (recomendado) + badges Listo/Revisar + audit log admin.
+- FF-merge #40 → `main` (`cbdae55`).
+- GitHub marcó #34–#40 como MERGED.
+- Schema v9 lock revisions + v10 audit_events en producción local tip.
 
-**Siguiente:** Owner mergea este PR → `main`; cerrar #34–#39 como superseded. Replicate en pausa.
+**Siguiente:** Validar happy path en uso real (crear → Copiar JSON → chatbot free). Seguridad mínima solo si entra un segundo usuario. Replicate en pausa.
 
 **No tocado:** Replicate.
 
@@ -146,6 +155,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-30 | Cursor | Merge stack W12–W17 → main (#34–#40) | `cbdae55` |
 | 2026-07-30 | Cursor | W17 audit log local (admin, v10) | *(PR W17)* |
 | 2026-07-30 | Cursor | W16 badges Listo / Revisar / Sin ancla | PR #38 |
 | 2026-07-30 | Cursor | W15 offline-first | PR #37 |
