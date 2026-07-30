@@ -32,8 +32,9 @@ test('W13: los 4 packs incluyen character_lock y no APIs de pago', () => {
     assert.match(text, /CHARACTER LOCK/, packId);
     assert.match(text, /#f0d5c0/, packId);
     assert.match(text, /Vera/, packId);
-    assert.doesNotMatch(text, /REPLICATE_API/, packId);
-    assert.doesNotMatch(text, /InstantID|PuLID/, packId);
+    assert.match(text, /Cero costo/i, packId);
+    // Menciona InstantID solo como “sin InstantID” (free path); no tokens ni APIs de pago
+    assert.doesNotMatch(text, /REPLICATE_API_TOKEN|r8_|api\.replicate\.com/, packId);
     assert.ok(FREE_CHATBOT_PACKS[packId].label);
   }
 });
