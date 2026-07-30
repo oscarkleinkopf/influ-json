@@ -401,6 +401,64 @@ function showFounderWelcomeModal() {
 }
 
 /**
+ * W16 — Estado listo/revisar/sin ancla (validador local). No bloquea export.
+ */
+function getPersonaExportReadyStatus(persona) {
+  if (typeof CharacterLockValidator !== 'undefined' && CharacterLockValidator.getExportReadyStatus) {
+    return CharacterLockValidator.getExportReadyStatus(persona);
+  }
+  // Fallback mínimo sin validador
+  const hasImage = persona?.image && !/influencer_(female|male)\.png/.test(persona.image);
+  return {
+    kind: hasImage ? 'ready' : 'no_anchor',
+    label: hasImage ? 'Listo' : 'Sin ancla',
+    grade: 'ok',
+    score: hasImage ? 80 : 40,
+    hasRealAnchor: !!hasImage,
+    lockOk: true,
+    gradeLabel: '—'
+  };
+}
+
+function openExportReadyFromBadge(persona, kind) {
+  try {
+    selectPersona(persona);
+  } catch (e) {
+    console.warn('selectPersona from export badge:', e);
+  }
+  navigateToTab('persona-engine');
+  setTimeout(() => {
+    if (kind === 'no_anchor') {
+      // Sin ancla → checklist / sesión chatbot (anclar identidad en free chatbot)
+      try {
+        openChatbotSessionChecklistModal();
+      } catch (_) {
+        document.getElementById('lockHealthPanel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      toastInfo('Sin ancla de imagen — puedes igual copiar el pack. Usa el checklist o importa un retrato.');
+      return;
+    }
+    const panel = document.getElementById('lockHealthPanel');
+    if (panel) {
+      panel.style.display = 'block';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Abrir lista de avisos si existe
+      const toggle = document.getElementById('lockHealthToggle');
+      const list = document.getElementById('lockHealthList');
+      if (toggle && list && list.style.display === 'none') {
+        toggle.click();
+      }
+    }
+    if (kind === 'review') {
+      toastInfo('Revisa el character_lock — export / copiar pack no se bloquean.');
+    } else {
+      toastSuccess('Lock listo para pegar en chatbot free.');
+    }
+  }, 120);
+}
+
+
+/**
  * Founder/admin: primer arranque con roster vacío (no bloquea si ya hay personas).
  */
 function maybeShowFounderOnboarding() {
@@ -1277,6 +1335,17 @@ function getFilteredPortfolioPersonas() {
     filtered = filtered.filter(p => !isArchivedPersona(p));
   } else if (state.portfolioFilter === 'archived') {
     filtered = filtered.filter(p => isArchivedPersona(p));
+  } else if (state.portfolioFilter === 'ready') {
+    filtered = filtered.filter((p) => {
+      if (isArchivedPersona(p)) return false;
+      return getPersonaExportReadyStatus(p).kind === 'ready';
+    });
+  } else if (state.portfolioFilter === 'review') {
+    filtered = filtered.filter((p) => {
+      if (isArchivedPersona(p)) return false;
+      const k = getPersonaExportReadyStatus(p).kind;
+      return k === 'review' || k === 'no_anchor';
+    });
   }
 
   const q = (state.portfolioSearchQuery || '').toLowerCase().trim();
@@ -1324,6 +1393,8 @@ function updateDashboardStats() {
   if (statLabel) {
     if (state.portfolioFilter === 'archived') statLabel.textContent = 'Archivados';
     else if (state.portfolioFilter === 'active') statLabel.textContent = 'Activos';
+    else if (state.portfolioFilter === 'ready') statLabel.textContent = 'Listos';
+    else if (state.portfolioFilter === 'review') statLabel.textContent = 'A revisar';
     else statLabel.textContent = 'Influencers';
   }
 
@@ -1340,7 +1411,10 @@ function updateDashboardStats() {
   const meta = document.getElementById('portfolioResultMeta');
   if (meta) {
     const filterLabel = state.portfolioFilter === 'active' ? 'activos'
-      : state.portfolioFilter === 'archived' ? 'archivados' : 'todos';
+      : state.portfolioFilter === 'archived' ? 'archivados'
+      : state.portfolioFilter === 'ready' ? 'listos'
+      : state.portfolioFilter === 'review' ? 'a revisar'
+      : 'todos';
     const q = (state.portfolioSearchQuery || '').trim();
     if (q) {
       meta.textContent = `${visibleCount} visibles · filtro “${filterLabel}” · búsqueda “${q}”`;
@@ -1442,6 +1516,12 @@ function updateDashboardStats() {
     const card = document.createElement('div');
     const isSelected = state.selectedPersona?.id === p.id;
     card.className = `portfolio-card ${isSelected ? 'selected' : ''}`;
+    const exportStatus = getPersonaExportReadyStatus(p);
+    const exportBadgeClass = exportStatus.kind === 'ready'
+      ? 'badge-export-ready'
+      : exportStatus.kind === 'review'
+        ? 'badge-lock-review'
+        : 'badge-no-anchor';
     if (isArchivedPersona(p)) card.classList.add('archived-style');
 
     card.innerHTML = `
@@ -1450,6 +1530,8 @@ function updateDashboardStats() {
         <span class="portfolio-badge badge-style">${p.style || 'Lifestyle'}</span>
         ${isArchivedPersona(p) ? '<span class="portfolio-badge badge-archived">Archivado</span>' : ''}
         ${isChatbotSessionPassingForPersona(p) ? '<span class="portfolio-badge badge-chatbot-ok" title="Checklist chatbot: cara + tez + pelo OK">Chatbot OK</span>' : ''}
+        ${!isArchivedPersona(p) ? `<button type="button" class="portfolio-badge ${exportBadgeClass}" data-export-status="${exportStatus.kind}" title="${exportStatus.summary || exportStatus.label}">${exportStatus.label}</button>` : ''}
+
       </div>
       <div class="portfolio-card-info">
         <div class="portfolio-card-title-row">
@@ -1488,6 +1570,13 @@ function updateDashboardStats() {
       selectPersona(p);
       navigateToTab('persona-engine');
     });
+
+    // W16 — badge export-ready → validador / checklist (no bloquea export)
+    card.querySelector('[data-export-status]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openExportReadyFromBadge(p, e.currentTarget.getAttribute('data-export-status'));
+    });
+
 
     // W13 — menú Packs (fullbody / bikini / spicy / product)
     const packToggle = card.querySelector('.btn-quick-packs');
@@ -1565,6 +1654,8 @@ function setPortfolioFilter(filter) {
   // Toggle active class on filter buttons
   document.getElementById('btnPortfolioAll').classList.toggle('active', filter === 'all');
   document.getElementById('btnPortfolioActive').classList.toggle('active', filter === 'active');
+  document.getElementById('btnPortfolioReady')?.classList.toggle('active', filter === 'ready');
+  document.getElementById('btnPortfolioReview')?.classList.toggle('active', filter === 'review');
   document.getElementById('btnPortfolioArchived').classList.toggle('active', filter === 'archived');
   
   updateDashboardStats();

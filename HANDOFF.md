@@ -146,6 +146,8 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-30 | Cursor | W16 badges Listo / Revisar / Sin ancla | PR #38 |
+| 2026-07-30 | Cursor | W15 offline-first | PR #37 |
 | 2026-07-30 | Cursor | W15 offline-first (copy recomendado, 429→offline) | PR #37 |
 | 2026-07-30 | Cursor | W14 happy-path CTA | PR #36 |
 | 2026-07-30 | Cursor | W13 biblioteca Packs | PR #35 |
