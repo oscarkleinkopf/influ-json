@@ -232,6 +232,31 @@ Si cara/tez/pelo cambian entre A/B/C, dilo explícitamente.
     return Object.keys(FREE_CHATBOT_PACKS);
   }
 
+  /**
+   * W13 — Edad relativa de una copia ("hace 12s", "hace 3m").
+   * @param {string|number|Date|null} copiedAt
+   * @param {number} [nowMs]
+   */
+  function formatRelativeCopyAge(copiedAt, nowMs = Date.now()) {
+    if (copiedAt == null || copiedAt === '') return null;
+    const t = typeof copiedAt === 'number' ? copiedAt : Date.parse(copiedAt);
+    if (!Number.isFinite(t)) return null;
+    const sec = Math.max(0, Math.floor((nowMs - t) / 1000));
+    if (sec < 60) return `hace ${sec}s`;
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `hace ${min}m`;
+    const hr = Math.floor(min / 60);
+    if (hr < 48) return `hace ${hr}h`;
+    const days = Math.floor(hr / 24);
+    return `hace ${days}d`;
+  }
+
+  /** @returns {string|null} etiqueta corta del pack o null */
+  function packLabel(packId) {
+    const p = FREE_CHATBOT_PACKS[packId];
+    return p ? p.label : null;
+  }
+
   return {
     FREE_CHATBOT_PACKS,
     buildFreeChatbotPack,
@@ -239,6 +264,8 @@ Si cara/tez/pelo cambian entre A/B/C, dilo explícitamente.
     SESSION_CHECK_KEYS,
     emptySessionChecklist,
     isSessionChecklistPassing,
-    listPackIds
+    listPackIds,
+    formatRelativeCopyAge,
+    packLabel
   };
 });

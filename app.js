@@ -1407,13 +1407,25 @@ function updateDashboardStats() {
         <div class="portfolio-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance || 'Latina'}</div>
         <div class="portfolio-card-actions">
           <button type="button" class="btn btn-primary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
-          <button type="button" class="btn btn-secondary btn-quick-copy-pack" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia pack cuerpo entero listo para ChatGPT/Gemini/Claude">Copiar pack</button>
+          <div class="portfolio-pack-menu">
+            <button type="button" class="btn btn-secondary btn-quick-packs" data-offline-highlight="pack" aria-haspopup="true" aria-expanded="false" title="Biblioteca de packs free para chatbot">Packs ▾</button>
+            <div class="portfolio-pack-menu-list" hidden>
+              <button type="button" data-portfolio-pack="fullbody">🧍 Cuerpo entero</button>
+              <button type="button" data-portfolio-pack="bikini">Bikini / playa</button>
+              <button type="button" data-portfolio-pack="spicy">Spicy</button>
+              <button type="button" data-portfolio-pack="product">Producto en mano</button>
+            </div>
+          </div>
           <button type="button" class="btn btn-secondary btn-quick-session" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia sesión 3 prompts + abre checklist">Probar chatbot</button>
           <button type="button" class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
           <button type="button" class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
         </div>
+        <div class="portfolio-last-pack"></div>
       </div>
     `;
+
+    const lastPackHint = card.querySelector('.portfolio-last-pack');
+    if (lastPackHint) lastPackHint.textContent = formatLastPackStatusText(loadLastCopiedPack(p.id));
 
     // Click on card selects influencer and navigates
     card.querySelector('.btn-quick-select').addEventListener('click', (e) => {
@@ -1422,15 +1434,34 @@ function updateDashboardStats() {
       navigateToTab('persona-engine');
     });
 
-    card.querySelector('.btn-quick-copy-pack')?.addEventListener('click', async (e) => {
+    // W13 — menú Packs (fullbody / bikini / spicy / product)
+    const packToggle = card.querySelector('.btn-quick-packs');
+    const packList = card.querySelector('.portfolio-pack-menu-list');
+    packToggle?.addEventListener('click', (e) => {
       e.stopPropagation();
-      try {
-        selectPersona(p);
-        await copyFreeChatbotPack('fullbody');
-      } catch (err) {
-        console.warn('quick copy pack:', err);
-        toastError('No se pudo copiar el pack.');
+      const open = packList && !packList.hidden;
+      document.querySelectorAll('.portfolio-pack-menu-list').forEach((el) => { el.hidden = true; });
+      document.querySelectorAll('.btn-quick-packs').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+      if (packList && !open) {
+        packList.hidden = false;
+        packToggle.setAttribute('aria-expanded', 'true');
       }
+    });
+    packList?.querySelectorAll('[data-portfolio-pack]').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const packId = btn.getAttribute('data-portfolio-pack');
+        if (packList) packList.hidden = true;
+        packToggle?.setAttribute('aria-expanded', 'false');
+        try {
+          selectPersona(p);
+          await copyFreeChatbotPack(packId);
+          if (lastPackHint) lastPackHint.textContent = formatLastPackStatusText(loadLastCopiedPack(p.id));
+        } catch (err) {
+          console.warn('quick pack menu:', err);
+          toastError('No se pudo copiar el pack.');
+        }
+      });
     });
 
     card.querySelector('.btn-quick-session')?.addEventListener('click', async (e) => {
@@ -2383,6 +2414,7 @@ function selectPersona(persona) {
     loadCharacterBible("");
   }
   try { refreshChatbotSessionSheetStatus(); } catch (_) {}
+  try { refreshLastPackStatus(); } catch (_) {}
 }
 
 // Render Select grids in tabs
@@ -2855,6 +2887,65 @@ function buildFreeChatbotPack(packId, opts = {}) {
   });
 }
 
+/** W13 — último pack copiado por persona (localStorage) */
+function lastPackStorageKey(personaId) {
+  const pid = personaId || state.selectedPersona?.id || 'draft';
+  const profile = state.currentProfile?.id || 'local';
+  return `influ_last_pack_${profile}_${pid}`;
+}
+
+function loadLastCopiedPack(personaId) {
+  try {
+    const raw = localStorage.getItem(lastPackStorageKey(personaId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.packId || !FREE_CHATBOT_PACKS[parsed.packId]) return null;
+    return { packId: parsed.packId, copiedAt: parsed.copiedAt || null };
+  } catch (_) {
+    return null;
+  }
+}
+
+function saveLastCopiedPack(personaId, packId) {
+  if (!personaId || !FREE_CHATBOT_PACKS[packId]) return null;
+  const payload = { packId, copiedAt: new Date().toISOString() };
+  try {
+    localStorage.setItem(lastPackStorageKey(personaId), JSON.stringify(payload));
+  } catch (_) {}
+  return payload;
+}
+
+function formatLastPackStatusText(record) {
+  if (!record?.packId) return 'Aún no has copiado un pack de este influencer.';
+  const label = (typeof InfluChatbotPacks !== 'undefined' && InfluChatbotPacks.packLabel)
+    ? InfluChatbotPacks.packLabel(record.packId)
+    : (FREE_CHATBOT_PACKS[record.packId]?.label || record.packId);
+  const age = (typeof InfluChatbotPacks !== 'undefined' && InfluChatbotPacks.formatRelativeCopyAge)
+    ? InfluChatbotPacks.formatRelativeCopyAge(record.copiedAt)
+    : null;
+  return age
+    ? `Último: ${label} · copiado ${age}`
+    : `Último: ${label}`;
+}
+
+function refreshLastPackStatus() {
+  const personaId = state.selectedPersona?.id;
+  const record = personaId ? loadLastCopiedPack(personaId) : null;
+  const text = personaId
+    ? formatLastPackStatusText(record)
+    : 'Guarda o selecciona un influencer para recordar el último pack.';
+  document.querySelectorAll('[data-last-pack-status]').forEach((el) => {
+    el.textContent = text;
+  });
+  const recopyBtn = document.getElementById('btnRecopyLastPack');
+  if (recopyBtn) {
+    recopyBtn.disabled = !(record && record.packId);
+    recopyBtn.title = record?.packId
+      ? `Volver a copiar «${FREE_CHATBOT_PACKS[record.packId]?.label || record.packId}»`
+      : 'Aún no hay pack copiado';
+  }
+}
+
 async function copyFreeChatbotPack(packId) {
   try {
     if (!state.selectedPersona && !document.getElementById('pName')?.value) {
@@ -2864,12 +2955,31 @@ async function copyFreeChatbotPack(packId) {
     const text = buildFreeChatbotPack(packId);
     await navigator.clipboard.writeText(text);
     const pack = FREE_CHATBOT_PACKS[packId];
+    const personaId = state.selectedPersona?.id;
+    if (personaId) saveLastCopiedPack(personaId, packId);
     markHappyPathCopied();
-    toastWithLockHealth(`Pack gratis «${pack.label}» copiado — pégalo en ChatGPT/Gemini/Claude`, getFullPersonaJSON());
+    refreshLastPackStatus();
+    const toastOpts = {
+      actionLabel: 'Volver a copiar último pack',
+      onAction: () => { copyFreeChatbotPack(packId); },
+      duration: 8000
+    };
+    toastWithLockHealth(
+      `Pack gratis «${pack.label}» copiado — pégalo en ChatGPT/Gemini/Claude`,
+      getFullPersonaJSON(),
+      toastOpts
+    );
   } catch (err) {
     console.error(err);
     toastError('No se pudo copiar el pack: ' + (err.message || 'error'));
   }
+}
+
+async function copyLastFreeChatbotPack() {
+  const personaId = state.selectedPersona?.id;
+  const last = personaId ? loadLastCopiedPack(personaId) : null;
+  const packId = last?.packId || 'fullbody';
+  await copyFreeChatbotPack(packId);
 }
 
 /** W11 — localStorage key for chatbot session checklist */
@@ -3173,10 +3283,30 @@ function setupFreeChatbotPacks() {
       copyFreeChatbotPack(id);
     });
   });
+  document.getElementById('btnRecopyLastPack')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    copyLastFreeChatbotPack();
+  });
+  // Cerrar menús Packs del portafolio al clic fuera
+  if (!document.body.dataset.packMenusBound) {
+    document.body.dataset.packMenusBound = '1';
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.portfolio-pack-menu-list').forEach((el) => { el.hidden = true; });
+      document.querySelectorAll('.btn-quick-packs').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+    });
+  }
   window.copyFreeChatbotPack = copyFreeChatbotPack;
+  window.copyLastFreeChatbotPack = copyLastFreeChatbotPack;
   window.buildFreeChatbotPack = buildFreeChatbotPack;
   window.copyChatbotSessionCheck = copyChatbotSessionCheck;
   window.FREE_CHATBOT_PACKS = FREE_CHATBOT_PACKS;
+  refreshLastPackStatus();
+  // Actualizar “copiado hace Xs” cada 15s si hay ficha abierta
+  if (!window._lastPackStatusTimer) {
+    window._lastPackStatusTimer = setInterval(() => {
+      try { refreshLastPackStatus(); } catch (_) {}
+    }, 15000);
+  }
 }
 
 const CLOTHING_OPTIONS_BY_GENDER = {
@@ -3716,21 +3846,21 @@ function escapeLockHtml(s) {
  * F1 — Copiar nunca se bloquea (happy path free primero), pero si el lock
  * tiene errores/avisos el toast lo dice con el problema más grave.
  */
-function toastWithLockHealth(successMessage, personaJSON) {
+function toastWithLockHealth(successMessage, personaJSON, toastOpts = {}) {
   if (typeof CharacterLockValidator === 'undefined') {
-    toastSuccess(successMessage);
+    toastSuccess(successMessage, toastOpts);
     return;
   }
   try {
     const v = CharacterLockValidator.validateCharacterLock(personaJSON);
     const top = v.errors[0] || v.warnings[0];
     if (!top) {
-      toastSuccess(successMessage);
+      toastSuccess(successMessage, toastOpts);
       return;
     }
-    toastInfo(`${successMessage} — ojo, lock ${v.gradeLabel.toLowerCase()} (${v.score}%): ${top.message}`);
+    toastInfo(`${successMessage} — ojo, lock ${v.gradeLabel.toLowerCase()} (${v.score}%): ${top.message}`, toastOpts);
   } catch (e) {
-    toastSuccess(successMessage);
+    toastSuccess(successMessage, toastOpts);
   }
 }
 

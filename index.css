@@ -1850,10 +1850,78 @@ input:checked + .slider:before {
   white-space: nowrap;
 }
 
-.portfolio-card-actions .btn-quick-copy-pack {
+.portfolio-card-actions .btn-quick-copy-pack,
+.portfolio-card-actions .btn-quick-packs {
   background: rgba(56, 189, 248, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.35);
   color: #7dd3fc;
+}
+
+/* W13 — menú Packs en tarjeta de portafolio */
+.portfolio-pack-menu {
+  position: relative;
+  flex: 1 1 calc(50% - 6px);
+  min-width: 96px;
+}
+
+.portfolio-pack-menu .btn-quick-packs {
+  width: 100%;
+  font-size: 11px;
+  padding: 6px 10px;
+}
+
+.portfolio-pack-menu-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border-radius: var(--border-radius-sm);
+  background: rgba(12, 16, 24, 0.96);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.portfolio-pack-menu-list[hidden] {
+  display: none !important;
+}
+
+.portfolio-pack-menu-list button {
+  width: 100%;
+  text-align: left;
+  font-size: 11px;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.portfolio-pack-menu-list button:hover {
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
+}
+
+.portfolio-last-pack {
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.35;
+  min-height: 1.2em;
+}
+
+.pack-last-status {
+  min-height: 1.2em;
+}
+
+#btnRecopyLastPack:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* Filter buttons styling */
