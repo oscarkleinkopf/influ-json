@@ -253,10 +253,10 @@
             <div class="como-usar-hero-copy">
               <p class="como-usar-brand">influ-JSON</p>
               <h1>Cómo usar el Studio</h1>
-              <p class="como-usar-lead">Crea influencers consistentes sin pagar face-lock. El JSON es tu ancla; los chatbots gratis hacen el resto.</p>
+              <p class="como-usar-lead">Crea influencers consistentes sin pagar face-lock. El JSON es tu ancla; Pollinations es opcional e inestable. Los chatbots gratis hacen el resto.</p>
               <div class="como-usar-cta-row">
-                <button type="button" class="btn" data-guide-action="create">Empezar ahora</button>
-                <button type="button" class="btn btn-secondary" data-guide-action="kit">Ver kit marca</button>
+                <button type="button" class="btn" data-guide-action="packs">Copiar JSON (recomendado)</button>
+                <button type="button" class="btn btn-secondary" data-guide-action="create">Empezar a crear</button>
               </div>
             </div>
           </header>
@@ -285,16 +285,16 @@
               <li class="como-usar-step" style="--step-accent: #38bdf8;">
                 <span class="como-usar-step-index">03</span>
                 <div class="como-usar-step-body">
-                  <h3>Copia el JSON o un pack</h3>
-                  <p>Pégalo en ChatGPT, Gemini o Claude free. Misma cara en retrato, cuerpo entero, bikini o producto en mano.</p>
-                  <button type="button" class="btn btn-secondary btn-sm" data-guide-action="packs">Ir a packs</button>
+                  <h3>Copia el JSON (recomendado)</h3>
+                  <p>Pégalo en ChatGPT, Gemini o Claude free. Misma cara en retrato, cuerpo entero, bikini o producto. Sin red de imagen también sirve.</p>
+                  <button type="button" class="btn btn-sm" data-guide-action="packs" data-offline-highlight="pack">Copiar JSON (recomendado)</button>
                 </div>
               </li>
               <li class="como-usar-step" style="--step-accent: #a3e635;">
                 <span class="como-usar-step-index">04</span>
                 <div class="como-usar-step-body">
-                  <h3>Descarga el kit marca</h3>
-                  <p>Un ZIP con lock, 4 packs, guión UGC ~15s e instrucciones. Listo para grabar Reels o TikTok.</p>
+                  <h3>Boceto local o kit marca</h3>
+                  <p>Pollinations = <em>Generar boceto (gratis, inestable)</em>. Si hay 429, activa <strong>Modo offline</strong> y sigue con packs. El kit ZIP lleva lock + 4 packs + guión.</p>
                   <button type="button" class="btn btn-secondary btn-sm" data-guide-action="kit">Descargar kit</button>
                 </div>
               </li>
@@ -307,7 +307,8 @@
             <ul class="como-usar-rule-list">
               <li><span>Fijo</span> cara, tez, pelo base, proporciones</li>
               <li><span>Variable</span> pose, ropa, fondo, producto</li>
-              <li><span>Gratis</span> Pollinations + chatbots — Replicate opcional</li>
+              <li><span>Recomendado</span> Copiar JSON / packs → chatbot free</li>
+              <li><span>Opcional</span> Generar boceto (gratis, inestable) — Modo offline si 429</li>
             </ul>
           </section>
 
@@ -644,9 +645,9 @@
 
               <!-- F5: Free chatbot packs (zero cost) -->
               <div class="glass-card" style="margin-top: 16px; padding: 14px; background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.2);">
-                <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 6px; letter-spacing: 0.4px;">🆓 Packs gratis para chatbots</h4>
+                <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 6px; letter-spacing: 0.4px;">Copiar JSON (recomendado)</h4>
                 <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
-                  Copia un pack y pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Reutiliza el <strong>character_lock</strong> para no pagar face-lock.
+                  El producto es el pack: pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Pollinations es solo un boceto inestable.
                 </p>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 11px; padding: 8px 10px; text-align: left;">🧍 Cuerpo entero</button>
@@ -889,8 +890,8 @@
                 <button type="button" class="btn" id="btnSavePersona" style="flex: 2; min-width: 160px;">
                   Guardar personaje
                 </button>
-                <button type="button" class="btn btn-secondary" id="btnSavePersonaWithPortrait" style="flex: 1.5; min-width: 160px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #7dd3fc;" title="Opcional: genera retrato con Pollinations al guardar">
-                  Guardar + retrato
+                <button type="button" class="btn btn-secondary" id="btnSavePersonaWithPortrait" style="flex: 1.5; min-width: 160px;" title="Pollinations: boceto gratis e inestable — el JSON/pack es lo recomendado">
+                  Generar boceto (gratis, inestable)
                 </button>
                 <button type="button" class="btn btn-secondary" id="btnCancelEditPersona" style="flex: 1.5; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
                   👁️ Ver Ficha
@@ -1049,14 +1050,14 @@
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin: 0;">Prompt de Generación Compilado</h4>
                 <div style="display: flex; gap: 8px;">
-                  <button class="btn btn-secondary btn-sm" id="btnCopyChatbotPrompt" style="padding: 4px 10px; font-size: 10px; height: auto;">📋 Copiar para Chatbot</button>
+                  <button class="btn btn-sm" id="btnCopyChatbotPrompt" data-offline-highlight="pack" style="padding: 4px 10px; font-size: 10px; height: auto;">Copiar JSON (recomendado)</button>
                   <button class="btn btn-secondary btn-sm" id="btnSaveToGallery" style="padding: 4px 10px; font-size: 10px; height: auto;">⭐ Guardar en Galería</button>
                 </div>
               </div>
               <div id="lockHealthPanel" class="lock-health" style="display:none;"></div>
               <div class="prompt-text" id="promptPreview">Cargando prompt...</div>
               <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
-                <div style="font-size: 10px; text-transform: uppercase; color: #34d399; font-weight: 700; margin-bottom: 8px;">🆓 Packs gratis (F5) — pegar en chatbot free</div>
+                <div style="font-size: 10px; text-transform: uppercase; color: #34d399; font-weight: 700; margin-bottom: 8px;">🆓 Copiar JSON (recomendado) — packs free</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 6px;">
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 10px; padding: 6px 10px;">🧍 Cuerpo entero</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 10px; padding: 6px 10px;">Bikini / playa</button>
@@ -1195,7 +1196,7 @@
             <div class="panel-tab-content" id="contentJsonTab" style="display: none; height: calc(100% - 40px); flex-direction: column;">
               <div class="panel-header">
                 <span class="panel-title">Estructura influ-JSON <span class="badge">Live JSON</span></span>
-                <button class="btn btn-secondary btn-sm" id="btnCopyJSON">Copiar JSON</button>
+                <button class="btn btn-sm" id="btnCopyJSON" data-offline-highlight="pack">Copiar JSON (recomendado)</button>
               </div>
               <textarea class="json-editor" id="jsonEditor" spellcheck="false" style="flex: 1; min-height: 500px;"></textarea>
             </div>
@@ -1292,8 +1293,8 @@
                   </select>
                 </div>
 
-                <button type="button" class="btn" id="btnGenerateVariant" style="width: 100%; margin-top: 8px;">
-                  🤖 Generar Variante / Pose
+                <button type="button" class="btn btn-secondary" id="btnGenerateVariant" style="width: 100%; margin-top: 8px;" title="Pollinations: boceto gratis e inestable — preferí Copiar JSON">
+                  Generar boceto (gratis, inestable)
                 </button>
                 
                 <div class="analysis-status-card" id="variantGenStatus" style="display: none; padding: 12px; margin-top: 8px;">
@@ -1353,7 +1354,7 @@
             <!-- Dynamic history cards -->
           </div>
           <p id="historyEmptyMsg" style="display: none; color: var(--text-secondary); text-align: center; padding: 40px 0; font-size: 14px;">
-            🎨 Aún no hay generaciones para este influencer. ¡Crea un retrato o variante para empezar!
+            Sin gens — igual puedes exportar packs. Copia el JSON a un chatbot free; Pollinations es opcional.
           </p>
         </div>
       </section>
@@ -1486,11 +1487,11 @@
               <div>
                 <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">Generación & Producción AI</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                  <button class="btn" id="btnGenerateUgcImage" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    🤖 Generar Imagen AI con Prompt
+                  <button class="btn btn-secondary" id="btnGenerateUgcImage" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Pollinations: boceto gratis e inestable">
+                    Generar boceto (gratis, inestable)
                   </button>
-                  <button class="btn btn-secondary" id="btnExportUgcChatbot" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    📋 Copiar Prompt para Chatbots Gratis
+                  <button class="btn" id="btnExportUgcChatbot" data-offline-highlight="pack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    Copiar JSON (recomendado)
                   </button>
                   <button class="btn btn-secondary" id="btnDownloadJsonPack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     📥 Descargar Pack Maestro JSON (.json)
@@ -2006,6 +2007,9 @@
   <div id="rateLimitBanner" class="rate-limit-banner" style="display:none;" role="status" aria-live="polite">
     <span class="rate-limit-dot" aria-hidden="true"></span>
     <span id="rateLimitBannerText">Pollinations limitó peticiones (429). La cola espera y reintenta sola.</span>
+    <button type="button" class="btn btn-secondary btn-sm" id="btnRateLimitGoOffline" style="margin-left:auto; font-size:11px; padding:4px 10px; flex-shrink:0;">
+      Activar modo offline
+    </button>
   </div>
 
   <!-- Banner offline: JSON-first sigue disponible + toggle modo offline (W8) -->
@@ -2020,7 +2024,7 @@
   <div id="offlineModeBar" class="offline-mode-bar" style="display:flex; align-items:center; gap:10px; padding:6px 14px; background:rgba(0,0,0,0.35); border-bottom:1px solid var(--glass-border); font-size:12px; color:var(--text-secondary);">
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
       <input type="checkbox" id="offlineModeToggleBar" />
-      <span><strong style="color:#fff;">Modo offline</strong> — desactiva Pollinations; prioriza copiar packs JSON</span>
+      <span><strong style="color:#fff;">Modo offline</strong> — Studio útil sin gen: prioriza <em>Copiar JSON (recomendado)</em></span>
     </label>
   </div>
 
@@ -2247,6 +2251,6 @@
   <script src="chatbot-packs.js?v=1.1.0"></script>
   <script src="import-flow.js?v=1.0.0"></script>
   <script src="prompt-builder.js?v=1.0.0"></script>
-  <script src="app.js?v=1.9.6"></script>
+  <script src="app.js?v=1.9.10"></script>
 </body>
 </html>

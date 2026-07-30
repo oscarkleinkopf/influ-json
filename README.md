@@ -42,8 +42,8 @@ Guía con nombres de botón reales del Studio:
 1. **Resumen** → checklist «Arranque en 60 segundos» (o ve a **Persona Engine**).
 2. **Crear desde Cero** *o* importa una foto de referencia.
 3. Completa nombre, tez, cara y cuerpo → **Crear Influencer** / Guardar.
-4. (Opcional) Genera un boceto con Pollinations (variante en el vault).
-5. Copia un **pack gratis** (`Cuerpo entero` / `Bikini` / `Spicy` / `Producto en mano`) o **Copiar para Chatbot**.
+4. Copia un pack — botón **Copiar JSON (recomendado)** / packs free.
+5. (Opcional) **Generar boceto (gratis, inestable)** con Pollinations — no hace falta para el flujo.
 6. Pégalo en ChatGPT / Gemini / Claude / Meta **free** y pide variantes: *«misma persona, cuerpo entero, producto en mano»*.
 7. Cuando quieras llevarte todo: **Exportar pack completo (.zip)**.
 
@@ -57,10 +57,12 @@ Un bloque JSON con lo que **debe** repetirse en cada imagen (cara, tez, pelo, si
 
 | Usa… | Para… |
 |------|--------|
-| Pollinations (en Studio) | Bocetos rápidos locales; acepta límites de consistencia y 429 ocasional |
-| Pack + chatbot free | Seguir desarrollando el personaje sin tarjeta ni GPU |
+| **Copiar JSON / packs** (recomendado) | Seguir el personaje en ChatGPT / Gemini / Claude free — sin red de imagen |
+| Pollinations «Generar boceto (gratis, inestable)» | Bocetos locales opcionales; acepta 429 y poca consistencia de cara |
 
-Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a la vez** y enfría sola. No pulses generar otra vez.
+**Modo offline** (barra superior del Studio): desactiva Pollinations y resalta los botones de copiar JSON. Si ves **429**, el banner sugiere activar modo offline — la cola no cambia, solo el énfasis.
+
+Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a la vez** y enfría sola. No pulses generar otra vez; copia el pack.
 
 ## Datos y PIN
 
@@ -73,9 +75,9 @@ Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a l
 - **Cómo usar**: pestaña con guía visual del flujo gratis (sidebar → Cómo usar).
 - **Matriz QA** (ficha del influencer): compara retrato ancla · cuerpo · spicy a ojo; checklist cara/tez/pelo (sin API de scoring).
 - **Importar**: Analizar = vista previa (no guarda). Confirmar = portafolio + anclas en segundo plano. Descartar no deja huérfanos.
-- **Guardar personaje** = JSON-first (sin Pollinations). **Guardar + retrato** es opcional.
-- **Portafolio**: botón «Copiar pack» en cada tarjeta (cuerpo entero → chatbot free).
-- Primer arranque (Administración, roster vacío): modal founder con preset Beauty / import / guía.
+- **Guardar personaje** = JSON-first (sin Pollinations). **Generar boceto (gratis, inestable)** es opcional.
+- **Portafolio**: botón «Copiar JSON (recomendado)» en cada tarjeta (pack cuerpo entero → chatbot free).
+- Primer arranque (Administración, roster vacío): modal founder con crear / import / guía.
 - Import preview descartado también limpia fotos `ref_*` temporales del disco.
 - Auto-commit Git **apagado** por defecto; solo con `ENABLE_GIT_BACKUP=1`.
 - `npm run start:minimal` **no** es producción.

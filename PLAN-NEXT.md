@@ -149,24 +149,24 @@ No asignar dos bots al mismo archivo caliente (`app.js`, `server.js`) a la vez.
 
 ---
 
-## W15 — Offline-first en la UI (gen = opcional)
+## W15 — Offline-first en la UI (gen = opcional) ✅
 
 **Por qué:** W8 añade modo offline; falta que el producto *hable* offline-first por defecto.
 
-**Rama:** `cursor/offline-first-copy-152f`
+**Rama:** `cursor/offline-first-copy-152f` (implementado 2026-07-30)
 
-**Dependencia:** merge W8 (#28) antes o incluir cherry-pick mínimo del toggle.
+**Dependencia:** W8 ya en `main`.
 
-**Archivos:** `app.js`, `index.html`, copy en Cómo usar / README corto.
+**Archivos:** `app.js`, `index.html`, `index.css`, Cómo usar, `README.md`.
 
 **Implementación:**
 
-1. Labels: “Generar boceto (gratis, inestable)” vs “Copiar JSON (recomendado)”.
-2. Si hay 429 reciente: auto-sugerir modo offline + highlight packs (reusar W8).
-3. Empty states de Vault/variantes: “Sin gens — igual puedes exportar packs”.
-4. No cambiar defaults de cola; solo copy + énfasis visual.
+1. Labels: **Generar boceto (gratis, inestable)** vs **Copiar JSON (recomendado)**.
+2. 429: banner sugiere **Activar modo offline** + highlight packs (sin cambiar cola).
+3. Empty Vault/historial: “Sin gens — igual puedes exportar packs”.
+4. Solo copy + énfasis visual.
 
-**Tests:** strings/CTAs presentes; toggle offline sigue en localStorage.
+**Tests:** `queue-offline-ux.test.js` W15; toggle offline sigue en localStorage.
 
 **Criterio de hecho:** un usuario sin red de imagen entiende que el Studio sigue siendo útil.
 

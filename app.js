@@ -126,6 +126,11 @@ function setupOfflineBanner() {
   };
   document.getElementById('offlineModeToggle')?.addEventListener('change', (e) => syncToggles(e.target.checked));
   document.getElementById('offlineModeToggleBar')?.addEventListener('change', (e) => syncToggles(e.target.checked));
+  // W15 — 429 banner CTA → modo offline
+  document.getElementById('btnRateLimitGoOffline')?.addEventListener('click', () => {
+    syncToggles(true);
+    toastInfo('Modo offline activo — usa Copiar JSON (recomendado). La cola no cambió.');
+  });
   applyOfflineModeUi();
   if (typeof navigator !== 'undefined' && navigator.onLine === false && !isStudioOfflineMode()) {
     setOfflineBanner(
@@ -1407,7 +1412,7 @@ function updateDashboardStats() {
         <div class="portfolio-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance || 'Latina'}</div>
         <div class="portfolio-card-actions">
           <button type="button" class="btn btn-primary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
-          <button type="button" class="btn btn-secondary btn-quick-copy-pack" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia pack cuerpo entero listo para ChatGPT/Gemini/Claude">Copiar pack</button>
+          <button type="button" class="btn btn-secondary btn-quick-copy-pack" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copiar JSON (recomendado) — pack cuerpo entero">Copiar JSON (recomendado)</button>
           <button type="button" class="btn btn-secondary btn-quick-session" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia sesión 3 prompts + abre checklist">Probar chatbot</button>
           <button type="button" class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
           <button type="button" class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
@@ -1805,21 +1810,30 @@ window.loadPersonaVariants = loadPersonaVariants;
 
 function setGenerationButtonsDisabled(disabled) {
   // JSON-first: Guardar (sin retrato) nunca se bloquea por la cola Pollinations
-  // W8: modo offline también bloquea gens
+  // W8/W15: modo offline también bloquea gens; packs quedan resaltados
   const offline = typeof isStudioOfflineMode === 'function' && isStudioOfflineMode();
+  const rateLimited = typeof isRateLimitActiveUi === 'function' && isRateLimitActiveUi();
   const locked = !!(disabled || offline);
   ['btnGenerateVariant', 'btnGenerateUgcImage', 'btnSavePersonaWithPortrait', 'btnStartBulkAdGeneration'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.disabled = locked;
     el.classList.toggle('is-queue-locked', locked);
-    if (offline) el.setAttribute('title', 'Modo offline: usa Copiar pack / JSON (gratis)');
+    if (offline) el.setAttribute('title', 'Modo offline: usa Copiar JSON (recomendado)');
     else if (disabled) el.setAttribute('title', 'Espera a que termine la cola de generación');
-    else el.removeAttribute('title');
+    else if (rateLimited) el.setAttribute('title', '429 reciente — mejor Copiar JSON (recomendado) o activa Modo offline');
+    else el.setAttribute('title', 'Generar boceto (gratis, inestable) — Pollinations opcional');
   });
+  const highlightPacks = offline || rateLimited;
   document.querySelectorAll('[data-offline-highlight="pack"]').forEach((el) => {
-    el.classList.toggle('offline-pack-highlight', offline);
+    el.classList.toggle('offline-pack-highlight', highlightPacks);
   });
+}
+
+/** W15 — último estado 429 conocido (solo UI; no cambia la cola). */
+let _rateLimitUiActive = false;
+function isRateLimitActiveUi() {
+  return !!_rateLimitUiActive;
 }
 
 function offlineModeStorageKey() {
@@ -1845,10 +1859,12 @@ function setStudioOfflineMode(on) {
 function applyOfflineModeUi() {
   const on = isStudioOfflineMode();
   const toggle = document.getElementById('offlineModeToggle');
+  const toggleBar = document.getElementById('offlineModeToggleBar');
   if (toggle) toggle.checked = on;
+  if (toggleBar) toggleBar.checked = on;
   const banner = document.getElementById('offlineBanner');
   if (on) {
-    setOfflineBanner(true, 'Modo offline activo — generación Pollinations desactivada. Copia JSON / packs a chatbots gratis.');
+    setOfflineBanner(true, 'Modo offline activo — generación pausada. Usa Copiar JSON (recomendado) en chatbots gratis.');
     if (banner) banner.dataset.source = 'mode';
   } else if (!navigator.onLine) {
     setOfflineBanner(true, 'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.');
@@ -1866,15 +1882,26 @@ function updateRateLimitBanner(q) {
   const text = document.getElementById('rateLimitBannerText');
   if (!banner) return;
   const isCooling = !!(q && (q.isCoolingDown || q.rateLimitActive));
+  _rateLimitUiActive = isCooling;
   if (!isCooling) {
     banner.style.display = 'none';
+    // Quitar highlight de packs si no estamos en offline
+    if (!isStudioOfflineMode()) {
+      document.querySelectorAll('[data-offline-highlight="pack"]').forEach((el) => {
+        el.classList.remove('offline-pack-highlight');
+      });
+    }
     return;
   }
   const cooldownSec = Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30;
   if (text) {
-    text.textContent = `Pollinations respondió 429. Cola en pausa — reintento automático en ${cooldownSec}s. No pulses generar otra vez.`;
+    text.textContent = `Pollinations 429 — cola en pausa (~${cooldownSec}s). Sugerencia: Modo offline + Copiar JSON (recomendado).`;
   }
   banner.style.display = 'flex';
+  // W15 — enfatizar packs durante 429 (sin cambiar defaults de cola)
+  document.querySelectorAll('[data-offline-highlight="pack"]').forEach((el) => {
+    el.classList.add('offline-pack-highlight');
+  });
 }
 
 function updateQueueStatusChip(q) {
@@ -6346,11 +6373,23 @@ function renderVariantVaultGrid() {
   
   if (state.activeVariants.length === 0) {
     grid.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; border: 1px dashed var(--glass-border); border-radius: var(--border-radius-md); background: rgba(0,0,0,0.1);">
-        <p style="color: var(--text-muted); font-size: 13px; margin: 0;">No hay poses o variaciones creadas para este influencer aún.</p>
-        <p style="color: var(--text-secondary); font-size: 11px; margin-top: 6px;">¡Selecciona una pose y vestuario a la izquierda y presiona Generar!</p>
+      <div class="vault-empty-offline" style="grid-column: 1/-1; text-align: center; padding: 40px 20px; border: 1px dashed var(--glass-border); border-radius: var(--border-radius-md); background: rgba(0,0,0,0.1);">
+        <p style="color: var(--text-primary); font-size: 13px; margin: 0; font-weight: 600;">Sin gens — igual puedes exportar packs</p>
+        <p style="color: var(--text-secondary); font-size: 11px; margin-top: 8px; line-height: 1.45;">
+          Copia JSON / packs a un chatbot free. «Generar boceto» es opcional e inestable (Pollinations).
+        </p>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;">
+          <button type="button" class="btn btn-sm" data-offline-highlight="pack" id="btnVaultEmptyCopyPack">Copiar JSON (recomendado)</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnVaultEmptyGenBoceto">Generar boceto (gratis, inestable)</button>
+        </div>
       </div>
     `;
+    document.getElementById('btnVaultEmptyCopyPack')?.addEventListener('click', () => {
+      copyFreeChatbotPack('fullbody');
+    });
+    document.getElementById('btnVaultEmptyGenBoceto')?.addEventListener('click', () => {
+      document.getElementById('btnGenerateVariant')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
     updateSideBySideComparator(null);
     renderQaMatrix();
     return;
