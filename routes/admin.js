@@ -219,6 +219,16 @@ function registerAdminRoutes(app, deps) {
     try {
       const label = (req.body && req.body.label) || 'manual';
       const snap = dbService.createBackupSnapshot(label);
+      try {
+        dbService.recordAuditEvent({
+          profile_id: req.session?.profileId || null,
+          actor_profile_id: req.session?.profileId || null,
+          action: 'backup.create',
+          entity_type: 'backup',
+          entity_id: path.basename(snap.dbPath),
+          meta: { label, schemaVersion: snap.schemaVersion }
+        });
+      } catch (_) {}
       res.json({
         success: true,
         message: 'Backup creado en data/backups/.',
@@ -329,6 +339,17 @@ function registerAdminRoutes(app, deps) {
         { name: 'README_EXPORT.txt' }
       );
 
+      try {
+        dbService.recordAuditEvent({
+          profile_id: req.session?.profileId || null,
+          actor_profile_id: req.session?.profileId || null,
+          action: 'studio.export',
+          entity_type: 'studio',
+          entity_id: `influ_studio_export_${stamp}.zip`,
+          meta: { stamp }
+        });
+      } catch (_) {}
+
       archive.finalize();
     } catch (err) {
       if (!res.headersSent) {
@@ -385,6 +406,20 @@ function registerAdminRoutes(app, deps) {
         freeTier: { imageGen: 'pollinations', note: 'Replicate aún no implementado — provider_other = 0' },
         summary
       });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
+  /**
+   * W17 — audit log local (solo Administración). Member → 403.
+   * Query: ?limit=50
+   */
+  app.get('/api/audit/events', requireAdmin, (req, res) => {
+    try {
+      const limit = Number(req.query.limit || 50);
+      const events = dbService.listAuditEvents({ limit });
+      res.json({ success: true, events, limit: Math.max(1, Math.min(200, limit || 50)) });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
     }

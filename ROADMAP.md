@@ -117,6 +117,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-07-30 | **W17 audit log** | schema v9; hooks archive/delete/export/backup; Ajustes admin |
 | 2026-07-29 | **W11 sesión chatbot** | 3 prompts + checklist localStorage; badge Chatbot OK |
 | 2026-07-29 | **Paso 0 merge W6 + W7–W10 + PLAN-NEXT → main** | Conflictos resueltos; tests+smoke |
 | 2026-07-29 | **PLAN-NEXT.md** | W11–W17 moat free; Replicate con señal |

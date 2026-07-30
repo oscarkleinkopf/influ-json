@@ -25,15 +25,15 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (W11 integrado) |
-| **Commit base** | `455e1fb` (W11 + fix CI) |
-| **PR actual** | #33 W11 (integrado en main; se puede cerrar) |
+| **Rama de trabajo** | `cursor/audit-log-152f` (W17) |
+| **Commit base** | `main` @ W11 (`2dd4fc5` / tip) |
+| **PR actual** | W17 audit log (draft) — apilar tras merge W12–W16 si aún abiertos |
 | **`main` remoto** | Paso 0 + **W11** sesión chatbot |
-| **Etapa de producto** | Moat free → W12 historial lock |
-| **Prioridad inmediata** | **W12** character_lock history; **no Replicate** |
+| **Etapa de producto** | Moat free W11–W17; W17 cierra audit mínimo |
+| **Prioridad inmediata** | Merge pila W12–W17 → `main`; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-07-29 |
+| **Última actualización** | 2026-07-30 |
 
 ### Pila #4–#16 — INTEGRADA ✅
 
@@ -54,18 +54,18 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ---
 
-## Sesión reciente (Cursor, 2026-07-29)
+## Sesión reciente (Cursor, 2026-07-30)
 
-**Pedido:** Seguir con W11 (CI rojo + pulido).
+**Pedido:** Continuar W17 audit log.
 
 **Hecho:**
-- Fix CI: `INSERT OR IGNORE` en migraciones + `--test-concurrency=1`.
-- Pulido W11: **Abrir checklist**, status en ficha al seleccionar persona.
-- Sesión 3 prompts + badge Chatbot OK (ya en PR #33).
+- Migración **v9** `audit_events` + `recordAuditEvent` / `listAuditEvents`.
+- Hooks: archive/unarchive, delete, export persona, backup.create, studio.export.
+- `GET /api/audit/events` (admin); member 403.
+- UI Ajustes: sección Audit log (últimas 50) + Actualizar.
+- Tests `test/audit-log.test.js`.
 
-**Siguiente:** **W12** historial / diff de `character_lock`.
-
-**Verificación W11:** tests **137** · smoke **9/9** · en `main`.
+**Siguiente:** Merge pila W12–W17 cuando el owner integre; fase moat free PLAN-NEXT completa. Replicate solo con señal.
 
 **No tocado:** Replicate.
 
@@ -149,6 +149,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-30 | Cursor | W17 audit log local (admin, v9) | *(PR W17)* |
 | 2026-07-29 | Cursor | W11 sesión chatbot 3 prompts + checklist | *(PR W11)* |
 | 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 + PLAN-NEXT → main | *(main)* |
 | 2026-07-29 | Cursor | PLAN-NEXT W11–W17 (moat free post W6–W10) | *(PR #32)* |

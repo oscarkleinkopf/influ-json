@@ -229,6 +229,27 @@ const MIGRATIONS = [
         CREATE INDEX IF NOT EXISTS idx_gen_metrics_created ON gen_metrics(created_at);
       `);
     }
+  },
+  {
+    id: 9,
+    name: 'audit_events',
+    up(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS audit_events (
+          id TEXT PRIMARY KEY,
+          profile_id TEXT,
+          actor_profile_id TEXT,
+          action TEXT NOT NULL,
+          entity_type TEXT,
+          entity_id TEXT,
+          meta_json TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_audit_events_created ON audit_events(created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_audit_events_action ON audit_events(action);
+        CREATE INDEX IF NOT EXISTS idx_audit_events_actor ON audit_events(actor_profile_id);
+      `);
+    }
   }
 ];
 

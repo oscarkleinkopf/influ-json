@@ -93,6 +93,18 @@ function registerPersonasRoutes(app, deps) {
 
   app.delete('/api/personas/:id', requireOwnedPersona, (req, res) => {
     const profileId = req.profileId;
+    const persona = req.persona;
+    const actorId = req.session?.profileId || profileId;
+    try {
+      dbService.recordAuditEvent({
+        profile_id: persona?.profile_id || profileId,
+        actor_profile_id: actorId,
+        action: 'persona.delete',
+        entity_type: 'persona',
+        entity_id: req.params.id,
+        meta: { name: persona?.name || null }
+      });
+    } catch (_) {}
     dbService.deletePersona(req.params.id);
     runGitBackup((gitSuccess, msg) => {
       res.json({ success: true, personas: dbService.getAllPersonas(profileId), gitSynced: gitSuccess, gitMessage: msg });
@@ -103,7 +115,18 @@ function registerPersonasRoutes(app, deps) {
   app.post('/api/personas/:id/archive', requireOwnedPersona, (req, res) => {
     const profileId = req.profileId;
     const { archived } = req.body;
-    const persona = dbService.toggleArchivePersona(req.params.id, archived ? 1 : 0);
+    const willArchive = !!archived;
+    const persona = dbService.toggleArchivePersona(req.params.id, willArchive ? 1 : 0);
+    try {
+      dbService.recordAuditEvent({
+        profile_id: persona?.profile_id || profileId,
+        actor_profile_id: req.session?.profileId || profileId,
+        action: willArchive ? 'persona.archive' : 'persona.unarchive',
+        entity_type: 'persona',
+        entity_id: req.params.id,
+        meta: { name: persona?.name || null, archived: willArchive ? 1 : 0 }
+      });
+    } catch (_) {}
     runGitBackup((gitSuccess, msg) => {
       res.json({ success: true, personas: dbService.getAllPersonas(profileId), persona, gitSynced: gitSuccess, gitMessage: msg });
     });
@@ -447,6 +470,17 @@ function registerPersonasRoutes(app, deps) {
       const persona = req.persona;
       const brandKit = require('../brand-kit');
       const asKit = String(req.query.kit || '') === '1' || String(req.query.kit || '').toLowerCase() === 'true';
+
+      try {
+        dbService.recordAuditEvent({
+          profile_id: persona?.profile_id || req.profileId,
+          actor_profile_id: req.session?.profileId || req.profileId,
+          action: 'persona.export',
+          entity_type: 'persona',
+          entity_id: persona.id,
+          meta: { name: persona.name || null, kit: asKit }
+        });
+      } catch (_) {}
 
       const safeName = String(persona.name || 'influencer')
         .toLowerCase()

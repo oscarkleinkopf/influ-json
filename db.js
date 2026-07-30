@@ -938,6 +938,78 @@ module.exports = {
   },
 
   /**
+   * W17 — audit log local (best-effort; no debe romper la operación).
+   * @param {{ profile_id?: string, actor_profile_id?: string, action: string, entity_type?: string, entity_id?: string, meta?: object }} row
+   */
+  recordAuditEvent(row = {}) {
+    try {
+      if (!row.action) return null;
+      const { v4: uuidv4 } = require('uuid');
+      const id = row.id || `ae_${uuidv4().slice(0, 12)}`;
+      let metaJson = null;
+      if (row.meta != null) {
+        metaJson = typeof row.meta === 'string' ? row.meta : JSON.stringify(row.meta);
+      }
+      db.prepare(`
+        INSERT INTO audit_events (id, profile_id, actor_profile_id, action, entity_type, entity_id, meta_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        row.profile_id || null,
+        row.actor_profile_id || null,
+        String(row.action).slice(0, 80),
+        row.entity_type ? String(row.entity_type).slice(0, 40) : null,
+        row.entity_id != null ? String(row.entity_id).slice(0, 120) : null,
+        metaJson
+      );
+      return id;
+    } catch (err) {
+      console.warn('[audit] record failed:', err.message);
+      return null;
+    }
+  },
+
+  /**
+   * W17 — últimas N filas (solo admin en la ruta).
+   * @param {{ limit?: number }} [opts]
+   */
+  listAuditEvents({ limit = 50 } = {}) {
+    const lim = Math.max(1, Math.min(200, Number(limit) || 50));
+    const rows = db.prepare(`
+      SELECT id, profile_id, actor_profile_id, action, entity_type, entity_id, meta_json, created_at
+      FROM audit_events
+      ORDER BY created_at DESC, rowid DESC
+      LIMIT ?
+    `).all(lim);
+
+    // Enrich actor names (best-effort)
+    const nameById = new Map();
+    try {
+      db.prepare('SELECT id, name FROM studio_profiles').all().forEach((p) => {
+        nameById.set(p.id, p.name);
+      });
+    } catch (_) {}
+
+    return rows.map((r) => {
+      let meta = null;
+      if (r.meta_json) {
+        try { meta = JSON.parse(r.meta_json); } catch (_) { meta = r.meta_json; }
+      }
+      return {
+        id: r.id,
+        profile_id: r.profile_id,
+        actor_profile_id: r.actor_profile_id,
+        actor_name: nameById.get(r.actor_profile_id) || null,
+        action: r.action,
+        entity_type: r.entity_type,
+        entity_id: r.entity_id,
+        meta,
+        created_at: r.created_at
+      };
+    });
+  },
+
+  /**
    * Resumen de gen_metrics. Admin: todos los perfiles o filtro.
    * Member: solo su profile_id.
    */
