@@ -25,15 +25,15 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (W11 integrado) |
-| **Commit base** | `455e1fb` (W11 + fix CI) |
-| **PR actual** | #33 W11 (integrado en main; se puede cerrar) |
-| **`main` remoto** | Paso 0 + **W11** sesión chatbot |
-| **Etapa de producto** | Moat free → W12 historial lock |
-| **Prioridad inmediata** | **W12** character_lock history; **no Replicate** |
+| **Rama de trabajo** | `cursor/portfolio-export-ready-152f` (W16) |
+| **Commit base** | tip de esta rama (W16 export-ready badges) |
+| **PR actual** | W16 draft · abiertos #34–#37 (W12–W15) |
+| **`main` remoto** | Paso 0 + **W11** (W12–W16 pendientes) |
+| **Etapa de producto** | Moat free → W17 audit log |
+| **Prioridad inmediata** | Merge #34→…→#37→W16 → **W17**; **no Replicate** |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-07-29 |
+| **Última actualización** | 2026-07-30 |
 
 ### Pila #4–#16 — INTEGRADA ✅
 
@@ -54,18 +54,18 @@ PRs #4–#16 aparecen **MERGED** en GitHub. PRs abiertos antiguos #1–#3 se sol
 
 ---
 
-## Sesión reciente (Cursor, 2026-07-29)
+## Sesión reciente (Cursor, 2026-07-30)
 
-**Pedido:** Seguir con W11 (CI rojo + pulido).
+**Pedido:** Continuemos → W16.
 
 **Hecho:**
-- Fix CI: `INSERT OR IGNORE` en migraciones + `--test-concurrency=1`.
-- Pulido W11: **Abrir checklist**, status en ficha al seleccionar persona.
-- Sesión 3 prompts + badge Chatbot OK (ya en PR #33).
+- Badge portafolio Listo / Revisar lock / Sin ancla (`getExportReadyStatus`).
+- Filtros Listos / A revisar (archivados fuera de Listos).
+- Clic → validador o checklist; export no se bloquea.
 
-**Siguiente:** **W12** historial / diff de `character_lock`.
+**Siguiente:** Merge W12–W16 → **W17** audit log.
 
-**Verificación W11:** tests **137** · smoke **9/9** · en `main`.
+**Verificación W16:** correr `npm test` + `npm run smoke`.
 
 **No tocado:** Replicate.
 
@@ -149,6 +149,11 @@ Extracciones W5 de `server.js` ✅. Producto W6–W10 ✅ en `main`. **Siguiente
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-07-30 | Cursor | W16 badges Listo / Revisar / Sin ancla | *(PR W16)* |
+| 2026-07-30 | Cursor | W15 offline-first | PR #37 |
+| 2026-07-30 | Cursor | W14 happy-path CTA | PR #36 |
+| 2026-07-30 | Cursor | W13 biblioteca Packs | PR #35 |
+| 2026-07-30 | Cursor | W12 historial character_lock | PR #34 |
 | 2026-07-29 | Cursor | W11 sesión chatbot 3 prompts + checklist | *(PR W11)* |
 | 2026-07-29 | Cursor | Paso 0: W6 + W7–W10 + PLAN-NEXT → main | *(main)* |
 | 2026-07-29 | Cursor | PLAN-NEXT W11–W17 (moat free post W6–W10) | *(PR #32)* |

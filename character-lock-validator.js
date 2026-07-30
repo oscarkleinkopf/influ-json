@@ -212,5 +212,68 @@
     return { score, grade, gradeLabel, errors, warnings, infos, summary };
   }
 
-  return { validateCharacterLock, isValidHex, hexBrightness };
+  /** Paths de imagen stock — no cuentan como ancla real (W16). */
+  const PLACEHOLDER_ANCHOR_RE = /(?:^|\/)(?:influencer_(?:female|male)(?:_bottle|_serum)?|nano_banana_influencer)\.png$/i;
+
+  function isPlaceholderAnchorImage(imagePath) {
+    if (imagePath == null || String(imagePath).trim() === '') return true;
+    const s = String(imagePath).trim().split('?')[0];
+    return PLACEHOLDER_ANCHOR_RE.test(s) || s === 'assets/influencer_female.png' || s === 'assets/influencer_male.png';
+  }
+
+  /**
+   * W16 — Estado de exportación para badge de portafolio (solo señal; no bloquea).
+   * @param {object} personaOrJson — persona con detailedJSON/image/name o JSON ya parseado
+   * @param {{ archived?: boolean }} [opts]
+   * @returns {{ kind: 'ready'|'review'|'no_anchor', label: string, grade: string, score: number, hasRealAnchor: boolean, lockOk: boolean }}
+   */
+  function getExportReadyStatus(personaOrJson, opts = {}) {
+    const p = personaOrJson && typeof personaOrJson === 'object' ? personaOrJson : {};
+    let json = p;
+    if (p.detailedJSON != null || p.image != null || p.name != null) {
+      // Fila persona: extraer JSON
+      let detailed = p.detailedJSON;
+      if (typeof detailed === 'string') {
+        try { detailed = JSON.parse(detailed); } catch (_) { detailed = {}; }
+        // unwrap double-encoding
+        if (typeof detailed === 'string') {
+          try { detailed = JSON.parse(detailed); } catch (_) { detailed = {}; }
+        }
+      }
+      json = detailed && typeof detailed === 'object' ? detailed : {};
+    }
+    const v = validateCharacterLock(json);
+    const lockOk = v.errors.length === 0 && (v.grade === 'solid' || v.grade === 'ok');
+    const imagePath = p.image != null ? p.image : (opts.image || null);
+    const hasRealAnchor = !isPlaceholderAnchorImage(imagePath);
+
+    let kind = 'ready';
+    let label = 'Listo';
+    if (!lockOk) {
+      kind = 'review';
+      label = 'Revisar lock';
+    } else if (!hasRealAnchor) {
+      kind = 'no_anchor';
+      label = 'Sin ancla';
+    }
+
+    return {
+      kind,
+      label,
+      grade: v.grade,
+      score: v.score,
+      hasRealAnchor,
+      lockOk,
+      gradeLabel: v.gradeLabel,
+      summary: v.summary
+    };
+  }
+
+  return {
+    validateCharacterLock,
+    isValidHex,
+    hexBrightness,
+    isPlaceholderAnchorImage,
+    getExportReadyStatus
+  };
 });

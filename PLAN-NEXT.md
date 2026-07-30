@@ -172,22 +172,22 @@ No asignar dos bots al mismo archivo caliente (`app.js`, `server.js`) a la vez.
 
 ---
 
-## W16 — Portafolio: estados “listo para export”
+## W16 — Portafolio: estados “listo para export” ✅
 
 **Por qué:** no se ve quién tiene lock sano, pack listo, o ancla faltante.
 
-**Rama:** `cursor/portfolio-export-ready-152f`
+**Rama:** `cursor/portfolio-export-ready-152f` (implementado 2026-07-30)
 
-**Archivos:** `app.js`, `character-lock-validator.js`, `index.css`.
+**Archivos:** `app.js`, `character-lock-validator.js`, `index.css`, `index.html`.
 
 **Implementación:**
 
-1. Badge en tarjeta: **Listo** (lock OK + name) / **Revisar lock** / **Sin ancla** (si aplica).
-2. Filtro portafolio: listos / a revisar.
-3. Click en badge → panel validador o W11 checklist.
-4. No bloquear export; solo señalizar.
+1. Badge: **Listo** / **Revisar lock** / **Sin ancla** (`getExportReadyStatus`).
+2. Filtros portafolio: Listos / A revisar (archivados nunca en Listos).
+3. Clic badge → panel validador o checklist W11.
+4. No bloquea export/copiar pack.
 
-**Tests:** badge deriva del validador local; personas archivadas no aparecen en “listos” por defecto.
+**Tests:** `test/export-ready.test.js`.
 
 **Criterio de hecho:** el founder ve de un vistazo qué influencers puede mandar a chatbot hoy.
 

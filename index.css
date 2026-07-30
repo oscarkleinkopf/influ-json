@@ -1794,6 +1794,50 @@ input:checked + .slider:before {
   text-transform: uppercase;
 }
 
+/* W16 — export-ready badges (señal; no bloquean) */
+.portfolio-badge.badge-export-ready,
+.portfolio-badge.badge-lock-review,
+.portfolio-badge.badge-no-anchor {
+  left: 12px;
+  top: 44px;
+  right: auto;
+  font-size: 9px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  appearance: none;
+}
+
+.portfolio-badge.badge-export-ready {
+  background: rgba(52, 211, 153, 0.88);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: #ecfdf5;
+}
+
+.portfolio-badge.badge-lock-review {
+  background: rgba(239, 68, 68, 0.88);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fff;
+}
+
+.portfolio-badge.badge-no-anchor {
+  background: rgba(245, 158, 11, 0.9);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fffbeb;
+}
+
+.portfolio-badge.badge-export-ready:hover,
+.portfolio-badge.badge-lock-review:hover,
+.portfolio-badge.badge-no-anchor:hover {
+  filter: brightness(1.08);
+}
+
+/* Chatbot OK baja si hay badge export a la izquierda */
+.portfolio-card-img-wrapper:has([data-export-status]) .badge-chatbot-ok {
+  top: 72px;
+}
+
 #chatbotSessionModal .chatbot-session-row input {
   width: 16px;
   height: 16px;
