@@ -585,22 +585,36 @@ module.exports = {
         else if (wantsPhotoreal) strength = 0.72;
         if (strengthOverride != null) strength = strengthOverride;
 
-        let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=${width}&height=${height}&model=flux&nologo=true&enhance=${enhance}&seed=${seed}`;
+        // Canonical documented endpoint is /prompt/ (the old /p/ alias now routes
+        // anonymous traffic to the paid "sana" model and 402s). See ai-service header note.
+        let url = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=${width}&height=${height}&model=flux&nologo=true&enhance=${enhance}&seed=${seed}`;
         // Full-body: skip img2img ref by default (portrait ref freezes headshot crop).
         // Caller can force ref with options.forceReference === true
         const useRef = refUrl && (framing !== 'fullbody' || options.forceReference === true);
         if (useRef) {
           url += `&image=${encodeURIComponent(refUrl)}&strength=${strength}`;
         }
-        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${useRef ? strength : 'text-only'} identityLock=${identityLock} ref=${!!useRef}`);
+        // Pollinations moved to a prepaid "pollen" credit system. Registered developers
+        // get free daily grants that cover flux — stay zero-cost by pasting a free token.
+        // A referrer keeps the web-app free tier identified when no token is set.
+        const referrer = (process.env.POLLINATIONS_REFERRER || '').trim();
+        if (referrer) url += `&referrer=${encodeURIComponent(referrer)}`;
+        const token = (process.env.POLLINATIONS_TOKEN || process.env.POLLINATIONS_API_TOKEN || '').trim();
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${useRef ? strength : 'text-only'} identityLock=${identityLock} ref=${!!useRef} auth=${token ? 'token' : 'anon'}`);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 55000);
         try {
-          const res = await fetch(url, { signal: controller.signal });
+          const res = await fetch(url, { signal: controller.signal, headers });
           clearTimeout(timer);
           if (!res.ok) {
+            let body = '';
+            try { body = await res.text(); } catch (_) { /* ignore */ }
+            const paymentRequired = res.status === 402
+              || /PAYMENT_REQUIRED|Insufficient balance/i.test(body);
             const err = new Error(`Pollinations HTTP error: ${res.status}`);
             err.status = res.status;
+            err.paymentRequired = paymentRequired;
             if (res.status === 429) genQueue.markRateLimited();
             throw err;
           }
@@ -622,7 +636,8 @@ module.exports = {
             res = await fetchPollinations(referenceUrl);
           } catch (refErr) {
             const is429 = /429/.test(refErr.message || '') || refErr.status === 429;
-            if (is429) {
+            // No point retrying text-only if the account has no pollen balance.
+            if (is429 || refErr.paymentRequired) {
               throw refErr;
             }
             console.warn(`Pollinations img2img non-429 error (${refErr.message}), text-only fallback.`);
@@ -659,11 +674,20 @@ module.exports = {
         }
         const status = getGenQueueStatusSafe();
         const retry = status.rateLimitActive ? status.retryAfterSeconds : 30;
-        const msg = /429/.test(err.message || '') || err.status === 429
-          ? `Límite de Pollinations (gratis). Espera ~${retry || 30}s y vuelve a intentar (1 generación a la vez).`
-          : (err.message || 'La generación falló');
+        const is429 = /429/.test(err.message || '') || err.status === 429;
+        let msg;
+        if (err.paymentRequired || err.status === 402) {
+          msg = 'Pollinations ahora requiere créditos "pollen" y el acceso anónimo dejó de ser gratis (error "Insufficient balance"). '
+              + 'Regístrate gratis en https://auth.pollinations.ai, crea un token y agrégalo como POLLINATIONS_TOKEN en tu .env '
+              + '(los grants diarios gratis cubren el modelo flux). El path cero-costo sigue disponible con ese token.';
+        } else if (is429) {
+          msg = `Límite de Pollinations (gratis). Espera ~${retry || 30}s y vuelve a intentar (1 generación a la vez).`;
+        } else {
+          msg = err.message || 'La generación falló';
+        }
         const e = new Error(msg);
-        e.status = err.status || (/429/.test(err.message || '') ? 429 : 500);
+        e.status = err.status || (is429 ? 429 : 500);
+        e.paymentRequired = !!(err.paymentRequired || err.status === 402);
         e.retryAfterSeconds = retry || 30;
         throw e;
       }
