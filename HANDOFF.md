@@ -155,6 +155,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-04 | Cursor | **fix**: Pollinations pasó a créditos «pollen» (402 anónimo). Endpoint `/p/`→`/prompt/`, soporte `POLLINATIONS_TOKEN`/referrer + error honesto | *(este commit)* |
 | 2026-07-30 | Cursor | Merge stack W12–W17 → main (#34–#40) | `cbdae55` |
 | 2026-07-30 | Cursor | W17 audit log local (admin, v10) | *(PR W17)* |
 | 2026-07-30 | Cursor | W16 badges Listo / Revisar / Sin ancla | PR #38 |
