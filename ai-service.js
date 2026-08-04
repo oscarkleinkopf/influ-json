@@ -686,7 +686,7 @@ module.exports = {
         let msg;
         if (needsToken) {
           msg = 'Pollinations ahora requiere un token: pasó a créditos "pollen" y el acceso anónimo dejó de ser gratis '
-              + '(errores "Insufficient balance" / no autorizado). Crea una API key gratis en https://auth.pollinations.ai '
+              + '(errores "Insufficient balance" / no autorizado). Crea una API key gratis en https://enter.pollinations.ai/keys '
               + '(login con GitHub) y agrégala como POLLINATIONS_TOKEN en tu .env. Los grants diarios gratis cubren el '
               + 'modelo flux, así que el path sigue siendo cero costo.';
         } else if (is429) {
