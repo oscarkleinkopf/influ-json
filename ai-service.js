@@ -589,7 +589,11 @@ module.exports = {
         // The legacy image.pollinations.ai host only exposes the paid "sana" model now.
         // enhance is kept in the prompt log context but is not a param of the modern API.
         void enhance;
-        let url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPrompt)}?model=flux&width=${width}&height=${height}&seed=${seed}`;
+        // Model is configurable to stretch small free daily grants: flux (default, best
+        // quality, ~0.002 pollen/img) vs dreamshaper (~0.0001, ~20x cheaper). All models
+        // now cost pollen; a registered key with account:usage or a budget is required.
+        const model = (process.env.POLLINATIONS_MODEL || 'flux').trim() || 'flux';
+        let url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPrompt)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}`;
         // Full-body: skip img2img ref by default (portrait ref freezes headshot crop).
         // Caller can force ref with options.forceReference === true
         const useRef = refUrl && (framing !== 'fullbody' || options.forceReference === true);
