@@ -50,6 +50,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const LISTEN_HOST = firstRun.resolveListenHost();
 
+// Solo confiar en X-Forwarded-* cuando el despliegue está detrás de un proxy conocido.
+if (authService.isTrustProxyEnabled()) {
+  app.set('trust proxy', 1);
+}
+
 app.use(authService.securityHeaders);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -178,8 +183,18 @@ function publicProfileDTO(row) {
   };
 }
 
-// Serve static assets with no auth required
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+// Assets: referencias y generadas requieren sesión (cookie) cuando auth está on.
+// Guías, PNGs demo en raíz de /assets y el resto siguen públicos (UI / docs).
+const assetsRoot = path.join(__dirname, 'assets');
+app.use('/assets/references', (req, res, next) => {
+  if (!authService.isAuthEnabled()) return next();
+  return requireAuth(req, res, next);
+}, express.static(path.join(assetsRoot, 'references')));
+app.use('/assets/generated', (req, res, next) => {
+  if (!authService.isAuthEnabled()) return next();
+  return requireAuth(req, res, next);
+}, express.static(path.join(assetsRoot, 'generated')));
+app.use('/assets', express.static(assetsRoot));
 
 // Serve main app pages
 app.get('/', (req, res) => {

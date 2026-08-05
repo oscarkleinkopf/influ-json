@@ -49,8 +49,9 @@ function founderOnboardDismissKey(profileId) {
   return `${FOUNDER_ONBOARD_DISMISS_PREFIX}${profileId || 'unknown'}`;
 }
 
-// Auth session token (stored in memory/sessionStorage)
-let studioPin = sessionStorage.getItem('studioPin') || '';
+// Cookie session is the source of truth (httpOnly influ.sid).
+// Clear legacy PIN copies left from older builds — never keep PIN in sessionStorage.
+try { sessionStorage.removeItem('studioPin'); } catch (e) {}
 
 // DOM Elements (NodeLists vivos vía helpers — paneles/nav pueden crecer)
 function getNavItems() {
@@ -78,12 +79,12 @@ function setOfflineBanner(visible, message) {
 
 async function authFetch(url, options = {}) {
   options.headers = options.headers || {};
+  options.credentials = options.credentials || 'same-origin';
   if (!(options.body instanceof FormData)) {
     options.headers['Content-Type'] = 'application/json';
   }
-  if (studioPin) {
-    options.headers['Authorization'] = `Bearer ${studioPin}`;
-  }
+  // Cookie session (influ.sid) — no Bearer/PIN in JS storage.
+  // Server still accepts Authorization: Bearer for tests/CLI.
 
   try {
     const res = await fetch(url, options);
@@ -199,17 +200,15 @@ function checkAuthAndInit() {
         state.currentProfile = status.profile;
         updateActiveProfileChip();
       }
-      if (status.pinRequired && !status.authenticated && !studioPin) {
+      if (status.pinRequired && !status.authenticated) {
         showLoginScreen();
+      } else if (status.authenticated || !status.pinRequired) {
+        fetchData().then(() => {
+          maybeShowSetupPinWizard();
+          maybeShowPinDefaultBanner();
+        });
       } else {
-        if (status.authenticated || !status.pinRequired) {
-          fetchData().then(() => {
-            maybeShowSetupPinWizard();
-            maybeShowPinDefaultBanner();
-          });
-        } else {
-          showLoginScreen();
-        }
+        showLoginScreen();
       }
     })
     .catch(() => showLoginScreen());
@@ -260,8 +259,6 @@ function setupLogin() {
       const data = await res.json();
 
       if (data.success) {
-        studioPin = pin;
-        sessionStorage.setItem('studioPin', pin);
         state.currentProfile = data.profile || null;
         state.pinIsDefault = !!data.pinIsDefault;
         updateActiveProfileChip();
@@ -314,8 +311,6 @@ function setupLogin() {
         if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
         return toastError(msg);
       }
-      studioPin = pin;
-      sessionStorage.setItem('studioPin', pin);
       state.currentProfile = data.profile || null;
       state.pinIsDefault = false;
       state.justRedeemedInvite = true;
@@ -712,8 +707,6 @@ function setupPinWizard() {
         toastError(msg);
         return;
       }
-      studioPin = pin;
-      try { sessionStorage.setItem('studioPin', pin); } catch (e) {}
       state.pinIsDefault = !!data.pinIsDefault;
       hideSetupPinModal();
       maybeShowPinDefaultBanner();
@@ -1035,10 +1028,9 @@ async function refreshBackupsSettingsList() {
 
 async function logoutSession() {
   try {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
   } catch (e) {}
-  studioPin = '';
-  sessionStorage.removeItem('studioPin');
+  try { sessionStorage.removeItem('studioPin'); } catch (e) {}
   state.currentProfile = null;
   updateActiveProfileChip();
   showLoginScreen();

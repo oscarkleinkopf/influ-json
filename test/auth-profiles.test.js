@@ -35,8 +35,12 @@ test('auth: PIN default detection and hashing', () => {
 });
 
 test('auth: rate-limit locks after MAX fails', () => {
-  const req = { ip: '203.0.113.50', headers: {}, socket: {} };
-  // reset by using unique IP
+  // Without TRUST_PROXY, clientKey uses socket.remoteAddress (not spoofable XFF/ip).
+  const req = {
+    ip: '203.0.113.50',
+    headers: { 'x-forwarded-for': '198.51.100.1' },
+    socket: { remoteAddress: `203.0.113.${Date.now() % 200}` }
+  };
   for (let i = 0; i < 5; i++) auth.registerLoginFailure(req);
   const status = auth.getLoginLockStatus(req);
   assert.equal(status.locked, true);

@@ -146,6 +146,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-05 | **Sec #2** assets + cookie-first + XFF | Gate refs/generated; sin PIN en sessionStorage; `TRUST_PROXY` |
 | 2026-08-05 | **Sec #1** public-bind + auth-off → 503 | `shouldBlockPublicInsecureAuth` → #52 |
 | 2026-08-05 | **UX free #1** pollen/401 + demote LoRA | Banner + CTA Copiar JSON; LoRA en `<details>` → #51 |
 | 2026-08-05 | **L3 trainer pago opt-in** | `ENABLE_PAID_LORA` + Replicate train/sync/infer; fallback Pollinations |

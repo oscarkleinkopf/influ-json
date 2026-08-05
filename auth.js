@@ -51,13 +51,26 @@ const loginAttempts = new Map(); // key → { fails, lockedUntil }
 const MAX_FAILS = Number(process.env.LOGIN_MAX_FAILS || 5);
 const LOCK_MS = Number(process.env.LOGIN_LOCK_MS || 60_000);
 
+/** True when behind a reverse proxy that sets X-Forwarded-For (explicit opt-in). */
+function isTrustProxyEnabled() {
+  const v = String(process.env.TRUST_PROXY || '').trim().toLowerCase();
+  return v === '1' || v === 'true' || v === 'yes';
+}
+
+/**
+ * Rate-limit key. Without TRUST_PROXY, ignore spoofable X-Forwarded-For / req.ip
+ * (Express req.ip follows XFF only when trust proxy is on; we also skip raw header).
+ */
 function clientKey(req) {
-  return (
-    req.ip ||
-    req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() ||
-    req.socket?.remoteAddress ||
-    'unknown'
-  );
+  if (isTrustProxyEnabled()) {
+    return (
+      req.ip ||
+      req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() ||
+      req.socket?.remoteAddress ||
+      'unknown'
+    );
+  }
+  return req.socket?.remoteAddress || req.connection?.remoteAddress || 'unknown';
 }
 
 function getLoginLockStatus(req) {
@@ -183,5 +196,7 @@ module.exports = {
   getLoginLockStatus,
   registerLoginFailure,
   clearLoginFailures,
+  clientKey,
+  isTrustProxyEnabled,
   DEFAULT_PIN_FALLBACK
 };
