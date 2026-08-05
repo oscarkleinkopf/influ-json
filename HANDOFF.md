@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/sec2-assets-session-xff-173f` |
 | **Commit base** | tip `main` post #51/#52 |
-| **PR actual** | Sec #2 (assets gate + cookie-first + TRUST_PROXY) — en curso |
+| **PR actual** | [#53](https://github.com/oscarkleinkopf/influ-json/pull/53) Sec #2 (assets + cookie-first + TRUST_PROXY) |
 | **`main` remoto** | Moat free + Fase G + LoRA L0–L3 + UX pollen + gate public-bind |
 | **Etapa de producto** | Usabilidad free ✅ (#51) · Seguridad mínima (#52 + Sec #2) |
 | **Prioridad inmediata** | Merge Sec #2 → luego UX #2 (token en Ajustes) o más seguridad |
