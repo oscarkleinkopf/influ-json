@@ -52,7 +52,7 @@ En Colab free (T4) el YAML del pack ya usa `quantize: true` + `adamw8bit` + `gra
 
 ## Después del entrenamiento (L2 / L3)
 
-- **L2:** cargar el `.safetensors` en ComfyUI (o similar) e invocar el trigger.  
+- **L2:** ver [L2_COMFYUI.md](./L2_COMFYUI.md) — registrar `.safetensors` en el Studio + `COMFYUI_URL`.  
   Fallback del Studio = Pollinations + `character_lock` si no hay LoRA.
 - **L3:** subir pesos a Replicate/fal detrás de un flag opt-in (nunca rompe free).
 

@@ -269,6 +269,28 @@ const MIGRATIONS = [
         CREATE INDEX IF NOT EXISTS idx_audit_events_actor ON audit_events(actor_profile_id);
       `);
     }
+  },
+  {
+    id: 11,
+    name: 'persona_loras',
+    up(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS persona_loras (
+          id TEXT PRIMARY KEY,
+          persona_id TEXT NOT NULL UNIQUE,
+          trigger_token TEXT,
+          base_model TEXT,
+          weights_path TEXT,
+          status TEXT NOT NULL DEFAULT 'none',
+          training_meta TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY(persona_id) REFERENCES personas(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_persona_loras_status ON persona_loras(status);
+        CREATE INDEX IF NOT EXISTS idx_persona_loras_persona ON persona_loras(persona_id);
+      `);
+    }
   }
 ];
 

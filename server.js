@@ -220,6 +220,30 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
+const loraStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const { DATA_DIR: dataDir, ensureDir: ensure } = require('./paths');
+    const dir = path.join(dataDir, 'loras', '_upload');
+    ensure(dir);
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const safeName = (file.originalname || 'weights.safetensors').replace(/[^a-zA-Z0-9._-]/g, '_');
+    cb(null, `up_${Date.now()}_${safeName}`);
+  }
+});
+const uploadLora = multer({
+  storage: loraStorage,
+  limits: { fileSize: 500 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const name = (file.originalname || '').toLowerCase();
+    if (name.endsWith('.safetensors') || name.endsWith('.pt') || name.endsWith('.ckpt')) {
+      return cb(null, true);
+    }
+    cb(new Error('Solo se aceptan pesos .safetensors (o .pt/.ckpt)'));
+  }
+});
+
 // Portable data directory (ROADMAP 1.6) — was hardcoded Antigravity brain path
 const { DATA_DIR, ensureDir } = require('./paths');
 const SCRATCH_DIR = DATA_DIR;
@@ -458,7 +482,8 @@ registerPersonasRoutes(app, {
     return _personaBg.trigger(persona);
   },
   createZipArchive,
-  rootDir: __dirname
+  rootDir: __dirname,
+  uploadLora
 });
 
 registerGenerationRoutes(app, {

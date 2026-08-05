@@ -25,14 +25,14 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/l1-colab-lora-notebook-173f` |
-| **Commit base** | `b00da9d` (#46 G2+G3) |
-| **PR actual** | L1 Colab (esta rama). #45/#46 **MERGED**. #41–#44 *superseded* |
-| **`main` remoto** | Moat free + Fase G (G1–G3) + LoRA L0 |
-| **Etapa de producto** | **Fase L** — L0 ✅ · L1 (Colab) en PR · siguiente **L2** |
-| **Prioridad inmediata** | Mergear L1; luego L2 (ComfyUI + fallback Pollinations) |
+| **Rama de trabajo** | `cursor/l2-comfyui-lora-inference-173f` |
+| **Commit base** | `2550c93` (#47 L1 → main) |
+| **PR actual** | L2 ComfyUI (esta rama). #47 **MERGED** |
+| **`main` remoto** | Moat free + Fase G + LoRA L0/L1 |
+| **Etapa de producto** | **Fase L** — L0–L2 ✅ en PR · siguiente **L3** |
+| **Prioridad inmediata** | Mergear L2; luego L3 (trainer pago opt-in) o UX polish |
 | **⚠ Imagen (Pollinations)** | Pasó a créditos «pollen»: requiere `POLLINATIONS_TOKEN` (ver `.env.example`). Anónimo → 401/402 |
-| **En pausa** | OAuth, SMTP, video, **Replicate** |
+| **En pausa** | OAuth, SMTP, video, **Replicate** (salvo L3 opt-in) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-08-05 |
 
@@ -71,9 +71,10 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 **Hecho (integrado en `main`):**
 - **#45** — fix Pollinations + L0 export LoRA + G1 chips + plan Fase L.
 - **#46** — G2 looks rápidos (Playa/Café/Gym/Noche/Estudio) + G3 batch 1/4 con aviso de pollen y progreso «N de M».
+- **#47** — L1 notebook Colab + guía (`docs/lora/`).
 - #41–#44 cerradas *superseded* (contenido vía #45).
 
-**En curso:** L1 — notebook Colab + guía (`docs/lora/L1_COLAB.md` + `influ_json_lora_train.ipynb`) en rama `cursor/l1-colab-lora-notebook-173f`.
+**En curso:** L2 — ComfyUI opt-in + `persona_loras` + fallback Pollinations (`cursor/l2-comfyui-lora-inference-173f`).
 
 ## Sesión reciente (Cursor, 2026-07-30)
 

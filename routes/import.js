@@ -343,7 +343,8 @@ function registerImportRoutes(app, deps) {
           photoreal: true,
           identityLock: true,
           seed,
-          framing: spec.framing
+          framing: spec.framing,
+          personaId: persona.id
         });
 
         if (imagePath) {

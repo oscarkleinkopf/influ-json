@@ -41,6 +41,8 @@ function ensureDataLayout() {
   ensureDir(path.join(DATA_DIR, 'references'));
   ensureDir(path.join(DATA_DIR, 'generated'));
   ensureDir(path.join(DATA_DIR, 'backups'));
+  // Fase L / L2 — pesos LoRA por persona (no servir estáticamente / no git)
+  ensureDir(path.join(DATA_DIR, 'loras'));
   return DATA_DIR;
 }
 

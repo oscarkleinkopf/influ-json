@@ -1070,6 +1070,66 @@ module.exports = {
     return true;
   },
 
+  /** Fase L — fila LoRA por persona (null si no existe). */
+  getPersonaLora(personaId) {
+    if (!personaId) return null;
+    try {
+      return db.prepare('SELECT * FROM persona_loras WHERE persona_id = ?').get(personaId) || null;
+    } catch (_) {
+      return null;
+    }
+  },
+
+  /**
+   * Upsert LoRA metadata. status: none|dataset_ready|training|ready|failed
+   */
+  upsertPersonaLora({
+    personaId,
+    triggerToken = null,
+    baseModel = null,
+    weightsPath = null,
+    status = 'none',
+    trainingMeta = null
+  } = {}) {
+    if (!personaId) throw new Error('personaId required');
+    const { v4: uuidv4 } = require('uuid');
+    const existing = this.getPersonaLora(personaId);
+    const id = existing?.id || `pl_${uuidv4().slice(0, 12)}`;
+    let metaJson = null;
+    if (trainingMeta != null) {
+      metaJson = typeof trainingMeta === 'string' ? trainingMeta : JSON.stringify(trainingMeta);
+    } else if (existing?.training_meta) {
+      metaJson = existing.training_meta;
+    }
+    const trigger = triggerToken != null ? triggerToken : (existing?.trigger_token || null);
+    const base = baseModel != null ? baseModel : (existing?.base_model || null);
+    const weights = weightsPath != null ? weightsPath : (existing?.weights_path || null);
+    const st = status || existing?.status || 'none';
+
+    db.prepare(`
+      INSERT INTO persona_loras (
+        id, persona_id, trigger_token, base_model, weights_path, status, training_meta, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(persona_id) DO UPDATE SET
+        trigger_token = excluded.trigger_token,
+        base_model = excluded.base_model,
+        weights_path = excluded.weights_path,
+        status = excluded.status,
+        training_meta = excluded.training_meta,
+        updated_at = CURRENT_TIMESTAMP
+    `).run(id, personaId, trigger, base, weights, st, metaJson);
+
+    syncDbToWorkspace();
+    return this.getPersonaLora(personaId);
+  },
+
+  clearPersonaLora(personaId) {
+    if (!personaId) return false;
+    db.prepare('DELETE FROM persona_loras WHERE persona_id = ?').run(personaId);
+    syncDbToWorkspace();
+    return true;
+  },
+
   setMainVariant(personaId, imagePath) {
     db.prepare('UPDATE personas SET image = ?, imageUGC = ? WHERE id = ?').run(imagePath, imagePath, personaId);
     syncDbToWorkspace();

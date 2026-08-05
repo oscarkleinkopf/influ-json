@@ -334,7 +334,8 @@ function registerPersonasRoutes(app, deps) {
       photoreal,
       identityLock,
       seed,
-      framing
+      framing,
+      personaId: persona.id
     })
       .then(async (imagePath) => {
         const durationMs = Date.now() - t0;
@@ -665,6 +666,164 @@ function registerPersonasRoutes(app, deps) {
       if (!res.headersSent) {
         res.status(500).json({ success: false, message: err.message || 'Error al exportar pack LoRA.' });
       }
+    }
+  });
+
+  /**
+   * Fase L / L2 — Estado LoRA de la persona (opt-in ComfyUI).
+   * Sin pesos / sin COMFYUI_URL → status none; gen sigue por Pollinations.
+   */
+  app.get('/api/personas/:id/lora', requireOwnedPersona, async (req, res) => {
+    try {
+      const imageProvider = require('../image-provider');
+      const comfyui = require('../comfyui-client');
+      const row = dbService.getPersonaLora(req.persona.id);
+      let comfy = { configured: comfyui.isConfigured(), reachable: false };
+      if (comfy.configured) {
+        const ping = await comfyui.ping();
+        comfy.reachable = !!ping.ok;
+        comfy.reason = ping.reason || null;
+      }
+      res.json({
+        success: true,
+        lora: row || {
+          persona_id: req.persona.id,
+          status: 'none',
+          trigger_token: null,
+          base_model: null,
+          weights_path: null
+        },
+        comfyui: comfy,
+        capabilities: imageProvider.getProviderCapabilities().lora
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
+  /**
+   * Registrar pesos LoRA (.safetensors) para inferencia ComfyUI.
+   * multipart field `weights` O JSON { triggerToken, baseModel, comfyLoraName, copyOnly }.
+   * Si solo metadata sin archivo y ya hay weights_path, actualiza trigger/status.
+   */
+  app.post('/api/personas/:id/lora', requireOwnedPersona, (req, res, next) => {
+    const uploadMw = deps.uploadLora;
+    if (!uploadMw) return next();
+    // Solo aplicar multer si Content-Type es multipart; JSON puro actualiza metadata
+    const ct = String(req.headers['content-type'] || '');
+    if (!ct.includes('multipart/form-data')) return next();
+    uploadMw.single('weights')(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ success: false, message: err.message || 'Upload inválido' });
+      }
+      next();
+    });
+  }, (req, res) => {
+    try {
+      const { DATA_DIR, ensureDir } = require('../paths');
+      const persona = req.persona;
+      const body = req.body || {};
+      const triggerToken = (body.triggerToken || body.trigger_token || '').trim() || null;
+      const baseModel = (body.baseModel || body.base_model || '').trim() || null;
+      const comfyLoraName = (body.comfyLoraName || body.comfy_lora_name || '').trim() || null;
+      const statusIn = (body.status || '').trim();
+
+      const personaLoraDir = path.join(DATA_DIR, 'loras', persona.id);
+      ensureDir(personaLoraDir);
+
+      let weightsRel = null;
+      let storedName = null;
+
+      if (req.file && req.file.path) {
+        const orig = req.file.originalname || 'persona.safetensors';
+        const safe = String(orig).replace(/[^a-zA-Z0-9._-]/g, '_');
+        const destName = safe.toLowerCase().endsWith('.safetensors') ? safe : `${safe}.safetensors`;
+        const destAbs = path.join(personaLoraDir, destName);
+        fs.renameSync(req.file.path, destAbs);
+        weightsRel = path.join('loras', persona.id, destName).replace(/\\/g, '/');
+        storedName = destName;
+
+        // Copia opcional al directorio models/loras de ComfyUI
+        const comfyLorasDir = (process.env.COMFYUI_LORAS_DIR || '').trim();
+        if (comfyLorasDir) {
+          ensureDir(comfyLorasDir);
+          fs.copyFileSync(destAbs, path.join(comfyLorasDir, destName));
+        }
+      }
+
+      const existing = dbService.getPersonaLora(persona.id);
+      if (!weightsRel && !existing?.weights_path && statusIn !== 'none') {
+        return res.status(400).json({
+          success: false,
+          message: 'Sube un archivo .safetensors (campo multipart `weights`) o registra pesos existentes.'
+        });
+      }
+
+      const meta = {};
+      try {
+        if (existing?.training_meta) {
+          Object.assign(meta, JSON.parse(existing.training_meta));
+        }
+      } catch (_) {}
+      if (comfyLoraName) meta.comfy_lora_name = comfyLoraName;
+      else if (storedName) meta.comfy_lora_name = storedName;
+      if (body.loraStrength != null) meta.lora_strength = Number(body.loraStrength);
+
+      const nextStatus = statusIn
+        || (weightsRel || existing?.weights_path ? 'ready' : 'none');
+
+      const row = dbService.upsertPersonaLora({
+        personaId: persona.id,
+        triggerToken: triggerToken || existing?.trigger_token || null,
+        baseModel: baseModel || existing?.base_model || null,
+        weightsPath: weightsRel || existing?.weights_path || null,
+        status: nextStatus,
+        trainingMeta: meta
+      });
+
+      try {
+        dbService.recordAuditEvent({
+          profile_id: persona?.profile_id || req.profileId,
+          actor_profile_id: req.session?.profileId || req.profileId,
+          action: 'persona.lora_register',
+          entity_type: 'persona',
+          entity_id: persona.id,
+          meta: { status: row.status, weights_path: row.weights_path }
+        });
+      } catch (_) {}
+
+      res.json({ success: true, lora: row });
+    } catch (err) {
+      console.error('[personas/lora POST]', err);
+      res.status(500).json({ success: false, message: err.message || 'Error al registrar LoRA' });
+    }
+  });
+
+  app.delete('/api/personas/:id/lora', requireOwnedPersona, (req, res) => {
+    try {
+      const { DATA_DIR } = require('../paths');
+      const existing = dbService.getPersonaLora(req.persona.id);
+      if (existing?.weights_path) {
+        const abs = path.isAbsolute(existing.weights_path)
+          ? existing.weights_path
+          : path.join(DATA_DIR, existing.weights_path);
+        try {
+          if (fs.existsSync(abs)) fs.unlinkSync(abs);
+        } catch (_) {}
+      }
+      dbService.clearPersonaLora(req.persona.id);
+      try {
+        dbService.recordAuditEvent({
+          profile_id: req.persona?.profile_id || req.profileId,
+          actor_profile_id: req.session?.profileId || req.profileId,
+          action: 'persona.lora_clear',
+          entity_type: 'persona',
+          entity_id: req.persona.id
+        });
+      } catch (_) {}
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
     }
   });
 
