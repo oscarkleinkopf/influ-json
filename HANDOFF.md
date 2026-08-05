@@ -30,7 +30,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **PR actual** | #53/#54 + UX #2 + L4c **en main**. Siguiente: L5 train local o más seguridad |
 | **`main` remoto** | Moat free + Fase G + LoRA L0–L4c + Sec #1–#2 + UX #2 pollen en Ajustes |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53) · Fase L L0–L4c ✅ |
-| **Prioridad inmediata** | Validar en uso real; L5 train local (pausa) o CSP |
+| **Prioridad inmediata** | Happy path validado ✅ (2026-08-05). Siguiente: CSP / L5 train local (pausa) |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate; train local L5 |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -84,6 +84,19 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 - #41–#44 cerradas *superseded* (contenido vía #45).
 
 **En curso:** — (todo lo anterior en `main`). Smoke 9/9 OK.
+
+**Happy path validado (2026-08-05, live API):**
+
+| Paso | Resultado |
+|------|-----------|
+| Login admin | PASS |
+| Boceto Pollinations (token en `.env`) | PASS → JPEG en `assets/generated/` |
+| Crear → aparece en portafolio | PASS |
+| Copiar pack chatbot (`character_lock` + hex) | PASS |
+| Export ZIP | PASS (~1.4MB) |
+| `npm run smoke` | **9/9** |
+
+Nota: si hay cola de anchors de fondo ocupada, el boceto puede esperar; el path free (JSON) no depende de Pollinations.
 
 ## Sesión reciente (Cursor, 2026-07-30)
 
