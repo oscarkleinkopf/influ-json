@@ -79,9 +79,12 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 - **#52** — Sec: public-bind + auth-off → 503.
 - **#53** — Sec #2: assets gate + cookie-first + TRUST_PROXY.
 - **#54** — L4 hub GPU local (ComfyUI + A1111/Forge).
+- **UX #2** — `POLLINATIONS_TOKEN` en Ajustes (admin).
+- **L4c** — plantilla Flux Comfy (`comfy_workflow_flux_lora.json`).
 - #41–#44 cerradas *superseded* (contenido vía #45).
 
-**En curso:** **UX #2** + **L4c** Flux template. (#53+#54 ya en `main`).
+**En curso:** — (todo lo anterior en `main`). Smoke 9/9 OK.
+
 ## Sesión reciente (Cursor, 2026-07-30)
 
 **Pedido:** Mergear stack W12–W17 a `main`.
