@@ -3506,6 +3506,41 @@ async function exportPersonaZipPack({ kit = false } = {}) {
 window.exportPersonaZipPack = exportPersonaZipPack;
 window.exportBrandKit = () => exportPersonaZipPack({ kit: true });
 
+// Fase L / L0 — Pack de entrenamiento LoRA (dataset + captions) para Colab gratis.
+async function exportLoraTrainingPack() {
+  const p = state.selectedPersona || state.personas[0];
+  if (!p?.id) {
+    toastInfo('Selecciona o crea un influencer antes de exportar el pack LoRA.');
+    return;
+  }
+  try {
+    toastLoading('Empaquetando dataset + captions para LoRA…');
+    const res = await authFetch(`/api/export/persona/${p.id}/lora`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const blob = await res.blob();
+    const cd = res.headers.get('Content-Disposition') || '';
+    const match = cd.match(/filename="?([^"]+)"?/i);
+    const fallback = `${(p.name || 'influencer').toLowerCase().replace(/[^a-z0-9]+/gi, '_')}_lora_pack.zip`;
+    const filename = match?.[1] || fallback;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toastSuccess(`🧬 Pack LoRA descargado: ${filename}`);
+  } catch (err) {
+    console.error(err);
+    toastError('No se pudo exportar el pack LoRA: ' + (err.message || 'error'));
+  }
+}
+window.exportLoraTrainingPack = exportLoraTrainingPack;
+
 function applyNichePreset(nicheId) {
   const api = window.InfluNichePresets;
   if (!api?.formValuesFromNiche) {
@@ -5117,6 +5152,9 @@ function setupUgcStudio() {
   wireExportZip('btnExportPersonaZipSheet');
   wireExportZip('btnExportBrandKit', { kit: true });
   wireExportZip('btnExportBrandKitSheet', { kit: true });
+
+  const btnLoraSheet = document.getElementById('btnExportLoraPackSheet');
+  if (btnLoraSheet) btnLoraSheet.addEventListener('click', () => exportLoraTrainingPack());
 
   // Commercial License Generator Action
   const btnLicense = document.getElementById('btnGenerateCommercialLicense');
