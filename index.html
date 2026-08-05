@@ -2221,11 +2221,21 @@
       <div id="adminKeysSettingsSection">
         <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; color: #a7f3d0;">
           🟢 <strong>Gratis sin claves de pago:</strong> el producto es <em>Copiar JSON</em> a chatbots free + modo offline.
-          Pollinations (boceto local) es <em>opt-in</em> y hoy suele pedir <code style="font-size:10px;">POLLINATIONS_TOKEN</code> en <code style="font-size:10px;">.env</code>
-          (keys en enter.pollinations.ai). Replicate / LoRA L3 nunca son obligatorios.
+          Pollinations (boceto local) es <em>opt-in</em>: pega tu token abajo (enter.pollinations.ai/keys, permiso <code style="font-size:10px;">account:usage</code>).
+          Replicate / LoRA L3 nunca son obligatorios.
         </div>
 
         <form id="settingsForm">
+          <div style="margin-bottom: 16px;">
+            <label for="pollinationsTokenInput" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-secondary);">
+              Token Pollinations (bocetos locales, cero costo con grants)
+            </label>
+            <input type="password" id="pollinationsTokenInput" placeholder="sk_… o pk_… (enter.pollinations.ai/keys)" autocomplete="off" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
+            <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">
+              Sin token los bocetos fallan (401/402). El path free sigue siendo <strong>Copiar JSON</strong>. Se guarda como <code style="font-size:10px;">POLLINATIONS_TOKEN</code> en <code style="font-size:10px;">.env</code>.
+            </small>
+          </div>
+
           <div style="margin-bottom: 16px;">
             <label for="geminiKeyInput" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-secondary);">
               Clave API de Google Gemini (Gratis)

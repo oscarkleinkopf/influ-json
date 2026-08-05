@@ -46,7 +46,14 @@ API:
 
 El cliente (`comfyui-client.js`) envía un grafo **SDXL/SD1.5** clásico (`CheckpointLoaderSimple` + `LoraLoader` + `KSampler`).
 
-Si entrenaste **Flux** en L1, define un workflow ComfyUI exportado a API format en JSON y apunta `COMFYUI_WORKFLOW_JSON`. Placeholders soportados:
+Si entrenaste **Flux** en L1, usa la plantilla del repo:
+
+```bash
+COMFYUI_WORKFLOW_JSON=./docs/lora/comfy_workflow_flux_lora.json
+COMFYUI_CHECKPOINT=flux1-dev.safetensors
+```
+
+Guía: [L4C_FLUX_WORKFLOW.md](./L4C_FLUX_WORKFLOW.md). Placeholders soportados:
 
 `{{PROMPT}}` `{{NEGATIVE}}` `{{LORA}}` `{{LORA_STRENGTH}}` `{{SEED}}` `{{WIDTH}}` `{{HEIGHT}}` `{{CHECKPOINT}}`
 

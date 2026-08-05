@@ -103,6 +103,7 @@
 | L2 | **Inferencia local (ComfyUI opcional)** ✅ | Aplica la LoRA con fallback automático a Pollinations si no hay pesos/GPU |
 | L3 | **Proveedor pago opt-in** (Replicate/fal LoRA trainer) ✅ | Entrenar + inferir "un clic" detrás de `ENABLE_PAID_LORA=1`; nunca rompe free |
 | L4 | **Hub inferencia local (ComfyUI + A1111/Forge)** ✅ | Detectar backends, gens con/sin LoRA (`PREFER_LOCAL_GPU`); sin train; fallback Pollinations |
+| L4c | **Plantilla Flux Comfy** ✅ | `docs/lora/comfy_workflow_flux_lora.json` + `L4C_FLUX_WORKFLOW.md` |
 
 **Modelo de datos propuesto:** tabla `persona_loras` (`persona_id`, `trigger_token`, `base_model`, `weights_path/url`, `status`, `training_meta`) con estados `none|dataset_ready|training|ready|failed`.
 
@@ -147,6 +148,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-05 | **UX #2** Pollinations token en Ajustes | Campo + GET/POST `/api/settings/keys` |
+| 2026-08-05 | **L4c** plantilla Flux Comfy | `comfy_workflow_flux_lora.json` |
 | 2026-08-05 | **Merge #53+#54** Sec #2 + L4 → main | Integración |
 | 2026-08-05 | **L4 hub GPU local** | ComfyUI + A1111/Forge; `local-gpu/`; `PREFER_LOCAL_GPU`; docs L4 |
 | 2026-08-05 | **Sec #2** assets + cookie-first + XFF | Gate refs/generated; sin PIN en sessionStorage; `TRUST_PROXY` || 2026-08-05 | **Sec #1** public-bind + auth-off → 503 | `shouldBlockPublicInsecureAuth` → #52 |

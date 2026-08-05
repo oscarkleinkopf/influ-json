@@ -361,7 +361,7 @@ function registerAdminRoutes(app, deps) {
   // Settings Endpoint — Update API Keys in .env safely via GUI (solo Administración)
   app.post('/api/settings/keys', requireAdmin, (req, res) => {
     try {
-      const { geminiApiKey, replicateApiToken } = req.body || {};
+      const { geminiApiKey, replicateApiToken, pollinationsToken } = req.body || {};
       const envPath = path.join(rootDir, '.env');
       let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
 
@@ -376,19 +376,41 @@ function registerAdminRoutes(app, deps) {
         process.env[key] = val;
       }
 
+      if (pollinationsToken !== undefined) {
+        updateEnvVar('POLLINATIONS_TOKEN', String(pollinationsToken).trim());
+      }
       if (geminiApiKey !== undefined) updateEnvVar('GEMINI_API_KEY', geminiApiKey.trim());
       if (replicateApiToken !== undefined) updateEnvVar('REPLICATE_API_TOKEN', replicateApiToken.trim());
 
       fs.writeFileSync(envPath, envContent.trim() + '\n', 'utf8');
 
+      const pollenOn = !!(process.env.POLLINATIONS_TOKEN || process.env.POLLINATIONS_API_TOKEN || '').trim();
       res.json({
         success: true,
         message: 'Configuración de claves guardada correctamente.',
+        pollinationsConnected: pollenOn,
         geminiConnected: !!process.env.GEMINI_API_KEY,
         replicateConnected: !!process.env.REPLICATE_API_TOKEN
       });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  /** Estado enmascarado de claves (no devuelve secretos). */
+  app.get('/api/settings/keys', requireAdmin, (req, res) => {
+    try {
+      const pollen = (process.env.POLLINATIONS_TOKEN || process.env.POLLINATIONS_API_TOKEN || '').trim();
+      const gemini = (process.env.GEMINI_API_KEY || '').trim();
+      const replicate = (process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY || '').trim();
+      res.json({
+        success: true,
+        pollinationsConfigured: !!pollen,
+        geminiConfigured: !!gemini,
+        replicateConfigured: !!replicate
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
     }
   });
 

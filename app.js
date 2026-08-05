@@ -1052,6 +1052,7 @@ function setupSettings() {
       if (isCurrentUserAdmin()) {
         refreshGenMetricsSettings();
         refreshAuditLogSettings();
+        refreshSettingsKeysStatus();
       }
     });
   }
@@ -1154,17 +1155,25 @@ function setupSettings() {
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const pollinationsToken = document.getElementById('pollinationsTokenInput')?.value;
       const geminiApiKey = document.getElementById('geminiKeyInput').value;
       const replicateApiToken = document.getElementById('replicateTokenInput').value;
 
       try {
+        const body = { geminiApiKey, replicateApiToken };
+        // Solo enviar Pollinations si el usuario escribió algo (no borrar token existente con campo vacío al guardar Gemini)
+        if (pollinationsToken !== undefined && String(pollinationsToken).length > 0) {
+          body.pollinationsToken = pollinationsToken;
+        }
         const res = await authFetch('/api/settings/keys', {
           method: 'POST',
-          body: JSON.stringify({ geminiApiKey, replicateApiToken })
+          body: JSON.stringify(body)
         });
         const data = await res.json();
         if (data.success) {
           toastSuccess(data.message || 'Configuración de claves guardada.');
+          const pollenInput = document.getElementById('pollinationsTokenInput');
+          if (pollenInput) pollenInput.value = '';
           if (modal) modal.style.display = 'none';
         } else {
           toastError(data.error || 'Error al guardar la configuración.');
@@ -1179,6 +1188,7 @@ function setupSettings() {
     btnDisable.addEventListener('click', async () => {
       document.getElementById('geminiKeyInput').value = '';
       document.getElementById('replicateTokenInput').value = '';
+      // No borra POLLINATIONS_TOKEN: es free-tier / grants, no pago.
       try {
         const res = await authFetch('/api/settings/keys', {
           method: 'POST',
@@ -1196,6 +1206,30 @@ function setupSettings() {
   }
 }
 
+async function refreshSettingsKeysStatus() {
+  const pollenInput = document.getElementById('pollinationsTokenInput');
+  if (!pollenInput) return;
+  try {
+    const res = await authFetch('/api/settings/keys');
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) return;
+    pollenInput.placeholder = data.pollinationsConfigured
+      ? 'Token configurado (escribe uno nuevo para reemplazar)'
+      : 'sk_… o pk_… (enter.pollinations.ai/keys)';
+    const gemini = document.getElementById('geminiKeyInput');
+    if (gemini) {
+      gemini.placeholder = data.geminiConfigured
+        ? 'Gemini configurado (escribe uno nuevo para reemplazar)'
+        : 'AIzaSy... (Dejar en blanco para modo 100% gratis)';
+    }
+    const rep = document.getElementById('replicateTokenInput');
+    if (rep) {
+      rep.placeholder = data.replicateConfigured
+        ? 'Replicate configurado (escribe uno nuevo para reemplazar)'
+        : 'r8_... (vacío = sin face-lock ni L3)';
+    }
+  } catch (_) { /* ignore */ }
+}
 // Tab Switcher & Mobile Responsive Navigation Logic
 function setupTabs() {
   // Alias legacy / mobile tabs → paneles reales

@@ -72,6 +72,8 @@ UI: panel **GPU local (L4)** dentro de `#loraAdvancedPanel` (demoted, debajo de 
 
 LoRA en A1111: el hub añade `<lora:nombre:strength>` al prompt.
 
+**Flux:** si entrenaste en Colab L1 (Flux), apunta `COMFYUI_WORKFLOW_JSON` a [`comfy_workflow_flux_lora.json`](./comfy_workflow_flux_lora.json) — ver [L4C_FLUX_WORKFLOW.md](./L4C_FLUX_WORKFLOW.md).
+
 ---
 
 ## Troubleshooting
