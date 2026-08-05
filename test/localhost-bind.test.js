@@ -51,6 +51,11 @@ test('resolveListenHost respects HOST=0.0.0.0 as public bind', () => {
     assert.equal(firstRun.isPublicBind(), true);
     assert.equal(firstRun.shouldBlockPublicDefaultPin(() => true), true);
     assert.equal(firstRun.shouldBlockPublicDefaultPin(() => false), false);
+    // Auth off on public bind must also block (even if pin is not "default")
+    assert.equal(firstRun.shouldBlockPublicInsecureAuth({
+      isPinDefault: () => false,
+      isAuthEnabled: () => false
+    }), true);
   } finally {
     if (prev === undefined) delete process.env.HOST;
     else process.env.HOST = prev;
@@ -180,13 +185,17 @@ test('public bind + default PIN → 503 on protected API; status still 200', asy
 
   try {
     assert.equal(auth.isPinDefault(), true);
-    assert.equal(firstRun.shouldBlockPublicDefaultPin(() => auth.isPinDefault()), true);
+    assert.equal(firstRun.shouldBlockPublicInsecureAuth({
+      isPinDefault: () => auth.isPinDefault(),
+      isAuthEnabled: () => auth.isAuthEnabled()
+    }), true);
 
     await withServer(async (base) => {
       const status = await fetch(`${base}/api/status`);
       assert.equal(status.status, 200);
       const statusBody = await status.json();
       assert.equal(statusBody.publicBindUnsafe, true);
+      assert.equal(statusBody.publicBindBlockReason, 'DEFAULT_PIN');
       assert.equal(statusBody.setupRequired, true);
 
       const blocked = await fetch(`${base}/api/personas`, {
@@ -195,6 +204,7 @@ test('public bind + default PIN → 503 on protected API; status still 200', asy
       assert.equal(blocked.status, 503);
       const blockedBody = await blocked.json();
       assert.equal(blockedBody.code, 'SETUP_REQUIRED');
+      assert.equal(blockedBody.reason, 'DEFAULT_PIN');
 
       // Login still allowed
       const login = await fetch(`${base}/api/auth/login`, {
@@ -208,6 +218,90 @@ test('public bind + default PIN → 503 on protected API; status still 200', asy
     if (prevHost === undefined) delete process.env.HOST;
     else process.env.HOST = prevHost;
     process.env.STUDIO_PIN = prevPin || '1234';
+  }
+});
+
+test('public bind + STUDIO_PIN vacío (auth off) → 503; loopback + auth off sigue abierto', async () => {
+  const prevHost = process.env.HOST;
+  const prevPin = process.env.STUDIO_PIN;
+
+  process.env.HOST = '0.0.0.0';
+  process.env.STUDIO_PIN = '';
+  try {
+    assert.equal(auth.isAuthEnabled(), false);
+    assert.equal(firstRun.shouldBlockPublicInsecureAuth({
+      isPinDefault: () => auth.isPinDefault(),
+      isAuthEnabled: () => auth.isAuthEnabled()
+    }), true);
+    assert.equal(firstRun.getPublicBindBlockReason({
+      isPinDefault: () => auth.isPinDefault(),
+      isAuthEnabled: () => auth.isAuthEnabled()
+    }), 'AUTH_DISABLED');
+
+    await withServer(async (base) => {
+      const status = await fetch(`${base}/api/status`);
+      assert.equal(status.status, 200);
+      const body = await status.json();
+      assert.equal(body.publicBindUnsafe, true);
+      assert.equal(body.publicBindBlockReason, 'AUTH_DISABLED');
+      assert.equal(body.authEnabled, false);
+
+      const blocked = await fetch(`${base}/api/personas`);
+      assert.equal(blocked.status, 503);
+      const bj = await blocked.json();
+      assert.equal(bj.code, 'SETUP_REQUIRED');
+      assert.equal(bj.reason, 'AUTH_DISABLED');
+      assert.match(bj.message || '', /sin autenticación|STUDIO_PIN vacío/i);
+    });
+  } finally {
+    if (prevHost === undefined) delete process.env.HOST;
+    else process.env.HOST = prevHost;
+    process.env.STUDIO_PIN = prevPin != null ? prevPin : '1234';
+  }
+
+  // Loopback + auth off must remain usable for local DX
+  process.env.HOST = '127.0.0.1';
+  process.env.STUDIO_PIN = '';
+  try {
+    assert.equal(firstRun.shouldBlockPublicInsecureAuth({
+      isPinDefault: () => auth.isPinDefault(),
+      isAuthEnabled: () => auth.isAuthEnabled()
+    }), false);
+    await withServer(async (base) => {
+      const res = await fetch(`${base}/api/personas`);
+      assert.equal(res.status, 200);
+    });
+  } finally {
+    if (prevHost === undefined) delete process.env.HOST;
+    else process.env.HOST = prevHost;
+    process.env.STUDIO_PIN = prevPin != null && prevPin !== '' ? prevPin : '1234';
+  }
+});
+
+test('shouldBlockPublicInsecureAuth unit cases', () => {
+  const prevHost = process.env.HOST;
+  try {
+    process.env.HOST = '0.0.0.0';
+    assert.equal(firstRun.shouldBlockPublicInsecureAuth({
+      isPinDefault: () => false,
+      isAuthEnabled: () => true
+    }), false);
+    assert.equal(firstRun.shouldBlockPublicInsecureAuth({
+      isPinDefault: () => true,
+      isAuthEnabled: () => true
+    }), true);
+    assert.equal(firstRun.shouldBlockPublicInsecureAuth({
+      isPinDefault: () => false,
+      isAuthEnabled: () => false
+    }), true);
+    process.env.HOST = '127.0.0.1';
+    assert.equal(firstRun.shouldBlockPublicInsecureAuth({
+      isPinDefault: () => true,
+      isAuthEnabled: () => false
+    }), false);
+  } finally {
+    if (prevHost === undefined) delete process.env.HOST;
+    else process.env.HOST = prevHost;
   }
 });
 

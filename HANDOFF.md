@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (Fase L cerrada) |
-| **Commit base** | `89e9aad` (#49 L3 → main) |
-| **PR actual** | #47–#49 **MERGED**. Sin PR abierto de Fase L |
+| **Rama de trabajo** | `cursor/sec-public-bind-auth-off-173f` |
+| **Commit base** | `2a83175` (#50) |
+| **PR actual** | Seguridad #1 public-bind+auth-off. UX #51 sigue OPEN (draft) |
 | **`main` remoto** | Moat free + Fase G + LoRA L0–L3 |
-| **Etapa de producto** | **Usabilidad free** (siguiente) · Fase L ✅ |
-| **Prioridad inmediata** | Happy path free (crear → JSON/Pollinations) o seguridad mínima |
+| **Etapa de producto** | **Seguridad mínima** (1ª entrega) · UX free en #51 |
+| **Prioridad inmediata** | Mergear gate public-bind; luego más seguridad o UX #51 |
 | **⚠ Imagen (Pollinations)** | Pasó a créditos «pollen»: requiere `POLLINATIONS_TOKEN` (ver `.env.example`). Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate (distinto de L3 LoRA) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -73,9 +73,11 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 - **#46** — G2 looks rápidos + G3 batch 1/4.
 - **#47** — L1 notebook Colab.
 - **#48** — L2 ComfyUI + `persona_loras` + fallback Pollinations.
+- **#49** — L3 Replicate trainer opt-in (`ENABLE_PAID_LORA`).
+- **#50** — HANDOFF post-L3.
 - #41–#44 cerradas *superseded* (contenido vía #45).
 
-**En curso:** L3 — trainer/inferencia Replicate detrás de `ENABLE_PAID_LORA=1` (`cursor/l3-paid-lora-trainer-173f`).
+**En curso:** Seguridad mínima — gate `HOST=0.0.0.0` + auth off / PIN default (`cursor/sec-public-bind-auth-off-173f`). UX #51 sigue abierto.
 
 ## Sesión reciente (Cursor, 2026-07-30)
 

@@ -146,6 +146,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-05 | **Sec #1** public-bind + auth-off → 503 | `shouldBlockPublicInsecureAuth`; UX #51 aún draft |
 | 2026-08-05 | **L3 trainer pago opt-in** | `ENABLE_PAID_LORA` + Replicate train/sync/infer; fallback Pollinations |
 | 2026-08-05 | **L2 ComfyUI + fallback** | `persona_loras` v11; `generateWithLora` → Pollinations si no ready |
 | 2026-08-05 | **L1 notebook Colab** | `docs/lora/` — guía + `.ipynb` que consume pack L0 |
