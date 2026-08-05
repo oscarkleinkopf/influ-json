@@ -697,7 +697,22 @@
                   · <code style="font-size: 10px;">docs/lora/L1_COLAB.md</code>
                 </p>
                 <div id="loraInferencePanel" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
-                  <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L2 · ComfyUI (self-host)</p>
+                  <div id="localGpuStatusPanel" style="margin-bottom: 12px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);">
+                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">GPU local (L4)</p>
+                    <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
+                      Opt-in · equipo con NVIDIA/self-host. El path free sigue siendo <strong>Copiar JSON</strong>.
+                    </p>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
+                      <span id="localGpuChipComfy" style="font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);">ComfyUI —</span>
+                      <span id="localGpuChipA1111" style="font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);">A1111/Forge —</span>
+                    </div>
+                    <p id="localGpuStatusText" style="font-size: 10px; color: var(--text-muted); margin: 0 0 6px; line-height: 1.4;">Estado: —</p>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshLocalGpu" style="font-size: 10px; padding: 6px 8px;">Actualizar GPU local</button>
+                    <p style="font-size: 10px; color: var(--text-muted); margin: 6px 0 0; line-height: 1.4;">
+                      Guía: <code style="font-size: 10px;">docs/lora/L4_LOCAL_GPU.md</code>
+                    </p>
+                  </div>
+                  <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L2 · Registrar LoRA (ComfyUI / A1111)</p>
                   <p id="loraInferenceStatus" style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">Estado: —</p>
                   <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px;">Subir .safetensors (tras Colab)</label>
                   <input type="file" id="loraWeightsFile" accept=".safetensors,.pt,.ckpt" style="font-size: 10px; width: 100%; margin-bottom: 6px;" />
@@ -707,7 +722,8 @@
                     <button type="button" class="btn btn-sm" id="btnClearLora" style="font-size: 11px; padding: 8px 10px;">Quitar</button>
                   </div>
                   <p style="font-size: 10px; color: var(--text-muted); margin: 6px 0 0; line-height: 1.4;">
-                    Guía: <code style="font-size: 10px;">docs/lora/L2_COMFYUI.md</code>
+                    Guías: <code style="font-size: 10px;">docs/lora/L2_COMFYUI.md</code>
+                    · <code style="font-size: 10px;">docs/lora/L4_LOCAL_GPU.md</code>
                   </p>
                   <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
                     <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L3 · Replicate (pago, opt-in)</p>

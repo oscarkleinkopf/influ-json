@@ -50,3 +50,4 @@ node .agents/skills/influ-json-studio/scripts/influ_cli.js license --id Daniela
 ## Common Mistakes
 1. **No especificar framing en cuerpo entero**: Cuando la pose sea `fullbody`, anteponer la instrucción de encuadre al inicio del prompt (`FULL BODY PHOTO, head-to-toe shot`).
 2. **Ignorar el color de piel**: La propiedad `skin_tone` debe preservarse tanto en fotos de día/exterior como de interior para evitar desviaciones.
+3. **Promover LoRA/GPU local sobre Copiar JSON**: L2–L4 (ComfyUI/A1111) son opt-in demoted. Path free = `character_lock` → chatbot. Guía hub: `docs/lora/L4_LOCAL_GPU.md`.

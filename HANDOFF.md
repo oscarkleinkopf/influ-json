@@ -25,14 +25,14 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/sec2-assets-session-xff-173f` |
-| **Commit base** | tip `main` post #51/#52 |
-| **PR actual** | [#53](https://github.com/oscarkleinkopf/influ-json/pull/53) Sec #2 (assets + cookie-first + TRUST_PROXY) |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L3 + UX pollen + gate public-bind |
-| **Etapa de producto** | Usabilidad free ✅ (#51) · Seguridad mínima (#52 + Sec #2) |
-| **Prioridad inmediata** | Merge Sec #2 → luego UX #2 (token en Ajustes) o más seguridad |
+| **Rama de trabajo** | `main` (#53 Sec #2 + #54 L4 integrados) |
+| **Commit base** | tip post merge #53+#54 |
+| **PR actual** | #53/#54 **MERGED**. Siguiente: UX #2 |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L4 + Sec #1–#2 + UX pollen |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53) · Fase L L0–L4 ✅ |
+| **Prioridad inmediata** | UX #2 (token Pollinations en Ajustes) → plantilla Flux Comfy |
 | **⚠ Imagen (Pollinations)** | Pasó a créditos «pollen»: requiere `POLLINATIONS_TOKEN` (ver `.env.example`). Anónimo → 401/402 |
-| **En pausa** | OAuth, SMTP, video, face-lock Replicate (distinto de L3 LoRA) |
+| **En pausa** | OAuth, SMTP, video, face-lock Replicate (distinto de L3 LoRA); train local en GPU (L5) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-08-05 |
 
@@ -77,10 +77,11 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 - **#50** — HANDOFF post-L3.
 - **#51** — UX free: pollen/401 CTA + demote LoRA.
 - **#52** — Sec: public-bind + auth-off → 503.
+- **#53** — Sec #2: assets gate + cookie-first + TRUST_PROXY.
+- **#54** — L4 hub GPU local (ComfyUI + A1111/Forge).
 - #41–#44 cerradas *superseded* (contenido vía #45).
 
-**En curso:** **Sec #2** — gate `/assets/references|generated` (cookie/Bearer), UI cookie-first (sin PIN en `sessionStorage`), `TRUST_PROXY` opt-in para XFF en rate-limit. Siguiente tras merge: UX #2.
-
+**En curso:** — (#53 + #54 en `main`). Siguiente: UX #2 (token en Ajustes) → plantilla Flux.
 ## Sesión reciente (Cursor, 2026-07-30)
 
 **Pedido:** Mergear stack W12–W17 a `main`.
@@ -173,8 +174,9 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-08-05 | Cursor | **Sec #2**: assets gate + cookie-first + TRUST_PROXY/XFF | *(este commit)* |
-| 2026-08-05 | Cursor | **L1**: notebook Colab + guía para entrenar LoRA desde pack L0 | *(este commit)* |
+| 2026-08-05 | Cursor | Merge #53 Sec #2 + #54 L4 → `main` | *(este commit)* |
+| 2026-08-05 | Cursor | **L4**: hub GPU local ComfyUI + A1111/Forge | *(PR #54)* |
+| 2026-08-05 | Cursor | **Sec #2**: assets gate + cookie-first + TRUST_PROXY/XFF | *(PR #53)* || 2026-08-05 | Cursor | **L1**: notebook Colab + guía para entrenar LoRA desde pack L0 | *(este commit)* |
 | 2026-08-05 | Cursor | **G2+G3** looks rápidos + batch 1/4 → `main` | `b00da9d` (#46) |
 | 2026-08-05 | Cursor | **Integración #45**: fix Pollinations + L0 export LoRA + G1 chips + plan Fase L → `main` | `196f4a3` |
 | 2026-08-04 | Cursor | **fix**: Pollinations pasó a créditos «pollen» (402 anónimo). Endpoint `/p/`→`/prompt/`, soporte `POLLINATIONS_TOKEN`/referrer + error honesto | *(este commit)* |

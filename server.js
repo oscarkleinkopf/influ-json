@@ -42,6 +42,7 @@ const { registerPersonasRoutes, scoreVariantAgainstPersona: scoreVariantAgainstP
 const { registerGenerationRoutes } = require('./routes/generation');
 const { registerImportRoutes } = require('./routes/import');
 const { registerInviteRedeemRoute, registerAdminRoutes } = require('./routes/admin');
+const { registerLocalGpuRoutes } = require('./routes/local-gpu');
 
 // Initialize DB and migrate legacy JSON data if empty
 dbService.runMigrations();
@@ -493,6 +494,8 @@ registerInviteRedeemRoute(app, {
 // =============================================
 
 app.use('/api', requireAuth);
+
+registerLocalGpuRoutes(app);
 
 // Personas (W5c) — CRUD / variants / versions / license / export
 // triggerBackgroundVariants llega desde routes/import.js (W5d) justo abajo.

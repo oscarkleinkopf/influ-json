@@ -5,7 +5,7 @@
  * - Default path is FREE for small entrepreneurs (Pollinations + offline).
  * - Optional paid face-lock (e.g. Replicate InstantID/PuLID) is additive —
  *   never remove or break the free path when enabling it later.
- * - Optional LoRA via ComfyUI (L2) or Replicate (L3) — return null → fallback.
+ * - Optional LoRA via local GPU hub (L4: ComfyUI/A1111) or Replicate (L3) — return null → fallback.
  *
  * @see ROADMAP.md — "Cero costo primero" + Fase L
  */
@@ -14,6 +14,7 @@ const path = require('path');
 const fs = require('fs');
 const comfyui = require('./comfyui-client');
 const paidLora = require('./paid-lora');
+const localGpu = require('./local-gpu');
 const { DATA_DIR, ensureDir } = require('./paths');
 
 const PROVIDERS = {
@@ -21,8 +22,9 @@ const PROVIDERS = {
   POLLINATIONS: 'pollinations',
   /** Optional paid face-lock — not required; opt-in via env */
   REPLICATE: 'replicate',
-  /** Future self-host */
-  COMFYUI: 'comfyui'
+  /** Self-host / local GPU (L2/L4) */
+  COMFYUI: 'comfyui',
+  LOCAL: 'local'
 };
 
 const LORA_STATUSES = Object.freeze({
@@ -35,7 +37,9 @@ const LORA_STATUSES = Object.freeze({
 
 function getActiveProvider() {
   const raw = (process.env.IMAGE_PROVIDER || PROVIDERS.POLLINATIONS).toLowerCase().trim();
-  if (raw === PROVIDERS.REPLICATE || raw === PROVIDERS.COMFYUI) return raw;
+  if (raw === PROVIDERS.REPLICATE || raw === PROVIDERS.COMFYUI || raw === PROVIDERS.LOCAL) {
+    return raw;
+  }
   return PROVIDERS.POLLINATIONS;
 }
 
@@ -49,6 +53,14 @@ function isComfyUiConfigured() {
   return comfyui.isConfigured();
 }
 
+function isLocalGpuConfigured() {
+  return localGpu.isConfigured();
+}
+
+function isPreferLocalGpu() {
+  return localGpu.isPreferLocalGpu();
+}
+
 /**
  * Capability flags for UI /status and agents.
  * Free tier must always report pollinations available without keys.
@@ -56,6 +68,8 @@ function isComfyUiConfigured() {
 function getProviderCapabilities() {
   const active = getActiveProvider();
   const comfyConfigured = isComfyUiConfigured();
+  const a1111Configured = localGpu.a1111.isConfigured();
+  const localConfigured = isLocalGpuConfigured();
   const paidLoraOn = paidLora.isPaidLoraEnabled();
   return {
     active,
@@ -79,13 +93,23 @@ function getProviderCapabilities() {
       faceLock: 'hard',
       configured: comfyConfigured,
       url: comfyConfigured ? comfyui.getBaseUrl() : null,
-      notes: 'L2 opt-in: LoRA inference when persona_loras.status=ready'
+      notes: 'L2/L4: ComfyUI backend in local GPU hub'
+    },
+    localGpu: {
+      available: localConfigured,
+      cost: 'self_host_gpu',
+      configured: localConfigured,
+      preferLocal: isPreferLocalGpu(),
+      backendPreference: localGpu.getBackendPreference(),
+      comfyui: comfyConfigured,
+      a1111: a1111Configured,
+      notes: 'L4 hub: ComfyUI + A1111/Forge; PREFER_LOCAL_GPU=1 for gens without LoRA'
     },
     lora: {
-      available: comfyConfigured || paidLoraOn,
-      cost: comfyConfigured ? 'self_host_gpu' : (paidLoraOn ? 'paid_per_train_and_image' : 'free_colab_path'),
+      available: localConfigured || paidLoraOn,
+      cost: localConfigured ? 'self_host_gpu' : (paidLoraOn ? 'paid_per_train_and_image' : 'free_colab_path'),
       paidTrainer: paidLoraOn,
-      notes: 'L2 ComfyUI y/o L3 Replicate; fallback automático a Pollinations'
+      notes: 'L4 local hub y/o L3 Replicate; fallback automático a Pollinations'
     },
     paidLora: {
       available: paidLoraOn,
@@ -140,44 +164,70 @@ function saveGeneratedBuffer(buffer, prefix = 'gen_lora') {
 
 function withTriggerPrompt(prompt, row, meta) {
   let finalPrompt = String(prompt || '');
-  const trigger = (row.trigger_token || meta.trigger_token || '').trim();
+  const trigger = (row?.trigger_token || meta?.trigger_token || '').trim();
   if (trigger && !finalPrompt.includes(trigger)) {
     finalPrompt = `${trigger} ${finalPrompt}`.trim();
   }
   return finalPrompt;
 }
 
-async function tryComfyUiLora(row, prompt, options, fetchImpl) {
-  if (!isComfyUiConfigured()) return null;
+function resolveLoraForHub(row, options = {}) {
+  if (!row || row.status !== LORA_STATUSES.READY) return null;
   const weightsAbs = resolveLoraWeightsAbs(row);
   if (!weightsAbs || !fs.existsSync(weightsAbs)) return null;
-
   const meta = parseTrainingMeta(row);
-  const loraName = meta.comfy_lora_name
+  const name = meta.comfy_lora_name
     || meta.comfyLoraName
+    || meta.a1111_lora_name
+    || meta.a1111LoraName
     || path.basename(weightsAbs);
-  const finalPrompt = withTriggerPrompt(prompt, row, meta);
+  const strength = options.loraStrength != null
+    ? options.loraStrength
+    : (meta.lora_strength != null ? meta.lora_strength : 0.85);
+  return { name, strength, meta, weightsAbs };
+}
 
-  const buffer = await comfyui.generateLoraImage({
+/**
+ * L4 — intenta hub local (ComfyUI / A1111) con o sin LoRA.
+ * @returns {Promise<string|null>} relative path or null
+ */
+async function tryLocalGpuHub({
+  prompt,
+  options = {},
+  loraRow = null,
+  requireLora = false,
+  fetchImpl = null
+} = {}) {
+  if (!isLocalGpuConfigured()) return null;
+
+  const loraInfo = loraRow ? resolveLoraForHub(loraRow, options) : null;
+  if (requireLora && !loraInfo) return null;
+
+  const meta = loraInfo?.meta || parseTrainingMeta(loraRow);
+  const finalPrompt = loraRow
+    ? withTriggerPrompt(prompt, loraRow, meta)
+    : String(prompt || '');
+
+  const result = await localGpu.generateLocalImage({
     prompt: finalPrompt,
     negative: options.negative || meta.negative || undefined,
-    loraName,
-    loraStrength: options.loraStrength != null
-      ? options.loraStrength
-      : (meta.lora_strength != null ? meta.lora_strength : 0.85),
     seed: options.seed,
     width: options.width || 1024,
     height: options.height || 1024,
     checkpoint: options.checkpoint
       || meta.checkpoint
-      || row.base_model
+      || loraRow?.base_model
       || process.env.COMFYUI_CHECKPOINT
-      || 'sd_xl_base_1.0.safetensors'
-  }, { fetchImpl });
+      || undefined,
+    lora: loraInfo ? { name: loraInfo.name, strength: loraInfo.strength } : null
+  }, { fetchImpl, doPing: options.skipLocalPing !== true });
 
-  if (!buffer || !buffer.length) return null;
-  const relativePath = saveGeneratedBuffer(buffer, 'gen_lora');
-  console.log(`[image-provider] LoRA image via ComfyUI → ${relativePath}`);
+  if (!result?.buffer?.length) return null;
+  const prefix = loraInfo
+    ? (result.backend === 'a1111' ? 'gen_lora_a1111' : 'gen_lora')
+    : (result.backend === 'a1111' ? 'gen_local_a1111' : 'gen_local');
+  const relativePath = saveGeneratedBuffer(result.buffer, prefix);
+  console.log(`[image-provider] Local GPU (${result.backend}) → ${relativePath}`);
   return relativePath;
 }
 
@@ -204,7 +254,30 @@ async function tryPaidLora(row, prompt, options, fetchImpl) {
 }
 
 /**
- * L2/L3 — Inferencia LoRA (ComfyUI local y/o Replicate pago).
+ * L4 — boceto local sin LoRA cuando PREFER_LOCAL_GPU=1.
+ */
+async function generateWithLocalGpu({
+  prompt,
+  options = {},
+  fetchImpl = null
+} = {}) {
+  if (!isPreferLocalGpu() && options.forceLocalGpu !== true) return null;
+  try {
+    return await tryLocalGpuHub({
+      prompt,
+      options,
+      loraRow: null,
+      requireLora: false,
+      fetchImpl
+    });
+  } catch (err) {
+    console.warn('[image-provider] Local GPU (no LoRA) failed:', err.message);
+    return null;
+  }
+}
+
+/**
+ * L2/L3/L4 — Inferencia LoRA (hub local ComfyUI/A1111 y/o Replicate pago).
  * Returns relative image path on success, or null → Pollinations.
  */
 async function generateWithLora({
@@ -231,10 +304,16 @@ async function generateWithLora({
   if (!row || row.status !== LORA_STATUSES.READY) return null;
 
   try {
-    const local = await tryComfyUiLora(row, prompt, options, fetchImpl);
+    const local = await tryLocalGpuHub({
+      prompt,
+      options,
+      loraRow: row,
+      requireLora: true,
+      fetchImpl
+    });
     if (local) return local;
   } catch (err) {
-    console.warn('[image-provider] ComfyUI LoRA failed:', err.message);
+    console.warn('[image-provider] Local GPU LoRA failed:', err.message);
   }
 
   try {
@@ -253,9 +332,13 @@ module.exports = {
   getActiveProvider,
   isPaidFaceLockEnabled,
   isComfyUiConfigured,
+  isLocalGpuConfigured,
+  isPreferLocalGpu,
   getProviderCapabilities,
   generateWithOptionalFaceLock,
   generateWithLora,
+  generateWithLocalGpu,
+  tryLocalGpuHub,
   resolveLoraWeightsAbs,
   parseTrainingMeta
 };
