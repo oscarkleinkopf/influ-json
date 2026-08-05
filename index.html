@@ -1259,6 +1259,11 @@
               </div>
 
               <div class="editor-form-group" id="variantPromptBuilder" style="display: flex; flex-direction: column; gap: 4px;">
+                <div class="pb-group" id="pbGroupPresets">
+                  <label>Looks rápidos (un toque)</label>
+                  <div class="pb-chip-row" id="chipsLookPresets"></div>
+                </div>
+
                 <div class="pb-group">
                   <label for="vPose">Encuadre / Pose</label>
                   <div class="pb-chip-row" id="chipsPose"></div>
@@ -1325,6 +1330,12 @@
                 <div class="pb-group">
                   <label>Accesorios (opcional)</label>
                   <div class="pb-chip-row" id="chipsAccessories"></div>
+                </div>
+
+                <div class="pb-group" id="pbGroupBatch">
+                  <label>Número de imágenes</label>
+                  <div class="pb-chip-row" id="chipsBatch"></div>
+                  <p id="batchPollenHint" style="font-size: 10px; color: var(--text-muted); margin: 6px 0 0; line-height: 1.4;"></p>
                 </div>
 
                 <div style="display: flex; gap: 8px; margin-top: 6px;">

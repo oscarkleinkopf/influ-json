@@ -6940,8 +6940,10 @@ function populateVariantDropdowns() {
     });
   }
 
-  // G1 — refrescar chips del constructor de prompt tras poblar los selects
+  // G1/G2/G3 — refrescar chips del constructor de prompt tras poblar los selects
   renderVariantChips();
+  renderLookPresets();
+  renderBatchChips();
 }
 
 // G1 — Constructor de prompt por chips (estilo studio): los chips escriben en los
@@ -7022,6 +7024,84 @@ function randomizeVariantChips() {
   if (typeof toastInfo === 'function') toastInfo('🎲 Combinación aleatoria lista — pulsa Generar');
 }
 window.randomizeVariantChips = randomizeVariantChips;
+
+// G2 — Looks rápidos: un toque arma un combo coherente (pose+actitud+vestuario+escena+accesorios)
+// matcheando por palabra clave las opciones existentes del modo actual (traditional/spicy).
+const LOOK_PRESETS = [
+  { id: 'beach', label: '🏖️ Playa', pose: /cuerpo entero|caminando|espejo/i, attitude: /sonr|alegre|risa|natural/i, clothing: /bikini|verano|deportiv|playa|traje de baño|satén/i, setting: /playa|beach/i, accessories: ['gafas de sol de diseño'] },
+  { id: 'cafe', label: '☕ Café / Oficina', pose: /sentada|medio|selfie|perfil/i, attitude: /seria|elegante|sonr|pensativa/i, clothing: /traje|oficina|blazer|casual|camisa|abrigo|seda/i, setting: /cafeter|oficina|interior|hotel/i, accessories: ['gafas de moda'] },
+  { id: 'gym', label: '🏋️ Gym', pose: /cuerpo entero|espejo|caminando|de pie/i, attitude: /desafiante|empoderada|intensa|confiada|natural/i, clothing: /deportiv|leggins|gym|fitness|top|body/i, setting: /gimnasio|gym|studio/i, accessories: [] },
+  { id: 'night', label: '🌃 Noche glam', pose: /apoyada|hombro|estilizada|de pie|recostada/i, attitude: /seductora|confiada|misteriosa|intensa/i, clothing: /vestido|satén|elegante|noche|corto|encaje|catsuit|corsé/i, setting: /noche|penthouse|club|calle urbana|terraza|boudoir|dormitorio/i, accessories: ['collar delicado'] },
+  { id: 'studio', label: '📸 Estudio', pose: /macro|primer plano|selfie portrait|retrato|rostro/i, attitude: /seria|elegante|intensa|coquette/i, clothing: /casual|top|básic|camisa|lencería/i, setting: /estudio|studio|neón|low-key/i, accessories: [] }
+];
+
+function findOptionByRegex(sel, rx) {
+  if (!sel || !rx) return null;
+  const opt = Array.from(sel.options).find(o => rx.test(o.value) || rx.test(o.textContent));
+  return opt ? opt.value : null;
+}
+
+function applyLookPreset(preset) {
+  const set = (id, rx) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const v = findOptionByRegex(sel, rx);
+    if (v != null) sel.value = v;
+  };
+  set('vPose', preset.pose);
+  set('vAttitude', preset.attitude);
+  set('vClothing', preset.clothing);
+  set('vSetting', preset.setting);
+  state.variantAccessories = Array.isArray(preset.accessories) ? [...preset.accessories] : [];
+  renderVariantChips();
+  if (typeof toastInfo === 'function') toastInfo(`${preset.label} aplicado — ajusta o pulsa Generar`);
+}
+
+function renderLookPresets() {
+  const cont = document.getElementById('chipsLookPresets');
+  if (!cont) return;
+  cont.innerHTML = '';
+  LOOK_PRESETS.forEach(p => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'pb-chip';
+    chip.textContent = p.label;
+    chip.addEventListener('click', () => applyLookPreset(p));
+    cont.appendChild(chip);
+  });
+}
+
+// G3 — Batch acotado (1 / 4) con aviso de pollen. Se encola 1 a la vez (gen-queue).
+const VARIANT_BATCH_OPTIONS = [1, 4];
+
+function updateBatchHint() {
+  const el = document.getElementById('batchPollenHint');
+  if (!el) return;
+  const n = state.variantBatch || 1;
+  const cost = (n * 0.002).toFixed(3);
+  el.textContent = n > 1
+    ? `Generará ${n} imágenes (1 a la vez). Con token de Pollinations consume ~${cost} pollen (flux). El path gratis del producto es copiar el JSON al chatbot.`
+    : 'Genera 1 imagen. Con token de Pollinations consume ~0.002 pollen (flux).';
+}
+
+function renderBatchChips() {
+  const cont = document.getElementById('chipsBatch');
+  if (!cont) return;
+  if (!state.variantBatch) state.variantBatch = 1;
+  cont.innerHTML = '';
+  VARIANT_BATCH_OPTIONS.forEach(n => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'pb-chip' + (state.variantBatch === n ? ' active' : '');
+    chip.textContent = String(n);
+    chip.addEventListener('click', () => {
+      state.variantBatch = n;
+      renderBatchChips();
+    });
+    cont.appendChild(chip);
+  });
+  updateBatchHint();
+}
 
 function updateVariantClothingDropdown(gender) {
   populateVariantDropdowns();
@@ -7203,7 +7283,28 @@ async function generateVariantAction() {
     toastInfo('Selecciona un influencer primero.');
     return;
   }
-  
+
+  // G3 — batch acotado (1/4) con aviso de pollen; se encola 1 a la vez.
+  const batch = Math.max(1, Math.min(state.variantBatch || 1, 4));
+  if (batch > 1) {
+    const cost = (batch * 0.002).toFixed(3);
+    if (!confirm(`Vas a generar ${batch} imágenes (1 a la vez). Con token de Pollinations consume ~${cost} pollen. ¿Continuar?`)) {
+      return;
+    }
+  }
+
+  let ok = 0;
+  for (let i = 0; i < batch; i++) {
+    const success = await generateOneVariant(p, i, batch);
+    if (!success) break; // corta el lote si falla (p.ej. 429 / sin saldo)
+    ok++;
+  }
+  if (batch > 1 && ok > 0) {
+    toastSuccess(`Lote listo: ${ok}/${batch} imágenes generadas para ${p.name}.`);
+  }
+}
+
+async function generateOneVariant(p, index, total) {
   const pose = document.getElementById('vPose').value;
   const attitude = document.getElementById('vAttitude').value;
   const clothingBase = document.getElementById('vClothing').value;
@@ -7211,14 +7312,15 @@ async function generateVariantAction() {
   const clothing = accessories ? `${clothingBase}, con ${accessories}` : clothingBase;
   const setting = document.getElementById('vSetting').value;
   const mode = state.variantMode || 'traditional';
-  
+
   const statusCard = document.getElementById('variantGenStatus');
   const statusText = document.getElementById('variantGenStatusText');
+  const counter = total > 1 ? ` (${index + 1} de ${total})` : '';
   statusCard.style.display = 'flex';
   statusCard.classList.add('loading-pulse');
-  statusText.textContent = `Renderizando ${mode === 'spicy' ? 'spicy' : 'pose'} de ${p.name} (misma identidad)...`;
-  toastLoading(`Generando variante de ${p.name} — misma cara que el retrato principal...`);
-  
+  statusText.textContent = `Renderizando ${mode === 'spicy' ? 'spicy' : 'pose'} de ${p.name}${counter}...`;
+  toastLoading(`Generando variante${counter} de ${p.name} — misma cara que el retrato principal...`);
+
   // SAME identity pipeline for traditional + spicy (only pose/clothes/scene change)
   const detailed = getFullPersonaJSON();
   const skin = resolveSkinForPrompt(detailed, p);
@@ -7234,7 +7336,7 @@ async function generateVariantAction() {
     framing,
     hairFallback: p.hair
   });
-  
+
   try {
     QueuePoller.start();
     const res = await authFetch(`/api/personas/${p.id}/variants`, {
@@ -7249,7 +7351,8 @@ async function generateVariantAction() {
         identityLock: true,
         framing,
         mode,
-        seed: personaSeed(p.id)
+        // Semilla distinta por imagen del lote → misma identidad, composición variada
+        seed: personaSeed(p.id) + index
       })
     });
     const data = await res.json();
@@ -7259,23 +7362,28 @@ async function generateVariantAction() {
       updateSideBySideComparator(data.variant || data.variants?.[0]);
       renderHappyPathChecklist();
       statusText.textContent = framing === 'fullbody'
-        ? '✓ Cuerpo entero generado!'
-        : '✓ Pose agregada (misma identidad)!';
-      toastSuccess(framing === 'fullbody'
-        ? `Cuerpo entero de ${p.name} listo`
-        : `Variante lista — cara anclada a ${p.name}`);
+        ? `✓ Cuerpo entero generado${counter}!`
+        : `✓ Pose agregada${counter}!`;
+      if (total === 1) {
+        toastSuccess(framing === 'fullbody'
+          ? `Cuerpo entero de ${p.name} listo`
+          : `Variante lista — cara anclada a ${p.name}`);
+      }
       statusCard.classList.remove('loading-pulse');
-      setTimeout(() => statusCard.style.display = 'none', 3000);
+      if (index + 1 >= total) setTimeout(() => statusCard.style.display = 'none', 3000);
+      return true;
     } else {
       statusText.textContent = 'Error al generar la pose.';
       toastError(data.message || 'Error al generar la pose.');
       statusCard.classList.remove('loading-pulse');
+      return false;
     }
   } catch (err) {
     statusText.textContent = 'La generación falló o el servidor está offline.';
     toastError(err.message || 'La generación falló o el servidor está offline.');
     statusCard.classList.remove('loading-pulse');
     setTimeout(() => statusCard.style.display = 'none', 4000);
+    return false;
   }
 }
 
