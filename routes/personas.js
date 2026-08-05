@@ -925,11 +925,16 @@ function registerPersonasRoutes(app, deps) {
         weightsRel = path.join('loras', persona.id, destName).replace(/\\/g, '/');
         storedName = destName;
 
-        // Copia opcional al directorio models/loras de ComfyUI
+        // Copia opcional al directorio models/loras de ComfyUI y/o A1111/Forge
         const comfyLorasDir = (process.env.COMFYUI_LORAS_DIR || '').trim();
         if (comfyLorasDir) {
           ensureDir(comfyLorasDir);
           fs.copyFileSync(destAbs, path.join(comfyLorasDir, destName));
+        }
+        const a1111LorasDir = (process.env.A1111_LORAS_DIR || process.env.FORGE_LORAS_DIR || '').trim();
+        if (a1111LorasDir) {
+          ensureDir(a1111LorasDir);
+          fs.copyFileSync(destAbs, path.join(a1111LorasDir, destName));
         }
       }
 

@@ -3596,6 +3596,48 @@ async function exportLoraTrainingPack() {
 }
 window.exportLoraTrainingPack = exportLoraTrainingPack;
 
+async function refreshLocalGpuStatus() {
+  const textEl = document.getElementById('localGpuStatusText');
+  const chipComfy = document.getElementById('localGpuChipComfy');
+  const chipA1111 = document.getElementById('localGpuChipA1111');
+  if (!textEl && !chipComfy) return;
+
+  const setChip = (el, label, ok, configured) => {
+    if (!el) return;
+    if (!configured) {
+      el.textContent = `${label} off`;
+      el.style.borderColor = 'rgba(255,255,255,0.12)';
+      el.style.color = 'var(--text-muted)';
+      return;
+    }
+    el.textContent = ok ? `${label} online` : `${label} offline`;
+    el.style.borderColor = ok ? 'rgba(34,197,94,0.45)' : 'rgba(248,113,113,0.45)';
+    el.style.color = ok ? 'rgb(134,239,172)' : 'rgb(252,165,165)';
+  };
+
+  try {
+    const res = await authFetch('/api/local-gpu/status');
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      if (textEl) textEl.textContent = 'Estado: no disponible.';
+      return;
+    }
+    const comfy = data.backends?.comfyui || {};
+    const a1111 = data.backends?.a1111 || {};
+    setChip(chipComfy, 'ComfyUI', !!comfy.ok, comfy.reason !== 'not_configured');
+    setChip(chipA1111, 'A1111/Forge', !!a1111.ok, a1111.reason !== 'not_configured');
+    const active = data.active || 'ninguno';
+    const prefer = data.preferLocal ? 'PREFER_LOCAL_GPU on' : 'solo con LoRA ready';
+    if (textEl) {
+      textEl.textContent = data.configured
+        ? `Activo: ${active} · preferencia ${data.backendPreference || 'auto'} · ${prefer}`
+        : 'Sin COMFYUI_URL ni A1111_URL — gens siguen por Pollinations / Copiar JSON.';
+    }
+  } catch (err) {
+    if (textEl) textEl.textContent = 'Estado: error al consultar hub local.';
+  }
+}
+
 async function refreshLoraInferenceStatus() {
   const el = document.getElementById('loraInferenceStatus');
   if (!el) return;
@@ -3625,6 +3667,7 @@ async function refreshLoraInferenceStatus() {
   } catch (err) {
     el.textContent = 'Estado: error al consultar.';
   }
+  refreshLocalGpuStatus();
 }
 
 async function registerLoraWeights() {
@@ -3649,7 +3692,7 @@ async function registerLoraWeights() {
     const res = await authFetch(`/api/personas/${p.id}/lora`, { method: 'POST', body: fd });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.success) throw new Error(data.message || `HTTP ${res.status}`);
-    toastSuccess(`LoRA registrada (${data.lora?.status || 'ready'}). Copia el archivo a ComfyUI models/loras si hace falta.`);
+    toastSuccess(`LoRA registrada (${data.lora?.status || 'ready'}). Copia a ComfyUI/A1111 models/loras si no usas *_LORAS_DIR.`);
     if (fileInput) fileInput.value = '';
     await refreshLoraInferenceStatus();
   } catch (err) {
@@ -3738,6 +3781,7 @@ async function linkLoraPaid() {
   }
 }
 window.refreshLoraInferenceStatus = refreshLoraInferenceStatus;
+window.refreshLocalGpuStatus = refreshLocalGpuStatus;
 
 function applyNichePreset(nicheId) {
   const api = window.InfluNichePresets;
@@ -5366,6 +5410,8 @@ function setupUgcStudio() {
   if (btnSyncLoraPaid) btnSyncLoraPaid.addEventListener('click', () => syncLoraPaid());
   const btnLinkLoraPaid = document.getElementById('btnLinkLoraPaid');
   if (btnLinkLoraPaid) btnLinkLoraPaid.addEventListener('click', () => linkLoraPaid());
+  const btnRefreshLocalGpu = document.getElementById('btnRefreshLocalGpu');
+  if (btnRefreshLocalGpu) btnRefreshLocalGpu.addEventListener('click', () => refreshLocalGpuStatus());
   refreshLoraInferenceStatus();
 
   // Commercial License Generator Action

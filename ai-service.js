@@ -472,7 +472,7 @@ module.exports = {
       );
     }
 
-    // Optional per-persona LoRA via ComfyUI (Fase L / L2) — only if ready + COMFYUI_URL.
+    // Optional per-persona LoRA via local GPU hub (L4) / ComfyUI (L2) / Replicate (L3).
     // Free path (Pollinations) must always remain functional when LoRA is absent/fails.
     if (options.preferLora !== false && options.personaId) {
       try {
@@ -484,7 +484,17 @@ module.exports = {
         });
         if (loraPath) return loraPath;
       } catch (loraErr) {
-        console.warn('[gen] LoRA/ComfyUI failed, falling back to free Pollinations:', loraErr.message);
+        console.warn('[gen] LoRA/local-GPU failed, falling back:', loraErr.message);
+      }
+    }
+
+    // L4 — prefer local GPU even without LoRA (PREFER_LOCAL_GPU=1). Never required.
+    if (options.preferLocalGpu !== false && typeof imageProvider.generateWithLocalGpu === 'function') {
+      try {
+        const localPath = await imageProvider.generateWithLocalGpu({ prompt, options });
+        if (localPath) return localPath;
+      } catch (localErr) {
+        console.warn('[gen] Local GPU hub failed, falling back to Pollinations:', localErr.message);
       }
     }
 

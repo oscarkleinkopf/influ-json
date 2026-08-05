@@ -86,6 +86,58 @@ function buildDefaultLoraWorkflow({
   };
 }
 
+/** Workflow txt2img sin LoRA (L4 PREFER_LOCAL_GPU / boceto local). */
+function buildDefaultTxt2ImgWorkflow({
+  prompt,
+  negative = 'blurry, low quality, deformed, watermark, text',
+  seed = Math.floor(Math.random() * 1e9),
+  width = 1024,
+  height = 1024,
+  checkpoint = process.env.COMFYUI_CHECKPOINT || 'sd_xl_base_1.0.safetensors'
+}) {
+  return {
+    '3': {
+      class_type: 'KSampler',
+      inputs: {
+        seed: Number(seed) || 0,
+        steps: 28,
+        cfg: 7,
+        sampler_name: 'euler',
+        scheduler: 'normal',
+        denoise: 1,
+        model: ['4', 0],
+        positive: ['6', 0],
+        negative: ['7', 0],
+        latent_image: ['5', 0]
+      }
+    },
+    '4': {
+      class_type: 'CheckpointLoaderSimple',
+      inputs: { ckpt_name: checkpoint }
+    },
+    '5': {
+      class_type: 'EmptyLatentImage',
+      inputs: { width: Number(width) || 1024, height: Number(height) || 1024, batch_size: 1 }
+    },
+    '6': {
+      class_type: 'CLIPTextEncode',
+      inputs: { text: String(prompt || ''), clip: ['4', 1] }
+    },
+    '7': {
+      class_type: 'CLIPTextEncode',
+      inputs: { text: String(negative || ''), clip: ['4', 1] }
+    },
+    '8': {
+      class_type: 'VAEDecode',
+      inputs: { samples: ['3', 0], vae: ['4', 2] }
+    },
+    '9': {
+      class_type: 'SaveImage',
+      inputs: { filename_prefix: 'influ_json_local', images: ['8', 0] }
+    }
+  };
+}
+
 function applyWorkflowTemplate(templateObj, vars) {
   let raw = JSON.stringify(templateObj);
   for (const [k, v] of Object.entries(vars)) {
@@ -121,7 +173,10 @@ function buildWorkflow(opts) {
       CHECKPOINT: opts.checkpoint || process.env.COMFYUI_CHECKPOINT || 'sd_xl_base_1.0.safetensors'
     });
   }
-  return buildDefaultLoraWorkflow(opts);
+  if (opts.loraName) {
+    return buildDefaultLoraWorkflow(opts);
+  }
+  return buildDefaultTxt2ImgWorkflow(opts);
 }
 
 async function request(pathname, { method = 'GET', body, fetchImpl, timeoutMs } = {}) {
@@ -222,6 +277,16 @@ async function fetchImageBuffer(imageMeta, { fetchImpl } = {}) {
  * Genera una imagen con LoRA vía ComfyUI y devuelve Buffer.
  */
 async function generateLoraImage(opts, { fetchImpl } = {}) {
+  if (!opts.loraName) {
+    throw new Error('generateLoraImage requiere loraName');
+  }
+  return generateImage(opts, { fetchImpl });
+}
+
+/**
+ * Genera imagen vía ComfyUI (con o sin LoRA). Devuelve Buffer.
+ */
+async function generateImage(opts, { fetchImpl } = {}) {
   const workflow = buildWorkflow(opts);
   const promptId = await queuePrompt(workflow, { fetchImpl });
   const images = await waitForOutput(promptId, { fetchImpl });
@@ -233,10 +298,12 @@ module.exports = {
   isConfigured,
   ping,
   buildDefaultLoraWorkflow,
+  buildDefaultTxt2ImgWorkflow,
   buildWorkflow,
   queuePrompt,
   waitForOutput,
   fetchImageBuffer,
   generateLoraImage,
+  generateImage,
   applyWorkflowTemplate
 };

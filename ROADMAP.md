@@ -102,18 +102,19 @@
 | L1 | **Notebook Colab gratis** (`ai-toolkit` Flux LoRA) ✅ | Consume el pack de L0 y devuelve `.safetensors`; documentado paso a paso (`docs/lora/`) |
 | L2 | **Inferencia local (ComfyUI opcional)** ✅ | Aplica la LoRA con fallback automático a Pollinations si no hay pesos/GPU |
 | L3 | **Proveedor pago opt-in** (Replicate/fal LoRA trainer) ✅ | Entrenar + inferir "un clic" detrás de `ENABLE_PAID_LORA=1`; nunca rompe free |
+| L4 | **Hub inferencia local (ComfyUI + A1111/Forge)** ✅ | Detectar backends, gens con/sin LoRA (`PREFER_LOCAL_GPU`); sin train; fallback Pollinations |
 
 **Modelo de datos propuesto:** tabla `persona_loras` (`persona_id`, `trigger_token`, `base_model`, `weights_path/url`, `status`, `training_meta`) con estados `none|dataset_ready|training|ready|failed`.
 
-**Provider:** `image-provider.generateWithLora({ personaId, prompt })` que usa la LoRA si `status=ready`, si no `return null` → fallback (mismo patrón que `generateWithOptionalFaceLock`).
+**Provider:** `image-provider.generateWithLora({ personaId, prompt })` que usa la LoRA si `status=ready`, si no `return null` → fallback (mismo patrón que `generateWithOptionalFaceLock`). Hub L4: `local-gpu/` + `generateWithLocalGpu` cuando `PREFER_LOCAL_GPU=1`.
 
-**Cómputo (free-first):** Colab free (T4) para entrenar → self-host ComfyUI o Replicate/fal para inferir. Investigar si Pollinations BYOP / `/account/my-models` sirve para servir la LoRA propia.
+**Cómputo (free-first):** Colab free (T4) para entrenar → self-host ComfyUI/A1111 o Replicate/fal para inferir. Investigar si Pollinations BYOP / `/account/my-models` sirve para servir la LoRA propia.
 
 **Riesgos:** chicken-and-egg de consistencia (curar dataset desde anclas fuertes antes de entrenar); requiere GPU (por eso L1 = Colab, no local); IP/licensing (registrar la LoRA como activo en el certificador); ToS de contenido en modo spicy.
 
 **Regla de regresión:** con LoRA desactivada, todo el path free (JSON + Pollinations) sigue igual. L0 debe funcionar sin token, sin GPU y sin pago.
 
-**Arranque:** L0–L3 ✅ (L3 = `ENABLE_PAID_LORA` + Replicate; free path intacto).
+**Arranque:** L0–L4 ✅ (L4 = hub ComfyUI + A1111/Forge; free path intacto).
 
 ---
 
@@ -146,6 +147,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-05 | **L4 hub GPU local** | ComfyUI + A1111/Forge; `local-gpu/`; `PREFER_LOCAL_GPU`; docs L4 |
 | 2026-08-05 | **Sec #1** public-bind + auth-off → 503 | `shouldBlockPublicInsecureAuth` → #52 |
 | 2026-08-05 | **UX free #1** pollen/401 + demote LoRA | Banner + CTA Copiar JSON; LoRA en `<details>` → #51 |
 | 2026-08-05 | **L3 trainer pago opt-in** | `ENABLE_PAID_LORA` + Replicate train/sync/infer; fallback Pollinations |

@@ -25,13 +25,14 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (#51 UX + #52 Sec integrados) |
-| **Commit base** | tip tras merge #51/#52 |
-| **PR actual** | #51/#52 **MERGED**. Siguiente: más seguridad o UX #2 |
+| **Rama de trabajo** | `cursor/l4-local-gpu-hub-173f` |
+| **Commit base** | tip `main` post #51/#52 |
+| **PR actual** | L4 hub inferencia local (ComfyUI + A1111/Forge) — en curso |
 | **`main` remoto** | Moat free + Fase G + LoRA L0–L3 + UX pollen + gate public-bind |
-| **Etapa de producto** | Usabilidad free ✅ (#51) · Seguridad mínima en curso (#52) |
-| **Prioridad inmediata** | Sec #2 (assets/sessionStorage/XFF) o UX #2 (token en Ajustes) || **⚠ Imagen (Pollinations)** | Pasó a créditos «pollen»: requiere `POLLINATIONS_TOKEN` (ver `.env.example`). Anónimo → 401/402 |
-| **En pausa** | OAuth, SMTP, video, face-lock Replicate (distinto de L3 LoRA) |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52) · Fase L L0–L4 |
+| **Prioridad inmediata** | Merge L4 → Sec #2 / UX #2 según cola |
+| **⚠ Imagen (Pollinations)** | Pasó a créditos «pollen»: requiere `POLLINATIONS_TOKEN` (ver `.env.example`). Anónimo → 401/402 |
+| **En pausa** | OAuth, SMTP, video, face-lock Replicate (distinto de L3 LoRA); train local en GPU (post-L4) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-08-05 |
 
@@ -78,7 +79,7 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 - **#52** — Sec: public-bind + auth-off → 503.
 - #41–#44 cerradas *superseded* (contenido vía #45).
 
-**En curso:** — (#51/#52 integrados). Siguiente: Sec #2 o UX #2.
+**En curso:** **L4** — hub inferencia local (`local-gpu/`: ComfyUI + A1111/Forge, `PREFER_LOCAL_GPU`, panel demoted). Docs: `docs/lora/L4_LOCAL_GPU.md`.
 
 ## Sesión reciente (Cursor, 2026-07-30)
 
@@ -172,6 +173,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-05 | Cursor | **L4**: hub GPU local ComfyUI + A1111/Forge | *(este commit)* |
 | 2026-08-05 | Cursor | **L1**: notebook Colab + guía para entrenar LoRA desde pack L0 | *(este commit)* |
 | 2026-08-05 | Cursor | **G2+G3** looks rápidos + batch 1/4 → `main` | `b00da9d` (#46) |
 | 2026-08-05 | Cursor | **Integración #45**: fix Pollinations + L0 export LoRA + G1 chips + plan Fase L → `main` | `196f4a3` |
