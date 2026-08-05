@@ -25,13 +25,13 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux2-pollinations-token-settings-173f` |
-| **Commit base** | tip `main` post #53+#54 |
-| **PR actual** | UX #2 (token Pollinations en Ajustes) + L4c Flux template — en curso |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L4 + Sec #1–#2 |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53) · Fase L L0–L4 ✅ |
-| **Prioridad inmediata** | Merge UX #2 + L4c → smoke happy path |
-| **⚠ Imagen (Pollinations)** | Token configurable en Ajustes (UX #2) o `.env`. Anónimo → 401/402 |
+| **Rama de trabajo** | `main` |
+| **Commit base** | tip post UX #2 + L4c (`6b6b56f`) |
+| **PR actual** | #53/#54 + UX #2 + L4c **en main**. Siguiente: L5 train local o más seguridad |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L4c + Sec #1–#2 + UX #2 pollen en Ajustes |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53) · Fase L L0–L4c ✅ |
+| **Prioridad inmediata** | Validar en uso real; L5 train local (pausa) o CSP |
+| **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate; train local L5 |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-08-05 |
