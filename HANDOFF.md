@@ -177,6 +177,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-05 | Cursor | **Happy path live**: create→JSON pack→export + boceto pollen; smoke 9/9 | *(docs)* |
 | 2026-08-05 | Cursor | **UX #2** + **L4c** Flux template | *(este PR)* |
 | 2026-08-05 | Cursor | Merge #53 Sec #2 + #54 L4 → `main` | *(main)* |
 | 2026-08-05 | Cursor | **L4**: hub GPU local ComfyUI + A1111/Forge | *(PR #54)* |
