@@ -608,6 +608,67 @@ function registerPersonasRoutes(app, deps) {
   });
 
 
+  /**
+   * Fase L / L0 — Pack de entrenamiento LoRA (dataset + captions).
+   * Free path: no entrena ni requiere GPU/token/pago; solo empaqueta imágenes del
+   * vault (ancla + variantes) con captions derivados del `character_lock` para
+   * entrenar una LoRA de personaje en Colab gratis / self-host.
+   */
+  app.get('/api/export/persona/:id/lora', requireOwnedPersona, (req, res) => {
+    try {
+      const persona = req.persona;
+      const loraPack = require('../lora-pack');
+      const variants = dbService.getVariantsForPersona(persona.id) || [];
+      const pack = loraPack.buildLoraPack(persona, variants);
+
+      try {
+        dbService.recordAuditEvent({
+          profile_id: persona?.profile_id || req.profileId,
+          actor_profile_id: req.session?.profileId || req.profileId,
+          action: 'persona.export_lora_pack',
+          entity_type: 'persona',
+          entity_id: persona.id,
+          meta: { name: persona.name || null, images: pack.count, trigger: pack.triggerToken }
+        });
+      } catch (_) {}
+
+      const safeName = String(persona.name || 'influencer')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_|_$/g, '') || 'influencer';
+
+      res.attachment(`${safeName}_lora_pack.zip`);
+
+      const archive = createZipArchive({ zlib: { level: 9 } });
+      archive.on('error', (err) => {
+        if (!res.headersSent) res.status(500).json({ success: false, error: err.message });
+      });
+      archive.pipe(res);
+
+      // Archivos de texto (README, config, character_lock, trigger)
+      pack.textFiles.forEach((f) => archive.append(f.content, { name: f.name }));
+
+      // Dataset: imagen + caption con el mismo basename (convención kohya/ai-toolkit)
+      pack.datasetItems.forEach((item) => {
+        const abs = path.isAbsolute(item.srcRelPath)
+          ? item.srcRelPath
+          : path.join(rootDir, item.srcRelPath);
+        if (fs.existsSync(abs)) {
+          archive.file(abs, { name: `dataset/${item.imageName}` });
+          archive.append(`${item.caption}\n`, { name: `dataset/${item.captionName}` });
+        }
+      });
+
+      archive.finalize();
+    } catch (err) {
+      console.error('[export/persona/lora-pack]', err);
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, message: err.message || 'Error al exportar pack LoRA.' });
+      }
+    }
+  });
+
+
   return { scoreVariantAgainstPersona: scoreVariant };
 }
 
