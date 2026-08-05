@@ -3561,8 +3561,9 @@ async function refreshLoraInferenceStatus() {
     const trigger = data.lora?.trigger_token || '—';
     const comfy = data.comfyui?.configured
       ? (data.comfyui.reachable ? 'ComfyUI OK' : 'ComfyUI configurado (no responde)')
-      : 'sin COMFYUI_URL → gen Pollinations';
-    el.textContent = `Estado: ${st} · trigger: ${trigger} · ${comfy}`;
+      : 'sin COMFYUI_URL';
+    const paid = data.paidLora?.available ? 'Replicate L3 ON' : 'L3 off (gratis)';
+    el.textContent = `Estado: ${st} · trigger: ${trigger} · ${comfy} · ${paid}`;
     const triggerInput = document.getElementById('loraTriggerInput');
     if (triggerInput && data.lora?.trigger_token && !triggerInput.value) {
       triggerInput.value = data.lora.trigger_token;
@@ -3614,6 +3615,72 @@ async function clearLoraWeights() {
     await refreshLoraInferenceStatus();
   } catch (err) {
     toastError('No se pudo quitar LoRA: ' + (err.message || 'error'));
+  }
+}
+
+async function trainLoraPaid() {
+  const p = state.selectedPersona || state.personas[0];
+  if (!p?.id) {
+    toastInfo('Selecciona un influencer primero.');
+    return;
+  }
+  if (!confirm('Esto llama a Replicate (pago) y gasta crédito. ¿Continuar?\n\nSi quieres gratis, usa Colab (L1) en docs/lora/L1_COLAB.md.')) {
+    return;
+  }
+  try {
+    toastLoading('Subiendo dataset e iniciando training pago…');
+    const trigger = (document.getElementById('loraTriggerInput')?.value || '').trim();
+    const res = await authFetch(`/api/personas/${p.id}/lora/train`, {
+      method: 'POST',
+      body: JSON.stringify({ confirmPaid: true, triggerToken: trigger || undefined })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.message || `HTTP ${res.status}`);
+    toastSuccess(`Training iniciado (${data.training?.id || 'ok'}). Pulsa «Sincronizar estado» cuando termine.`);
+    await refreshLoraInferenceStatus();
+  } catch (err) {
+    toastError('Trainer pago: ' + (err.message || 'error'));
+  }
+}
+
+async function syncLoraPaid() {
+  const p = state.selectedPersona || state.personas[0];
+  if (!p?.id) return;
+  try {
+    toastLoading('Sincronizando training…');
+    const res = await authFetch(`/api/personas/${p.id}/lora/sync`, {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.message || `HTTP ${res.status}`);
+    toastSuccess(`LoRA status: ${data.lora?.status || '—'}`);
+    await refreshLoraInferenceStatus();
+  } catch (err) {
+    toastError('Sync LoRA: ' + (err.message || 'error'));
+  }
+}
+
+async function linkLoraPaid() {
+  const p = state.selectedPersona || state.personas[0];
+  if (!p?.id) return;
+  const ver = (document.getElementById('loraReplicateModelInput')?.value || '').trim();
+  if (!ver) {
+    toastInfo('Pega owner/model:version de Replicate.');
+    return;
+  }
+  try {
+    const trigger = (document.getElementById('loraTriggerInput')?.value || '').trim();
+    const res = await authFetch(`/api/personas/${p.id}/lora/sync`, {
+      method: 'POST',
+      body: JSON.stringify({ replicateModelVersion: ver, triggerToken: trigger || undefined })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.message || `HTTP ${res.status}`);
+    toastSuccess('Modelo Replicate vinculado (status=ready).');
+    await refreshLoraInferenceStatus();
+  } catch (err) {
+    toastError('Vincular LoRA: ' + (err.message || 'error'));
   }
 }
 window.refreshLoraInferenceStatus = refreshLoraInferenceStatus;
@@ -5236,6 +5303,12 @@ function setupUgcStudio() {
   if (btnRegisterLora) btnRegisterLora.addEventListener('click', () => registerLoraWeights());
   const btnClearLora = document.getElementById('btnClearLora');
   if (btnClearLora) btnClearLora.addEventListener('click', () => clearLoraWeights());
+  const btnTrainLoraPaid = document.getElementById('btnTrainLoraPaid');
+  if (btnTrainLoraPaid) btnTrainLoraPaid.addEventListener('click', () => trainLoraPaid());
+  const btnSyncLoraPaid = document.getElementById('btnSyncLoraPaid');
+  if (btnSyncLoraPaid) btnSyncLoraPaid.addEventListener('click', () => syncLoraPaid());
+  const btnLinkLoraPaid = document.getElementById('btnLinkLoraPaid');
+  if (btnLinkLoraPaid) btnLinkLoraPaid.addEventListener('click', () => linkLoraPaid());
   refreshLoraInferenceStatus();
 
   // Commercial License Generator Action

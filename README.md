@@ -72,7 +72,9 @@ Consistencia más fuerte que el prompt solo — **sin romper el free path**:
 
 1. Exporta **🧬 Pack de entrenamiento LoRA** desde la ficha (dataset + captions).
 2. Entrena gratis en Colab: [docs/lora/L1_COLAB.md](./docs/lora/L1_COLAB.md) · notebook [`influ_json_lora_train.ipynb`](./docs/lora/influ_json_lora_train.ipynb).
-3. Registra el `.safetensors` en la ficha (L2) y usa ComfyUI opt-in: [docs/lora/L2_COMFYUI.md](./docs/lora/L2_COMFYUI.md). Sin ComfyUI → gen sigue en Pollinations.
+3. Registra el `.safetensors` en la ficha (L2 ComfyUI) o usa trainer pago opt-in (L3 Replicate):  
+   [docs/lora/L2_COMFYUI.md](./docs/lora/L2_COMFYUI.md) · [docs/lora/L3_PAID.md](./docs/lora/L3_PAID.md).  
+   Sin ComfyUI / sin `ENABLE_PAID_LORA` → gen sigue en Pollinations.
 
 ## Datos y PIN
 
