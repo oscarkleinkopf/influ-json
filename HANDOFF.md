@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/l3-paid-lora-trainer-173f` |
-| **Commit base** | `5dd6c82` (#48 L2 → main) |
-| **PR actual** | L3 Replicate opt-in (esta rama). #47/#48 **MERGED** |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L2 |
-| **Etapa de producto** | **Fase L** — L0–L3 ✅ en PR |
-| **Prioridad inmediata** | Mergear L3; UX polish / seguridad mínima |
+| **Rama de trabajo** | `main` (Fase L cerrada) |
+| **Commit base** | `89e9aad` (#49 L3 → main) |
+| **PR actual** | #47–#49 **MERGED**. Sin PR abierto de Fase L |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L3 |
+| **Etapa de producto** | **Usabilidad free** (siguiente) · Fase L ✅ |
+| **Prioridad inmediata** | Happy path free (crear → JSON/Pollinations) o seguridad mínima |
 | **⚠ Imagen (Pollinations)** | Pasó a créditos «pollen»: requiere `POLLINATIONS_TOKEN` (ver `.env.example`). Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate (distinto de L3 LoRA) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
