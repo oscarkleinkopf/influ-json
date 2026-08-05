@@ -154,6 +154,11 @@ function registerGenerationRoutes(app, deps) {
       .catch(err => {
         const durationMs = Date.now() - t0;
         const is429 = err.status === 429 || /429|rate limit|límite/i.test(err.message || '');
+        const paymentRequired = !!(err.paymentRequired || err.status === 402
+          || /402|insufficient balance|pollen/i.test(err.message || ''));
+        const authRequired = !!(err.authRequired || err.status === 401
+          || /401|unauthorized|no autorizado|POLLINATIONS_TOKEN|bearer/i.test(err.message || ''));
+        const httpStatus = is429 ? 429 : (paymentRequired ? 402 : (authRequired ? 401 : 500));
         try {
           dbService.recordGenMetric({
             profile_id: profileId,
@@ -161,13 +166,19 @@ function registerGenerationRoutes(app, deps) {
             provider: 'pollinations',
             generation_type: req.body.generationType || 'portrait',
             ok: false,
-            error_code: is429 ? '429' : 'error',
+            error_code: is429 ? '429' : (paymentRequired ? '402' : (authRequired ? '401' : 'error')),
             duration_ms: durationMs
           });
         } catch (mErr) {
           console.warn('[gen-metrics]', mErr.message);
         }
-        res.status(is429 ? 429 : 500).json({ success: false, message: err.message, rateLimited: is429 });
+        res.status(httpStatus).json({
+          success: false,
+          message: err.message,
+          rateLimited: is429,
+          paymentRequired,
+          authRequired
+        });
       });
   });
 
