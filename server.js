@@ -56,14 +56,19 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(authService.sessionMiddleware);
 
 /**
- * If Studio is bound publicly (0.0.0.0) with the default PIN, block API use
- * until the admin changes the PIN via /api/setup/change-pin.
+ * If Studio is bound publicly (0.0.0.0) with insecure auth (default PIN or auth off),
+ * block API use until the admin sets a real PIN.
  * Static assets + status + auth + setup remain reachable so the wizard works.
  */
 app.use((req, res, next) => {
-  if (!firstRun.shouldBlockPublicDefaultPin(() => authService.isPinDefault())) {
+  const gateOpts = {
+    isPinDefault: () => authService.isPinDefault(),
+    isAuthEnabled: () => authService.isAuthEnabled()
+  };
+  if (!firstRun.shouldBlockPublicInsecureAuth(gateOpts)) {
     return next();
   }
+  const reason = firstRun.getPublicBindBlockReason(gateOpts);
   const p = req.path || '';
   const allowed =
     p === '/api/status' ||
@@ -78,8 +83,8 @@ app.use((req, res, next) => {
   return res.status(503).json({
     success: false,
     code: 'SETUP_REQUIRED',
-    message:
-      'Studio expuesto en red (HOST=0.0.0.0) con PIN por defecto. Cambia el PIN en el asistente de primer arranque antes de continuar.'
+    reason: reason || 'DEFAULT_PIN',
+    message: firstRun.publicBindBlockMessage(reason)
   });
 });
 
@@ -379,19 +384,26 @@ app.get('/api/status', (req, res) => {
     imageProviders = require('./image-provider').getProviderCapabilities();
   } catch (_) { /* optional module */ }
   const pinIsDefault = authService.isPinDefault();
+  const authEnabled = authService.isAuthEnabled();
   const listenHost = firstRun.resolveListenHost();
-  const publicBindUnsafe = firstRun.shouldBlockPublicDefaultPin(() => pinIsDefault);
+  const gateOpts = {
+    isPinDefault: () => pinIsDefault,
+    isAuthEnabled: () => authEnabled
+  };
+  const publicBindUnsafe = firstRun.shouldBlockPublicInsecureAuth(gateOpts);
+  const publicBindBlockReason = firstRun.getPublicBindBlockReason(gateOpts);
   res.json({
     success: true,
     apiConnected: aiService.isApiConnected(),
     gitLinked: fs.existsSync(path.join(__dirname, '.git')),
-    pinRequired: authService.isAuthEnabled(),
+    pinRequired: authEnabled,
     pinIsDefault,
-    setupRequired: pinIsDefault,
+    setupRequired: pinIsDefault || (publicBindUnsafe && !authEnabled),
     listenHost,
     publicBind: firstRun.isPublicBind(listenHost),
     publicBindUnsafe,
-    authEnabled: authService.isAuthEnabled(),
+    publicBindBlockReason,
+    authEnabled,
     authenticated: !!(req.session && req.session.authenticated),
     profile: req.session?.profileId
       ? { id: req.session.profileId, name: req.session.profileName, role: req.session.profileRole }
@@ -896,13 +908,23 @@ app.use((err, req, res, next) => {
 });
 
 function startHttpServer(port = PORT, host = LISTEN_HOST) {
-  if (firstRun.isPublicBind(host) && authService.isPinDefault()) {
+  const gateOpts = {
+    isPinDefault: () => authService.isPinDefault(),
+    isAuthEnabled: () => authService.isAuthEnabled()
+  };
+  if (firstRun.shouldBlockPublicInsecureAuth(gateOpts)) {
+    const reason = firstRun.getPublicBindBlockReason(gateOpts);
     console.warn('');
     console.warn('╔══════════════════════════════════════════════════════════════════╗');
     console.warn('║  AVISO DE SEGURIDAD                                              ║');
-    console.warn('║  HOST público + PIN por defecto (1234).                          ║');
-    console.warn('║  La API quedará en 503 hasta que cambies el PIN en el asistente. ║');
-    console.warn('║  Recomendado: HOST=127.0.0.1 (default) o cambia STUDIO_PIN.      ║');
+    if (reason === 'AUTH_DISABLED') {
+      console.warn('║  HOST público + STUDIO_PIN vacío (auth off).                     ║');
+      console.warn('║  La API quedará en 503 hasta que definas un PIN.                 ║');
+    } else {
+      console.warn('║  HOST público + PIN por defecto (1234).                          ║');
+      console.warn('║  La API quedará en 503 hasta que cambies el PIN en el asistente. ║');
+    }
+    console.warn('║  Recomendado: HOST=127.0.0.1 (default) o STUDIO_PIN fuerte.      ║');
     console.warn('╚══════════════════════════════════════════════════════════════════╝');
     console.warn('');
   }
@@ -912,6 +934,9 @@ function startHttpServer(port = PORT, host = LISTEN_HOST) {
     console.log(`Server is running at http://${host === '0.0.0.0' ? '127.0.0.1' : host}:${port} (bind ${where})`);
     if (authService.isPinDefault()) {
       console.log('[setup] PIN por defecto activo — abre el Studio y completa el asistente de primer arranque.');
+    }
+    if (!authService.isAuthEnabled()) {
+      console.log('[setup] STUDIO_PIN vacío — auth desactivada (solo seguro en localhost).');
     }
   });
   return server;

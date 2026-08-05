@@ -113,12 +113,52 @@ function isLoopbackBind(host = resolveListenHost()) {
 }
 
 /**
- * Network exposure with default PIN is unsafe — callers should block API until PIN changes.
- * Evaluated at request time so change-pin can unlock without restart.
+ * Network exposure with insecure auth is unsafe — callers should block API until fixed.
+ * Cases:
+ *  - public bind + default PIN (1234)
+ *  - public bind + auth disabled (STUDIO_PIN empty)  ← worse than default PIN
+ * Evaluated at request time so change-pin / .env reload can unlock without restart.
+ *
+ * @param {{ isPinDefault?: Function|boolean, isAuthEnabled?: Function|boolean }} opts
  */
-function shouldBlockPublicDefaultPin(isPinDefaultFn) {
-  if (typeof isPinDefaultFn !== 'function') return false;
-  return isPublicBind() && !!isPinDefaultFn();
+function shouldBlockPublicInsecureAuth(opts = {}) {
+  if (!isPublicBind()) return false;
+  const authOn = typeof opts.isAuthEnabled === 'function'
+    ? !!opts.isAuthEnabled()
+    : (opts.isAuthEnabled != null ? !!opts.isAuthEnabled : true);
+  if (!authOn) return true;
+  const pinDefault = typeof opts.isPinDefault === 'function'
+    ? !!opts.isPinDefault()
+    : !!opts.isPinDefault;
+  return !!pinDefault;
+}
+
+/** @deprecated Prefer shouldBlockPublicInsecureAuth — kept for callers/tests. */
+function shouldBlockPublicDefaultPin(isPinDefaultFn, isAuthEnabledFn) {
+  return shouldBlockPublicInsecureAuth({
+    isPinDefault: isPinDefaultFn,
+    isAuthEnabled: isAuthEnabledFn
+  });
+}
+
+/**
+ * Why public bind is blocked (null if safe).
+ * @returns {'AUTH_DISABLED'|'DEFAULT_PIN'|null}
+ */
+function getPublicBindBlockReason(opts = {}) {
+  if (!shouldBlockPublicInsecureAuth(opts)) return null;
+  const authOn = typeof opts.isAuthEnabled === 'function'
+    ? !!opts.isAuthEnabled()
+    : (opts.isAuthEnabled != null ? !!opts.isAuthEnabled : true);
+  if (!authOn) return 'AUTH_DISABLED';
+  return 'DEFAULT_PIN';
+}
+
+function publicBindBlockMessage(reason) {
+  if (reason === 'AUTH_DISABLED') {
+    return 'Studio expuesto en red (HOST=0.0.0.0) sin autenticación (STUDIO_PIN vacío). Define un PIN en .env o usa HOST=127.0.0.1.';
+  }
+  return 'Studio expuesto en red (HOST=0.0.0.0) con PIN por defecto. Cambia el PIN en el asistente de primer arranque antes de continuar.';
 }
 
 function validateNewStudioPin(pin, confirmPin) {
@@ -151,6 +191,9 @@ module.exports = {
   resolveListenHost,
   isPublicBind,
   isLoopbackBind,
+  shouldBlockPublicInsecureAuth,
   shouldBlockPublicDefaultPin,
+  getPublicBindBlockReason,
+  publicBindBlockMessage,
   validateNewStudioPin
 };
