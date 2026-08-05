@@ -6841,6 +6841,9 @@ window.setVariantMode = function(mode) {
     layout.classList.toggle('spicy-theme', mode === 'spicy');
   }
 
+  const builder = document.getElementById('variantPromptBuilder');
+  if (builder) builder.classList.toggle('variant-mode-spicy', mode === 'spicy');
+
   populateVariantDropdowns();
 };
 
@@ -6898,7 +6901,89 @@ function populateVariantDropdowns() {
       setSelect.appendChild(opt);
     });
   }
+
+  // G1 — refrescar chips del constructor de prompt tras poblar los selects
+  renderVariantChips();
 }
+
+// G1 — Constructor de prompt por chips (estilo studio): los chips escriben en los
+// selects ocultos (fuente de verdad de generateVariantAction). Accesorios se pliegan
+// en el vestuario al generar.
+const VARIANT_ACCESSORIES = [
+  { label: 'Collar', value: 'collar delicado' },
+  { label: 'Aretes', value: 'aretes dorados' },
+  { label: 'Aros grandes', value: 'pendientes de aro grandes' },
+  { label: 'Gargantilla', value: 'gargantilla (choker)' },
+  { label: 'Gafas', value: 'gafas de moda' },
+  { label: 'Gafas de sol', value: 'gafas de sol de diseño' },
+  { label: 'Sombrero', value: 'sombrero de ala ancha' },
+  { label: 'Reloj', value: 'reloj minimalista' }
+];
+
+function renderVariantChips() {
+  const groups = [
+    ['vPose', 'chipsPose'],
+    ['vAttitude', 'chipsAttitude'],
+    ['vClothing', 'chipsClothing'],
+    ['vSetting', 'chipsSetting']
+  ];
+  groups.forEach(([selId, contId]) => {
+    const sel = document.getElementById(selId);
+    const cont = document.getElementById(contId);
+    if (!sel || !cont) return;
+    cont.innerHTML = '';
+    Array.from(sel.options).forEach(opt => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'pb-chip' + (opt.value === sel.value ? ' active' : '');
+      chip.textContent = opt.textContent;
+      chip.title = opt.value;
+      chip.addEventListener('click', () => {
+        sel.value = opt.value;
+        cont.querySelectorAll('.pb-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+      cont.appendChild(chip);
+    });
+  });
+  renderAccessoryChips();
+}
+
+function renderAccessoryChips() {
+  const cont = document.getElementById('chipsAccessories');
+  if (!cont) return;
+  if (!Array.isArray(state.variantAccessories)) state.variantAccessories = [];
+  cont.innerHTML = '';
+  VARIANT_ACCESSORIES.forEach(a => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    const on = state.variantAccessories.includes(a.value);
+    chip.className = 'pb-chip' + (on ? ' active' : '');
+    chip.textContent = a.label;
+    chip.addEventListener('click', () => {
+      const i = state.variantAccessories.indexOf(a.value);
+      if (i >= 0) state.variantAccessories.splice(i, 1);
+      else state.variantAccessories.push(a.value);
+      chip.classList.toggle('active');
+    });
+    cont.appendChild(chip);
+  });
+}
+
+function randomizeVariantChips() {
+  ['vPose', 'vAttitude', 'vClothing', 'vSetting'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel && sel.options.length) {
+      sel.selectedIndex = Math.floor(Math.random() * sel.options.length);
+    }
+  });
+  const shuffled = [...VARIANT_ACCESSORIES].sort(() => Math.random() - 0.5);
+  const n = Math.floor(Math.random() * 3); // 0–2 accesorios
+  state.variantAccessories = shuffled.slice(0, n).map(a => a.value);
+  renderVariantChips();
+  if (typeof toastInfo === 'function') toastInfo('🎲 Combinación aleatoria lista — pulsa Generar');
+}
+window.randomizeVariantChips = randomizeVariantChips;
 
 function updateVariantClothingDropdown(gender) {
   populateVariantDropdowns();
@@ -7083,7 +7168,9 @@ async function generateVariantAction() {
   
   const pose = document.getElementById('vPose').value;
   const attitude = document.getElementById('vAttitude').value;
-  const clothing = document.getElementById('vClothing').value;
+  const clothingBase = document.getElementById('vClothing').value;
+  const accessories = (state.variantAccessories || []).join(', ');
+  const clothing = accessories ? `${clothingBase}, con ${accessories}` : clothingBase;
   const setting = document.getElementById('vSetting').value;
   const mode = state.variantMode || 'traditional';
   
@@ -7200,7 +7287,10 @@ function setupVariantManager() {
   });
   
   document.getElementById('btnArchivePersona').addEventListener('click', archivePersonaAction);
-  
+
+  const btnRandomize = document.getElementById('btnRandomizeVariant');
+  if (btnRandomize) btnRandomize.addEventListener('click', randomizeVariantChips);
+
   // Set up Active / Archived filter buttons
   const btnActive = document.getElementById('btnFilterActive');
   const btnArchived = document.getElementById('btnFilterArchived');

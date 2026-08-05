@@ -1257,10 +1257,11 @@
                 </button>
               </div>
 
-              <div class="editor-form-group" style="display: flex; flex-direction: column; gap: 14px;">
-                <div>
+              <div class="editor-form-group" id="variantPromptBuilder" style="display: flex; flex-direction: column; gap: 4px;">
+                <div class="pb-group">
                   <label for="vPose">Encuadre / Pose</label>
-                  <select id="vPose">
+                  <div class="pb-chip-row" id="chipsPose"></div>
+                  <select id="vPose" style="display:none">
                     <option value="Selfie de primer plano de rostro (selfie portrait)">Selfie primer plano (rostro)</option>
                     <option value="Plano medio-corto de brazo extendido (candid hand-held selfie)">Plano medio-corto (selfie)</option>
                     <option value="Espejo de cuerpo entero sosteniendo el celular (full body mirror selfie)">Selfie de espejo (cuerpo entero)</option>
@@ -1276,9 +1277,10 @@
                   </select>
                 </div>
                 
-                <div>
+                <div class="pb-group">
                   <label for="vAttitude">Actitud / Expresión</label>
-                  <select id="vAttitude">
+                  <div class="pb-chip-row" id="chipsAttitude"></div>
+                  <select id="vAttitude" style="display:none">
                     <option value="sonriendo alegremente de forma muy natural (happy approachable smile)">Sonriente y alegre</option>
                     <option value="mirada fija seria y elegante de alta costura (serious high-fashion expression)">Seria y elegante</option>
                     <option value="guiñando un ojo de forma juguetona e ingeniosa (playful confident wink)">Guiñando un ojo</option>
@@ -1290,16 +1292,18 @@
                   </select>
                 </div>
 
-                <div>
+                <div class="pb-group">
                   <label for="vClothing">Vestuario de Variación</label>
-                  <select id="vClothing">
+                  <div class="pb-chip-row" id="chipsClothing"></div>
+                  <select id="vClothing" style="display:none">
                     <!-- Loaded dynamically via JS matching the gender of the active influencer -->
                   </select>
                 </div>
 
-                <div>
+                <div class="pb-group">
                   <label for="vSetting">Ubicación / Fondo</label>
-                  <select id="vSetting">
+                  <div class="pb-chip-row" id="chipsSetting"></div>
+                  <select id="vSetting" style="display:none">
                     <option value="Fondo de cafetería moderna iluminada de día (modern bright cafe interior)">Cafetería (interior)</option>
                     <option value="Gimnasio moderno con luces de neón tenues (modern dark fitness studio)">Gimnasio (neón)</option>
                     <option value="Parque natural soleado con follaje verde desenfocado (sunny green park)">Parque (naturaleza)</option>
@@ -1317,9 +1321,17 @@
                   </select>
                 </div>
 
-                <button type="button" class="btn btn-secondary" id="btnGenerateVariant" style="width: 100%; margin-top: 8px;" title="Pollinations: boceto gratis e inestable — preferí Copiar JSON">
-                  Generar boceto (gratis, inestable)
-                </button>
+                <div class="pb-group">
+                  <label>Accesorios (opcional)</label>
+                  <div class="pb-chip-row" id="chipsAccessories"></div>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 6px;">
+                  <button type="button" class="btn btn-secondary" id="btnRandomizeVariant" style="flex: 0 0 auto;" title="Elige pose, vestuario, actitud y escena al azar">🎲 Sorpréndeme</button>
+                  <button type="button" class="btn btn-secondary" id="btnGenerateVariant" style="flex: 1;" title="Pollinations: boceto gratis e inestable — preferí Copiar JSON">
+                    Generar boceto (gratis, inestable)
+                  </button>
+                </div>
                 
                 <div class="analysis-status-card" id="variantGenStatus" style="display: none; padding: 12px; margin-top: 8px;">
                   <div class="analysis-spinner" style="width: 20px; height: 20px;"></div>
