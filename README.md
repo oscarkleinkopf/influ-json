@@ -66,6 +66,14 @@ Un bloque JSON con lo que **debe** repetirse en cada imagen (cara, tez, pelo, si
 
 Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a la vez** y enfría sola. No pulses generar otra vez; copia el pack.
 
+### LoRA de personaje (opt-in, Fase L)
+
+Consistencia más fuerte que el prompt solo — **sin romper el free path**:
+
+1. Exporta **🧬 Pack de entrenamiento LoRA** desde la ficha (dataset + captions).
+2. Entrena gratis en Colab: [docs/lora/L1_COLAB.md](./docs/lora/L1_COLAB.md) · notebook [`influ_json_lora_train.ipynb`](./docs/lora/influ_json_lora_train.ipynb).
+3. Inferencia con el `.safetensors` (ComfyUI / host opt-in) — L2/L3 en el ROADMAP.
+
 ## Datos y PIN
 
 - DB: `data/influ.sqlite` (portable; ver `paths.js`). Los mirrors `./influ.sqlite` y `./personas.json` **no se versionan** (W6); opt-in legacy: `ENABLE_LEGACY_MIRRORS=1`.

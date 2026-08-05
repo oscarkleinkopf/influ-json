@@ -98,8 +98,8 @@
 
 | # | Entregable | Criterio de hecho |
 |---|------------|-------------------|
-| L0 | **Training pack export** (zip: dataset + captions desde `character_lock`) | Cero costo, sin GPU; desde una persona con variantes se baja un `.zip` listo para entrenar |
-| L1 | **Notebook Colab gratis** (`ai-toolkit` Flux LoRA) | Consume el pack de L0 y devuelve `.safetensors`; documentado paso a paso |
+| L0 | **Training pack export** (zip: dataset + captions desde `character_lock`) ✅ | Cero costo, sin GPU; desde una persona con variantes se baja un `.zip` listo para entrenar |
+| L1 | **Notebook Colab gratis** (`ai-toolkit` Flux LoRA) ✅ | Consume el pack de L0 y devuelve `.safetensors`; documentado paso a paso (`docs/lora/`) |
 | L2 | **Inferencia local (ComfyUI opcional)** | Aplica la LoRA con fallback automático a Pollinations si no hay pesos/GPU |
 | L3 | **Proveedor pago opt-in** (Replicate/fal LoRA trainer) | Entrenar + inferir "un clic" detrás de flag; nunca rompe free |
 
@@ -113,7 +113,7 @@
 
 **Regla de regresión:** con LoRA desactivada, todo el path free (JSON + Pollinations) sigue igual. L0 debe funcionar sin token, sin GPU y sin pago.
 
-**Arranque recomendado:** L0 (training pack export) — cero costo, reutiliza `persona_variants` + `character_lock`, deja al usuario a un paso de Colab.
+**Arranque:** L0 ✅ · L1 ✅ (`docs/lora/`). Siguiente: L2 (ComfyUI + fallback).
 
 ---
 
@@ -146,7 +146,9 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
-| 2026-08-05 | **Plan Fase L (LoRAs)** | L0–L3 opt-in con fallback free; arranque = training pack export (L0) |
+| 2026-08-05 | **L1 notebook Colab** | `docs/lora/` — guía + `.ipynb` que consume pack L0 |
+| 2026-08-05 | **G2+G3** looks rápidos + batch 1/4 | PR #46 → `main` |
+| 2026-08-05 | **Plan Fase L (LoRAs)** + **L0** export pack | L0–L3 en ROADMAP; L0 ✅ vía #45 |
 | 2026-07-30 | **Merge stack W12–W17 → main** | FF #40 `cbdae55`; #34–#40 MERGED |
 | 2026-07-30 | **W17 audit log** | schema v10; hooks archive/delete/export/backup; Ajustes admin |
 | 2026-07-30 | **W16 export-ready** | Badges Listo/Revisar/Sin ancla + filtros portafolio |

@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (W11–W17 + integración #45) |
-| **Commit base** | `196f4a3` (integración #45) |
-| **PR actual** | #45 **MERGED** (fix Pollinations + L0 export LoRA + G1 chips + plan Fase L). #41–#44 cerradas *superseded* |
-| **`main` remoto** | Moat free + generación estilo studio (G1) + LoRA L0 |
-| **Etapa de producto** | **Fase G** (generación estilo studio, inspirada candy.ai) + **Fase L** (LoRAs) opt-in |
-| **Prioridad inmediata** | G2/G3 (presets rápidos + batch 1/4 con aviso de pollen) |
+| **Rama de trabajo** | `cursor/l1-colab-lora-notebook-173f` |
+| **Commit base** | `b00da9d` (#46 G2+G3) |
+| **PR actual** | L1 Colab (esta rama). #45/#46 **MERGED**. #41–#44 *superseded* |
+| **`main` remoto** | Moat free + Fase G (G1–G3) + LoRA L0 |
+| **Etapa de producto** | **Fase L** — L0 ✅ · L1 (Colab) en PR · siguiente **L2** |
+| **Prioridad inmediata** | Mergear L1; luego L2 (ComfyUI + fallback Pollinations) |
 | **⚠ Imagen (Pollinations)** | Pasó a créditos «pollen»: requiere `POLLINATIONS_TOKEN` (ver `.env.example`). Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -68,13 +68,12 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 
 **Contexto clave:** Pollinations migró a créditos «pollen»; el acceso anónimo dejó de generar (401/402). Ahora requiere `POLLINATIONS_TOKEN` (registro en enter.pollinations.ai/keys, key con permiso `account:usage` + saldo). El path free real del producto sigue siendo copiar `character_lock` a chatbots gratis.
 
-**Hecho (integrado en `main` vía #45):**
-- **fix Pollinations**: endpoint moderno `gen.pollinations.ai/image` + token Bearer + errores honestos + `POLLINATIONS_MODEL` (flux/dreamshaper).
-- **L0** (Fase L): `GET /api/export/persona/:id/lora` + botón → ZIP dataset + captions para entrenar LoRA en Colab (`lora-pack.js`).
-- **G1** (Fase G): constructor de prompt por chips (Pose/Actitud/Vestuario/Escena) + Accesorios + 🎲 Sorpréndeme.
-- **plan Fase L** (L0–L3) en ROADMAP.
+**Hecho (integrado en `main`):**
+- **#45** — fix Pollinations + L0 export LoRA + G1 chips + plan Fase L.
+- **#46** — G2 looks rápidos (Playa/Café/Gym/Noche/Estudio) + G3 batch 1/4 con aviso de pollen y progreso «N de M».
+- #41–#44 cerradas *superseded* (contenido vía #45).
 
-**En curso:** G2 (presets rápidos de look) + G3 (batch 1/4 + galería «N de M» + aviso de pollen).
+**En curso:** L1 — notebook Colab + guía (`docs/lora/L1_COLAB.md` + `influ_json_lora_train.ipynb`) en rama `cursor/l1-colab-lora-notebook-173f`.
 
 ## Sesión reciente (Cursor, 2026-07-30)
 
@@ -168,6 +167,8 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-05 | Cursor | **L1**: notebook Colab + guía para entrenar LoRA desde pack L0 | *(este commit)* |
+| 2026-08-05 | Cursor | **G2+G3** looks rápidos + batch 1/4 → `main` | `b00da9d` (#46) |
 | 2026-08-05 | Cursor | **Integración #45**: fix Pollinations + L0 export LoRA + G1 chips + plan Fase L → `main` | `196f4a3` |
 | 2026-08-04 | Cursor | **fix**: Pollinations pasó a créditos «pollen» (402 anónimo). Endpoint `/p/`→`/prompt/`, soporte `POLLINATIONS_TOKEN`/referrer + error honesto | *(este commit)* |
 | 2026-07-30 | Cursor | Merge stack W12–W17 → main (#34–#40) | `cbdae55` |
