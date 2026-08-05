@@ -50,7 +50,7 @@ test('W15: offline-first labels + 429 sugiere offline + empty vault', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   const readme = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
 
-  assert.match(html, /Generar boceto \(gratis, inestable\)/);
+  assert.match(html, /Generar boceto \(opt-in · puede pedir token\)|Generar boceto \(gratis, inestable\)/);
   assert.match(html, /Copiar JSON \(recomendado\)/);
   assert.match(html, /id="btnRateLimitGoOffline"/);
   assert.match(html, /Sin gens — igual puedes exportar packs/);
@@ -67,5 +67,5 @@ test('W15: offline-first labels + 429 sugiere offline + empty vault', () => {
 
   assert.match(readme, /Copiar JSON \/ packs.*recomendado|Copiar JSON \(recomendado\)/i);
   assert.match(readme, /Modo offline/);
-  assert.match(readme, /gratis, inestable/);
+  assert.match(readme, /opt-in · puede pedir token|gratis, inestable|Pollinations/);
 });

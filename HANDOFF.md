@@ -25,13 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/sec-public-bind-auth-off-173f` |
-| **Commit base** | `2a83175` (#50) |
-| **PR actual** | Seguridad #1 public-bind+auth-off. UX #51 sigue OPEN (draft) |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L3 |
-| **Etapa de producto** | **Seguridad mínima** (1ª entrega) · UX free en #51 |
-| **Prioridad inmediata** | Mergear gate public-bind; luego más seguridad o UX #51 |
-| **⚠ Imagen (Pollinations)** | Pasó a créditos «pollen»: requiere `POLLINATIONS_TOKEN` (ver `.env.example`). Anónimo → 401/402 |
+| **Rama de trabajo** | `main` (#51 UX + #52 Sec integrados) |
+| **Commit base** | tip tras merge #51/#52 |
+| **PR actual** | #51/#52 **MERGED**. Siguiente: más seguridad o UX #2 |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L3 + UX pollen + gate public-bind |
+| **Etapa de producto** | Usabilidad free ✅ (#51) · Seguridad mínima en curso (#52) |
+| **Prioridad inmediata** | Sec #2 (assets/sessionStorage/XFF) o UX #2 (token en Ajustes) || **⚠ Imagen (Pollinations)** | Pasó a créditos «pollen»: requiere `POLLINATIONS_TOKEN` (ver `.env.example`). Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate (distinto de L3 LoRA) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-08-05 |
@@ -75,9 +74,11 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 - **#48** — L2 ComfyUI + `persona_loras` + fallback Pollinations.
 - **#49** — L3 Replicate trainer opt-in (`ENABLE_PAID_LORA`).
 - **#50** — HANDOFF post-L3.
+- **#51** — UX free: pollen/401 CTA + demote LoRA.
+- **#52** — Sec: public-bind + auth-off → 503.
 - #41–#44 cerradas *superseded* (contenido vía #45).
 
-**En curso:** Seguridad mínima — gate `HOST=0.0.0.0` + auth off / PIN default (`cursor/sec-public-bind-auth-off-173f`). UX #51 sigue abierto.
+**En curso:** — (#51/#52 integrados). Siguiente: Sec #2 o UX #2.
 
 ## Sesión reciente (Cursor, 2026-07-30)
 

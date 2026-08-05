@@ -209,9 +209,9 @@
             <li class="happy-path-step" data-step="gen">
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
-                <strong>4. Generar boceto <em style="font-weight:500;color:var(--text-muted);">(gratis, inestable)</em></strong>
-                <p>Pollinations es un boceto — no hace falta para completar el flujo.</p>
-                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="gen">Generar boceto (gratis, inestable)</button>
+                <strong>4. Generar boceto <em style="font-weight:500;color:var(--text-muted);">(opt-in · puede pedir token)</em></strong>
+                <p>Pollinations es opcional y hoy suele pedir <code style="font-size:10px;">POLLINATIONS_TOKEN</code>. Si falla → sigue con Copiar JSON.</p>
+                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="gen">Generar boceto (opt-in · puede pedir token)</button>
               </div>
             </li>
           </ol>
@@ -304,7 +304,7 @@
                 <span class="como-usar-step-index">04</span>
                 <div class="como-usar-step-body">
                   <h3>Boceto local o kit marca</h3>
-                  <p>Pollinations = <em>Generar boceto (gratis, inestable)</em>. Si hay 429, activa <strong>Modo offline</strong> y sigue con packs. El kit ZIP lleva lock + 4 packs + guión.</p>
+                  <p>Pollinations = boceto <em>opt-in</em> (suele pedir token / pollen). Si falla (401/402) o hay 429: <strong>Modo offline</strong> + Copiar JSON. El kit ZIP lleva lock + 4 packs + guión.</p>
                   <button type="button" class="btn btn-secondary btn-sm" data-guide-action="kit">Descargar kit</button>
                 </div>
               </li>
@@ -318,7 +318,7 @@
               <li><span>Fijo</span> cara, tez, pelo base, proporciones</li>
               <li><span>Variable</span> pose, ropa, fondo, producto</li>
               <li><span>Recomendado</span> Copiar JSON / packs → chatbot free</li>
-              <li><span>Opcional</span> Generar boceto (gratis, inestable) — Modo offline si 429</li>
+              <li><span>Opcional</span> Generar boceto (opt-in · token) — si falla, Copiar JSON / Modo offline</li>
             </ul>
           </section>
 
@@ -681,13 +681,23 @@
                 </p>
                 <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; margin-top: 10px; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
                 <button type="button" class="btn btn-sm" id="btnExportBrandKitSheet" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px; background: var(--accent-gradient); border: none;">🎁 Descargar kit marca (packs + guión)</button>
-                <button type="button" class="btn btn-secondary btn-sm" id="btnExportLoraPackSheet" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;" title="Dataset + captions para entrenar una LoRA (Colab gratis). Guía: docs/lora/L1_COLAB.md">🧬 Exportar pack de entrenamiento LoRA (.zip)</button>
+              </div>
+
+              <!-- LoRA L1–L3: avanzado / opt-in — fuera del card verde de Copiar JSON -->
+              <details id="loraAdvancedPanel" style="margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+                <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); font-weight: 600;">
+                  Avanzado · LoRA (opt-in, no es el path free)
+                </summary>
+                <p style="font-size: 10px; color: var(--text-muted); margin: 10px 0 8px; line-height: 1.4;">
+                  Consistencia “dura” con pesos. El emprendedor free no necesita esto: usa <strong>Copiar JSON</strong> arriba.
+                </p>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnExportLoraPackSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;" title="Dataset + captions para entrenar una LoRA (Colab gratis). Guía: docs/lora/L1_COLAB.md">🧬 Exportar pack de entrenamiento LoRA (.zip)</button>
                 <p style="font-size: 10px; color: var(--text-muted); margin: 6px 0 0; line-height: 1.4;">
-                  Después: entrena gratis en Colab con <code style="font-size: 10px;">docs/lora/influ_json_lora_train.ipynb</code>
-                  (guía <code style="font-size: 10px;">docs/lora/L1_COLAB.md</code>). No requiere GPU local.
+                  L1 Colab gratis: <code style="font-size: 10px;">docs/lora/influ_json_lora_train.ipynb</code>
+                  · <code style="font-size: 10px;">docs/lora/L1_COLAB.md</code>
                 </p>
                 <div id="loraInferencePanel" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
-                  <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">LoRA lista (L2 · ComfyUI opt-in)</p>
+                  <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L2 · ComfyUI (self-host)</p>
                   <p id="loraInferenceStatus" style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">Estado: —</p>
                   <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px;">Subir .safetensors (tras Colab)</label>
                   <input type="file" id="loraWeightsFile" accept=".safetensors,.pt,.ckpt" style="font-size: 10px; width: 100%; margin-bottom: 6px;" />
@@ -697,14 +707,13 @@
                     <button type="button" class="btn btn-sm" id="btnClearLora" style="font-size: 11px; padding: 8px 10px;">Quitar</button>
                   </div>
                   <p style="font-size: 10px; color: var(--text-muted); margin: 6px 0 0; line-height: 1.4;">
-                    Requiere <code style="font-size: 10px;">COMFYUI_URL</code> y el mismo archivo en <code style="font-size: 10px;">models/loras</code> de ComfyUI
-                    (o <code style="font-size: 10px;">COMFYUI_LORAS_DIR</code>). Sin eso, gen = Pollinations. Guía: <code style="font-size: 10px;">docs/lora/L2_COMFYUI.md</code>.
+                    Guía: <code style="font-size: 10px;">docs/lora/L2_COMFYUI.md</code>
                   </p>
                   <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
-                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L3 · Trainer pago (Replicate, opt-in)</p>
+                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L3 · Replicate (pago, opt-in)</p>
                     <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
-                      No es el path por defecto. Requiere <code style="font-size: 10px;">ENABLE_PAID_LORA=1</code> + token.
-                      Preferí Colab gratis (L1) si puedes. Guía: <code style="font-size: 10px;">docs/lora/L3_PAID.md</code>.
+                      Requiere <code style="font-size: 10px;">ENABLE_PAID_LORA=1</code>. Preferí Colab (L1) si puedes.
+                      Guía: <code style="font-size: 10px;">docs/lora/L3_PAID.md</code>.
                     </p>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                       <button type="button" class="btn btn-sm" id="btnTrainLoraPaid" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(251, 146, 60, 0.25); border: 1px solid rgba(251, 146, 60, 0.45);">Entrenar en Replicate (pago)</button>
@@ -714,7 +723,7 @@
                     <button type="button" class="btn btn-secondary btn-sm" id="btnLinkLoraPaid" style="width: 100%; margin-top: 6px; font-size: 11px; padding: 8px 10px;">Vincular modelo Replicate</button>
                   </div>
                 </div>
-              </div>
+              </details>
 
               <!-- Matriz QA consistencia (gratis, a ojo + dHash local) -->
               <div id="qaMatrixPanel" class="qa-matrix-panel" style="display:none;">
@@ -937,8 +946,8 @@
                 <button type="button" class="btn" id="btnSavePersona" style="flex: 2; min-width: 160px;">
                   Guardar personaje
                 </button>
-                <button type="button" class="btn btn-secondary" id="btnSavePersonaWithPortrait" style="flex: 1.5; min-width: 160px;" title="Pollinations: boceto gratis e inestable — el JSON/pack es lo recomendado">
-                  Generar boceto (gratis, inestable)
+                <button type="button" class="btn btn-secondary" id="btnSavePersonaWithPortrait" style="flex: 1.5; min-width: 160px;" title="Pollinations opt-in: suele pedir POLLINATIONS_TOKEN — el JSON/pack es lo recomendado">
+                  Generar boceto (opt-in · puede pedir token)
                 </button>
                 <button type="button" class="btn btn-secondary" id="btnCancelEditPersona" style="flex: 1.5; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
                   👁️ Ver Ficha
@@ -1372,8 +1381,8 @@
 
                 <div style="display: flex; gap: 8px; margin-top: 6px;">
                   <button type="button" class="btn btn-secondary" id="btnRandomizeVariant" style="flex: 0 0 auto;" title="Elige pose, vestuario, actitud y escena al azar">🎲 Sorpréndeme</button>
-                  <button type="button" class="btn btn-secondary" id="btnGenerateVariant" style="flex: 1;" title="Pollinations: boceto gratis e inestable — preferí Copiar JSON">
-                    Generar boceto (gratis, inestable)
+                  <button type="button" class="btn btn-secondary" id="btnGenerateVariant" style="flex: 1;" title="Pollinations opt-in (token/pollen) — preferí Copiar JSON">
+                    Generar boceto (opt-in · puede pedir token)
                   </button>
                 </div>
                 
@@ -1567,8 +1576,8 @@
               <div>
                 <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">Generación & Producción AI</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                  <button class="btn btn-secondary" id="btnGenerateUgcImage" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Pollinations: boceto gratis e inestable">
-                    Generar boceto (gratis, inestable)
+                  <button class="btn btn-secondary" id="btnGenerateUgcImage" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Pollinations opt-in (token/pollen)">
+                    Generar boceto (opt-in · puede pedir token)
                   </button>
                   <button class="btn" id="btnExportUgcChatbot" data-offline-highlight="pack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     Copiar JSON (recomendado)
@@ -2092,6 +2101,15 @@
     </button>
   </div>
 
+  <!-- Banner pollen / token (401/402) — distinct from 429 -->
+  <div id="pollenBanner" class="rate-limit-banner" style="display:none; border-color: rgba(251, 146, 60, 0.45); background: rgba(251, 146, 60, 0.12);" role="status" aria-live="polite">
+    <span class="rate-limit-dot" aria-hidden="true" style="background:#fb923c;"></span>
+    <span id="pollenBannerText">Boceto Pollinations necesita token (pollen). El path free es Copiar JSON a un chatbot.</span>
+    <button type="button" class="btn btn-sm" id="btnPollenCopyJson" style="margin-left:auto; font-size:11px; padding:4px 10px; flex-shrink:0; background: rgba(52, 211, 153, 0.25); border: 1px solid rgba(52, 211, 153, 0.45);">
+      Copiar JSON (recomendado)
+    </button>
+  </div>
+
   <!-- Banner offline: JSON-first sigue disponible + toggle modo offline (W8) -->
   <div id="offlineBanner" class="offline-banner" style="display:none;" role="status" aria-live="polite">
     <span class="offline-dot" aria-hidden="true"></span>
@@ -2186,7 +2204,9 @@
 
       <div id="adminKeysSettingsSection">
         <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; color: #a7f3d0;">
-          🟢 <strong>Modo Gratuito Siempre Activo:</strong> Si no agregas ninguna clave, influ-JSON funciona 100% gratis con Pollinations + offline.
+          🟢 <strong>Gratis sin claves de pago:</strong> el producto es <em>Copiar JSON</em> a chatbots free + modo offline.
+          Pollinations (boceto local) es <em>opt-in</em> y hoy suele pedir <code style="font-size:10px;">POLLINATIONS_TOKEN</code> en <code style="font-size:10px;">.env</code>
+          (keys en enter.pollinations.ai). Replicate / LoRA L3 nunca son obligatorios.
         </div>
 
         <form id="settingsForm">
@@ -2202,8 +2222,8 @@
             <label for="replicateTokenInput" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-secondary);">
               Token API de Replicate (Opt-in Face-Lock de Pago)
             </label>
-            <input type="password" id="replicateTokenInput" placeholder="r8_... (Dejar en blanco para Pollinations gratis)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
-            <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Opcional para marcas que requieran InstantID / PuLID dedicado.</small>
+            <input type="password" id="replicateTokenInput" placeholder="r8_... (vacío = sin face-lock ni L3)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
+            <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Opcional. Face-lock / L3 no son el path free — ver docs/lora/L3_PAID.md.</small>
           </div>
 
           <div style="display: flex; gap: 10px;">
