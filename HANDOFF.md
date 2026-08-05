@@ -25,15 +25,16 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (W11–W17 integrado) |
-| **Commit base** | `cbdae55` (merge stack W12–W17) |
-| **PR actual** | #40 **MERGED** · #34–#39 también merged vía tip |
-| **`main` remoto** | Paso 0 + **W11–W17** moat free |
-| **Etapa de producto** | Moat free cerrado → validar en uso real |
-| **Prioridad inmediata** | Usar happy path (JSON → chatbot free) 2–3 días; **no Replicate** |
+| **Rama de trabajo** | `main` (W11–W17 + integración #45) |
+| **Commit base** | `196f4a3` (integración #45) |
+| **PR actual** | #45 **MERGED** (fix Pollinations + L0 export LoRA + G1 chips + plan Fase L). #41–#44 cerradas *superseded* |
+| **`main` remoto** | Moat free + generación estilo studio (G1) + LoRA L0 |
+| **Etapa de producto** | **Fase G** (generación estilo studio, inspirada candy.ai) + **Fase L** (LoRAs) opt-in |
+| **Prioridad inmediata** | G2/G3 (presets rápidos + batch 1/4 con aviso de pollen) |
+| **⚠ Imagen (Pollinations)** | Pasó a créditos «pollen»: requiere `POLLINATIONS_TOKEN` (ver `.env.example`). Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, **Replicate** |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-07-30 |
+| **Última actualización** | 2026-08-05 |
 
 ### Pila #4–#16 — INTEGRADA ✅
 
@@ -62,6 +63,18 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 | tip | #40 | Stack integración W12–W17 | **merged → main** |
 
 ---
+
+## Sesión reciente (Cursor, 2026-08-05)
+
+**Contexto clave:** Pollinations migró a créditos «pollen»; el acceso anónimo dejó de generar (401/402). Ahora requiere `POLLINATIONS_TOKEN` (registro en enter.pollinations.ai/keys, key con permiso `account:usage` + saldo). El path free real del producto sigue siendo copiar `character_lock` a chatbots gratis.
+
+**Hecho (integrado en `main` vía #45):**
+- **fix Pollinations**: endpoint moderno `gen.pollinations.ai/image` + token Bearer + errores honestos + `POLLINATIONS_MODEL` (flux/dreamshaper).
+- **L0** (Fase L): `GET /api/export/persona/:id/lora` + botón → ZIP dataset + captions para entrenar LoRA en Colab (`lora-pack.js`).
+- **G1** (Fase G): constructor de prompt por chips (Pose/Actitud/Vestuario/Escena) + Accesorios + 🎲 Sorpréndeme.
+- **plan Fase L** (L0–L3) en ROADMAP.
+
+**En curso:** G2 (presets rápidos de look) + G3 (batch 1/4 + galería «N de M» + aviso de pollen).
 
 ## Sesión reciente (Cursor, 2026-07-30)
 
@@ -155,6 +168,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-05 | Cursor | **Integración #45**: fix Pollinations + L0 export LoRA + G1 chips + plan Fase L → `main` | `196f4a3` |
 | 2026-08-04 | Cursor | **fix**: Pollinations pasó a créditos «pollen» (402 anónimo). Endpoint `/p/`→`/prompt/`, soporte `POLLINATIONS_TOKEN`/referrer + error honesto | *(este commit)* |
 | 2026-07-30 | Cursor | Merge stack W12–W17 → main (#34–#40) | `cbdae55` |
 | 2026-07-30 | Cursor | W17 audit log local (admin, v10) | *(PR W17)* |
