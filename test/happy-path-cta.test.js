@@ -38,9 +38,9 @@ test('W14: post-save CTA pack + gen demoted a boceto opcional', () => {
   assert.match(app, /actionLabel:\s*'Copiar JSON \(recomendado\)'|actionLabel:\s*'Copiar pack fullbody'/);
   assert.match(app, /data-happy-action="copy-pack"|data-happy-next="copy-pack"|copy-pack/);
 
-  assert.match(html, /Generar boceto \(gratis, inestable\)|Boceto local opcional/);
+  assert.match(html, /Generar boceto \(opt-in · puede pedir token\)|Boceto local opcional|Generar boceto \(gratis, inestable\)/);
   assert.match(html, /id="btnSavePersonaWithPortrait"/);
-  assert.match(html, /btnSavePersonaWithPortrait[\s\S]{0,500}Generar boceto \(gratis, inestable\)|btnSavePersonaWithPortrait[\s\S]{0,500}Boceto local opcional/);
+  assert.match(html, /btnSavePersonaWithPortrait[\s\S]{0,500}Generar boceto \(opt-in · puede pedir token\)|btnSavePersonaWithPortrait[\s\S]{0,500}Boceto local opcional|btnSavePersonaWithPortrait[\s\S]{0,500}Generar boceto \(gratis, inestable\)/);
   assert.match(html, /class="btn btn-secondary" id="btnGenerateVariant"/);
   assert.match(html, /id="happyPathNextCta"/);
 
@@ -49,6 +49,27 @@ test('W14: post-save CTA pack + gen demoted a boceto opcional', () => {
   assert.doesNotMatch(app, /copy-pack[\s\S]{0,200}REPLICATE/);
 });
 
+test('UX: pollen/401 CTA + LoRA demoted fuera del pack card verde', () => {
+  const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const personas = fs.readFileSync(path.join(root, 'routes', 'personas.js'), 'utf8');
+
+  assert.match(app, /function isPollenAuthError/);
+  assert.match(app, /function notifyGenerationFailure/);
+  assert.match(app, /function setPollenBanner/);
+  assert.match(app, /actionLabel:\s*'Copiar JSON \(recomendado\)'/);
+  assert.match(html, /id="pollenBanner"/);
+  assert.match(html, /id="btnPollenCopyJson"/);
+  assert.match(html, /id="loraAdvancedPanel"/);
+  assert.match(html, /Avanzado · LoRA/);
+  // Pack card cierra antes del panel LoRA (LoRA no dentro del card verde primario)
+  const packIdx = html.indexOf('pack-library-card');
+  const loraIdx = html.indexOf('id="loraAdvancedPanel"');
+  assert.ok(packIdx >= 0 && loraIdx > packIdx);
+  assert.match(html, /POLLINATIONS_TOKEN|enter\.pollinations|pollen/i);
+  assert.match(personas, /paymentRequired/);
+  assert.match(personas, /authRequired/);
+});
 test('W14: happy path ordena copy antes que gen opcional', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const copyIdx = html.indexOf('data-step="copy"');

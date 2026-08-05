@@ -43,7 +43,7 @@ Guía con nombres de botón reales del Studio:
 2. **Crear desde Cero** *o* importa una foto de referencia.
 3. Completa nombre, tez, cara y cuerpo → **Crear Influencer** / Guardar.
 4. Copia un pack — botón **Copiar JSON (recomendado)** / packs free.
-5. (Opcional) **Generar boceto (gratis, inestable)** con Pollinations — no hace falta para el flujo.
+5. (Opcional) **Generar boceto (opt-in · puede pedir token)** con Pollinations — no hace falta para el flujo; sin `POLLINATIONS_TOKEN` suele fallar (401/402).
 6. Pégalo en ChatGPT / Gemini / Claude / Meta **free** y pide variantes: *«misma persona, cuerpo entero, producto en mano»*.
 7. Cuando quieras llevarte todo: **Exportar pack completo (.zip)**.
 
@@ -58,7 +58,7 @@ Un bloque JSON con lo que **debe** repetirse en cada imagen (cara, tez, pelo, si
 | Usa… | Para… |
 |------|--------|
 | **Copiar JSON / packs** (recomendado) | Seguir el personaje en ChatGPT / Gemini / Claude free — sin red de imagen |
-| Pollinations «Generar boceto (gratis, inestable)» | Bocetos locales opcionales; acepta 429 y poca consistencia de cara |
+| Pollinations «Generar boceto (opt-in · puede pedir token)» | Bocetos locales opcionales; requiere token/pollen; acepta 429 |
 
 > **Nota (2026):** Pollinations migró a créditos «pollen» y su API moderna **exige un token**; el acceso **anónimo** ya no genera imágenes (error `401` / *«Insufficient balance»*). Sigue siendo **cero costo**: crea una API key gratis en [enter.pollinations.ai/keys](https://enter.pollinations.ai/keys) y ponla como `POLLINATIONS_TOKEN` en `.env` (los grants diarios gratis cubren `flux`, sin tarjeta). El flujo recomendado —copiar JSON/packs a un chatbot free— **no** necesita esto.
 
@@ -87,7 +87,7 @@ Consistencia más fuerte que el prompt solo — **sin romper el free path**:
 - **Cómo usar**: pestaña con guía visual del flujo gratis (sidebar → Cómo usar).
 - **Matriz QA** (ficha del influencer): compara retrato ancla · cuerpo · spicy a ojo; checklist cara/tez/pelo (sin API de scoring).
 - **Importar**: Analizar = vista previa (no guarda). Confirmar = portafolio + anclas en segundo plano. Descartar no deja huérfanos.
-- **Guardar personaje** = JSON-first (sin Pollinations). **Generar boceto (gratis, inestable)** es opcional.
+- **Guardar personaje** = JSON-first (sin Pollinations). **Generar boceto (opt-in · puede pedir token)** es opcional.
 - **Portafolio**: botón «Copiar JSON (recomendado)» en cada tarjeta (pack cuerpo entero → chatbot free).
 - Primer arranque (Administración, roster vacío): modal founder con crear / import / guía.
 - Import preview descartado también limpia fotos `ref_*` temporales del disco.

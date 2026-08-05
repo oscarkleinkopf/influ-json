@@ -131,6 +131,10 @@ function setupOfflineBanner() {
     syncToggles(true);
     toastInfo('Modo offline activo — usa Copiar JSON (recomendado). La cola no cambió.');
   });
+  document.getElementById('btnPollenCopyJson')?.addEventListener('click', () => {
+    setPollenBanner(false);
+    if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
+  });
   applyOfflineModeUi();
   if (typeof navigator !== 'undefined' && navigator.onLine === false && !isStudioOfflineMode()) {
     setOfflineBanner(
@@ -2119,7 +2123,7 @@ function setGenerationButtonsDisabled(disabled) {
     if (offline) el.setAttribute('title', 'Modo offline: usa Copiar JSON (recomendado)');
     else if (disabled) el.setAttribute('title', 'Espera a que termine la cola de generación');
     else if (rateLimited) el.setAttribute('title', '429 reciente — mejor Copiar JSON (recomendado) o activa Modo offline');
-    else el.setAttribute('title', 'Generar boceto (gratis, inestable) — Pollinations opcional');
+    else el.setAttribute('title', 'Generar boceto (opt-in · puede pedir token) — Pollinations opcional');
   });
   const highlightPacks = offline || rateLimited;
   document.querySelectorAll('[data-offline-highlight="pack"]').forEach((el) => {
@@ -2190,6 +2194,8 @@ function updateRateLimitBanner(q) {
     }
     return;
   }
+  // 429 takes priority UX; hide pollen banner while cooling
+  setPollenBanner(false);
   const cooldownSec = Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30;
   if (text) {
     text.textContent = `Pollinations 429 — cola en pausa (~${cooldownSec}s). Sugerencia: Modo offline + Copiar JSON (recomendado).`;
@@ -2199,6 +2205,54 @@ function updateRateLimitBanner(q) {
   document.querySelectorAll('[data-offline-highlight="pack"]').forEach((el) => {
     el.classList.add('offline-pack-highlight');
   });
+}
+
+/** Detecta 401/402 / pollen / token faltante (distinto de 429). */
+function isPollenAuthError(data, err) {
+  if (data && (data.paymentRequired || data.authRequired)) return true;
+  const status = data?.status || err?.status;
+  if (status === 401 || status === 402) return true;
+  const m = String(data?.message || err?.message || '');
+  return /pollen|pollinations_token|402|401|insufficient balance|no autorizado|bearer|enter\.pollinations|payment required|auth required/i.test(m);
+}
+
+function setPollenBanner(on, message) {
+  const banner = document.getElementById('pollenBanner');
+  const text = document.getElementById('pollenBannerText');
+  if (!banner) return;
+  if (!on) {
+    banner.style.display = 'none';
+    return;
+  }
+  if (text) {
+    text.textContent = message
+      ? String(message).slice(0, 220)
+      : 'Boceto Pollinations necesita token (pollen). El path free es Copiar JSON a un chatbot.';
+  }
+  banner.style.display = 'flex';
+  document.querySelectorAll('[data-offline-highlight="pack"]').forEach((el) => {
+    el.classList.add('offline-pack-highlight');
+  });
+}
+
+/** Toast + CTA Copiar JSON cuando el boceto falla por token/pollen. */
+function notifyGenerationFailure(data, err) {
+  const msg = (data && data.message) || (err && err.message) || 'La generación falló.';
+  if (data?.rateLimited || /429|rate limit|límite/i.test(msg)) {
+    toastError(msg);
+    return;
+  }
+  if (isPollenAuthError(data, err)) {
+    setPollenBanner(true, msg);
+    toastError('Boceto Pollinations necesita token (pollen). El producto gratis es Copiar JSON.', {
+      actionLabel: 'Copiar JSON (recomendado)',
+      onAction: () => {
+        if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
+      }
+    });
+    return;
+  }
+  toastError(msg);
 }
 
 function updateQueueStatusChip(q) {
@@ -4548,9 +4602,12 @@ async function savePersona(opts = {}) {
       const imgData = await imgRes.json();
       if (imgData.success && imgData.imagePath) {
         portraitPath = imgData.imagePath;
+      } else if (imgData && !imgData.success) {
+        notifyGenerationFailure(imgData);
       }
     } catch (err) {
       console.warn('Image generation failed or offline. Using reference or existing image.');
+      notifyGenerationFailure(null, err);
     }
   }
 
@@ -7316,7 +7373,7 @@ function renderVariantVaultGrid() {
         </p>
         <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;">
           <button type="button" class="btn btn-sm" data-offline-highlight="pack" id="btnVaultEmptyCopyPack">Copiar JSON (recomendado)</button>
-          <button type="button" class="btn btn-secondary btn-sm" id="btnVaultEmptyGenBoceto">Generar boceto (gratis, inestable)</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnVaultEmptyGenBoceto">Generar boceto (opt-in · puede pedir token)</button>
         </div>
       </div>
     `;
@@ -7529,13 +7586,13 @@ async function generateOneVariant(p, index, total) {
       return true;
     } else {
       statusText.textContent = 'Error al generar la pose.';
-      toastError(data.message || 'Error al generar la pose.');
+      notifyGenerationFailure(data);
       statusCard.classList.remove('loading-pulse');
       return false;
     }
   } catch (err) {
     statusText.textContent = 'La generación falló o el servidor está offline.';
-    toastError(err.message || 'La generación falló o el servidor está offline.');
+    notifyGenerationFailure(null, err);
     statusCard.classList.remove('loading-pulse');
     setTimeout(() => statusCard.style.display = 'none', 4000);
     return false;
