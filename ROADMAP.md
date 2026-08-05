@@ -88,6 +88,35 @@
 
 ---
 
+## Fase L — LoRAs de personaje (opt-in, sin romper free)
+
+**Idea:** subir la consistencia de identidad de "suave" (prompt + `character_lock`) a "dura" (un modelo entrenado que fija cara/estilo). Es el **tier avanzado** por encima de Pollinations/Replicate. **Nunca** reemplaza el path free: feature flag + fallback a `character_lock`/Pollinations, igual que la Fase R.
+
+**Lo que ya juega a favor:** el vault `persona_variants` + `character_lock` ya produce el **dataset** (imágenes coherentes) y los **captions** de entrenamiento. `image-provider.js` es el punto de extensión (`PROVIDERS.lora`), y `gen-queue.js` sirve para trabajos largos.
+
+**Pipeline (5 etapas):** dataset (15–30 imgs curadas del vault) → caption (trigger token + rasgos del `character_lock`) → entrenar (Flux/SDXL LoRA vía `ai-toolkit`/kohya) → hospedar pesos (`DATA_DIR/loras/<personaId>/*.safetensors`) → inferir aplicando la LoRA.
+
+| # | Entregable | Criterio de hecho |
+|---|------------|-------------------|
+| L0 | **Training pack export** (zip: dataset + captions desde `character_lock`) | Cero costo, sin GPU; desde una persona con variantes se baja un `.zip` listo para entrenar |
+| L1 | **Notebook Colab gratis** (`ai-toolkit` Flux LoRA) | Consume el pack de L0 y devuelve `.safetensors`; documentado paso a paso |
+| L2 | **Inferencia local (ComfyUI opcional)** | Aplica la LoRA con fallback automático a Pollinations si no hay pesos/GPU |
+| L3 | **Proveedor pago opt-in** (Replicate/fal LoRA trainer) | Entrenar + inferir "un clic" detrás de flag; nunca rompe free |
+
+**Modelo de datos propuesto:** tabla `persona_loras` (`persona_id`, `trigger_token`, `base_model`, `weights_path/url`, `status`, `training_meta`) con estados `none|dataset_ready|training|ready|failed`.
+
+**Provider:** `image-provider.generateWithLora({ personaId, prompt })` que usa la LoRA si `status=ready`, si no `return null` → fallback (mismo patrón que `generateWithOptionalFaceLock`).
+
+**Cómputo (free-first):** Colab free (T4) para entrenar → self-host ComfyUI o Replicate/fal para inferir. Investigar si Pollinations BYOP / `/account/my-models` sirve para servir la LoRA propia.
+
+**Riesgos:** chicken-and-egg de consistencia (curar dataset desde anclas fuertes antes de entrenar); requiere GPU (por eso L1 = Colab, no local); IP/licensing (registrar la LoRA como activo en el certificador); ToS de contenido en modo spicy.
+
+**Regla de regresión:** con LoRA desactivada, todo el path free (JSON + Pollinations) sigue igual. L0 debe funcionar sin token, sin GPU y sin pago.
+
+**Arranque recomendado:** L0 (training pack export) — cero costo, reutiliza `persona_variants` + `character_lock`, deja al usuario a un paso de Colab.
+
+---
+
 ## Semana 1 — Mecánica (cerrada en lo esencial)
 
 | # | Tarea | Estado |
@@ -117,6 +146,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-05 | **Plan Fase L (LoRAs)** | L0–L3 opt-in con fallback free; arranque = training pack export (L0) |
 | 2026-07-30 | **Merge stack W12–W17 → main** | FF #40 `cbdae55`; #34–#40 MERGED |
 | 2026-07-30 | **W17 audit log** | schema v10; hooks archive/delete/export/backup; Ajustes admin |
 | 2026-07-30 | **W16 export-ready** | Badges Listo/Revisar/Sin ancla + filtros portafolio |
