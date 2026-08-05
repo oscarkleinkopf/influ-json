@@ -2610,6 +2610,7 @@ function selectPersona(persona) {
   if (activeNameEl) activeNameEl.textContent = persona.name;
   updateVariantClothingDropdown(persona.gender);
   loadVariantsForPersona(persona.id);
+  if (typeof refreshLoraInferenceStatus === 'function') refreshLoraInferenceStatus();
 
   // Archive button label and styling
   const archiveBtn = document.getElementById('btnArchivePersona');
@@ -3540,6 +3541,82 @@ async function exportLoraTrainingPack() {
   }
 }
 window.exportLoraTrainingPack = exportLoraTrainingPack;
+
+async function refreshLoraInferenceStatus() {
+  const el = document.getElementById('loraInferenceStatus');
+  if (!el) return;
+  const p = state.selectedPersona || state.personas[0];
+  if (!p?.id) {
+    el.textContent = 'Estado: selecciona un influencer.';
+    return;
+  }
+  try {
+    const res = await authFetch(`/api/personas/${p.id}/lora`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      el.textContent = 'Estado: no disponible.';
+      return;
+    }
+    const st = data.lora?.status || 'none';
+    const trigger = data.lora?.trigger_token || '—';
+    const comfy = data.comfyui?.configured
+      ? (data.comfyui.reachable ? 'ComfyUI OK' : 'ComfyUI configurado (no responde)')
+      : 'sin COMFYUI_URL → gen Pollinations';
+    el.textContent = `Estado: ${st} · trigger: ${trigger} · ${comfy}`;
+    const triggerInput = document.getElementById('loraTriggerInput');
+    if (triggerInput && data.lora?.trigger_token && !triggerInput.value) {
+      triggerInput.value = data.lora.trigger_token;
+    }
+  } catch (err) {
+    el.textContent = 'Estado: error al consultar.';
+  }
+}
+
+async function registerLoraWeights() {
+  const p = state.selectedPersona || state.personas[0];
+  if (!p?.id) {
+    toastInfo('Selecciona un influencer primero.');
+    return;
+  }
+  const fileInput = document.getElementById('loraWeightsFile');
+  const triggerInput = document.getElementById('loraTriggerInput');
+  const file = fileInput?.files?.[0];
+  const trigger = (triggerInput?.value || '').trim();
+  if (!file) {
+    toastInfo('Elige un archivo .safetensors (salida de Colab L1).');
+    return;
+  }
+  try {
+    toastLoading('Registrando LoRA…');
+    const fd = new FormData();
+    fd.append('weights', file);
+    if (trigger) fd.append('triggerToken', trigger);
+    const res = await authFetch(`/api/personas/${p.id}/lora`, { method: 'POST', body: fd });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.message || `HTTP ${res.status}`);
+    toastSuccess(`LoRA registrada (${data.lora?.status || 'ready'}). Copia el archivo a ComfyUI models/loras si hace falta.`);
+    if (fileInput) fileInput.value = '';
+    await refreshLoraInferenceStatus();
+  } catch (err) {
+    toastError('No se pudo registrar LoRA: ' + (err.message || 'error'));
+  }
+}
+
+async function clearLoraWeights() {
+  const p = state.selectedPersona || state.personas[0];
+  if (!p?.id) return;
+  if (!confirm('¿Quitar LoRA de este influencer? (vuelve el path Pollinations)')) return;
+  try {
+    const res = await authFetch(`/api/personas/${p.id}/lora`, { method: 'DELETE' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.message || `HTTP ${res.status}`);
+    toastSuccess('LoRA eliminada. Gen = Pollinations.');
+    await refreshLoraInferenceStatus();
+  } catch (err) {
+    toastError('No se pudo quitar LoRA: ' + (err.message || 'error'));
+  }
+}
+window.refreshLoraInferenceStatus = refreshLoraInferenceStatus;
 
 function applyNichePreset(nicheId) {
   const api = window.InfluNichePresets;
@@ -5155,6 +5232,11 @@ function setupUgcStudio() {
 
   const btnLoraSheet = document.getElementById('btnExportLoraPackSheet');
   if (btnLoraSheet) btnLoraSheet.addEventListener('click', () => exportLoraTrainingPack());
+  const btnRegisterLora = document.getElementById('btnRegisterLora');
+  if (btnRegisterLora) btnRegisterLora.addEventListener('click', () => registerLoraWeights());
+  const btnClearLora = document.getElementById('btnClearLora');
+  if (btnClearLora) btnClearLora.addEventListener('click', () => clearLoraWeights());
+  refreshLoraInferenceStatus();
 
   // Commercial License Generator Action
   const btnLicense = document.getElementById('btnGenerateCommercialLicense');

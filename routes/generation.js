@@ -118,6 +118,7 @@ function registerGenerationRoutes(app, deps) {
     if (genOptions.seed == null) {
       genOptions.seed = Math.floor(Math.random() * 1000000);
     }
+    if (personaId) genOptions.personaId = personaId;
 
     const t0 = Date.now();
     aiService.generateInfluencerImage(prompt, referenceUrl, genOptions)

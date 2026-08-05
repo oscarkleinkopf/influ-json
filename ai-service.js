@@ -472,6 +472,22 @@ module.exports = {
       );
     }
 
+    // Optional per-persona LoRA via ComfyUI (Fase L / L2) — only if ready + COMFYUI_URL.
+    // Free path (Pollinations) must always remain functional when LoRA is absent/fails.
+    if (options.preferLora !== false && options.personaId) {
+      try {
+        const loraPath = await imageProvider.generateWithLora({
+          personaId: options.personaId,
+          prompt,
+          options,
+          dbService: options.dbService || null
+        });
+        if (loraPath) return loraPath;
+      } catch (loraErr) {
+        console.warn('[gen] LoRA/ComfyUI failed, falling back to free Pollinations:', loraErr.message);
+      }
+    }
+
     // Optional paid face-lock (Replicate etc.) — only if explicitly configured.
     // Free path (Pollinations) must always remain functional for zero-cost entrepreneurs.
     if (options.preferFaceLock !== false && imageProvider.isPaidFaceLockEnabled()) {
