@@ -159,18 +159,21 @@ CONTENIDO
 
 CÓMO ENTRENAR GRATIS (Google Colab + ai-toolkit)
 ------------------------------------------------
-1. Abre un Colab con GPU (Runtime → T4 gratis).
-2. Clona ai-toolkit e instala:
-   !git clone https://github.com/ostris/ai-toolkit && cd ai-toolkit && pip install -r requirements.txt
-3. Sube y descomprime este .zip dentro de ai-toolkit/ (que queden ai-toolkit/dataset y ai-toolkit/config).
-4. Flux-dev requiere token de Hugging Face + aceptar la licencia del modelo.
-   Alternativa 100% libre: cambia "FLUX.1-dev" por "black-forest-labs/FLUX.1-schnell" en el YAML,
-   o usa una config SDXL si prefieres.
-5. Entrena:
-   !python run.py config/ai-toolkit-flux.yaml
-6. Descarga el archivo .safetensors resultante de output/.
-7. Úsalo en ComfyUI / Replicate / fal invocando el trigger word "${trigger}"
+Guía + notebook del repo (Fase L / L1):
+  docs/lora/L1_COLAB.md
+  docs/lora/influ_json_lora_train.ipynb
+
+Resumen:
+1. Abre el notebook en Colab (File → Upload) y elige GPU T4.
+2. Ejecuta las celdas: instalar ai-toolkit → subir ESTE .zip → entrenar → descargar .safetensors.
+3. Flux-dev requiere token Hugging Face + aceptar la licencia.
+   Alternativa libre: en el notebook pon USE_SCHNELL = True (FLUX.1-schnell).
+4. Usa el trigger word "${trigger}" al inferir
    (ej: "${trigger} ${cls}, full body, en la playa").
+
+Sin notebook (manual):
+  !git clone https://github.com/ostris/ai-toolkit && cd ai-toolkit && pip install -r requirements.txt
+  # Copia dataset/ + config/ aquí y: python run.py config/ai-toolkit-flux.yaml
 
 CONSEJOS (para buena consistencia)
 ----------------------------------

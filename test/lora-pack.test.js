@@ -45,6 +45,17 @@ test('buildLoraPack derives trigger token + captions from character_lock', () =>
   assert.ok(names.includes('config/ai-toolkit-flux.yaml'));
   assert.ok(names.includes('character_lock.json'));
   assert.ok(names.includes('trigger.txt'));
+  const readme = pack.textFiles.find((f) => f.name === 'README.txt').content;
+  assert.match(readme, /docs\/lora\/L1_COLAB\.md/, 'README points to L1 Colab guide');
+  assert.match(readme, /influ_json_lora_train\.ipynb/, 'README points to L1 notebook');
+});
+
+test('L1 Colab docs exist in repo', () => {
+  const root = path.join(__dirname, '..');
+  assert.ok(fs.existsSync(path.join(root, 'docs', 'lora', 'L1_COLAB.md')));
+  assert.ok(fs.existsSync(path.join(root, 'docs', 'lora', 'influ_json_lora_train.ipynb')));
+  const nb = JSON.parse(fs.readFileSync(path.join(root, 'docs', 'lora', 'influ_json_lora_train.ipynb'), 'utf8'));
+  assert.ok(Array.isArray(nb.cells) && nb.cells.length >= 5, 'notebook has training cells');
 });
 
 test('GET /api/export/persona/:id/lora-pack returns a ZIP with dataset + config', async () => {
