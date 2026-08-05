@@ -253,5 +253,40 @@ module.exports = {
   buildTriggerToken,
   buildCaption,
   classWord,
-  slugify
+  slugify,
+  /**
+   * Empaqueta solo dataset/ (img + .txt) a un Buffer ZIP para trainers remotos (L3).
+   * @param {object} pack — resultado de buildLoraPack
+   * @param {{ createZipArchive: Function, rootDir: string }} deps
+   */
+  async buildDatasetZipBuffer(pack, { createZipArchive, rootDir }) {
+    const path = require('path');
+    const fs = require('fs');
+    if (typeof createZipArchive !== 'function') {
+      throw new Error('createZipArchive requerido');
+    }
+    const archive = createZipArchive({ zlib: { level: 9 } });
+    const chunks = [];
+    archive.on('data', (c) => chunks.push(c));
+    const done = new Promise((resolve, reject) => {
+      archive.on('end', () => resolve(Buffer.concat(chunks)));
+      archive.on('error', reject);
+    });
+    let added = 0;
+    for (const item of pack.datasetItems || []) {
+      const abs = path.isAbsolute(item.srcRelPath)
+        ? item.srcRelPath
+        : path.join(rootDir, item.srcRelPath);
+      if (!fs.existsSync(abs)) continue;
+      archive.file(abs, { name: item.imageName });
+      archive.append(`${item.caption}\n`, { name: item.captionName });
+      added += 1;
+    }
+    if (added < 1) {
+      archive.abort();
+      throw new Error('No hay imágenes en el vault para entrenar (genera variantes primero).');
+    }
+    archive.finalize();
+    return done;
+  }
 };

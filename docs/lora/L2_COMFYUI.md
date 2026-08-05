@@ -2,7 +2,7 @@
 
 **Fase L / L2** del ROADMAP. Tras entrenar en Colab (**L1**), registras el `.safetensors` en el Studio y, **si** tienes ComfyUI local, las gens de esa persona usan la LoRA.
 
-Si no hay `COMFYUI_URL`, o la LoRA no está en `status=ready`, o ComfyUI falla → **fallback automático a Pollinations**. El path free (JSON + chatbot) no cambia.
+Sin ComfyUI (o si falla) el Studio prueba L3 (Replicate, si `ENABLE_PAID_LORA=1`) y si no → **Pollinations**.
 
 ---
 

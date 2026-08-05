@@ -700,6 +700,19 @@
                     Requiere <code style="font-size: 10px;">COMFYUI_URL</code> y el mismo archivo en <code style="font-size: 10px;">models/loras</code> de ComfyUI
                     (o <code style="font-size: 10px;">COMFYUI_LORAS_DIR</code>). Sin eso, gen = Pollinations. Guía: <code style="font-size: 10px;">docs/lora/L2_COMFYUI.md</code>.
                   </p>
+                  <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
+                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L3 · Trainer pago (Replicate, opt-in)</p>
+                    <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
+                      No es el path por defecto. Requiere <code style="font-size: 10px;">ENABLE_PAID_LORA=1</code> + token.
+                      Preferí Colab gratis (L1) si puedes. Guía: <code style="font-size: 10px;">docs/lora/L3_PAID.md</code>.
+                    </p>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                      <button type="button" class="btn btn-sm" id="btnTrainLoraPaid" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(251, 146, 60, 0.25); border: 1px solid rgba(251, 146, 60, 0.45);">Entrenar en Replicate (pago)</button>
+                      <button type="button" class="btn btn-secondary btn-sm" id="btnSyncLoraPaid" style="font-size: 11px; padding: 8px 10px;">Sincronizar estado</button>
+                    </div>
+                    <input type="text" id="loraReplicateModelInput" placeholder="o pega owner/model:version ya entrenado" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-top: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnLinkLoraPaid" style="width: 100%; margin-top: 6px; font-size: 11px; padding: 8px 10px;">Vincular modelo Replicate</button>
+                  </div>
                 </div>
               </div>
 

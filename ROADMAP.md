@@ -101,7 +101,7 @@
 | L0 | **Training pack export** (zip: dataset + captions desde `character_lock`) ✅ | Cero costo, sin GPU; desde una persona con variantes se baja un `.zip` listo para entrenar |
 | L1 | **Notebook Colab gratis** (`ai-toolkit` Flux LoRA) ✅ | Consume el pack de L0 y devuelve `.safetensors`; documentado paso a paso (`docs/lora/`) |
 | L2 | **Inferencia local (ComfyUI opcional)** ✅ | Aplica la LoRA con fallback automático a Pollinations si no hay pesos/GPU |
-| L3 | **Proveedor pago opt-in** (Replicate/fal LoRA trainer) | Entrenar + inferir "un clic" detrás de flag; nunca rompe free |
+| L3 | **Proveedor pago opt-in** (Replicate/fal LoRA trainer) ✅ | Entrenar + inferir "un clic" detrás de `ENABLE_PAID_LORA=1`; nunca rompe free |
 
 **Modelo de datos propuesto:** tabla `persona_loras` (`persona_id`, `trigger_token`, `base_model`, `weights_path/url`, `status`, `training_meta`) con estados `none|dataset_ready|training|ready|failed`.
 
@@ -113,7 +113,7 @@
 
 **Regla de regresión:** con LoRA desactivada, todo el path free (JSON + Pollinations) sigue igual. L0 debe funcionar sin token, sin GPU y sin pago.
 
-**Arranque:** L0 ✅ · L1 ✅ · L2 ✅ (`persona_loras` + ComfyUI + fallback). Siguiente: L3 (trainer pago opt-in).
+**Arranque:** L0–L3 ✅ (L3 = `ENABLE_PAID_LORA` + Replicate; free path intacto).
 
 ---
 
@@ -146,6 +146,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-05 | **L3 trainer pago opt-in** | `ENABLE_PAID_LORA` + Replicate train/sync/infer; fallback Pollinations |
 | 2026-08-05 | **L2 ComfyUI + fallback** | `persona_loras` v11; `generateWithLora` → Pollinations si no ready |
 | 2026-08-05 | **L1 notebook Colab** | `docs/lora/` — guía + `.ipynb` que consume pack L0 |
 | 2026-08-05 | **G2+G3** looks rápidos + batch 1/4 | PR #46 → `main` |

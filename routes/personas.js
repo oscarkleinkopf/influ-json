@@ -677,6 +677,7 @@ function registerPersonasRoutes(app, deps) {
     try {
       const imageProvider = require('../image-provider');
       const comfyui = require('../comfyui-client');
+      const paidLora = require('../paid-lora');
       const row = dbService.getPersonaLora(req.persona.id);
       let comfy = { configured: comfyui.isConfigured(), reachable: false };
       if (comfy.configured) {
@@ -684,6 +685,7 @@ function registerPersonasRoutes(app, deps) {
         comfy.reachable = !!ping.ok;
         comfy.reason = ping.reason || null;
       }
+      const caps = imageProvider.getProviderCapabilities();
       res.json({
         success: true,
         lora: row || {
@@ -694,10 +696,184 @@ function registerPersonasRoutes(app, deps) {
           weights_path: null
         },
         comfyui: comfy,
-        capabilities: imageProvider.getProviderCapabilities().lora
+        paidLora: caps.paidLora,
+        capabilities: caps.lora
       });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
+  /**
+   * Fase L / L3 — Entrenar LoRA en Replicate (pago, opt-in).
+   * Body JSON: { confirmPaid: true, steps?, destination?, triggerToken? }
+   * Requiere ENABLE_PAID_LORA=1 + token. Empaqueta dataset del vault → Files API → training.
+   */
+  app.post('/api/personas/:id/lora/train', requireOwnedPersona, async (req, res) => {
+    try {
+      const paidLora = require('../paid-lora');
+      const loraPack = require('../lora-pack');
+      if (!paidLora.isPaidLoraEnabled()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Trainer pago desactivado. Configura ENABLE_PAID_LORA=1, REPLICATE_API_TOKEN y REPLICATE_USERNAME (docs/lora/L3_PAID.md). El path gratis (Colab L1) sigue disponible.'
+        });
+      }
+      const body = req.body || {};
+      if (body.confirmPaid !== true && body.confirmPaid !== 'true' && body.confirmPaid !== 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Confirma el costo: envía confirmPaid:true. Esto gasta crédito en Replicate.'
+        });
+      }
+
+      const persona = req.persona;
+      const variants = dbService.getVariantsForPersona(persona.id) || [];
+      const pack = loraPack.buildLoraPack(persona, variants);
+      if (pack.count < 4) {
+        return res.status(400).json({
+          success: false,
+          message: `Se recomiendan ≥4–8 imágenes coherentes (tienes ${pack.count}). Genera más variantes o usa Colab (L1) gratis.`
+        });
+      }
+
+      const zipBuf = await loraPack.buildDatasetZipBuffer(pack, {
+        createZipArchive,
+        rootDir
+      });
+      const uploaded = await paidLora.uploadTrainingZip(zipBuf, `${pack.triggerToken}_dataset.zip`);
+      const trigger = (body.triggerToken || body.trigger_token || pack.triggerToken || '').trim();
+      const training = await paidLora.startLoraTraining({
+        inputImagesUrl: uploaded.url,
+        triggerWord: trigger,
+        destination: body.destination || null,
+        steps: body.steps != null ? Number(body.steps) : null,
+        modelName: body.modelName || `influ-${String(persona.id).slice(0, 8)}`
+      });
+
+      const existing = dbService.getPersonaLora(persona.id);
+      let meta = {};
+      try {
+        if (existing?.training_meta) meta = JSON.parse(existing.training_meta);
+      } catch (_) {}
+      meta.provider = 'replicate';
+      meta.training_id = training.id;
+      meta.training_status = training.status;
+      meta.destination = training.destination || body.destination || null;
+      meta.dataset_url = uploaded.url;
+      meta.dataset_file_id = uploaded.id;
+      meta.started_at = new Date().toISOString();
+
+      const row = dbService.upsertPersonaLora({
+        personaId: persona.id,
+        triggerToken: trigger,
+        baseModel: body.baseModel || 'flux-dev',
+        weightsPath: existing?.weights_path || null,
+        status: 'training',
+        trainingMeta: meta
+      });
+
+      try {
+        dbService.recordAuditEvent({
+          profile_id: persona?.profile_id || req.profileId,
+          actor_profile_id: req.session?.profileId || req.profileId,
+          action: 'persona.lora_train_paid',
+          entity_type: 'persona',
+          entity_id: persona.id,
+          meta: { training_id: training.id, trigger }
+        });
+      } catch (_) {}
+
+      res.json({
+        success: true,
+        lora: row,
+        training: {
+          id: training.id,
+          status: training.status,
+          urls: training.urls || null
+        },
+        warning: 'Esto es un servicio de pago externo. El path free (JSON + Colab + Pollinations) no depende de este paso.'
+      });
+    } catch (err) {
+      console.error('[personas/lora/train]', err);
+      res.status(500).json({ success: false, message: err.message || 'Error al iniciar entrenamiento pago' });
+    }
+  });
+
+  /**
+   * Sincroniza estado del training Replicate → persona_loras.
+   * También acepta link manual: { replicateModelVersion: "owner/name:hash" }.
+   */
+  app.post('/api/personas/:id/lora/sync', requireOwnedPersona, async (req, res) => {
+    try {
+      const paidLora = require('../paid-lora');
+      const body = req.body || {};
+      const existing = dbService.getPersonaLora(req.persona.id);
+      let meta = {};
+      try {
+        if (existing?.training_meta) meta = JSON.parse(existing.training_meta);
+      } catch (_) {}
+
+      // Manual link (después de entrenar en la web de Replicate)
+      const manual = (body.replicateModelVersion || body.replicate_model_version || '').trim();
+      if (manual) {
+        meta.provider = meta.provider || 'replicate';
+        meta.replicate_model_version = manual;
+        const row = dbService.upsertPersonaLora({
+          personaId: req.persona.id,
+          triggerToken: body.triggerToken || existing?.trigger_token || null,
+          baseModel: existing?.base_model || 'flux-dev',
+          weightsPath: existing?.weights_path || null,
+          status: 'ready',
+          trainingMeta: meta
+        });
+        return res.json({ success: true, lora: row, linked: true });
+      }
+
+      const trainingId = body.trainingId || meta.training_id;
+      if (!trainingId) {
+        return res.status(400).json({
+          success: false,
+          message: 'No hay training_id. Inicia /lora/train o pasa replicateModelVersion para vincular un modelo ya entrenado.'
+        });
+      }
+      if (!paidLora.getToken()) {
+        return res.status(400).json({ success: false, message: 'REPLICATE_API_TOKEN requerido para sincronizar.' });
+      }
+
+      const training = await paidLora.getTraining(trainingId);
+      const status = paidLora.mapTrainingStatus(training);
+      meta.training_id = trainingId;
+      meta.training_status = training.status;
+      meta.last_sync_at = new Date().toISOString();
+      if (training.error) meta.training_error = training.error;
+
+      const modelVer = paidLora.extractModelVersion(training);
+      if (modelVer) meta.replicate_model_version = modelVer;
+      if (training.destination) meta.destination = training.destination;
+
+      const row = dbService.upsertPersonaLora({
+        personaId: req.persona.id,
+        triggerToken: existing?.trigger_token || null,
+        baseModel: existing?.base_model || 'flux-dev',
+        weightsPath: existing?.weights_path || null,
+        status,
+        trainingMeta: meta
+      });
+
+      res.json({
+        success: true,
+        lora: row,
+        training: {
+          id: training.id,
+          status: training.status,
+          output: training.output || null,
+          error: training.error || null
+        }
+      });
+    } catch (err) {
+      console.error('[personas/lora/sync]', err);
+      res.status(500).json({ success: false, message: err.message || 'Error al sincronizar LoRA' });
     }
   });
 
