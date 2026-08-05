@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/l4-local-gpu-hub-173f` |
 | **Commit base** | tip `main` post #51/#52 |
-| **PR actual** | L4 hub inferencia local (ComfyUI + A1111/Forge) — en curso |
+| **PR actual** | [#54](https://github.com/oscarkleinkopf/influ-json/pull/54) L4 hub inferencia local (ComfyUI + A1111/Forge) |
 | **`main` remoto** | Moat free + Fase G + LoRA L0–L3 + UX pollen + gate public-bind |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52) · Fase L L0–L4 |
 | **Prioridad inmediata** | Merge L4 → Sec #2 / UX #2 según cola |
