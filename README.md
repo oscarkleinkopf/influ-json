@@ -60,6 +60,8 @@ Un bloque JSON con lo que **debe** repetirse en cada imagen (cara, tez, pelo, si
 | **Copiar JSON / packs** (recomendado) | Seguir el personaje en ChatGPT / Gemini / Claude free — sin red de imagen |
 | Pollinations «Generar boceto (gratis, inestable)» | Bocetos locales opcionales; acepta 429 y poca consistencia de cara |
 
+> **Nota (2026):** Pollinations migró a créditos «pollen» y su API moderna **exige un token**; el acceso **anónimo** ya no genera imágenes (error `401` / *«Insufficient balance»*). Sigue siendo **cero costo**: crea una API key gratis en [enter.pollinations.ai/keys](https://enter.pollinations.ai/keys) y ponla como `POLLINATIONS_TOKEN` en `.env` (los grants diarios gratis cubren `flux`, sin tarjeta). El flujo recomendado —copiar JSON/packs a un chatbot free— **no** necesita esto.
+
 **Modo offline** (barra superior del Studio): desactiva Pollinations y resalta los botones de copiar JSON. Si ves **429**, el banner sugiere activar modo offline — la cola no cambia, solo el énfasis.
 
 Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a la vez** y enfría sola. No pulses generar otra vez; copia el pack.

@@ -585,22 +585,46 @@ module.exports = {
         else if (wantsPhotoreal) strength = 0.72;
         if (strengthOverride != null) strength = strengthOverride;
 
-        let url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=${width}&height=${height}&model=flux&nologo=true&enhance=${enhance}&seed=${seed}`;
+        // Modern endpoint (gen.pollinations.ai/image/{prompt}) per the live OpenAPI spec.
+        // The legacy image.pollinations.ai host only exposes the paid "sana" model now.
+        // enhance is kept in the prompt log context but is not a param of the modern API.
+        void enhance;
+        // Model is configurable to stretch small free daily grants: flux (default, best
+        // quality, ~0.002 pollen/img) vs dreamshaper (~0.0001, ~20x cheaper). All models
+        // now cost pollen; a registered key with account:usage or a budget is required.
+        const model = (process.env.POLLINATIONS_MODEL || 'flux').trim() || 'flux';
+        let url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPrompt)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}`;
         // Full-body: skip img2img ref by default (portrait ref freezes headshot crop).
         // Caller can force ref with options.forceReference === true
         const useRef = refUrl && (framing !== 'fullbody' || options.forceReference === true);
         if (useRef) {
-          url += `&image=${encodeURIComponent(refUrl)}&strength=${strength}`;
+          url += `&image=${encodeURIComponent(refUrl)}`;
         }
-        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${useRef ? strength : 'text-only'} identityLock=${identityLock} ref=${!!useRef}`);
+        // Pollinations moved to a prepaid "pollen" credit system and the modern API
+        // requires a Bearer key (pk_/sk_). Registered developers get free daily grants
+        // that cover flux — stay zero-cost by pasting a free token. Optional referrer too.
+        const referrer = (process.env.POLLINATIONS_REFERRER || '').trim();
+        if (referrer) url += `&referrer=${encodeURIComponent(referrer)}`;
+        const token = (process.env.POLLINATIONS_TOKEN || process.env.POLLINATIONS_API_TOKEN || '').trim();
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${useRef ? strength : 'text-only'} identityLock=${identityLock} ref=${!!useRef} auth=${token ? 'token' : 'anon'}`);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 55000);
         try {
-          const res = await fetch(url, { signal: controller.signal });
+          const res = await fetch(url, { signal: controller.signal, headers });
           clearTimeout(timer);
           if (!res.ok) {
+            let body = '';
+            try { body = await res.text(); } catch (_) { /* ignore */ }
+            const paymentRequired = res.status === 402
+              || /PAYMENT_REQUIRED|Insufficient balance/i.test(body);
+            // Modern API requires a Bearer key; missing/invalid → 401/403.
+            const authRequired = res.status === 401 || res.status === 403
+              || /unauthorized|forbidden|invalid.*(key|token)|authentication/i.test(body);
             const err = new Error(`Pollinations HTTP error: ${res.status}`);
             err.status = res.status;
+            err.paymentRequired = paymentRequired;
+            err.authRequired = authRequired;
             if (res.status === 429) genQueue.markRateLimited();
             throw err;
           }
@@ -622,7 +646,8 @@ module.exports = {
             res = await fetchPollinations(referenceUrl);
           } catch (refErr) {
             const is429 = /429/.test(refErr.message || '') || refErr.status === 429;
-            if (is429) {
+            // No point retrying text-only if there's no pollen balance or no valid key.
+            if (is429 || refErr.paymentRequired || refErr.authRequired) {
               throw refErr;
             }
             console.warn(`Pollinations img2img non-429 error (${refErr.message}), text-only fallback.`);
@@ -659,11 +684,24 @@ module.exports = {
         }
         const status = getGenQueueStatusSafe();
         const retry = status.rateLimitActive ? status.retryAfterSeconds : 30;
-        const msg = /429/.test(err.message || '') || err.status === 429
-          ? `Límite de Pollinations (gratis). Espera ~${retry || 30}s y vuelve a intentar (1 generación a la vez).`
-          : (err.message || 'La generación falló');
+        const is429 = /429/.test(err.message || '') || err.status === 429;
+        const needsToken = err.paymentRequired || err.authRequired
+          || err.status === 402 || err.status === 401 || err.status === 403;
+        let msg;
+        if (needsToken) {
+          msg = 'Pollinations ahora requiere un token: pasó a créditos "pollen" y el acceso anónimo dejó de ser gratis '
+              + '(errores "Insufficient balance" / no autorizado). Crea una API key gratis en https://enter.pollinations.ai/keys '
+              + '(login con GitHub) y agrégala como POLLINATIONS_TOKEN en tu .env. Los grants diarios gratis cubren el '
+              + 'modelo flux, así que el path sigue siendo cero costo.';
+        } else if (is429) {
+          msg = `Límite de Pollinations (gratis). Espera ~${retry || 30}s y vuelve a intentar (1 generación a la vez).`;
+        } else {
+          msg = err.message || 'La generación falló';
+        }
         const e = new Error(msg);
-        e.status = err.status || (/429/.test(err.message || '') ? 429 : 500);
+        e.status = err.status || (is429 ? 429 : 500);
+        e.paymentRequired = !!(err.paymentRequired || err.status === 402);
+        e.authRequired = !!(err.authRequired || err.status === 401 || err.status === 403);
         e.retryAfterSeconds = retry || 30;
         throw e;
       }
