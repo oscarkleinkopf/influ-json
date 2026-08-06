@@ -3685,7 +3685,10 @@ async function refreshLoraInferenceStatus() {
       ? (data.comfyui.reachable ? 'ComfyUI OK' : 'ComfyUI configurado (no responde)')
       : 'sin COMFYUI_URL';
     const paid = data.paidLora?.available ? 'Replicate L3 ON' : 'L3 off (gratis)';
-    el.textContent = `Estado: ${st} · trigger: ${trigger} · ${comfy} · ${paid}`;
+    const localT = data.localTrain?.available
+      ? (data.localTrain.canSpawn ? 'L5 spawn ON' : 'L5 materialize')
+      : 'L5 off';
+    el.textContent = `Estado: ${st} · trigger: ${trigger} · ${comfy} · ${paid} · ${localT}`;
     const triggerInput = document.getElementById('loraTriggerInput');
     if (triggerInput && data.lora?.trigger_token && !triggerInput.value) {
       triggerInput.value = data.lora.trigger_token;
@@ -3763,6 +3766,56 @@ async function trainLoraPaid() {
     await refreshLoraInferenceStatus();
   } catch (err) {
     toastError('Trainer pago: ' + (err.message || 'error'));
+  }
+}
+
+async function trainLoraLocal() {
+  const p = state.selectedPersona || state.personas[0];
+  if (!p?.id) {
+    toastInfo('Selecciona un influencer primero.');
+    return;
+  }
+  if (!confirm(
+    'Train local (L5): materializa el pack en disco y, si está configurado, lanza ai-toolkit en TU GPU.\n\n'
+    + 'No es el path free (Copiar JSON / Colab L1). ¿Continuar?'
+  )) {
+    return;
+  }
+  try {
+    toastLoading('Preparando dataset local (L5)…');
+    const trigger = (document.getElementById('loraTriggerInput')?.value || '').trim();
+    const res = await authFetch(`/api/personas/${p.id}/lora/train-local`, {
+      method: 'POST',
+      body: JSON.stringify({ confirmLocal: true, triggerToken: trigger || undefined })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.message || `HTTP ${res.status}`);
+    if (data.job?.mode === 'materialize_only') {
+      toastSuccess(`Pack en disco (${data.job.imageCount || '?'} imgs). Sync o registrá .safetensors cuando entrenes.`);
+    } else {
+      toastSuccess(`Train local iniciado (pid ${data.job?.pid || '—'}). Pulsá «Sincronizar train local».`);
+    }
+    await refreshLoraInferenceStatus();
+  } catch (err) {
+    toastError('Train local: ' + (err.message || 'error'));
+  }
+}
+
+async function syncLoraLocal() {
+  const p = state.selectedPersona || state.personas[0];
+  if (!p?.id) return;
+  try {
+    toastLoading('Sincronizando train local…');
+    const res = await authFetch(`/api/personas/${p.id}/lora/sync-local`, {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.message || `HTTP ${res.status}`);
+    toastSuccess(`LoRA local: ${data.lora?.status || '—'}${data.job?.weightsFound ? ' (pesos OK)' : ''}`);
+    await refreshLoraInferenceStatus();
+  } catch (err) {
+    toastError('Sync train local: ' + (err.message || 'error'));
   }
 }
 
@@ -5436,6 +5489,10 @@ function setupUgcStudio() {
   if (btnSyncLoraPaid) btnSyncLoraPaid.addEventListener('click', () => syncLoraPaid());
   const btnLinkLoraPaid = document.getElementById('btnLinkLoraPaid');
   if (btnLinkLoraPaid) btnLinkLoraPaid.addEventListener('click', () => linkLoraPaid());
+  const btnTrainLoraLocal = document.getElementById('btnTrainLoraLocal');
+  if (btnTrainLoraLocal) btnTrainLoraLocal.addEventListener('click', () => trainLoraLocal());
+  const btnSyncLoraLocal = document.getElementById('btnSyncLoraLocal');
+  if (btnSyncLoraLocal) btnSyncLoraLocal.addEventListener('click', () => syncLoraLocal());
   const btnRefreshLocalGpu = document.getElementById('btnRefreshLocalGpu');
   if (btnRefreshLocalGpu) btnRefreshLocalGpu.addEventListener('click', () => refreshLocalGpuStatus());
   refreshLoraInferenceStatus();

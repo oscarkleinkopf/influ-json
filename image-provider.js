@@ -15,6 +15,7 @@ const fs = require('fs');
 const comfyui = require('./comfyui-client');
 const paidLora = require('./paid-lora');
 const localGpu = require('./local-gpu');
+const localTrain = require('./local-train');
 const { DATA_DIR, ensureDir } = require('./paths');
 
 const PROVIDERS = {
@@ -71,6 +72,7 @@ function getProviderCapabilities() {
   const a1111Configured = localGpu.a1111.isConfigured();
   const localConfigured = isLocalGpuConfigured();
   const paidLoraOn = paidLora.isPaidLoraEnabled();
+  const localTrainOn = localTrain.isLocalTrainEnabled();
   return {
     active,
     freePathAlwaysOn: true,
@@ -106,16 +108,22 @@ function getProviderCapabilities() {
       notes: 'L4 hub: ComfyUI + A1111/Forge; PREFER_LOCAL_GPU=1 for gens without LoRA'
     },
     lora: {
-      available: localConfigured || paidLoraOn,
+      available: localConfigured || paidLoraOn || localTrainOn,
       cost: localConfigured ? 'self_host_gpu' : (paidLoraOn ? 'paid_per_train_and_image' : 'free_colab_path'),
       paidTrainer: paidLoraOn,
-      notes: 'L4 local hub y/o L3 Replicate; fallback automático a Pollinations'
+      localTrainer: localTrainOn,
+      notes: 'L5 local train / L4 hub / L3 Replicate; fallback automático a Pollinations'
     },
     paidLora: {
       available: paidLoraOn,
       configured: paidLoraOn,
       username: paidLora.getUsername(),
       notes: 'ENABLE_PAID_LORA=1 + REPLICATE_API_TOKEN — nunca requerido'
+    },
+    localTrain: {
+      available: localTrainOn,
+      canSpawn: localTrain.canSpawnTrainer(),
+      notes: 'ENABLE_LOCAL_LORA_TRAIN=1 — materializa pack; spawn con LOCAL_LORA_TRAIN_CMD o AI_TOOLKIT_DIR'
     }
   };
 }

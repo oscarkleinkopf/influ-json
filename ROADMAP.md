@@ -104,6 +104,7 @@
 | L3 | **Proveedor pago opt-in** (Replicate/fal LoRA trainer) ✅ | Entrenar + inferir "un clic" detrás de `ENABLE_PAID_LORA=1`; nunca rompe free |
 | L4 | **Hub inferencia local (ComfyUI + A1111/Forge)** ✅ | Detectar backends, gens con/sin LoRA (`PREFER_LOCAL_GPU`); sin train; fallback Pollinations |
 | L4c | **Plantilla Flux Comfy** ✅ | `docs/lora/comfy_workflow_flux_lora.json` + `L4C_FLUX_WORKFLOW.md` |
+| L5 | **Train local (orquestador)** ✅ | `ENABLE_LOCAL_LORA_TRAIN`; materializa pack L0 + spawn opt-in (`AI_TOOLKIT_DIR` / `LOCAL_LORA_TRAIN_CMD`); nunca rompe free |
 
 **Modelo de datos propuesto:** tabla `persona_loras` (`persona_id`, `trigger_token`, `base_model`, `weights_path/url`, `status`, `training_meta`) con estados `none|dataset_ready|training|ready|failed`.
 
@@ -115,7 +116,7 @@
 
 **Regla de regresión:** con LoRA desactivada, todo el path free (JSON + Pollinations) sigue igual. L0 debe funcionar sin token, sin GPU y sin pago.
 
-**Arranque:** L0–L4 ✅ (L4 = hub ComfyUI + A1111/Forge; free path intacto).
+**Arranque:** L0–L5 ✅ (L5 = orquestador train local opt-in; free path = JSON + Colab L1 + Pollinations).
 
 ---
 
@@ -148,6 +149,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-06 | **L5 train local** orquestador opt-in | `ENABLE_LOCAL_LORA_TRAIN`; materialize + spawn; `docs/lora/L5_LOCAL_TRAIN.md` |
 | 2026-08-06 | **Sec CSP** endurecer Content-Security-Policy | `connect-src 'self'`; sin `https:` img; `object-src`/`base-uri`/`form-action`; `CSP_REPORT_ONLY` |
 | 2026-08-05 | **UX #2** Pollinations token en Ajustes | Campo + GET/POST `/api/settings/keys` |
 | 2026-08-05 | **L4c** plantilla Flux Comfy | `comfy_workflow_flux_lora.json` |

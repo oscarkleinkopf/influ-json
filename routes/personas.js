@@ -683,7 +683,6 @@ function registerPersonasRoutes(app, deps) {
     try {
       const imageProvider = require('../image-provider');
       const comfyui = require('../comfyui-client');
-      const paidLora = require('../paid-lora');
       const row = dbService.getPersonaLora(req.persona.id);
       let comfy = { configured: comfyui.isConfigured(), reachable: false };
       if (comfy.configured) {
@@ -703,6 +702,7 @@ function registerPersonasRoutes(app, deps) {
         },
         comfyui: comfy,
         paidLora: caps.paidLora,
+        localTrain: caps.localTrain,
         capabilities: caps.lora
       });
     } catch (err) {
@@ -880,6 +880,233 @@ function registerPersonasRoutes(app, deps) {
     } catch (err) {
       console.error('[personas/lora/sync]', err);
       res.status(500).json({ success: false, message: err.message || 'Error al sincronizar LoRA' });
+    }
+  });
+
+  /**
+   * Fase L / L5 — Entrenar LoRA en GPU local (opt-in).
+   * Body JSON: { confirmLocal: true, materializeOnly?: bool, triggerToken?, steps? }
+   * Requiere ENABLE_LOCAL_LORA_TRAIN=1. Materializa pack L0 a DATA_DIR/loras/<id>/train_jobs/.
+   * Si hay LOCAL_LORA_TRAIN_CMD o AI_TOOLKIT_DIR → spawn; si no o materializeOnly → dataset_ready.
+   */
+  app.post('/api/personas/:id/lora/train-local', requireOwnedPersona, async (req, res) => {
+    try {
+      const localTrain = require('../local-train');
+      const loraPack = require('../lora-pack');
+      if (!localTrain.isLocalTrainEnabled()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Train local desactivado. Configura ENABLE_LOCAL_LORA_TRAIN=1 (docs/lora/L5_LOCAL_TRAIN.md). Preferí Colab L1 si no tenés GPU.'
+        });
+      }
+      const body = req.body || {};
+      if (body.confirmLocal !== true && body.confirmLocal !== 'true' && body.confirmLocal !== 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Confirma: envía confirmLocal:true. Esto usa tu GPU / proceso local (no es el path free JSON).'
+        });
+      }
+
+      const persona = req.persona;
+      const variants = dbService.getVariantsForPersona(persona.id) || [];
+      const pack = loraPack.buildLoraPack(persona, variants);
+      if (pack.count < 4) {
+        return res.status(400).json({
+          success: false,
+          message: `Se recomiendan ≥4–8 imágenes coherentes (tienes ${pack.count}). Genera más variantes o usa Colab (L1) gratis.`
+        });
+      }
+
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const workDir = path.join(localTrain.personaTrainRoot(persona.id), stamp);
+      const materialized = localTrain.materializePack(pack, { rootDir, workDir });
+
+      const trigger = (body.triggerToken || body.trigger_token || pack.triggerToken || '').trim();
+      const existing = dbService.getPersonaLora(persona.id);
+      let meta = {};
+      try {
+        if (existing?.training_meta) meta = JSON.parse(existing.training_meta);
+      } catch (_) {}
+      meta.provider = 'local';
+      meta.work_dir = materialized.workDir;
+      meta.config_abs = materialized.configAbs;
+      meta.output_abs = materialized.outputAbs;
+      meta.dataset_images = materialized.imageCount;
+      meta.started_at = new Date().toISOString();
+
+      const materializeOnly = body.materializeOnly === true
+        || body.materializeOnly === 'true'
+        || body.materializeOnly === 1
+        || !localTrain.canSpawnTrainer();
+
+      if (materializeOnly) {
+        meta.mode = 'materialize_only';
+        meta.hint = 'Ejecutá ai-toolkit a mano sobre configAbs, luego sync-local o registrá el .safetensors (L2).';
+        const row = dbService.upsertPersonaLora({
+          personaId: persona.id,
+          triggerToken: trigger,
+          baseModel: body.baseModel || 'flux-dev',
+          weightsPath: existing?.weights_path || null,
+          status: 'dataset_ready',
+          trainingMeta: meta
+        });
+        try {
+          dbService.recordAuditEvent({
+            profile_id: persona?.profile_id || req.profileId,
+            actor_profile_id: req.session?.profileId || req.profileId,
+            action: 'persona.lora_train_local_materialize',
+            entity_type: 'persona',
+            entity_id: persona.id,
+            meta: { work_dir: workDir, images: materialized.imageCount }
+          });
+        } catch (_) {}
+        return res.json({
+          success: true,
+          lora: row,
+          job: {
+            mode: 'materialize_only',
+            workDir: materialized.workDir,
+            configAbs: materialized.configAbs,
+            imageCount: materialized.imageCount
+          },
+          warning: 'Pack materializado. Sin spawn (falta CMD/AI_TOOLKIT_DIR o pediste materializeOnly). Colab L1 sigue siendo el path free con GPU en la nube.'
+        });
+      }
+
+      const started = localTrain.startTrainProcess({
+        personaId: persona.id,
+        workDir: materialized.workDir,
+        configAbs: materialized.configAbs,
+        triggerToken: trigger
+      });
+      meta.mode = 'spawn';
+      meta.pid = started.pid;
+      meta.command = started.commandPreview;
+
+      const row = dbService.upsertPersonaLora({
+        personaId: persona.id,
+        triggerToken: trigger,
+        baseModel: body.baseModel || 'flux-dev',
+        weightsPath: existing?.weights_path || null,
+        status: 'training',
+        trainingMeta: meta
+      });
+
+      try {
+        dbService.recordAuditEvent({
+          profile_id: persona?.profile_id || req.profileId,
+          actor_profile_id: req.session?.profileId || req.profileId,
+          action: 'persona.lora_train_local',
+          entity_type: 'persona',
+          entity_id: persona.id,
+          meta: { pid: started.pid, work_dir: workDir }
+        });
+      } catch (_) {}
+
+      res.json({
+        success: true,
+        lora: row,
+        job: {
+          mode: 'spawn',
+          pid: started.pid,
+          workDir: started.workDir,
+          command: started.commandPreview
+        },
+        warning: 'Entrenamiento local iniciado. Pulsá «Sincronizar train local» cuando termine. El path free (JSON + Pollinations) no depende de esto.'
+      });
+    } catch (err) {
+      console.error('[personas/lora/train-local]', err);
+      res.status(500).json({ success: false, message: err.message || 'Error al iniciar train local' });
+    }
+  });
+
+  /**
+   * Sincroniza job local → persona_loras (ready/failed/training).
+   * Si el proceso terminó OK y hay .safetensors en output/, los promueve a DATA_DIR/loras/.
+   */
+  app.post('/api/personas/:id/lora/sync-local', requireOwnedPersona, (req, res) => {
+    try {
+      const localTrain = require('../local-train');
+      if (!localTrain.isLocalTrainEnabled()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Train local desactivado (ENABLE_LOCAL_LORA_TRAIN=1).'
+        });
+      }
+      const existing = dbService.getPersonaLora(req.persona.id);
+      let meta = {};
+      try {
+        if (existing?.training_meta) meta = JSON.parse(existing.training_meta);
+      } catch (_) {}
+
+      const outputAbs = meta.output_abs || null;
+      const poll = localTrain.pollTrainJob(req.persona.id, { outputAbs });
+      // Si no hay job en memoria pero hay work_dir materializado, buscar pesos ahí
+      if (!poll.weightsAbs && meta.output_abs) {
+        const found = localTrain.findLatestWeights(meta.output_abs);
+        if (found) poll.weightsAbs = found;
+      }
+      if (!poll.workDir && meta.work_dir) poll.workDir = meta.work_dir;
+
+      let status = localTrain.mapLocalTrainStatus(poll);
+      // Materialize-only: si el usuario dejó pesos en output a mano → ready
+      if (existing?.status === 'dataset_ready' && poll.weightsAbs) {
+        status = 'ready';
+      } else if (
+        (existing?.status === 'dataset_ready' || meta.mode === 'materialize_only')
+        && !poll.running
+        && poll.exitCode == null
+        && !poll.weightsAbs
+      ) {
+        status = 'dataset_ready';
+      }
+
+      meta.last_sync_at = new Date().toISOString();
+      meta.local_exit_code = poll.exitCode;
+      meta.local_running = poll.running;
+      if (poll.logTail?.length) meta.log_tail = poll.logTail;
+
+      let weightsPath = existing?.weights_path || null;
+      if (status === 'ready' && poll.weightsAbs) {
+        const promoted = localTrain.promoteWeights(
+          req.persona.id,
+          poll.weightsAbs,
+          { destName: `${existing?.trigger_token || 'persona'}_flux_lora.safetensors` }
+        );
+        weightsPath = promoted.weightsRel;
+        meta.comfy_lora_name = promoted.destName;
+        meta.weights_src = poll.weightsAbs;
+      }
+      if (status === 'failed' && poll.exitCode != null && poll.exitCode !== 0) {
+        meta.training_error = `Proceso local salió con código ${poll.exitCode}`;
+      }
+      if (status === 'failed' && poll.exitCode === 0 && !poll.weightsAbs) {
+        meta.training_error = 'Proceso OK pero no se encontró .safetensors en output/';
+      }
+
+      const row = dbService.upsertPersonaLora({
+        personaId: req.persona.id,
+        triggerToken: existing?.trigger_token || null,
+        baseModel: existing?.base_model || 'flux-dev',
+        weightsPath,
+        status,
+        trainingMeta: meta
+      });
+
+      res.json({
+        success: true,
+        lora: row,
+        job: {
+          running: poll.running,
+          exitCode: poll.exitCode,
+          pid: poll.pid,
+          workDir: poll.workDir,
+          weightsFound: !!poll.weightsAbs
+        }
+      });
+    } catch (err) {
+      console.error('[personas/lora/sync-local]', err);
+      res.status(500).json({ success: false, message: err.message || 'Error al sincronizar train local' });
     }
   });
 

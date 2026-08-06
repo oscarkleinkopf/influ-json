@@ -726,6 +726,18 @@
                     · <code style="font-size: 10px;">docs/lora/L4_LOCAL_GPU.md</code>
                   </p>
                   <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
+                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L5 · Train local (GPU propia, opt-in)</p>
+                    <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
+                      Requiere <code style="font-size: 10px;">ENABLE_LOCAL_LORA_TRAIN=1</code>. Materializa el pack L0; con
+                      <code style="font-size: 10px;">AI_TOOLKIT_DIR</code> / <code style="font-size: 10px;">LOCAL_LORA_TRAIN_CMD</code> lanza el trainer.
+                      Sin GPU: usá <strong>Colab L1</strong>. Guía: <code style="font-size: 10px;">docs/lora/L5_LOCAL_TRAIN.md</code>.
+                    </p>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                      <button type="button" class="btn btn-sm" id="btnTrainLoraLocal" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4);">Preparar / entrenar local</button>
+                      <button type="button" class="btn btn-secondary btn-sm" id="btnSyncLoraLocal" style="font-size: 11px; padding: 8px 10px;">Sincronizar train local</button>
+                    </div>
+                  </div>
+                  <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
                     <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L3 · Replicate (pago, opt-in)</p>
                     <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
                       Requiere <code style="font-size: 10px;">ENABLE_PAID_LORA=1</code>. Preferí Colab (L1) si puedes.

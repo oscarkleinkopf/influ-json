@@ -9,7 +9,9 @@ El Studio puede generar bocetos / LoRA **en local** vía:
 | **ComfyUI** | `http://127.0.0.1:8188` | `/prompt` + `/history` + `/view` (L2) |
 | **Automatic1111 / Forge** | `http://127.0.0.1:7860` | `/sdapi/v1/txt2img` |
 
-**No** orquesta entrenamiento en la tarjeta (sigue **L1 Colab** o **L3** pago). Solo inferencia.
+**No** orquesta entrenamiento en la tarjeta L4 (sigue **L1 Colab**, **L5 local** opt-in o **L3** pago). Solo inferencia.
+
+Ver también: [L5_LOCAL_TRAIN.md](./L5_LOCAL_TRAIN.md).
 
 Sin estas URLs el Studio se comporta igual: **Copiar JSON** + Pollinations. Fallos de GPU → fallback automático.
 

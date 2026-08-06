@@ -82,4 +82,5 @@ El usuario alterna entre **Antigravity** (principal) y **Cursor**. Cada cambio d
 
 - Arranque / tests: ver README + `package.json` (`npm start`, `npm test`, `npm run smoke`). Auth: `STUDIO_PIN` en `.env`.
 - **CSP** (`auth.securityHeaders`): enforce por defecto. `CSP_REPORT_ONLY=1` → solo report. `CSP_ALLOW_HTTPS_IMG=1` → reañade `https:` a `img-src` si hace falta. El front no debe `fetch` orígenes externos (`connect-src 'self'`); Pollinations es server-side. `'unsafe-inline'` en script/style sigue por el monolito (`onclick` / estilos en templates / Google Fonts).
+- **L5 train local:** off por defecto. `ENABLE_LOCAL_LORA_TRAIN=1` materializa pack; spawn solo con `LOCAL_LORA_TRAIN_CMD` o `AI_TOOLKIT_DIR`. Guía: `docs/lora/L5_LOCAL_TRAIN.md`. No usar L5 como path free (preferir Copiar JSON / Colab L1).
 - No usar `npm run start:minimal` como servidor de desarrollo del producto completo.
