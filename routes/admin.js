@@ -427,7 +427,7 @@ function registerAdminRoutes(app, deps) {
       const summary = dbService.getGenMetricsSummary({ profileId, sinceDays });
       res.json({
         success: true,
-        freeTier: { imageGen: 'pollinations', note: 'Replicate aún no implementado — provider_other = 0' },
+        freeTier: { imageGen: 'pollinations', note: 'provider_other = Replicate face-lock / LoRA pago (opt-in)' },
         summary
       });
     } catch (err) {

@@ -9,7 +9,7 @@
 
 **Producto:** herramientas para **crear prompts** que generen influencers **consistentes** (desde cero o inspirados en foto/referencia), y un **JSON (`character_lock`)** que se pueda pegar en **chatbots gratuitos** para seguir desarrollando esos personajes sin pagar face-lock.
 
-**Cero costo primero.** Pollinations = bocetos locales opcionales. Replicate = opt-in futuro que **nunca** rompe el free path.
+**Cero costo primero.** Pollinations = bocetos locales opcionales. Replicate face-lock = opt-in (`ENABLE_PAID_FACE_LOCK`, `docs/FACELOCK_R.md`) que **nunca** rompe el free path.
 
 Happy path a proteger:
 
@@ -25,16 +25,30 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | tip UX free (`8f4f973`) |
-| **PR actual** | #60 UX free **MERGED** → `main` |
+| **Rama de trabajo** | `cursor/fase-r-facelock-173f` |
+| **Commit base** | tip docs #60 (`5a4786f`) |
+| **PR actual** | Fase R R0–R4 face-lock (este PR) |
 | **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#5 + CSP + UX free |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad #52–#59 ✅ · Fase L L0–L5 ✅ |
-| **Prioridad inmediata** | Fase R (pausa) / más pulido free si surge fricción |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad #52–#59 ✅ · Fase L L0–L5 ✅ · **Fase R R0–R4** (PR) |
+| **Prioridad inmediata** | Merge Fase R → luego OAuth/SMTP/video siguen en pausa |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
-| **En pausa** | OAuth, SMTP, video, face-lock Replicate |
+| **En pausa** | OAuth, SMTP, video full |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-08-06 |
+
+### Sesión reciente (Cursor, 2026-08-06) — Fase R #1–#5 (R0–R4)
+
+**Pedido:** Seguir con #1 a #5 → interpretado como **Fase R** (R0–R4), no Sec #1–#5 (ya en main).
+
+**Hecho:**
+- R0: `ENABLE_PAID_FACE_LOCK=1` + token (o `IMAGE_PROVIDER=replicate` + token)
+- R1: `paid-facelock.js` + `generateWithOptionalFaceLock` (PuLID/InstantID)
+- R2: checkbox demoted “Face-lock mejorado” off por defecto (solo si available)
+- R3: fallback automático a Pollinations
+- R4: `provider=replicate` en `gen_metrics` vía `inferProviderFromImagePath`
+- Docs: `docs/FACELOCK_R.md`
+
+**Siguiente:** Merge PR Fase R → main.
 
 ### Pila #4–#16 — INTEGRADA ✅
 

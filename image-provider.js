@@ -14,6 +14,7 @@ const path = require('path');
 const fs = require('fs');
 const comfyui = require('./comfyui-client');
 const paidLora = require('./paid-lora');
+const paidFacelock = require('./paid-facelock');
 const localGpu = require('./local-gpu');
 const localTrain = require('./local-train');
 const { DATA_DIR, ensureDir } = require('./paths');
@@ -44,10 +45,24 @@ function getActiveProvider() {
   return PROVIDERS.POLLINATIONS;
 }
 
-/** True only when user explicitly configured a paid face-lock provider + credentials. */
+/**
+ * True only with explicit opt-in + token.
+ * ENABLE_PAID_FACE_LOCK=1 + token, or IMAGE_PROVIDER=replicate + token (R0).
+ * Token alone never enables paid face-lock.
+ */
 function isPaidFaceLockEnabled() {
-  if (getActiveProvider() !== PROVIDERS.REPLICATE) return false;
-  return !!(process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY);
+  return paidFacelock.isPaidFaceLockEnabled();
+}
+
+/**
+ * Infer metric provider from saved image path (R4).
+ * Paths from paid/local paths use distinctive prefixes.
+ */
+function inferProviderFromImagePath(imagePath) {
+  const s = String(imagePath || '');
+  if (/gen_facelock_|gen_lora_paid_/.test(s)) return 'replicate';
+  if (/gen_lora_|gen_local_/.test(s)) return 'local';
+  return 'pollinations';
 }
 
 function isComfyUiConfigured() {
@@ -87,7 +102,14 @@ function getProviderCapabilities() {
       cost: 'paid_per_image',
       faceLock: 'hard',
       configured: !!(process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY),
-      notes: 'Optional upgrade; never required. See ROADMAP.'
+      model: isPaidFaceLockEnabled() ? paidFacelock.getFaceModel() : null,
+      notes: 'ENABLE_PAID_FACE_LOCK=1 + token (o IMAGE_PROVIDER=replicate). Nunca requerido. docs/FACELOCK_R.md'
+    },
+    paidFaceLock: {
+      available: isPaidFaceLockEnabled(),
+      configured: isPaidFaceLockEnabled(),
+      model: isPaidFaceLockEnabled() ? paidFacelock.getFaceModel() : null,
+      notes: 'UI toggle opt-in; fallback automático a Pollinations'
     },
     comfyui: {
       available: comfyConfigured,
@@ -129,15 +151,69 @@ function getProviderCapabilities() {
 }
 
 /**
- * Placeholder for future Replicate InstantID/PuLID call.
- * Must throw or return null so callers fall back to Pollinations.
+ * Fase R — Replicate InstantID/PuLID face-lock.
+ * Returns relative image path on success, or null → Pollinations (R3).
+ *
+ * @param {{ prompt: string, referenceUrl?: string, faceImagePath?: string, options?: object, fetchImpl?: Function }} args
  */
-async function generateWithOptionalFaceLock(/* { prompt, faceImagePath, options } */) {
-  if (!isPaidFaceLockEnabled()) {
+async function generateWithOptionalFaceLock({
+  prompt,
+  referenceUrl = null,
+  faceImagePath = null,
+  options = {},
+  fetchImpl = null
+} = {}) {
+  if (!isPaidFaceLockEnabled()) return null;
+
+  let faceUrl = referenceUrl
+    || options.referenceUrl
+    || options.faceImageUrl
+    || null;
+
+  // Local file → Replicate Files API
+  const localFace = faceImagePath
+    || options.faceImagePath
+    || options.referenceLocalPath
+    || null;
+  if (!faceUrl && localFace) {
+    try {
+      const abs = path.isAbsolute(localFace)
+        ? localFace
+        : path.join(__dirname, localFace);
+      if (fs.existsSync(abs)) {
+        const buf = fs.readFileSync(abs);
+        const up = await paidFacelock.uploadFaceImage(buf, path.basename(abs), { fetchImpl });
+        faceUrl = up.url;
+      }
+    } catch (upErr) {
+      console.warn('[image-provider] Face upload to Replicate failed:', upErr.message);
+      return null;
+    }
+  }
+
+  if (!faceUrl) {
+    console.warn('[image-provider] Face-lock skipped — no face reference URL/path');
     return null;
   }
-  console.warn('[image-provider] Replicate face-lock not implemented yet — falling back to free Pollinations path.');
-  return null;
+
+  try {
+    const buffer = await paidFacelock.runFaceLockPrediction({
+      faceImageUrl: faceUrl,
+      prompt,
+      seed: options.seed,
+      width: options.width || 1024,
+      height: options.height || 1024,
+      negative: options.negative || null,
+      fetchImpl
+    });
+    if (!buffer || !buffer.length) return null;
+    const relativePath = saveGeneratedBuffer(buffer, 'gen_facelock');
+    console.log(`[image-provider] Face-lock (Replicate) → ${relativePath}`);
+    return relativePath;
+  } catch (err) {
+    console.warn('[image-provider] Replicate face-lock failed, will fall back to Pollinations:', err.message);
+    return null;
+  }
 }
 
 function resolveLoraWeightsAbs(row) {
@@ -339,6 +415,7 @@ module.exports = {
   LORA_STATUSES,
   getActiveProvider,
   isPaidFaceLockEnabled,
+  inferProviderFromImagePath,
   isComfyUiConfigured,
   isLocalGpuConfigured,
   isPreferLocalGpu,

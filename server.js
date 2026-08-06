@@ -431,7 +431,7 @@ app.get('/api/status', (req, res) => {
     freeTier: {
       imageGen: 'pollinations',
       characterIntegrity: 'json_character_lock + free_chatbots',
-      paidFaceLock: 'optional_future_replicate'
+      paidFaceLock: 'optional_opt_in_replicate'
     }
   });
 });

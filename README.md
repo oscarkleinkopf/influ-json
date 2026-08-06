@@ -11,7 +11,7 @@ Estudio local para **crear prompts y JSON de influencers virtuales** consistente
 3. Copiar packs de prompts a un chatbot free para seguir desarrollando el personaje.
 4. (Opcional) Bocetos locales con Pollinations — sin tarjeta.
 
-**Fase actual:** usabilidad del happy path. Después: seguridad mínima para mercado. Replicate/face-lock de pago = opt-in futuro, nunca rompe el path gratis.
+**Fase actual:** usabilidad del happy path + seguridad mínima. Replicate/face-lock de pago = **opt-in** (`ENABLE_PAID_FACE_LOCK`, ver `docs/FACELOCK_R.md`); nunca rompe el path gratis.
 
 ## Cero costo primero
 

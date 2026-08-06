@@ -1412,6 +1412,18 @@
                   <p id="batchPollenHint" style="font-size: 10px; color: var(--text-muted); margin: 6px 0 0; line-height: 1.4;"></p>
                 </div>
 
+                <!-- R2 — Face-lock pago demoted; solo visible si ENABLE_PAID_FACE_LOCK + token -->
+                <div id="faceLockOptInWrap" style="display: none; margin-top: 8px; padding: 10px 12px; border-radius: 8px; background: rgba(251, 146, 60, 0.08); border: 1px dashed rgba(251, 146, 60, 0.35);">
+                  <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
+                    <input type="checkbox" id="preferFaceLockToggle" style="margin-top: 2px;" />
+                    <span>
+                      <strong style="color: #fdba74;">Face-lock mejorado (pago · Replicate)</strong>
+                      — off por defecto. Usa InstantID/PuLID; si falla → Pollinations gratis.
+                      Guía: <code style="font-size: 10px;">docs/FACELOCK_R.md</code>
+                    </span>
+                  </label>
+                </div>
+
                 <div style="display: flex; gap: 8px; margin-top: 6px;">
                   <button type="button" class="btn btn-secondary" id="btnRandomizeVariant" style="flex: 0 0 auto;" title="Elige pose, vestuario, actitud y escena al azar">🎲 Sorpréndeme</button>
                   <button type="button" class="btn btn-secondary" id="btnGenerateVariant" style="flex: 1;" title="Pollinations opt-in (token/pollen) — preferí Copiar JSON">
@@ -2269,7 +2281,7 @@
               Token API de Replicate (Opt-in Face-Lock de Pago)
             </label>
             <input type="password" id="replicateTokenInput" placeholder="r8_... (vacío = sin face-lock ni L3)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
-            <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Opcional. Face-lock / L3 no son el path free — ver docs/lora/L3_PAID.md.</small>
+            <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Opcional. Face-lock (Fase R) / L3 LoRA no son el path free — ver docs/FACELOCK_R.md y docs/lora/L3_PAID.md. Activá ENABLE_PAID_FACE_LOCK=1 en .env.</small>
           </div>
 
           <div style="display: flex; gap: 10px;">

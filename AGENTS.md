@@ -32,7 +32,7 @@ Stack: Node/Express, better-sqlite3, front monolítico (`index.html` + `app.js` 
 - Servidor: **`npm start` → `node server.js`** (puerto 3000). `npm run start:minimal` es demo offline — **no** es producción.
 - Auth: `STUDIO_PIN` en `.env`. No commitear `.env`.
 - DB: `data/influ.sqlite` o `DATA_DIR` — ver `paths.js`. No versionar mirrors de raíz (`influ.sqlite` / `personas.json`; W6).
-- Imagen: `image-provider.js` (default `pollinations`). **Ojo (2026):** Pollinations pasó a créditos «pollen» y su API moderna **exige token Bearer**; el acceso anónimo devuelve `401`/`402 "Insufficient balance"`. Sigue cero-costo con un token gratis (`POLLINATIONS_TOKEN`, grants diarios cubren `flux`) — ver `.env.example`. El fetch vive en `ai-service.js` (endpoint moderno `https://gen.pollinations.ai/image/{prompt}`).
+- Imagen: `image-provider.js` (default `pollinations`). Face-lock pago opt-in: `ENABLE_PAID_FACE_LOCK=1` + toggle UI — ver `docs/FACELOCK_R.md`. **Ojo (2026):** Pollinations pasó a créditos «pollen» y su API moderna **exige token Bearer**; el acceso anónimo devuelve `401`/`402 "Insufficient balance"`. Sigue cero-costo con un token gratis (`POLLINATIONS_TOKEN`, grants diarios cubren `flux`) — ver `.env.example`. El fetch vive en `ai-service.js` (endpoint moderno `https://gen.pollinations.ai/image/{prompt}`).
 - Tras mutar personas: refrescar `state.personas` + grids.
 - UI en español; errores honestos (429, offline).
 - Tests: `npm test` → `node --test test/*.test.js`.
@@ -54,7 +54,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por una feature de p
 | `db.js` | SQLite |
 | `app.js` | Front + `character_lock` + export chatbot |
 | `ai-service.js` | Pollinations / Gemini opcional |
-| `image-provider.js` | Free vs paid face-lock (paid = stub futuro) |
+| `image-provider.js` | Free vs paid face-lock (`paid-facelock.js`) + LoRA |
+| `paid-facelock.js` | Replicate InstantID/PuLID opt-in (Fase R) |
 | `HANDOFF.md` | Foco entre plataformas |
 | `ROADMAP.md` | Plan y filosofía |
 
