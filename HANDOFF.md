@@ -69,14 +69,12 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 **Pedido:** Cerrar seguridad mínima (1) + volver a UX free (2).
 
 **Hecho:**
+- **#60** UX free **MERGED** → `main` (`8f4f973`).
 - **#58** Sec #4 rate-limit **MERGED** → `main`.
 - **#59** Sec #5 Permissions-Policy + COOP/CORP **MERGED** → `main` (`ebe15b9`).
-- UX free (rama `cursor/ux-free-json-pollen-173f`):
-  - Primary «Copiar pack cuerpo entero»; kit/ZIP demoted; LoRA zip renombrado.
-  - Banner pollen: Copiar JSON + Ajustes · token; mensaje server menciona Ajustes.
-  - `authFetch` no cierra sesión ante 401 pollen; server mapea auth pollen → **402**.
-  - Happy-path scroll → pack fullbody; `btnCopyJSON` = «Copiar estructura JSON».
+- UX free (integrado): primary fullbody, pollen dual CTA, auth→402, sin logout por pollen.
 
+**Siguiente:** Fase R (pausa) u otra fricción free si aparece.
 ## Sesión reciente (Cursor, 2026-08-06) — Sec #4
 
 **Pedido:** Rate limit.
