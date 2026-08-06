@@ -98,6 +98,97 @@ function clearLoginFailures(req) {
   loginAttempts.delete(clientKey(req));
 }
 
+// ─── API abuse rate-limit (Sec #4, memoria) ─────────────────────
+// Sliding window por IP (+ profileId si hay sesión). Generoso para Studio local.
+const apiHits = new Map(); // key → number[] timestamps
+
+function isApiRateLimitEnabled(env = process.env) {
+  const raw = String(env.API_RATE_LIMIT ?? '1').trim().toLowerCase();
+  if (raw === '0' || raw === 'false' || raw === 'off' || raw === 'no') return false;
+  return true;
+}
+
+function getApiRateLimitWindowMs(env = process.env) {
+  const n = Number(env.API_RATE_LIMIT_WINDOW_MS || 60_000);
+  return Number.isFinite(n) && n > 0 ? n : 60_000;
+}
+
+/**
+ * @param {'heavy'|'default'} bucket
+ * heavy: generate-image, analyze-photo, upload-reference(-url), bulk-generate
+ * default: otros POST caros si se cablean
+ */
+function getApiRateLimitMax(bucket = 'default', env = process.env) {
+  if (bucket === 'heavy') {
+    const n = Number(env.API_RATE_LIMIT_HEAVY_MAX || 40);
+    return Number.isFinite(n) && n > 0 ? n : 40;
+  }
+  const n = Number(env.API_RATE_LIMIT_MAX || 120);
+  return Number.isFinite(n) && n > 0 ? n : 120;
+}
+
+function apiRateLimitKey(req, bucket = 'default') {
+  const ip = clientKey(req);
+  const profile = req.session?.profileId || 'anon';
+  return `${bucket}|${ip}|${profile}`;
+}
+
+/**
+ * @returns {{ allowed: boolean, limit: number, remaining: number, retryAfterSec: number, enabled: boolean }}
+ */
+function checkApiRateLimit(req, bucket = 'default', env = process.env) {
+  const limit = getApiRateLimitMax(bucket, env);
+  const windowMs = getApiRateLimitWindowMs(env);
+  if (!isApiRateLimitEnabled(env)) {
+    return { allowed: true, limit, remaining: limit, retryAfterSec: 0, enabled: false };
+  }
+  const key = apiRateLimitKey(req, bucket);
+  const now = Date.now();
+  const cutoff = now - windowMs;
+  let hits = apiHits.get(key) || [];
+  hits = hits.filter((t) => t > cutoff);
+  if (hits.length >= limit) {
+    const oldest = hits[0] || now;
+    const retryAfterSec = Math.max(1, Math.ceil((oldest + windowMs - now) / 1000));
+    apiHits.set(key, hits);
+    return { allowed: false, limit, remaining: 0, retryAfterSec, enabled: true };
+  }
+  hits.push(now);
+  apiHits.set(key, hits);
+  return {
+    allowed: true,
+    limit,
+    remaining: Math.max(0, limit - hits.length),
+    retryAfterSec: 0,
+    enabled: true
+  };
+}
+
+/**
+ * Express middleware. Uso: `app.post('/path', apiRateLimit('heavy'), handler)`
+ */
+function apiRateLimit(bucket = 'default') {
+  return function apiRateLimitMiddleware(req, res, next) {
+    const result = checkApiRateLimit(req, bucket);
+    res.setHeader('X-RateLimit-Limit', String(result.limit));
+    res.setHeader('X-RateLimit-Remaining', String(result.remaining));
+    if (!result.allowed) {
+      res.setHeader('Retry-After', String(result.retryAfterSec));
+      return res.status(429).json({
+        success: false,
+        message: `Demasiadas peticiones. Espera ${result.retryAfterSec}s e inténtalo de nuevo.`,
+        retryAfterSec: result.retryAfterSec,
+        code: 'RATE_LIMIT'
+      });
+    }
+    next();
+  };
+}
+
+function _resetApiRateLimitsForTests() {
+  apiHits.clear();
+}
+
 // ─── PIN hashing (perfiles) ─────────────────────────────────────
 function hashPin(pin, salt) {
   const s = salt || crypto.randomBytes(16).toString('hex');
@@ -266,5 +357,11 @@ module.exports = {
   clearLoginFailures,
   clientKey,
   isTrustProxyEnabled,
+  isApiRateLimitEnabled,
+  getApiRateLimitMax,
+  getApiRateLimitWindowMs,
+  checkApiRateLimit,
+  apiRateLimit,
+  _resetApiRateLimitsForTests,
   DEFAULT_PIN_FALLBACK
 };

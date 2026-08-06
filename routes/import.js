@@ -24,11 +24,12 @@ function registerImportRoutes(app, deps) {
     UNSAFE_URL,
     scoreVariantAgainstPersona,
     scratchDir,
-    rootDir = path.join(__dirname, '..')
+    rootDir = path.join(__dirname, '..'),
+    apiRateLimit = (_bucket) => (_req, _res, next) => next()
   } = deps;
 
   // Upload reference photo endpoint
-  app.post('/api/upload-reference', upload.single('photo'), async (req, res) => {
+  app.post('/api/upload-reference', apiRateLimit('heavy'), upload.single('photo'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No se recibió ningún archivo.' });
     }
@@ -238,7 +239,7 @@ function registerImportRoutes(app, deps) {
     res.json({ success: true, removed, skipped });
   });
 
-  app.post('/api/upload-reference-url', async (req, res) => {
+  app.post('/api/upload-reference-url', apiRateLimit('heavy'), async (req, res) => {
     const { url } = req.body;
     if (!url) {
       return res.status(400).json({ success: false, message: 'No se recibió ninguna URL.' });

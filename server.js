@@ -539,7 +539,8 @@ registerGenerationRoutes(app, {
   aiService,
   resolveSessionProfile,
   resolveSafeAssetPath,
-  UNSAFE_PATH
+  UNSAFE_PATH,
+  apiRateLimit: authService.apiRateLimit
 });
 
 const { triggerBackgroundVariants } = registerImportRoutes(app, {
@@ -556,7 +557,8 @@ const { triggerBackgroundVariants } = registerImportRoutes(app, {
   UNSAFE_URL,
   scoreVariantAgainstPersona: scoreVariantAgainstPersonaFn,
   scratchDir: SCRATCH_DIR,
-  rootDir: __dirname
+  rootDir: __dirname,
+  apiRateLimit: authService.apiRateLimit
 });
 _personaBg.trigger = triggerBackgroundVariants;
 
@@ -650,7 +652,7 @@ const AD_CONVERSION_HOOKS = [
 
 const AD_FORMATS = ['9:16', '1:1'];
 
-app.post('/api/ads/bulk-generate', async (req, res) => {
+app.post('/api/ads/bulk-generate', authService.apiRateLimit('heavy'), async (req, res) => {
   try {
     const profileId = req.session.profileId || resolveSessionProfile(req);
     const { personaId, productIds } = req.body;

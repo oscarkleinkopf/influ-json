@@ -10,7 +10,8 @@ function registerGenerationRoutes(app, deps) {
     aiService,
     resolveSessionProfile,
     resolveSafeAssetPath,
-    UNSAFE_PATH
+    UNSAFE_PATH,
+    apiRateLimit = (_bucket) => (_req, _res, next) => next()
   } = deps;
 
   // Generation History endpoints
@@ -47,8 +48,8 @@ function registerGenerationRoutes(app, deps) {
     }
   });
 
-  // AI endpoints
-  app.post('/api/ai/analyze-photo', (req, res) => {
+  // AI endpoints (Sec #4 — rate-limit abuso en rutas pesadas)
+  app.post('/api/ai/analyze-photo', apiRateLimit('heavy'), (req, res) => {
     const { imagePath } = req.body;
     let safePath;
     try {
@@ -68,7 +69,7 @@ function registerGenerationRoutes(app, deps) {
       });
   });
 
-  app.post('/api/ai/expand-persona-details', async (req, res) => {
+  app.post('/api/ai/expand-persona-details', apiRateLimit('default'), async (req, res) => {
     try {
       const details = await aiService.generateScratchPersonaDetails(req.body);
       res.json({ success: true, details });
@@ -77,7 +78,7 @@ function registerGenerationRoutes(app, deps) {
     }
   });
 
-  app.post('/api/ai/generate-scripts', (req, res) => {
+  app.post('/api/ai/generate-scripts', apiRateLimit('default'), (req, res) => {
     const { product, persona, count } = req.body;
     aiService.generateScripts(product, persona, count)
       .then(result => {
@@ -88,7 +89,7 @@ function registerGenerationRoutes(app, deps) {
       });
   });
 
-  app.post('/api/ai/generate-image', async (req, res) => {
+  app.post('/api/ai/generate-image', apiRateLimit('heavy'), async (req, res) => {
     const { prompt, referenceLocalPath, options, framing } = req.body;
     const profileId = req.session.profileId || resolveSessionProfile(req);
     const personaId = req.body.personaId || 'new_persona';
@@ -183,7 +184,7 @@ function registerGenerationRoutes(app, deps) {
   });
 
   // Video Pipeline generation (stub mock infrastructure ready)
-  app.post('/api/ai/generate-video', (req, res) => {
+  app.post('/api/ai/generate-video', apiRateLimit('heavy'), (req, res) => {
     const { prompt, duration } = req.body;
     console.log(`Video generation stub called with prompt: ${prompt}`);
   

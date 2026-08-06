@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | tip Sec #3 (`eb2d816`) |
-| **PR actual** | #57 Sec #3 **MERGED** → `main` |
+| **Rama de trabajo** | `cursor/sec4-api-rate-limit-173f` |
+| **Commit base** | tip Sec #3 (`981fa48`) + Sec #4 |
+| **PR actual** | Sec #4 API abuse rate-limit |
 | **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#3 + CSP + UX #2 |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53+#55+#57) · Fase L L0–L5 ✅ |
-| **Prioridad inmediata** | Rate-limit API / headers extras / Fase R (pausa) |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53+#55+#57 + Sec #4 PR) · Fase L L0–L5 ✅ |
+| **Prioridad inmediata** | Sec #4 en PR. Después: headers extras / Fase R (pausa) |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -63,6 +63,16 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 | tip | #40 | Stack integración W12–W17 | **merged → main** |
 
 ---
+
+## Sesión reciente (Cursor, 2026-08-06) — Sec #4
+
+**Pedido:** Rate limit.
+
+**Hecho (rama `cursor/sec4-api-rate-limit-173f`):**
+- `auth.apiRateLimit` / `checkApiRateLimit` — sliding window por IP+perfil.
+- Buckets: `heavy` (40/min default) en generate-image, analyze-photo, upload-reference(-url), generate-video, ads/bulk-generate; `default` (120/min) en expand/scripts.
+- Env: `API_RATE_LIMIT`, `API_RATE_LIMIT_WINDOW_MS`, `API_RATE_LIMIT_HEAVY_MAX`, `API_RATE_LIMIT_MAX`.
+- Tests: `test/sec4-api-rate-limit.test.js`.
 
 ## Sesión reciente (Cursor, 2026-08-06) — Sec #3
 
