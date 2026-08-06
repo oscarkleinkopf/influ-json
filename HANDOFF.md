@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/sec3-session-regenerate-173f` |
-| **Commit base** | tip L5 (`db65ec0`) + Sec #3 |
-| **PR actual** | Sec #3 session regenerate (anti-fixation) |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#2 + CSP + UX #2 |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53+#55 + Sec #3 PR) · Fase L L0–L5 ✅ |
-| **Prioridad inmediata** | Sec #3 en PR. Después: rate-limit API / headers / Fase R (pausa) |
+| **Rama de trabajo** | `main` |
+| **Commit base** | tip Sec #3 (`eb2d816`) |
+| **PR actual** | #57 Sec #3 **MERGED** → `main` |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#3 + CSP + UX #2 |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53+#55+#57) · Fase L L0–L5 ✅ |
+| **Prioridad inmediata** | Rate-limit API / headers extras / Fase R (pausa) |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
