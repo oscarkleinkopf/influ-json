@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/l5-local-lora-train-173f` |
-| **Commit base** | tip post-CSP (`c9fc3d3`) + L5 |
-| **PR actual** | L5 train local (orquestador opt-in) |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L4c + Sec #1–#2 + CSP + UX #2 |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53+#55) · Fase L L0–L5 (PR) |
-| **Prioridad inmediata** | L5 en PR. Después: más seguridad / Fase R (pausa) |
+| **Rama de trabajo** | `main` |
+| **Commit base** | tip L5 (`170a1b8`) |
+| **PR actual** | #56 L5 **MERGED** → `main` |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#2 + CSP + UX #2 |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53+#55) · Fase L L0–L5 ✅ |
+| **Prioridad inmediata** | Más seguridad / Fase R (pausa) |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -75,6 +75,8 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 - UI demoted en `#loraAdvancedPanel` (L5).
 - Docs: `docs/lora/L5_LOCAL_TRAIN.md` · tests `test/local-train.test.js`.
 - Path free intacto (JSON + Colab L1 + Pollinations).
+
+**Integrado:** **#56** L5 train local → `main` (`170a1b8`). Siguiente: más seguridad / Fase R (pausa).
 
 **Integrado antes:** **#55** Sec CSP → `main`.
 
