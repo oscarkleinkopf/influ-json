@@ -53,22 +53,35 @@ test('UX: pollen/401 CTA + LoRA demoted fuera del pack card verde', () => {
   const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const personas = fs.readFileSync(path.join(root, 'routes', 'personas.js'), 'utf8');
+  const generation = fs.readFileSync(path.join(root, 'routes', 'generation.js'), 'utf8');
+  const ai = fs.readFileSync(path.join(root, 'ai-service.js'), 'utf8');
 
   assert.match(app, /function isPollenAuthError/);
   assert.match(app, /function notifyGenerationFailure/);
   assert.match(app, /function setPollenBanner/);
+  assert.match(app, /function openPollinationsSettings/);
   assert.match(app, /actionLabel:\s*'Copiar JSON \(recomendado\)'/);
+  // authFetch no debe cerrar sesión ante pollen authRequired
+  assert.match(app, /peek\?\.authRequired|authRequired[\s\S]{0,80}pollenish/);
   assert.match(html, /id="pollenBanner"/);
   assert.match(html, /id="btnPollenCopyJson"/);
+  assert.match(html, /id="btnPollenOpenSettings"/);
+  assert.match(html, /id="btnCopyPackFullbodyPrimary"|Copiar pack cuerpo entero \(recomendado\)/);
+  assert.match(html, /Copiar estructura JSON/);
   assert.match(html, /id="loraAdvancedPanel"/);
   assert.match(html, /Avanzado · LoRA/);
+  assert.match(html, /Exportar dataset LoRA/);
   // Pack card cierra antes del panel LoRA (LoRA no dentro del card verde primario)
   const packIdx = html.indexOf('pack-library-card');
   const loraIdx = html.indexOf('id="loraAdvancedPanel"');
   assert.ok(packIdx >= 0 && loraIdx > packIdx);
-  assert.match(html, /POLLINATIONS_TOKEN|enter\.pollinations|pollen/i);
+  assert.match(html, /Ajustes → POLLINATIONS_TOKEN|Ajustes · token/i);
+  assert.match(ai, /Ajustes → POLLINATIONS_TOKEN/);
   assert.match(personas, /paymentRequired/);
   assert.match(personas, /authRequired/);
+  // pollen auth → 402 (no 401 session-colliding)
+  assert.match(personas, /paymentRequired \|\| authRequired \? 402/);
+  assert.match(generation, /paymentRequired \|\| authRequired \? 402/);
 });
 test('W14: happy path ordena copy antes que gen opcional', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');

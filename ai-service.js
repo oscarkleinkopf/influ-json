@@ -715,10 +715,10 @@ module.exports = {
           || err.status === 402 || err.status === 401 || err.status === 403;
         let msg;
         if (needsToken) {
-          msg = 'Pollinations ahora requiere un token: pasó a créditos "pollen" y el acceso anónimo dejó de ser gratis '
-              + '(errores "Insufficient balance" / no autorizado). Crea una API key gratis en https://enter.pollinations.ai/keys '
-              + '(login con GitHub) y agrégala como POLLINATIONS_TOKEN en tu .env. Los grants diarios gratis cubren el '
-              + 'modelo flux, así que el path sigue siendo cero costo.';
+          msg = 'Pollinations ahora requiere un token (créditos "pollen"; el acceso anónimo ya no genera). '
+              + 'Crea una API key gratis en https://enter.pollinations.ai/keys (login con GitHub) y pégala en '
+              + 'Ajustes → POLLINATIONS_TOKEN (o en tu .env). Los grants diarios gratis cubren flux — sigue siendo cero costo. '
+              + 'Si no quieres bocetos: usa Copiar JSON a un chatbot free.';
         } else if (is429) {
           msg = `Límite de Pollinations (gratis). Espera ~${retry || 30}s y vuelve a intentar (1 generación a la vez).`;
         } else {

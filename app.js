@@ -91,8 +91,20 @@ async function authFetch(url, options = {}) {
     setOfflineBanner(false);
 
     if (res.status === 401) {
-      showLoginScreen();
-      throw new Error('Unauthorized');
+      // Pollinations auth/pollen can surface as 401 — no cerrar sesión Studio.
+      let pollenish = false;
+      try {
+        const peek = await res.clone().json();
+        pollenish = !!(
+          peek?.authRequired
+          || peek?.paymentRequired
+          || /pollen|pollinations|insufficient balance|bearer|enter\.pollinations/i.test(String(peek?.message || ''))
+        );
+      } catch (_) { /* body no JSON */ }
+      if (!pollenish) {
+        showLoginScreen();
+        throw new Error('Unauthorized');
+      }
     }
 
     return res;
@@ -135,6 +147,10 @@ function setupOfflineBanner() {
   document.getElementById('btnPollenCopyJson')?.addEventListener('click', () => {
     setPollenBanner(false);
     if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
+  });
+  document.getElementById('btnPollenOpenSettings')?.addEventListener('click', () => {
+    setPollenBanner(false);
+    openPollinationsSettings();
   });
   applyOfflineModeUi();
   if (typeof navigator !== 'undefined' && navigator.onLine === false && !isStudioOfflineMode()) {
@@ -1037,6 +1053,22 @@ async function logoutSession() {
   toastInfo('Sesión cerrada');
 }
 
+/** Abre Ajustes y enfoca el campo POLLINATIONS_TOKEN (path boceto). */
+function openPollinationsSettings() {
+  const modal = document.getElementById('settingsModal');
+  document.getElementById('btnOpenSettings')?.click();
+  setTimeout(() => {
+    const input = document.getElementById('pollinationsTokenInput');
+    if (input) {
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      try { input.focus(); } catch (_) {}
+    } else if (modal) {
+      modal.scrollTop = 0;
+    }
+  }, 80);
+}
+window.openPollinationsSettings = openPollinationsSettings;
+
 function setupSettings() {
   const modal = document.getElementById('settingsModal');
   const btnOpen = document.getElementById('btnOpenSettings');
@@ -1854,7 +1886,8 @@ async function runHappyPathAction(action) {
   } else if (action === 'copy') {
     navigateToTab('persona-engine');
     setTimeout(() => {
-      document.getElementById('btnCopyChatbotPrompt')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const packBtn = document.querySelector('[data-free-pack="fullbody"]');
+      (packBtn || document.querySelector('.pack-library-card'))?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 120);
   } else if (action === 'copy-pack') {
     try {
@@ -2253,7 +2286,7 @@ function setPollenBanner(on, message) {
   if (text) {
     text.textContent = message
       ? String(message).slice(0, 220)
-      : 'Boceto Pollinations necesita token (pollen). El path free es Copiar JSON a un chatbot.';
+      : 'Boceto Pollinations necesita token (pollen). Path free = Copiar JSON. Opcional: Ajustes → token.';
   }
   banner.style.display = 'flex';
   document.querySelectorAll('[data-offline-highlight="pack"]').forEach((el) => {
@@ -2261,7 +2294,7 @@ function setPollenBanner(on, message) {
   });
 }
 
-/** Toast + CTA Copiar JSON cuando el boceto falla por token/pollen. */
+/** Toast + CTA Copiar JSON / Ajustes cuando el boceto falla por token/pollen. */
 function notifyGenerationFailure(data, err) {
   const msg = (data && data.message) || (err && err.message) || 'La generación falló.';
   if (data?.rateLimited || /429|rate limit|límite/i.test(msg)) {
@@ -2270,7 +2303,7 @@ function notifyGenerationFailure(data, err) {
   }
   if (isPollenAuthError(data, err)) {
     setPollenBanner(true, msg);
-    toastError('Boceto Pollinations necesita token (pollen). El producto gratis es Copiar JSON.', {
+    toastError('Boceto necesita token (pollen). El producto gratis es Copiar JSON — o pega el token en Ajustes.', {
       actionLabel: 'Copiar JSON (recomendado)',
       onAction: () => {
         if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');

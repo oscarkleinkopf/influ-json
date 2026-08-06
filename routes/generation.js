@@ -159,7 +159,7 @@ function registerGenerationRoutes(app, deps) {
           || /402|insufficient balance|pollen/i.test(err.message || ''));
         const authRequired = !!(err.authRequired || err.status === 401
           || /401|unauthorized|no autorizado|POLLINATIONS_TOKEN|bearer/i.test(err.message || ''));
-        const httpStatus = is429 ? 429 : (paymentRequired ? 402 : (authRequired ? 401 : 500));
+        const httpStatus = is429 ? 429 : (paymentRequired || authRequired ? 402 : 500);
         try {
           dbService.recordGenMetric({
             profile_id: profileId,

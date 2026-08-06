@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/sec5-headers-173f` |
-| **Commit base** | tip Sec #4 (`940114f`) + Sec #5 |
-| **PR actual** | Sec #5 Permissions-Policy + COOP/CORP |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#4 + CSP + UX #2 |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52–#58 + Sec #5) · Fase L L0–L5 ✅ |
-| **Prioridad inmediata** | Sec #5 + UX free (JSON/pollen) |
+| **Rama de trabajo** | `cursor/ux-free-json-pollen-173f` |
+| **Commit base** | tip Sec #5 (`ebe15b9`) + UX free |
+| **PR actual** | UX free: JSON primary + pollen → Ajustes |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#5 + CSP + UX #2 |
+| **Etapa de producto** | Usabilidad free (UX polish PR) · Seguridad #52–#59 ✅ · Fase L L0–L5 ✅ |
+| **Prioridad inmediata** | UX free en PR. Fase R / OAuth en pausa |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -69,9 +69,13 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 **Pedido:** Cerrar seguridad mínima (1) + volver a UX free (2).
 
 **Hecho:**
-- **#58** Sec #4 rate-limit **MERGED** → `main` (`940114f`).
-- Sec #5: `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy` en `securityHeaders`.
-- UX free (siguiente en esta sesión): pollen CTA → Ajustes; primary fullbody; no 401 pollen → logout.
+- **#58** Sec #4 rate-limit **MERGED** → `main`.
+- **#59** Sec #5 Permissions-Policy + COOP/CORP **MERGED** → `main` (`ebe15b9`).
+- UX free (rama `cursor/ux-free-json-pollen-173f`):
+  - Primary «Copiar pack cuerpo entero»; kit/ZIP demoted; LoRA zip renombrado.
+  - Banner pollen: Copiar JSON + Ajustes · token; mensaje server menciona Ajustes.
+  - `authFetch` no cierra sesión ante 401 pollen; server mapea auth pollen → **402**.
+  - Happy-path scroll → pack fullbody; `btnCopyJSON` = «Copiar estructura JSON».
 
 ## Sesión reciente (Cursor, 2026-08-06) — Sec #4
 

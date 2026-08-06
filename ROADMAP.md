@@ -149,6 +149,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-06 | **UX free** JSON primary + pollen→Ajustes | Fullbody CTA; banner dual; authFetch pollen-safe; gen auth→402 |
 | 2026-08-06 | **Sec #5** Permissions-Policy + COOP/CORP | Headers en `securityHeaders` tras CSP |
 | 2026-08-06 | **Sec #4** API abuse rate-limit | Sliding window heavy/default; `auth.apiRateLimit`; generate/upload/analyze |
 | 2026-08-06 | **Sec #3** session regenerate (anti-fixation) | Login + invite redeem + change-pin; `establishAuthenticatedSession` |

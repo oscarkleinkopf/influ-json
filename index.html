@@ -210,7 +210,7 @@
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
                 <strong>4. Generar boceto <em style="font-weight:500;color:var(--text-muted);">(opt-in · puede pedir token)</em></strong>
-                <p>Pollinations es opcional y hoy suele pedir <code style="font-size:10px;">POLLINATIONS_TOKEN</code>. Si falla → sigue con Copiar JSON.</p>
+                <p>Pollinations es opcional. Si pide token: Ajustes → POLLINATIONS_TOKEN (o sigue con Copiar JSON).</p>
                 <button type="button" class="btn btn-secondary btn-sm" data-happy-action="gen">Generar boceto (opt-in · puede pedir token)</button>
               </div>
             </li>
@@ -659,8 +659,10 @@
                 <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
                   El producto es el pack: pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Pollinations es solo un boceto inestable.
                 </p>
+                <button type="button" class="btn btn-sm" data-free-pack="fullbody" id="btnCopyPackFullbodyPrimary" style="width: 100%; font-size: 12px; padding: 10px 12px; margin-bottom: 8px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff; text-align: left;">
+                  🧍 Copiar pack cuerpo entero (recomendado)
+                </button>
                 <div class="pack-library-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 11px; padding: 8px 10px; text-align: left;">🧍 Cuerpo entero</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 11px; padding: 8px 10px; text-align: left;">Bikini / playa</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px; text-align: left;">Spicy (realista)</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px; text-align: left;">Producto en mano</button>
@@ -679,8 +681,11 @@
                 <p style="font-size: 10px; color: var(--text-muted); margin: 6px 0 0; line-height: 1.4;">
                   Copia un bloque con lock + retrato + cuerpo + producto. Valida identidad en ChatGPT free sin pagar face-lock.
                 </p>
-                <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; margin-top: 10px; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
-                <button type="button" class="btn btn-sm" id="btnExportBrandKitSheet" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px; background: var(--accent-gradient); border: none;">🎁 Descargar kit marca (packs + guión)</button>
+                <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                  <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px;">Descargas (opcional, no sustituyen Copiar JSON)</p>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnExportBrandKitSheet" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;">🎁 Descargar kit marca (packs + guión)</button>
+                </div>
               </div>
 
               <!-- LoRA L1–L3: avanzado / opt-in — fuera del card verde de Copiar JSON -->
@@ -691,7 +696,7 @@
                 <p style="font-size: 10px; color: var(--text-muted); margin: 10px 0 8px; line-height: 1.4;">
                   Consistencia “dura” con pesos. El emprendedor free no necesita esto: usa <strong>Copiar JSON</strong> arriba.
                 </p>
-                <button type="button" class="btn btn-secondary btn-sm" id="btnExportLoraPackSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;" title="Dataset + captions para entrenar una LoRA (Colab gratis). Guía: docs/lora/L1_COLAB.md">🧬 Exportar pack de entrenamiento LoRA (.zip)</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnExportLoraPackSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;" title="Dataset + captions para entrenar una LoRA (Colab gratis). Guía: docs/lora/L1_COLAB.md">🧬 Exportar dataset LoRA (.zip) — no es el pack chatbot</button>
                 <p style="font-size: 10px; color: var(--text-muted); margin: 6px 0 0; line-height: 1.4;">
                   L1 Colab gratis: <code style="font-size: 10px;">docs/lora/influ_json_lora_train.ipynb</code>
                   · <code style="font-size: 10px;">docs/lora/L1_COLAB.md</code>
@@ -1290,7 +1295,7 @@
             <div class="panel-tab-content" id="contentJsonTab" style="display: none; height: calc(100% - 40px); flex-direction: column;">
               <div class="panel-header">
                 <span class="panel-title">Estructura influ-JSON <span class="badge">Live JSON</span></span>
-                <button class="btn btn-sm" id="btnCopyJSON" data-offline-highlight="pack">Copiar JSON (recomendado)</button>
+                <button class="btn btn-sm btn-secondary" id="btnCopyJSON" data-offline-highlight="pack">Copiar estructura JSON</button>
               </div>
               <textarea class="json-editor" id="jsonEditor" spellcheck="false" style="flex: 1; min-height: 500px;"></textarea>
             </div>
@@ -2132,9 +2137,12 @@
   <!-- Banner pollen / token (401/402) — distinct from 429 -->
   <div id="pollenBanner" class="rate-limit-banner" style="display:none; border-color: rgba(251, 146, 60, 0.45); background: rgba(251, 146, 60, 0.12);" role="status" aria-live="polite">
     <span class="rate-limit-dot" aria-hidden="true" style="background:#fb923c;"></span>
-    <span id="pollenBannerText">Boceto Pollinations necesita token (pollen). El path free es Copiar JSON a un chatbot.</span>
+    <span id="pollenBannerText">Boceto Pollinations necesita token (pollen). Path free = Copiar JSON. Opcional: Ajustes → token.</span>
     <button type="button" class="btn btn-sm" id="btnPollenCopyJson" style="margin-left:auto; font-size:11px; padding:4px 10px; flex-shrink:0; background: rgba(52, 211, 153, 0.25); border: 1px solid rgba(52, 211, 153, 0.45);">
       Copiar JSON (recomendado)
+    </button>
+    <button type="button" class="btn btn-secondary btn-sm" id="btnPollenOpenSettings" style="font-size:11px; padding:4px 10px; flex-shrink:0;">
+      Ajustes · token
     </button>
   </div>
 
