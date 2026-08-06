@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/sec-csp-harden-173f` |
-| **Commit base** | tip happy-path (`28a5c11`) + Sec CSP |
-| **PR actual** | Sec CSP (endurecer `Content-Security-Policy`) |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L4c + Sec #1–#2 + UX #2 + happy path |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53 + CSP) · Fase L L0–L4c ✅ |
-| **Prioridad inmediata** | CSP en PR. Después: L5 train local (pausa) / más seguridad |
+| **Rama de trabajo** | `main` |
+| **Commit base** | tip Sec CSP (`854cc81`) |
+| **PR actual** | #55 Sec CSP **MERGED** → `main` |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L4c + Sec #1–#2 + CSP + UX #2 + happy path |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53+#55) · Fase L L0–L4c ✅ |
+| **Prioridad inmediata** | L5 train local (pausa) / más seguridad |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate; train local L5 |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -77,7 +77,7 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 - Tests: `test/csp.test.js`.
 - Deuda conocida: `'unsafe-inline'` en script/style (onclick/onerror + templates + Google Fonts).
 
-**En curso:** PR Sec CSP. `main` sigue con #51–#54 + UX #2 + L4c + happy path.
+**Integrado:** **#55** Sec CSP → `main` (`854cc81`). Siguiente: L5 (pausa) / más seguridad.
 
 ## Sesión reciente (Cursor, 2026-08-05)
 
