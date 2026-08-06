@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/pulido-free-173f` |
-| **Commit base** | tip docs #60 (`5a4786f`) |
-| **PR actual** | Pulido free (este PR) · Fase R #61 sigue abierto |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#5 + CSP + UX free |
+| **Rama de trabajo** | `main` |
+| **Commit base** | tip pulido free (`4af9a4a`) |
+| **PR actual** | #62 pulido free **MERGED** · Fase R #61 abierto |
+| **`main` remoto** | Moat free + Sec + LoRA L0–L5 + UX free + pulido #62 |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad #52–#59 ✅ · Fase L L0–L5 ✅ · Fase R en #61 |
-| **Prioridad inmediata** | Merge pulido free + merge #61 cuando listos |
+| **Prioridad inmediata** | Merge #61 Fase R / más pulido si surge fricción |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -47,7 +47,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - Members: pollen Ajustes → toast honesto + CTA Copiar JSON
 - Vocabulario: «Copiar JSON» en founder/lead/primary
 
-**Siguiente:** Merge este PR; #61 Fase R aparte.
+**Siguiente:** #61 Fase R (merge cuando listo).
 
 ### Sesión reciente (Cursor, 2026-08-06) — Fase R #1–#5 (R0–R4)
 
