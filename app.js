@@ -1053,8 +1053,17 @@ async function logoutSession() {
   toastInfo('Sesión cerrada');
 }
 
-/** Abre Ajustes y enfoca el campo POLLINATIONS_TOKEN (path boceto). */
+/** Abre Ajustes y enfoca el campo POLLINATIONS_TOKEN (path boceto). Solo admin. */
 function openPollinationsSettings() {
+  if (!isCurrentUserAdmin()) {
+    toastInfo('El token de Pollinations lo configura Administración en Ajustes. Mientras tanto: Copiar JSON (recomendado) — cero costo.', {
+      actionLabel: 'Copiar JSON (recomendado)',
+      onAction: () => {
+        if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
+      }
+    });
+    return;
+  }
   const modal = document.getElementById('settingsModal');
   document.getElementById('btnOpenSettings')?.click();
   setTimeout(() => {
@@ -1793,9 +1802,8 @@ function setPortfolioFilter(filter) {
 
 /**
  * F6/W14 — Happy path 60s checklist (Resumen).
- * Pasos: crear → guardar → copiar pack → boceto opcional.
- * El paso «copiar» se marca en localStorage al usar cualquier botón de export chatbot.
- * Pollinations NO es obligatorio: copiar pack también completa "gen".
+ * Pasos core: crear → guardar → Copiar JSON (3/3 = listo).
+ * Boceto Pollinations es opt-in aparte — no se marca por copiar JSON.
  */
 function getHappyPathStatus() {
   const personas = Array.isArray(state.personas) ? state.personas : [];
@@ -1806,8 +1814,8 @@ function getHappyPathStatus() {
   let copied = false;
   try { copied = localStorage.getItem(happyPathCopyStorageKey()) === '1'; } catch (e) {}
 
-  // Pollinations es opcional: copiar pack también completa el paso "gen"
-  const genDone = totalGens > 0 || hasVariants || copied;
+  // Gen solo con boceto real — copiar JSON no completa este paso (evita 4/4 mentiroso)
+  const genDone = totalGens > 0 || hasVariants;
 
   return {
     create: hasAny,
@@ -1845,7 +1853,7 @@ function renderHappyPathNextCta() {
     const name = state.selectedPersona?.name || state.personas?.[0]?.name || 'tu influencer';
     box.innerHTML = `
       <p class="happy-path-next-label">Siguiente paso</p>
-      <p class="happy-path-next-title">Copia el pack fullbody de «${String(name).replace(/[<>&"]/g, '')}»</p>
+      <p class="happy-path-next-title">Copia el JSON fullbody de «${String(name).replace(/[<>&"]/g, '')}»</p>
       <p class="happy-path-next-hint">Pégalo en ChatGPT / Gemini / Claude free. Gen local no hace falta.</p>
       <div class="empty-roster-actions">
         <button type="button" class="btn btn-sm" data-happy-next="copy-pack" data-offline-highlight="pack">Copiar JSON (recomendado)</button>
@@ -1886,7 +1894,8 @@ async function runHappyPathAction(action) {
   } else if (action === 'copy') {
     navigateToTab('persona-engine');
     setTimeout(() => {
-      const packBtn = document.querySelector('[data-free-pack="fullbody"]');
+      const packBtn = document.getElementById('btnCopyPackFullbodyPrimary')
+        || document.querySelector('[data-free-pack="fullbody"]');
       (packBtn || document.querySelector('.pack-library-card'))?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 120);
   } else if (action === 'copy-pack') {
@@ -1915,19 +1924,21 @@ function renderHappyPathChecklist() {
 
   const status = getHappyPathStatus();
   // Orden visual W14: create → save → copy → gen(opcional)
-  const steps = ['create', 'save', 'copy', 'gen'];
-  let done = 0;
+  const coreSteps = ['create', 'save', 'copy'];
+  const steps = [...coreSteps, 'gen'];
+  let coreDone = 0;
   steps.forEach(step => {
     const li = list.querySelector(`[data-step="${step}"]`);
     if (!li) return;
     const ok = !!status[step];
-    if (ok) done += 1;
+    if (ok && coreSteps.includes(step)) coreDone += 1;
     li.classList.toggle('done', ok);
     const check = li.querySelector('.happy-path-check');
     if (check) check.textContent = ok ? '●' : '○';
   });
-  if (progress) progress.textContent = `${done} / 4`;
-  if (doneMsg) doneMsg.style.display = done === 4 ? 'block' : 'none';
+  // Progreso = 3 pasos core (boceto no cuenta para "listo")
+  if (progress) progress.textContent = `${coreDone} / 3`;
+  if (doneMsg) doneMsg.style.display = coreDone === 3 ? 'block' : 'none';
   renderHappyPathNextCta();
 }
 
@@ -2396,7 +2407,10 @@ function setupComoUsarGuide() {
       } else if (action === 'packs') {
         navigateToTab('persona-engine');
         setTimeout(() => {
-          document.getElementById('btnExportBrandKitSheet')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const target = document.getElementById('btnCopyPackFullbodyPrimary')
+            || document.querySelector('.pack-library-card')
+            || document.querySelector('[data-free-pack="fullbody"]');
+          target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 120);
       } else if (action === 'kit') {
         navigateToTab('persona-engine');
@@ -2514,7 +2528,7 @@ function resetPersonaFormForNew() {
   // Change save button text
   const btnSave = document.getElementById('btnSavePersona');
   if (btnSave) {
-    btnSave.textContent = "Crear Influencer";
+    btnSave.textContent = "Crear influencer";
     btnSave.dataset.createMode = '1';
   }
 
@@ -2604,7 +2618,7 @@ function resetPersonaFormForNew() {
   
   const usageNotesEl = document.getElementById('bibleUsageNotes');
   if (usageNotesEl) {
-    usageNotesEl.textContent = "Completa los campos de la izquierda y haz clic en 'Crear Influencer' para generar la biblia.";
+    usageNotesEl.textContent = "Completa los campos de la izquierda y haz clic en «Crear influencer» para generar la biblia.";
   }
 
   // Scroll smoothly to form
@@ -2642,7 +2656,7 @@ function selectPersona(persona) {
   }
   const btnSave = document.getElementById('btnSavePersona');
   if (btnSave) {
-    btnSave.textContent = "Guardar Persona en influ-JSON";
+    btnSave.textContent = "Guardar personaje";
     delete btnSave.dataset.createMode;
   }
 
@@ -3941,7 +3955,7 @@ function applyNichePreset(nicheId) {
   const preset = api.getNichePreset(nicheId);
   if (hint && preset) {
     hint.style.display = 'block';
-    hint.textContent = `Preset «${preset.label}» aplicado — ${preset.short}. Revisa tez/nombre y pulsa Crear Influencer.`;
+    hint.textContent = `Preset «${preset.label}» aplicado — ${preset.short}. Revisa tez/nombre y pulsa Crear influencer.`;
   }
   document.querySelectorAll('.niche-preset-btn').forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-niche') === nicheId);
@@ -4286,7 +4300,7 @@ function setupPersonaEngine() {
     const exportText = buildChatbotExportText({ includePrompt: true });
     navigator.clipboard.writeText(exportText);
     markHappyPathCopied();
-    toastWithLockHealth('📋 Prompt + JSON copiados para tu chatbot', getFullPersonaJSON());
+    toastWithLockHealth('📋 Prompt + JSON copiados (consola) — para pack fullbody usa «Copiar pack cuerpo entero»', getFullPersonaJSON());
   });
 
   document.getElementById('btnSaveToGallery').addEventListener('click', async () => {

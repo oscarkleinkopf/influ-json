@@ -161,9 +161,9 @@
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
             <div>
               <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Arranque en 60 segundos</h2>
-              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Crear → guardar → <strong>copiar pack</strong> a un chatbot gratis. Gen local es opcional.</p>
+              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Crear → guardar → <strong>Copiar JSON</strong> a un chatbot gratis. Gen local es opcional.</p>
             </div>
-            <span id="happyPathProgress" class="happy-path-progress">0 / 4</span>
+            <span id="happyPathProgress" class="happy-path-progress">0 / 3</span>
           </div>
           <!-- W14 — un solo CTA según estado (vacío / post-save / listo) -->
           <div id="happyPathNextCta" class="happy-path-next-cta" style="display:none;" role="region" aria-label="Siguiente paso"></div>
@@ -194,7 +194,7 @@
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
                 <strong>2. Guardar influencer</strong>
-                <p>Completa nombre, tez y rasgos → «Guardar personaje» (solo JSON).</p>
+                <p>Completa nombre, tez y rasgos → «Guardar personaje» / «Crear influencer» (solo JSON).</p>
                 <button type="button" class="btn btn-secondary btn-sm" data-happy-action="save">Ir a guardar</button>
               </div>
             </li>
@@ -210,12 +210,12 @@
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
                 <strong>4. Generar boceto <em style="font-weight:500;color:var(--text-muted);">(opt-in · puede pedir token)</em></strong>
-                <p>Pollinations es opcional. Si pide token: Ajustes → POLLINATIONS_TOKEN (o sigue con Copiar JSON).</p>
+                <p>Pollinations es opcional (no cuenta para el 3/3). Si pide token: admin → Ajustes → POLLINATIONS_TOKEN (o sigue con Copiar JSON).</p>
                 <button type="button" class="btn btn-secondary btn-sm" data-happy-action="gen">Generar boceto (opt-in · puede pedir token)</button>
               </div>
             </li>
           </ol>
-          <p id="happyPathDoneMsg" class="happy-path-done" style="display:none;">Listo: ya puedes pegar el pack en ChatGPT / Gemini / Claude free.</p>
+          <p id="happyPathDoneMsg" class="happy-path-done" style="display:none;">Listo: ya puedes pegar el JSON en ChatGPT / Gemini / Claude free.</p>
         </div>
         
         <!-- Portfolio Search & Filter -->
@@ -660,7 +660,7 @@
                   El producto es el pack: pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Pollinations es solo un boceto inestable.
                 </p>
                 <button type="button" class="btn btn-sm" data-free-pack="fullbody" id="btnCopyPackFullbodyPrimary" style="width: 100%; font-size: 12px; padding: 10px 12px; margin-bottom: 8px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff; text-align: left;">
-                  🧍 Copiar pack cuerpo entero (recomendado)
+                  🧍 Copiar JSON · cuerpo entero (recomendado)
                 </button>
                 <div class="pack-library-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 11px; padding: 8px 10px; text-align: left;">Bikini / playa</button>
@@ -1139,7 +1139,7 @@
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin: 0;">Prompt de Generación Compilado</h4>
                 <div style="display: flex; gap: 8px;">
-                  <button class="btn btn-sm" id="btnCopyChatbotPrompt" data-offline-highlight="pack" style="padding: 4px 10px; font-size: 10px; height: auto;">Copiar JSON (recomendado)</button>
+                  <button class="btn btn-sm" id="btnCopyChatbotPrompt" data-offline-highlight="pack" style="padding: 4px 10px; font-size: 10px; height: auto;" title="Copia el prompt compilado + character_lock de la consola. Para el pack fullbody usa el botón verde «Copiar pack cuerpo entero».">Copiar prompt + JSON</button>
                   <button class="btn btn-secondary btn-sm" id="btnSaveToGallery" style="padding: 4px 10px; font-size: 10px; height: auto;">⭐ Guardar en Galería</button>
                 </div>
               </div>
@@ -2197,7 +2197,7 @@
       <ol style="margin:0 0 20px; padding-left:18px; font-size:13px; color:var(--text-secondary); line-height:1.55;">
         <li style="margin-bottom:8px;"><strong style="color:#fff;">Crear o importar</strong> un personaje</li>
         <li style="margin-bottom:8px;"><strong style="color:#fff;">Guardar</strong> (solo JSON — sin esperar imagen)</li>
-        <li style="margin-bottom:8px;"><strong style="color:#fff;">Copiar pack</strong> → ChatGPT / Gemini / Claude free</li>
+        <li style="margin-bottom:8px;"><strong style="color:#fff;">Copiar JSON</strong> → ChatGPT / Gemini / Claude free</li>
       </ol>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <button type="button" class="btn" id="btnFounderWelcomeCreate" style="width:100%; padding:12px;">Crear</button>
@@ -2303,7 +2303,8 @@
       </div>
 
       <div id="memberSettingsHint" style="display:none; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
-        Tu cuenta es de <strong style="color:#fff;">tester invitado</strong>. El Studio ya funciona gratis (Pollinations + JSON). Aquí solo gestionas tu PIN y cierras sesión.
+        Tu cuenta es de <strong style="color:#fff;">tester invitado</strong>. El Studio ya funciona gratis con <strong style="color:#fff;">Copiar JSON</strong>.
+        El token de Pollinations (bocetos) lo configura solo Administración en Ajustes — aquí gestionas tu PIN y cierras sesión.
       </div>
 
       <div id="profilesSettingsSection">

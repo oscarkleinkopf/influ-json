@@ -25,16 +25,43 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | tip UX free (`8f4f973`) |
-| **PR actual** | #60 UX free **MERGED** → `main` |
+| **Rama de trabajo** | `cursor/pulido-free-173f` |
+| **Commit base** | tip docs #60 (`5a4786f`) |
+| **PR actual** | Pulido free (este PR) · Fase R #61 sigue abierto |
 | **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#5 + CSP + UX free |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad #52–#59 ✅ · Fase L L0–L5 ✅ |
-| **Prioridad inmediata** | Fase R (pausa) / más pulido free si surge fricción |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad #52–#59 ✅ · Fase L L0–L5 ✅ · Fase R en #61 |
+| **Prioridad inmediata** | Merge pulido free + merge #61 cuando listos |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
-| **En pausa** | OAuth, SMTP, video, face-lock Replicate |
+| **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-08-06 |
+
+### Sesión reciente (Cursor, 2026-08-06) — Pulido free
+
+**Pedido:** Seguir con pulido (no HostGator; T63 Dropdeep era confusión).
+
+**Hecho:**
+- Cómo usar «Copiar JSON» scrollea a `#btnCopyPackFullbodyPrimary` (ya no al ZIP kit)
+- Consola: «Copiar prompt + JSON» (distinto del pack fullbody)
+- Checklist 3/3 core (crear→guardar→copiar); gen no se marca al copiar
+- Members: pollen Ajustes → toast honesto + CTA Copiar JSON
+- Vocabulario: «Copiar JSON» en founder/lead/primary
+
+**Siguiente:** Merge este PR; #61 Fase R aparte.
+
+### Sesión reciente (Cursor, 2026-08-06) — Fase R #1–#5 (R0–R4)
+
+**Pedido:** Seguir con #1 a #5 → interpretado como **Fase R** (R0–R4), no Sec #1–#5 (ya en main).
+
+**Hecho:**
+- R0: `ENABLE_PAID_FACE_LOCK=1` + token (o `IMAGE_PROVIDER=replicate` + token)
+- R1: `paid-facelock.js` + `generateWithOptionalFaceLock` (PuLID/InstantID)
+- R2: checkbox demoted “Face-lock mejorado” off por defecto (solo si available)
+- R3: fallback automático a Pollinations
+- R4: `provider=replicate` en `gen_metrics` vía `inferProviderFromImagePath`
+- Docs: `docs/FACELOCK_R.md`
+
+**Siguiente:** Merge PR Fase R → main.
 
 ### Pila #4–#16 — INTEGRADA ✅
 

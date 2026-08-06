@@ -66,7 +66,7 @@ test('UX: pollen/401 CTA + LoRA demoted fuera del pack card verde', () => {
   assert.match(html, /id="pollenBanner"/);
   assert.match(html, /id="btnPollenCopyJson"/);
   assert.match(html, /id="btnPollenOpenSettings"/);
-  assert.match(html, /id="btnCopyPackFullbodyPrimary"|Copiar pack cuerpo entero \(recomendado\)/);
+  assert.match(html, /id="btnCopyPackFullbodyPrimary"|Copiar JSON · cuerpo entero \(recomendado\)|Copiar pack cuerpo entero \(recomendado\)/);
   assert.match(html, /Copiar estructura JSON/);
   assert.match(html, /id="loraAdvancedPanel"/);
   assert.match(html, /Avanzado · LoRA/);
