@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux-free-json-pollen-173f` |
-| **Commit base** | tip Sec #5 (`ebe15b9`) + UX free |
-| **PR actual** | UX free: JSON primary + pollen → Ajustes |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#5 + CSP + UX #2 |
-| **Etapa de producto** | Usabilidad free (UX polish PR) · Seguridad #52–#59 ✅ · Fase L L0–L5 ✅ |
-| **Prioridad inmediata** | UX free en PR. Fase R / OAuth en pausa |
+| **Rama de trabajo** | `main` |
+| **Commit base** | tip UX free (`8f4f973`) |
+| **PR actual** | #60 UX free **MERGED** → `main` |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#5 + CSP + UX free |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad #52–#59 ✅ · Fase L L0–L5 ✅ |
+| **Prioridad inmediata** | Fase R (pausa) / más pulido free si surge fricción |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
