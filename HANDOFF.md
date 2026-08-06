@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/sec4-api-rate-limit-173f` |
-| **Commit base** | tip Sec #3 (`981fa48`) + Sec #4 |
-| **PR actual** | Sec #4 API abuse rate-limit |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#3 + CSP + UX #2 |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53+#55+#57 + Sec #4 PR) · Fase L L0–L5 ✅ |
-| **Prioridad inmediata** | Sec #4 en PR. Después: headers extras / Fase R (pausa) |
+| **Rama de trabajo** | `cursor/sec5-headers-173f` |
+| **Commit base** | tip Sec #4 (`940114f`) + Sec #5 |
+| **PR actual** | Sec #5 Permissions-Policy + COOP/CORP |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#4 + CSP + UX #2 |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52–#58 + Sec #5) · Fase L L0–L5 ✅ |
+| **Prioridad inmediata** | Sec #5 + UX free (JSON/pollen) |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -63,6 +63,15 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 | tip | #40 | Stack integración W12–W17 | **merged → main** |
 
 ---
+
+## Sesión reciente (Cursor, 2026-08-06) — Sec #5 + UX free
+
+**Pedido:** Cerrar seguridad mínima (1) + volver a UX free (2).
+
+**Hecho:**
+- **#58** Sec #4 rate-limit **MERGED** → `main` (`940114f`).
+- Sec #5: `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy` en `securityHeaders`.
+- UX free (siguiente en esta sesión): pollen CTA → Ajustes; primary fullbody; no 401 pollen → logout.
 
 ## Sesión reciente (Cursor, 2026-08-06) — Sec #4
 

@@ -55,6 +55,9 @@ test('GET / envía Content-Security-Policy endurecida', async () => {
     assert.match(csp, /object-src 'none'/);
     assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
     assert.equal(res.headers.get('x-frame-options'), 'SAMEORIGIN');
+    assert.match(String(res.headers.get('permissions-policy') || ''), /camera=\(\)/);
+    assert.equal(res.headers.get('cross-origin-opener-policy'), 'same-origin');
+    assert.equal(res.headers.get('cross-origin-resource-policy'), 'same-origin');
   });
 });
 

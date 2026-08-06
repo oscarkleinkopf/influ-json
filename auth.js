@@ -324,12 +324,20 @@ function establishAuthenticatedSession(req, profile, cb) {
 
 /**
  * Cabeceras de seguridad mínimas (sin romper el Studio local).
+ * Sec #5: Permissions-Policy + COOP/CORP (además de CSP).
  */
 function securityHeaders(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-XSS-Protection', '0');
+  // Studio local: sin cámara/mic/geo/pago en el browser
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()'
+  );
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
   const csp = buildContentSecurityPolicy();
   const headerName = isCspReportOnly()
     ? 'Content-Security-Policy-Report-Only'
