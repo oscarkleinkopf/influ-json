@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | tip L5 (`170a1b8`) |
-| **PR actual** | #56 L5 **MERGED** → `main` |
+| **Rama de trabajo** | `cursor/sec3-session-regenerate-173f` |
+| **Commit base** | tip L5 (`db65ec0`) + Sec #3 |
+| **PR actual** | Sec #3 session regenerate (anti-fixation) |
 | **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#2 + CSP + UX #2 |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53+#55) · Fase L L0–L5 ✅ |
-| **Prioridad inmediata** | Más seguridad / Fase R (pausa) |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53+#55 + Sec #3 PR) · Fase L L0–L5 ✅ |
+| **Prioridad inmediata** | Sec #3 en PR. Después: rate-limit API / headers / Fase R (pausa) |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -63,6 +63,18 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 | tip | #40 | Stack integración W12–W17 | **merged → main** |
 
 ---
+
+## Sesión reciente (Cursor, 2026-08-06) — Sec #3
+
+**Pedido:** Más seguridad.
+
+**Hecho (rama `cursor/sec3-session-regenerate-173f`):**
+- `auth.establishAuthenticatedSession` — `session.regenerate` + save antes de marcar auth.
+- Login (`POST /api/auth/login`), invite redeem, setup change-pin.
+- Cookie pre-login deja de autenticar; Bearer/CLI intacto.
+- Tests: `test/sec3-session-regenerate.test.js`.
+
+**Integrado antes:** **#56** L5 → `main` (`170a1b8`).
 
 ## Sesión reciente (Cursor, 2026-08-06) — L5
 

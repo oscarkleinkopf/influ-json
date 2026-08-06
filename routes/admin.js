@@ -44,15 +44,17 @@ function registerInviteRedeemRoute(app, deps) {
       const result = dbService.redeemStudioInvite({ code, name, pin });
       authService.clearLoginFailures(req);
       dbService.touchStudioProfileLogin(result.profile.id);
-      req.session.authenticated = true;
-      req.session.profileId = result.profile.id;
-      req.session.profileName = result.profile.name;
-      req.session.profileRole = result.profile.role;
-      res.json({
-        success: true,
-        message: 'Invitación aceptada. Tu espacio está vacío y aislado del resto.',
-        profile: publicProfileDTO(result.profile),
-        pinIsDefault: false
+      authService.establishAuthenticatedSession(req, result.profile, (err) => {
+        if (err) {
+          console.error('[invites/redeem] session regenerate', err);
+          return res.status(500).json({ success: false, message: 'No se pudo crear la sesión.' });
+        }
+        res.json({
+          success: true,
+          message: 'Invitación aceptada. Tu espacio está vacío y aislado del resto.',
+          profile: publicProfileDTO(result.profile),
+          pinIsDefault: false
+        });
       });
     } catch (err) {
       authService.registerLoginFailure(req);

@@ -200,6 +200,38 @@ function isCspReportOnly(env = process.env) {
 }
 
 /**
+ * Anti session-fixation (Sec #3): rota el id de sesión y luego adjunta el perfil.
+ * Usar en login, invite redeem y change-pin — no en Bearer/CLI.
+ *
+ * @param {import('express').Request} req
+ * @param {{ id: string, name?: string, role?: string }} profile
+ * @param {(err: Error|null) => void} cb
+ */
+function establishAuthenticatedSession(req, profile, cb) {
+  if (!req.session || typeof req.session.regenerate !== 'function') {
+    return cb(new Error('Sesión no disponible'));
+  }
+  if (!profile || !profile.id) {
+    return cb(new Error('Perfil requerido para establecer sesión'));
+  }
+  const next = {
+    authenticated: true,
+    profileId: profile.id,
+    profileName: profile.name || null,
+    profileRole: profile.role || null
+  };
+  req.session.regenerate((err) => {
+    if (err) return cb(err);
+    Object.assign(req.session, next);
+    if (typeof req.session.save === 'function') {
+      req.session.save((saveErr) => cb(saveErr || null));
+    } else {
+      cb(null);
+    }
+  });
+}
+
+/**
  * Cabeceras de seguridad mínimas (sin romper el Studio local).
  */
 function securityHeaders(req, res, next) {
@@ -221,6 +253,7 @@ module.exports = {
   securityHeaders,
   buildContentSecurityPolicy,
   isCspReportOnly,
+  establishAuthenticatedSession,
   verifyPin: verifyLegacyStudioPin,
   verifyLegacyStudioPin,
   verifyPinHash,

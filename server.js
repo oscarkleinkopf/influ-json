@@ -351,16 +351,17 @@ app.post('/api/auth/login', (req, res) => {
 
   authService.clearLoginFailures(req);
   dbService.touchStudioProfileLogin(profile.id);
-  req.session.authenticated = true;
-  req.session.profileId = profile.id;
-  req.session.profileName = profile.name;
-  req.session.profileRole = profile.role;
-
-  res.json({
-    success: true,
-    message: 'Sesión iniciada correctamente.',
-    profile: publicProfileDTO(profile),
-    pinIsDefault: authService.isPinDefault()
+  authService.establishAuthenticatedSession(req, profile, (err) => {
+    if (err) {
+      console.error('[auth/login] session regenerate', err);
+      return res.status(500).json({ success: false, message: 'No se pudo crear la sesión.' });
+    }
+    res.json({
+      success: true,
+      message: 'Sesión iniciada correctamente.',
+      profile: publicProfileDTO(profile),
+      pinIsDefault: authService.isPinDefault()
+    });
   });
 });
 
@@ -455,8 +456,25 @@ app.post('/api/setup/change-pin', requireAuth, requireAdmin, (req, res) => {
     }
 
     if (req.session) {
-      req.session.authenticated = true;
-      req.session.profileId = adminId;
+      const profile = adminId ? dbService.getStudioProfileById(adminId) : null;
+      authService.establishAuthenticatedSession(
+        req,
+        profile || { id: adminId, name: 'Administración', role: 'admin' },
+        (err) => {
+          if (err) {
+            console.error('[setup/change-pin] session regenerate', err);
+            return res.status(500).json({ success: false, message: 'PIN guardado pero no se pudo renovar la sesión.' });
+          }
+          console.log('[setup] STUDIO_PIN actualizado (ya no es el valor por defecto).');
+          res.json({
+            success: true,
+            message: 'PIN actualizado. Guárdalo en un lugar seguro.',
+            pinIsDefault: authService.isPinDefault(),
+            setupRequired: authService.isPinDefault()
+          });
+        }
+      );
+      return;
     }
 
     console.log('[setup] STUDIO_PIN actualizado (ya no es el valor por defecto).');

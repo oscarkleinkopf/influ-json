@@ -149,6 +149,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-06 | **Sec #3** session regenerate (anti-fixation) | Login + invite redeem + change-pin; `establishAuthenticatedSession` |
 | 2026-08-06 | **L5 train local** orquestador opt-in | `ENABLE_LOCAL_LORA_TRAIN`; materialize + spawn; `docs/lora/L5_LOCAL_TRAIN.md` |
 | 2026-08-06 | **Sec CSP** endurecer Content-Security-Policy | `connect-src 'self'`; sin `https:` img; `object-src`/`base-uri`/`form-action`; `CSP_REPORT_ONLY` |
 | 2026-08-05 | **UX #2** Pollinations token en Ajustes | Campo + GET/POST `/api/settings/keys` |
