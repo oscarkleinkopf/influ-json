@@ -167,6 +167,39 @@ function requireAuth(req, res, next) {
 }
 
 /**
+ * CSP endurecida para el Studio monolítico.
+ *
+ * - connect-src: solo 'self' (Pollinations / Replicate van server-side; el front solo llama /api/*).
+ * - img-src: self + data + blob (assets locales y previews; sin https: wildcard).
+ * - script-src / style-src: 'unsafe-inline' queda (onclick/onerror + estilos en templates + Google Fonts @import).
+ * - CSP_REPORT_ONLY=1 → Content-Security-Policy-Report-Only (sin romper UI al probar).
+ * - CSP_ALLOW_HTTPS_IMG=1 → reañade https: a img-src (escape hatch legacy).
+ */
+function buildContentSecurityPolicy(env = process.env) {
+  const imgSrc = ["'self'", 'data:', 'blob:'];
+  if (String(env.CSP_ALLOW_HTTPS_IMG || '').trim() === '1') {
+    imgSrc.push('https:');
+  }
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'self'",
+    "form-action 'self'",
+    `img-src ${imgSrc.join(' ')}`,
+    "media-src 'self' blob:",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "script-src 'self' 'unsafe-inline'",
+    "connect-src 'self'"
+  ].join('; ');
+}
+
+function isCspReportOnly(env = process.env) {
+  return String(env.CSP_REPORT_ONLY || '').trim() === '1';
+}
+
+/**
  * Cabeceras de seguridad mínimas (sin romper el Studio local).
  */
 function securityHeaders(req, res, next) {
@@ -174,11 +207,11 @@ function securityHeaders(req, res, next) {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-XSS-Protection', '0');
-  // CSP laxa: el front monolítico inline + Pollinations; endurecer en fase mercado
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; img-src 'self' data: blob: https:; media-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline'; connect-src 'self' https:;"
-  );
+  const csp = buildContentSecurityPolicy();
+  const headerName = isCspReportOnly()
+    ? 'Content-Security-Policy-Report-Only'
+    : 'Content-Security-Policy';
+  res.setHeader(headerName, csp);
   next();
 }
 
@@ -186,6 +219,8 @@ module.exports = {
   sessionMiddleware,
   requireAuth,
   securityHeaders,
+  buildContentSecurityPolicy,
+  isCspReportOnly,
   verifyPin: verifyLegacyStudioPin,
   verifyLegacyStudioPin,
   verifyPinHash,

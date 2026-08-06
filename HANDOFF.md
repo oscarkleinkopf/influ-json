@@ -25,16 +25,16 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | tip post UX #2 + L4c (`6b6b56f`) |
-| **PR actual** | #53/#54 + UX #2 + L4c **en main**. Siguiente: L5 train local o más seguridad |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L4c + Sec #1–#2 + UX #2 pollen en Ajustes |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53) · Fase L L0–L4c ✅ |
-| **Prioridad inmediata** | Happy path validado ✅ (2026-08-05). Siguiente: CSP / L5 train local (pausa) |
+| **Rama de trabajo** | `cursor/sec-csp-harden-173f` |
+| **Commit base** | tip happy-path (`28a5c11`) + Sec CSP |
+| **PR actual** | Sec CSP (endurecer `Content-Security-Policy`) |
+| **`main` remoto** | Moat free + Fase G + LoRA L0–L4c + Sec #1–#2 + UX #2 + happy path |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad (#52+#53 + CSP) · Fase L L0–L4c ✅ |
+| **Prioridad inmediata** | CSP en PR. Después: L5 train local (pausa) / más seguridad |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, face-lock Replicate; train local L5 |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-08-05 |
+| **Última actualización** | 2026-08-06 |
 
 ### Pila #4–#16 — INTEGRADA ✅
 
@@ -63,6 +63,21 @@ FF `cursor/merge-w12-w17-152f` → `main` (`2dd4fc5` → `cbdae55`). PRs #34–#
 | tip | #40 | Stack integración W12–W17 | **merged → main** |
 
 ---
+
+## Sesión reciente (Cursor, 2026-08-06)
+
+**Pedido:** Seguir con CSP.
+
+**Hecho (rama `cursor/sec-csp-harden-173f`):**
+- CSP endurecida en `auth.buildContentSecurityPolicy` / `securityHeaders`.
+- `connect-src 'self'` (sin `https:` — Pollinations es server-side).
+- `img-src` sin wildcard `https:` (assets locales + `data:`/`blob:`).
+- Añadidos `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'self'`.
+- Escape: `CSP_REPORT_ONLY=1`, `CSP_ALLOW_HTTPS_IMG=1`.
+- Tests: `test/csp.test.js`.
+- Deuda conocida: `'unsafe-inline'` en script/style (onclick/onerror + templates + Google Fonts).
+
+**En curso:** PR Sec CSP. `main` sigue con #51–#54 + UX #2 + L4c + happy path.
 
 ## Sesión reciente (Cursor, 2026-08-05)
 

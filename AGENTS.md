@@ -77,3 +77,9 @@ El usuario alterna entre **Antigravity** (principal) y **Cursor**. Cada cambio d
 2. Si aplica, línea en log de **ROADMAP.md**
 3. `git add` → `git commit` → `git push origin main`
 4. Commit claro (`feat:` / `fix:` / `docs:`). **No** commitear `.env`
+
+## Cursor Cloud specific instructions
+
+- Arranque / tests: ver README + `package.json` (`npm start`, `npm test`, `npm run smoke`). Auth: `STUDIO_PIN` en `.env`.
+- **CSP** (`auth.securityHeaders`): enforce por defecto. `CSP_REPORT_ONLY=1` → solo report. `CSP_ALLOW_HTTPS_IMG=1` → reañade `https:` a `img-src` si hace falta. El front no debe `fetch` orígenes externos (`connect-src 'self'`); Pollinations es server-side. `'unsafe-inline'` en script/style sigue por el monolito (`onclick` / estilos en templates / Google Fonts).
+- No usar `npm run start:minimal` como servidor de desarrollo del producto completo.

@@ -148,6 +148,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-06 | **Sec CSP** endurecer Content-Security-Policy | `connect-src 'self'`; sin `https:` img; `object-src`/`base-uri`/`form-action`; `CSP_REPORT_ONLY` |
 | 2026-08-05 | **UX #2** Pollinations token en Ajustes | Campo + GET/POST `/api/settings/keys` |
 | 2026-08-05 | **L4c** plantilla Flux Comfy | `comfy_workflow_flux_lora.json` |
 | 2026-08-05 | **Merge #53+#54** Sec #2 + L4 → main | Integración |
