@@ -25,16 +25,35 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/fase-r-facelock-173f` |
-| **Commit base** | tip docs #60 (`5a4786f`) |
-| **PR actual** | Fase R R0–R4 face-lock (este PR) |
-| **`main` remoto** | Moat free + Fase G + LoRA L0–L5 + Sec #1–#5 + CSP + UX free |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad #52–#59 ✅ · Fase L L0–L5 ✅ · **Fase R R0–R4** (PR) |
-| **Prioridad inmediata** | Merge Fase R → luego OAuth/SMTP/video siguen en pausa |
+| **Rama de trabajo** | `main` |
+| **Commit base** | tip Fase R (#61) |
+| **PR actual** | #61 Fase R **MERGED** · #62 pulido free **MERGED** |
+| **`main` remoto** | Moat free + Sec + LoRA L0–L5 + UX free + pulido #62 + Fase R |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L L0–L5 ✅ · **Fase R R0–R4** ✅ |
+| **Prioridad inmediata** | OAuth/SMTP/video/deploy siguen en pausa; pulido si surge fricción |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
-| **En pausa** | OAuth, SMTP, video full |
+| **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-08-06 |
+| **Última actualización** | 2026-08-07 |
+
+### Sesión reciente (Cursor, 2026-08-07) — Merge #61 Fase R
+
+**Pedido:** Mergear #61 (Fase R). L4 plan re-pedido: ya estaba en `main` (#54) — sin gaps.
+
+**Hecho:** Merge #61 → `main` (conflictos HANDOFF/ROADMAP resueltos).
+
+### Sesión reciente (Cursor, 2026-08-06) — Pulido free
+
+**Pedido:** Seguir con pulido (no HostGator; T63 Dropdeep era confusión).
+
+**Hecho:**
+- Cómo usar «Copiar JSON» scrollea a `#btnCopyPackFullbodyPrimary` (ya no al ZIP kit)
+- Consola: «Copiar prompt + JSON» (distinto del pack fullbody)
+- Checklist 3/3 core (crear→guardar→copiar); gen no se marca al copiar
+- Members: pollen Ajustes → toast honesto + CTA Copiar JSON
+- Vocabulario: «Copiar JSON» en founder/lead/primary
+
+**Siguiente:** done (#62 merged).
 
 ### Sesión reciente (Cursor, 2026-08-06) — Fase R #1–#5 (R0–R4)
 
@@ -48,7 +67,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - R4: `provider=replicate` en `gen_metrics` vía `inferProviderFromImagePath`
 - Docs: `docs/FACELOCK_R.md`
 
-**Siguiente:** Merge PR Fase R → main.
+**Siguiente:** **MERGED** → `main`.
 
 ### Pila #4–#16 — INTEGRADA ✅
 
