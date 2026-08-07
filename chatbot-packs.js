@@ -63,6 +63,94 @@
   };
 
   /**
+   * Acepta fila SQLite ({ detailedJSON }) o JSON de personaje ya expandido.
+   * Si falta character_lock, sintetiza uno mínimo desde identity/facial/hair/body
+   * para que Copiar JSON / CLI nunca peguen `{}` vacío.
+   */
+  function parseMaybeJson(value) {
+    if (value == null) return null;
+    if (typeof value === 'object') return value;
+    if (typeof value === 'string') {
+      try { return JSON.parse(value); } catch (_) { return null; }
+    }
+    return null;
+  }
+
+  function synthesizeCharacterLock(json, fallbackName) {
+    const id = json.identity || {};
+    const face = json.facial_features || {};
+    const hair = json.hair || {};
+    const body = json.body || {};
+    const name = id.name || fallbackName || 'Influencer';
+    return {
+      version: 1,
+      free_tier: true,
+      purpose: 'Mantener la misma persona en chatbots gratuitos sin face-lock de pago',
+      free_chatbot_system: `Sos ${name}. Misma cara, tez y pelo en todas las imágenes.`,
+      must_match_every_image: {
+        name,
+        gender: id.gender || null,
+        age: id.apparent_age || id.age || null,
+        ethnicity: id.ethnicity_appearance || id.ethnicity || null,
+        skin_tone: face.skin_tone || null,
+        skin_tone_hex: face.skin_tone_hex || null,
+        face_shape: face.face_shape || null,
+        eye_color: face.eye_color || null,
+        eyebrows: face.eyebrow_style || face.eyebrows || null,
+        hair_color: hair.color || null,
+        hair_texture: hair.texture || null,
+        hair_length: hair.length || null,
+        body_type: body.body_type || id.body_type || null,
+        height: body.height_appearance || body.height || null,
+        proportions: body.proportions || null
+      },
+      may_vary_per_image: ['pose', 'clothing', 'setting_background', 'product_in_hand'],
+      never_do: [
+        'Cambiar tono de piel o etnia aparente',
+        'Cambiar forma de rostro',
+        'Cuerpo con proporciones distintas'
+      ]
+    };
+  }
+
+  /**
+   * @param {object} personaOrJson — fila persona o detailedJSON
+   * @param {{ fallbackName?: string }} [opts]
+   * @returns {object} JSON de personaje con character_lock usable
+   */
+  function normalizePersonaForPack(personaOrJson, opts = {}) {
+    let raw = personaOrJson && typeof personaOrJson === 'object' ? { ...personaOrJson } : {};
+    const fallbackName = opts.fallbackName || raw.name || null;
+
+    const nested = parseMaybeJson(raw.detailedJSON);
+    if (nested && typeof nested === 'object'
+      && (nested.character_lock || nested.identity || nested.facial_features)) {
+      raw = {
+        ...nested,
+        identity: {
+          ...(nested.identity || {}),
+          name: (nested.identity && nested.identity.name) || fallbackName
+        }
+      };
+      if (fallbackName && raw.identity && !raw.identity.name) {
+        raw.identity.name = fallbackName;
+      }
+    }
+
+    const json = { ...raw };
+    delete json.detailedJSON;
+    const lock = json.character_lock;
+    const must = lock && typeof lock === 'object' ? lock.must_match_every_image : null;
+    const mustEmpty = !lock || typeof lock !== 'object'
+      || !must
+      || (typeof must === 'object' && !Object.keys(must).length);
+    if (mustEmpty) {
+      json.character_lock = synthesizeCharacterLock(json, fallbackName);
+    }
+    return json;
+  }
+
+  /**
    * @param {object} personaJSON
    * @param {string} packId
    * @param {{ productData?: object, extraScene?: string, fallbackName?: string }} [opts]
@@ -70,7 +158,7 @@
   function buildFreeChatbotPack(personaJSON, packId, opts = {}) {
     const pack = FREE_CHATBOT_PACKS[packId];
     if (!pack) throw new Error('Pack desconocido: ' + packId);
-    const json = personaJSON && typeof personaJSON === 'object' ? personaJSON : {};
+    const json = normalizePersonaForPack(personaJSON, opts);
     const lock = json.character_lock || {};
     const must = lock.must_match_every_image || {};
     const name = must.name || json.identity?.name || opts.fallbackName || 'Influencer';
@@ -122,7 +210,7 @@ ${JSON.stringify(json, null, 2)}
 AL FINAL
 ───────────────────────────────────────────
 1) Genera la imagen respetando el CHARACTER LOCK.
-2) Si la cara o la tez cambian, re-aplica el lock y regenera.
+2) Si la cara o la tez cambian, re-pega el lock y regenera.
 3) Responde en español con una línea: "OK — pack ${pack.id} para ${name}".
 `;
   }
@@ -133,7 +221,7 @@ AL FINAL
    * @param {{ productData?: object, fallbackName?: string, nicheLabel?: string }} [opts]
    */
   function buildChatbotSessionCheck(personaJSON, opts = {}) {
-    const json = personaJSON && typeof personaJSON === 'object' ? personaJSON : {};
+    const json = normalizePersonaForPack(personaJSON, opts);
     const lock = json.character_lock || {};
     const must = lock.must_match_every_image || {};
     const name = must.name || json.identity?.name || opts.fallbackName || 'Influencer';
@@ -259,6 +347,8 @@ Si cara/tez/pelo cambian entre A/B/C, dilo explícitamente.
 
   return {
     FREE_CHATBOT_PACKS,
+    normalizePersonaForPack,
+    synthesizeCharacterLock,
     buildFreeChatbotPack,
     buildChatbotSessionCheck,
     SESSION_CHECK_KEYS,

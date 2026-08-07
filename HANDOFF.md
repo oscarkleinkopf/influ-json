@@ -25,16 +25,27 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | tip Fase R (#61) |
-| **PR actual** | #61 Fase R **MERGED** · #62 pulido free **MERGED** |
-| **`main` remoto** | Moat free + Sec + LoRA L0–L5 + UX free + pulido #62 + Fase R |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L L0–L5 ✅ · **Fase R R0–R4** ✅ |
-| **Prioridad inmediata** | OAuth/SMTP/video/deploy siguen en pausa; pulido si surge fricción |
+| **Rama de trabajo** | `cursor/pack-resilience-173f` |
+| **Commit base** | tip Fase R (`8b6522f`) |
+| **PR actual** | Pack resilience (este) — post walkthrough emprendedor |
+| **`main` remoto** | Moat free + Sec + LoRA L0–L5 + UX + pulido #62 + Fase R #61 |
+| **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
+| **Prioridad inmediata** | Merge pack resilience; seguir walkthrough si queda fricción |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 | **Última actualización** | 2026-08-07 |
+
+### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
+
+**Pedido:** Opción 1 — usar el Studio como emprendedor y anotar fricción.
+
+**Hallazgos:**
+- Happy path API create → list OK.
+- **P0:** `buildFreeChatbotPack` / CLI `export-pack` pegaban `character_lock: {}` si recibían la fila SQLite (lock vive en `detailedJSON`).
+- PIN wizard bloqueante en primer arranque (fricción; se añadió «Más tarde — solo localhost»).
+
+**Fix:** `normalizePersonaForPack` + CLI usa `chatbot-packs`; skip PIN opcional.
 
 ### Sesión reciente (Cursor, 2026-08-07) — Merge #61 Fase R
 

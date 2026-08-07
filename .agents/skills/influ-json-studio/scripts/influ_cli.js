@@ -122,28 +122,21 @@ async function main() {
         process.exit(1);
       }
 
-      const packTypes = {
-        fullbody: { label: '🧍 Cuerpo entero', instruction: 'Framing: FULL BODY PHOTO, head-to-toe shot. Subject fully visible.' },
-        bikini: { label: '👙 Bikini / Playa', instruction: 'Framing: Full body standing or reclining on a sunny beach, stylish swimsuit.' },
-        spicy: { label: '🔥 Spicy (Realista)', instruction: 'Framing: Sensual aesthetic bedroom lighting, candid raw portrait.' },
-        product: { label: '📦 Producto en Mano', instruction: 'Framing: Holding product clearly near face/chest, smiling at camera.' }
-      };
+      let packsApi;
+      try {
+        packsApi = require(path.join(path.dirname(dbServicePath), 'chatbot-packs.js'));
+      } catch (err) {
+        console.error('Error: no se pudo cargar chatbot-packs.js:', err.message);
+        process.exit(1);
+      }
 
-      const selectedPack = packTypes[type] || packTypes.fullbody;
-      const lock = persona.character_lock || {};
-
-      const packOutput = `═══════════════════════════════════════════
-PACK GRATIS PARA CHATBOT — ${selectedPack.label}
-Influencer: ${persona.name}
-Cero costo: sin Replicate / InstantID / GPU de pago
-═══════════════════════════════════════════
-
-CHARACTER LOCK:
-${JSON.stringify(lock, null, 2)}
-
-INSTRUCCIÓN DE LA ESCENA:
-${selectedPack.instruction}
-`;
+      let packOutput;
+      try {
+        packOutput = packsApi.buildFreeChatbotPack(persona, type, { fallbackName: persona.name });
+      } catch (err) {
+        console.error('Error:', err.message);
+        process.exit(1);
+      }
 
       if (params.output) {
         fs.writeFileSync(params.output, packOutput, 'utf8');

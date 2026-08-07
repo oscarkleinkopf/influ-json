@@ -38,6 +38,44 @@ test('buildFreeChatbotPack incluye character_lock y escena', () => {
   assert.match(text, /sin Replicate/);
 });
 
+test('buildFreeChatbotPack acepta fila API con detailedJSON (no pega lock vacío)', () => {
+  const { buildFreeChatbotPack: build } = require('../chatbot-packs');
+  const row = {
+    id: 'p1',
+    name: 'Camila_API',
+    detailedJSON: {
+      identity: { name: 'Camila_API', gender: 'Female', apparent_age: '24 años' },
+      facial_features: { skin_tone: 'piel clara', skin_tone_hex: '#f0d5c0', face_shape: 'ovalada', eye_color: 'cafés' },
+      hair: { color: 'Castaño', texture: 'ondulado', length: 'largo' },
+      body: { body_type: 'Atlética' },
+      character_lock: {
+        free_chatbot_system: 'Sos Camila_API.',
+        must_match_every_image: {
+          name: 'Camila_API',
+          skin_tone: 'piel clara',
+          skin_tone_hex: '#f0d5c0'
+        }
+      }
+    }
+  };
+  const text = build(row, 'fullbody');
+  assert.match(text, /Camila_API/);
+  assert.match(text, /#f0d5c0/);
+  assert.doesNotMatch(text, /CHARACTER LOCK \(obligatorio\)\n─+\n\{\}/);
+});
+
+test('buildFreeChatbotPack sintetiza lock si solo hay identity/facial', () => {
+  const { buildFreeChatbotPack: build } = require('../chatbot-packs');
+  const text = build({
+    identity: { name: 'Nora' },
+    facial_features: { skin_tone: 'piel clara', skin_tone_hex: '#ead2c0' },
+    hair: { color: 'negro', length: 'corto' }
+  }, 'bikini');
+  assert.match(text, /Nora/);
+  assert.match(text, /#ead2c0/);
+  assert.match(text, /playa/i);
+});
+
 test('buildFreeChatbotPack rechaza pack desconocido', () => {
   assert.throws(() => buildFreeChatbotPack({}, 'nope'), /Pack desconocido/);
 });

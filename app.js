@@ -703,6 +703,12 @@ function setupPinWizard() {
   const form = document.getElementById('setupPinForm');
   if (!form || form.dataset.bound === '1') return;
   form.dataset.bound = '1';
+  document.getElementById('btnSetupPinLater')?.addEventListener('click', () => {
+    // Solo localhost: permite seguir el happy path; el banner PIN default sigue visible.
+    hideSetupPinModal();
+    maybeShowPinDefaultBanner();
+    toastInfo('PIN por defecto activo. Cámbialo en Ajustes cuando puedas — no expongas el Studio a la red.');
+  });
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const pin = document.getElementById('setupPinInput')?.value || '';
