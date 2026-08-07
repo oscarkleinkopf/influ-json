@@ -923,7 +923,7 @@ async function refreshGenMetricsSettings() {
     const data = await res.json();
     if (!data.success) throw new Error(data.message || 'Error');
     const t = data.summary?.totals || {};
-    line.textContent = `${t.portraits || 0} retratos · ${t.variants || 0} variantes · ${t.fail429 || 0} fallos 429 (últimos ${data.summary?.sinceDays || 30} días, free=Pollinations)`;
+    line.textContent = `${t.portraits || 0} retratos · ${t.variants || 0} variantes · ${t.fail429 || 0} fallos 429 · free ${t.providerPollinations || 0} / pago-u-otro ${t.providerOther || 0} (últimos ${data.summary?.sinceDays || 30} días)`;
     if (byProf) {
       const rows = data.summary?.byProfile || [];
       byProf.innerHTML = rows.length
@@ -3669,6 +3669,25 @@ async function exportLoraTrainingPack() {
 }
 window.exportLoraTrainingPack = exportLoraTrainingPack;
 
+/** R2 — mostrar toggle face-lock pago solo si el servidor tiene ENABLE_PAID_FACE_LOCK + token. */
+async function refreshFaceLockOptIn() {
+  const wrap = document.getElementById('faceLockOptInWrap');
+  if (!wrap) return;
+  try {
+    const res = await fetch('/api/status');
+    const status = await res.json().catch(() => ({}));
+    const available = !!(status.imageProviders?.paidFaceLock?.available
+      || status.imageProviders?.replicate?.available);
+    wrap.style.display = available ? 'block' : 'none';
+    if (!available) {
+      const toggle = document.getElementById('preferFaceLockToggle');
+      if (toggle) toggle.checked = false;
+    }
+  } catch (_) {
+    wrap.style.display = 'none';
+  }
+}
+
 async function refreshLocalGpuStatus() {
   const textEl = document.getElementById('localGpuStatusText');
   const chipComfy = document.getElementById('localGpuChipComfy');
@@ -3908,6 +3927,7 @@ async function linkLoraPaid() {
 }
 window.refreshLoraInferenceStatus = refreshLoraInferenceStatus;
 window.refreshLocalGpuStatus = refreshLocalGpuStatus;
+window.refreshFaceLockOptIn = refreshFaceLockOptIn;
 
 function applyNichePreset(nicheId) {
   const api = window.InfluNichePresets;
@@ -5543,6 +5563,7 @@ function setupUgcStudio() {
   const btnRefreshLocalGpu = document.getElementById('btnRefreshLocalGpu');
   if (btnRefreshLocalGpu) btnRefreshLocalGpu.addEventListener('click', () => refreshLocalGpuStatus());
   refreshLoraInferenceStatus();
+  refreshFaceLockOptIn();
 
   // Commercial License Generator Action
   const btnLicense = document.getElementById('btnGenerateCommercialLicense');
@@ -7740,7 +7761,9 @@ async function generateOneVariant(p, index, total) {
         framing,
         mode,
         // Semilla distinta por imagen del lote → misma identidad, composición variada
-        seed: personaSeed(p.id) + index
+        seed: personaSeed(p.id) + index,
+        // R2 — face-lock pago solo si el toggle está marcado (default off)
+        preferFaceLock: !!(document.getElementById('preferFaceLockToggle')?.checked)
       })
     });
     const data = await res.json();
@@ -7808,6 +7831,7 @@ async function archivePersonaAction() {
 }
 
 function setupVariantManager() {
+  refreshFaceLockOptIn();
   document.getElementById('btnGenerateVariant').addEventListener('click', async () => {
     await generateVariantAction();
     // Refresh stats & history when a variant is generated

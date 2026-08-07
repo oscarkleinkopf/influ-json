@@ -498,13 +498,14 @@ module.exports = {
       }
     }
 
-    // Optional paid face-lock (Replicate etc.) — only if explicitly configured.
-    // Free path (Pollinations) must always remain functional for zero-cost entrepreneurs.
-    if (options.preferFaceLock !== false && imageProvider.isPaidFaceLockEnabled()) {
+    // Optional paid face-lock (Replicate InstantID/PuLID) — ONLY when UI/API sets preferFaceLock: true.
+    // Default off (R2). Free path (Pollinations) must always remain functional (R3).
+    if (options.preferFaceLock === true && imageProvider.isPaidFaceLockEnabled()) {
       try {
         const paid = await imageProvider.generateWithOptionalFaceLock({
           prompt,
           referenceUrl,
+          faceImagePath: options.faceImagePath || options.referenceLocalPath || null,
           options
         });
         if (paid) return paid;

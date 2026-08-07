@@ -120,6 +120,12 @@ function registerGenerationRoutes(app, deps) {
       genOptions.seed = Math.floor(Math.random() * 1000000);
     }
     if (personaId) genOptions.personaId = personaId;
+    // R2 — face-lock only when client explicitly opts in (never default)
+    if (req.body.preferFaceLock === true) genOptions.preferFaceLock = true;
+    if (referenceLocalPath) {
+      genOptions.referenceLocalPath = referenceLocalPath;
+      genOptions.faceImagePath = referenceLocalPath;
+    }
 
     const t0 = Date.now();
     aiService.generateInfluencerImage(prompt, referenceUrl, genOptions)
@@ -133,16 +139,20 @@ function registerGenerationRoutes(app, deps) {
             prompt: req.body.prompt,
             image_path: imagePath,
             generation_type: genType,
-            metadata: JSON.stringify({ referenceImage: req.body.referenceImage || null })
+            metadata: JSON.stringify({
+              referenceImage: req.body.referenceImage || null,
+              preferFaceLock: !!genOptions.preferFaceLock
+            })
           });
         } catch (histErr) {
           console.warn('Failed to save generation history:', histErr.message);
         }
         try {
+          const imageProvider = require('../image-provider');
           dbService.recordGenMetric({
             profile_id: profileId,
             persona_id: personaId,
-            provider: 'pollinations',
+            provider: imageProvider.inferProviderFromImagePath(imagePath),
             generation_type: genType,
             ok: true,
             duration_ms: durationMs

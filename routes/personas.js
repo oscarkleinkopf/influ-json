@@ -330,12 +330,16 @@ function registerPersonasRoutes(app, deps) {
 
     const t0 = Date.now();
     const profileId = req.profileId || req.session?.profileId;
+    const preferFaceLock = req.body.preferFaceLock === true;
     aiService.generateInfluencerImage(prompt, referenceUrl, {
       photoreal,
       identityLock,
       seed,
       framing,
-      personaId: persona.id
+      personaId: persona.id,
+      preferFaceLock,
+      referenceLocalPath,
+      faceImagePath: referenceLocalPath
     })
       .then(async (imagePath) => {
         const durationMs = Date.now() - t0;
@@ -370,6 +374,7 @@ function registerPersonasRoutes(app, deps) {
                 seed,
                 framing,
                 referenceLocalPath,
+                preferFaceLock,
                 consistency_distance: scored?.distance ?? null,
                 consistency_grade: scored?.grade ?? null
               })
@@ -378,10 +383,11 @@ function registerPersonasRoutes(app, deps) {
             console.warn('Failed to save variant generation history:', histErr.message);
           }
           try {
+            const imageProvider = require('../image-provider');
             dbService.recordGenMetric({
               profile_id: profileId,
               persona_id: req.params.id,
-              provider: 'pollinations',
+              provider: imageProvider.inferProviderFromImagePath(imagePath),
               generation_type: 'variant',
               ok: true,
               duration_ms: durationMs

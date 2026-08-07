@@ -78,11 +78,13 @@
 
 | # | Entregable | Criterio de hecho |
 |---|------------|-------------------|
-| R0 | `IMAGE_PROVIDER=pollinations\|replicate` en `.env` | Sin token → siempre free |
-| R1 | `image-provider.generateWithOptionalFaceLock` (PuLID/InstantID) | Con token: variantes pueden usar face-lock |
-| R2 | UI toggle “Face-lock mejorado (pago)” off por defecto | Emprendedor free no ve costos sorpresa |
-| R3 | Fallback automático a Pollinations si Replicate falla | Nunca pantalla rota |
-| R4 | Métricas locales: free vs paid gens (contador SQLite) | Decidir cuándo conviene pagar |
+| R0 | `IMAGE_PROVIDER=pollinations\|replicate` en `.env` | Sin token → siempre free | ✅ |
+| R1 | `image-provider.generateWithOptionalFaceLock` (PuLID/InstantID) | Con token: variantes pueden usar face-lock | ✅ |
+| R2 | UI toggle “Face-lock mejorado (pago)” off por defecto | Emprendedor free no ve costos sorpresa | ✅ |
+| R3 | Fallback automático a Pollinations si Replicate falla | Nunca pantalla rota | ✅ |
+| R4 | Métricas locales: free vs paid gens (contador SQLite) | Decidir cuándo conviene pagar | ✅ |
+
+**Activación:** `ENABLE_PAID_FACE_LOCK=1` + `REPLICATE_API_TOKEN` (token solo no basta). Guía: [`docs/FACELOCK_R.md`](./docs/FACELOCK_R.md).
 
 **Regla de regresión:** todo test manual free (Daniela 3 body/skin/spicy) debe seguir pasando **con Replicate desactivado**.
 
@@ -152,6 +154,7 @@
 | 2026-08-06 | **UX free** JSON primary + pollen→Ajustes | Fullbody CTA; banner dual; authFetch pollen-safe; gen auth→402 |
 | 2026-08-06 | **Sec #5** Permissions-Policy + COOP/CORP | Headers en `securityHeaders` tras CSP |
 | 2026-08-06 | **Sec #4** API abuse rate-limit | Sliding window heavy/default; `auth.apiRateLimit`; generate/upload/analyze |
+| 2026-08-06 | **Fase R R0–R4** face-lock Replicate opt-in | `ENABLE_PAID_FACE_LOCK`; InstantID/PuLID; UI toggle off; fallback Pollinations; métricas |
 | 2026-08-06 | **Pulido free** guide/checklist/vocab | Cómo usar → JSON primary; 3/3 core; member pollen honesto; prompt≠pack |
 | 2026-08-06 | **Sec #3** session regenerate (anti-fixation) | Login + invite redeem + change-pin; `establishAuthenticatedSession` |
 | 2026-08-06 | **L5 train local** orquestador opt-in | `ENABLE_LOCAL_LORA_TRAIN`; materialize + spawn; `docs/lora/L5_LOCAL_TRAIN.md` |
