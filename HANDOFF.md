@@ -26,15 +26,34 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | Campo | Valor |
 |-------|--------|
 | **Rama de trabajo** | `main` |
-| **Commit base** | tip pack resilience (`9895494`) |
+| **Commit base** | tip docs #63 (`27e2c6c`) |
 | **PR actual** | #63 pack resilience **MERGED** |
 | **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + pack resilience #63 |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | OAuth/SMTP/video/deploy en pausa; más walkthrough si surge fricción |
+| **Prioridad inmediata** | Walkthrough **Daniela (#2)** en escritorio (usuario en móvil ahora); OAuth/SMTP/video/deploy en pausa |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
-| **En pausa** | OAuth, SMTP, video, HostGator deploy |
+| **En pausa** | OAuth, SMTP, video, HostGator deploy · Daniela body/skin/spicy (hasta PC) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-08-07 |
+| **Última actualización** | 2026-08-08 |
+
+### Sesión reciente (Cursor, 2026-08-08) — Walkthrough #3 W11 (móvil)
+
+**Pedido:** Seguir con walkthrough **3** (sesión chatbot); **2** Daniela después en computador.
+
+**Veredicto W11:** ✅ sin fricción P0. Código y tests OK.
+
+| Qué | Estado |
+|-----|--------|
+| Botón «Probar en chatbot (3 prompts)» (ficha + portafolio) | Cableado |
+| Bloque A/B/C + `character_lock` (usa `normalizePersonaForPack`) | OK |
+| Modal checklist cara / tez / pelo | OK |
+| Persistencia checklist | Solo `localStorage` (no sincroniza móvil ↔ PC) — esperado |
+| Fix código | Ninguno |
+
+**Cola walkthroughs:**
+1. Happy path free — ✅ (→ fix #63)
+2. **Daniela body/skin/spicy** — ⏸ aparcado (usuario pide PC)
+3. W11 sesión chatbot — ✅ cerrado
 
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 
