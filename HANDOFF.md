@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/pack-resilience-173f` |
-| **Commit base** | tip Fase R (`8b6522f`) |
-| **PR actual** | Pack resilience (este) — post walkthrough emprendedor |
-| **`main` remoto** | Moat free + Sec + LoRA L0–L5 + UX + pulido #62 + Fase R #61 |
+| **Rama de trabajo** | `main` |
+| **Commit base** | tip pack resilience (`9895494`) |
+| **PR actual** | #63 pack resilience **MERGED** |
+| **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + pack resilience #63 |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge pack resilience; seguir walkthrough si queda fricción |
+| **Prioridad inmediata** | OAuth/SMTP/video/deploy en pausa; más walkthrough si surge fricción |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
