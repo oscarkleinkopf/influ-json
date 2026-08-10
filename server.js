@@ -1,7 +1,6 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
 const multer = require('multer');
 const archiverMod = require('archiver');
 /** Archiver v8 (ESM interop) usa ZipArchive; v7 era archiver('zip'). */
@@ -30,12 +29,16 @@ const authService = require('./auth');
 const aiService = require('./ai-service');
 const genQueue = require('./gen-queue');
 const {
-  isGitBackupEnabled,
   resolveSafeAssetPath,
   assertSafeRemoteImageUrl,
   UNSAFE_PATH,
   UNSAFE_URL
 } = require('./safe-paths');
+const gitBackup = require('./git-backup');
+/** Same entry point routes use — never stages binary root influ.sqlite. */
+function runGitBackup(callback, opts) {
+  return gitBackup.runGitBackup(callback, opts);
+}
 const imageValidation = require('./image-validation');
 const consistencyScore = require('./consistency-score');
 const { registerPersonasRoutes, scoreVariantAgainstPersona: scoreVariantAgainstPersonaFn } = require('./routes/personas');
@@ -270,31 +273,8 @@ const { DATA_DIR, ensureDir } = require('./paths');
 const SCRATCH_DIR = DATA_DIR;
 ensureDir(SCRATCH_DIR);
 
-// Git backup helper — OPT-IN (ENABLE_GIT_BACKUP=1). Default: off.
-function runGitBackup(callback) {
-  if (!isGitBackupEnabled()) {
-    if (callback) {
-      callback(true, 'Git backup omitido (requiere ENABLE_GIT_BACKUP=1; o DISABLE_GIT_BACKUP=1)');
-    }
-    return;
-  }
-  const commitMsg = `Backup auto-sync: Campaign update ${new Date().toISOString()}`;
-  const commands = `git add . && git commit -m "${commitMsg}" --allow-empty && git push origin main`;
-
-  // Call callback immediately to prevent blocking HTTP response
-  if (callback) {
-    callback(true, 'Git backup scheduled in background');
-  }
-
-  // Run the commands in the background asynchronously
-  exec(commands, (error, stdout, stderr) => {
-    if (error) {
-      console.warn('Background Git backup failed:', error.message);
-    } else {
-      console.log('Background Git backup success:', stdout.trim());
-    }
-  });
-}
+// Git backup — OPT-IN (ENABLE_GIT_BACKUP=1). See ./git-backup.js
+// (stages personas.json text mirror only; never root influ.sqlite binary).
 
 // =============================================
 // PUBLIC ENDPOINTS

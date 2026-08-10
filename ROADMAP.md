@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-10 | **Mirror policy** backup sin binario influ.sqlite | git-backup → personas.json only |
 | 2026-08-07 | **Pack resilience** + PIN skip localhost | `normalizePersonaForPack`; CLI export-pack; wizard «Más tarde» |
 | 2026-08-06 | **UX free** JSON primary + pollen→Ajustes | Fullbody CTA; banner dual; authFetch pollen-safe; gen auth→402 |
 | 2026-08-06 | **Sec #5** Permissions-Policy + COOP/CORP | Headers en `securityHeaders` tras CSP |

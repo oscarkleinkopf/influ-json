@@ -10,8 +10,10 @@ Thumbs.db
 data/
 !data/.gitkeep
 
-# Legacy root mirrors (W6) — never commit live DB/roster copies.
+# Legacy root mirrors (W6) — never commit the binary live DB copy.
 # Source of truth: data/influ.sqlite. Opt-in write: ENABLE_LEGACY_MIRRORS=1.
+# personas.json = intentional text roster mirror (git backup may stage it; still
+# gitignored by default so routine saves do not force-add without ENABLE).
 influ.sqlite
 influ.sqlite-journal
 influ.sqlite-wal

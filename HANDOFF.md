@@ -34,7 +34,15 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-08-07 |
+P26-08-10 |
+
+### Sesión reciente (Cursor, 2026-08-10) — Root influ.sqlite mirror policy
+
+**Pedido:** `/better-harness` — ¿se lee el mirror binario? ¿untrack?
+
+**Hallazgo:** ya untracked+gitignore (W6). Runtime write-only (`ENABLE_LEGACY_MIRRORS`); read solo migración one-shot en `paths.resolveDatabasePath`. **No** se ejecutó `git rm --cached` (nada tracked).
+
+**Hecho:** `git-backup.js` stagea solo `personas.json` (texto); nunca `influ.sqlite`. Docs recovery en AGENTS.md.
 
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 
