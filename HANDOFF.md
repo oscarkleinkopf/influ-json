@@ -33,6 +33,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + pack resilience #63 |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
 | **Prioridad inmediata** | Walkthrough **Daniela (#2)** en escritorio (usuario en móvil ahora); OAuth/SMTP/video/deploy en pausa |
+| **Prioridad inmediata** | Harness git creds ✅ (helper local); **revocar token expuesto** (usuario); walkthroughs / OAuth/SMTP/video/deploy en pausa |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy · Daniela body/skin/spicy (hasta PC) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -77,6 +78,19 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 1. Happy path free — ✅ (→ fix #63)
 2. **Daniela body/skin/spicy** — ⏸ aparcado (usuario pide PC)
 3. W11 sesión chatbot — ✅ cerrado
+
+
+### Sesión reciente (Cursor, 2026-08-10) — Harness git credentials
+
+**Pedido:** `/better-harness` — token embebido en URL efectiva del remote.
+
+**Hecho (local VM, no en el repo):**
+- Quitados `url.*.insteadOf` con `x-access-token` de `~/.gitconfig` (+ `managedauthrewritescope`).
+- `git remote set-url origin https://github.com/oscarkleinkopf/influ-json.git`
+- Credential helper: `gh auth git-credential`
+- Validado: `git remote get-url origin` limpio · `git ls-remote origin` OK · `git push --dry-run` OK (path de `runGitBackup`)
+
+**Usuario:** token expuesto **revocado/rotado** (2026-08-10). PC Antigravity alineado a `origin/main` (`27e2c6c`) con remote limpio + Credential Manager.
 
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 
