@@ -82,6 +82,7 @@ El usuario alterna entre **Antigravity** (principal) y **Cursor**. Cada cambio d
 ## Cursor Cloud specific instructions
 
 - Arranque / tests: ver README + `package.json` (`npm start`, `npm test`, `npm run smoke`). Auth: `STUDIO_PIN` en `.env`.
+- **Diagnostics (runtime):** `GET /api/status` — env/config (auth, bind, `dataDir`/`dbPath`, image providers, free-path flags); úsalo al depurar PIN/setup, Pollinations vs face-lock, o paths de DB. `GET /api/queue-status` — cola de generación (`pendingCount`, cooldown 429, `currentTaskInfo`); úsalo cuando gen se atasca, tarda, o sospechas cooldown anti-429.
 - **CSP** (`auth.securityHeaders`): enforce por defecto. `CSP_REPORT_ONLY=1` → solo report. `CSP_ALLOW_HTTPS_IMG=1` → reañade `https:` a `img-src` si hace falta. El front no debe `fetch` orígenes externos (`connect-src 'self'`); Pollinations es server-side. `'unsafe-inline'` en script/style sigue por el monolito (`onclick` / estilos en templates / Google Fonts).
 - **Sec #3 sessions:** login / invite redeem / change-pin pasan por `auth.establishAuthenticatedSession` (rota `influ.sid`). No reinventar `req.session.authenticated = true` en esos flujos.
 - **Sec #4 rate-limit:** ON por defecto en rutas pesadas (`auth.apiRateLimit('heavy'|'default')`). Apagar: `API_RATE_LIMIT=0`. Ajustar: `API_RATE_LIMIT_HEAVY_MAX` / `API_RATE_LIMIT_MAX` / `API_RATE_LIMIT_WINDOW_MS`.
