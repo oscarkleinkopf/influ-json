@@ -92,6 +92,13 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 **Usuario:** token expuesto **revocado/rotado** (2026-08-10). PC Antigravity alineado a `origin/main` (`27e2c6c`) con remote limpio + Credential Manager.
 
+
+### Sesión reciente (Cursor, 2026-08-10) — Skills activation triggers
+
+**Pedido:** `/better-harness` — Use when / Expected output / Self-check en los 3 SKILL.md.
+
+**Hecho:** descripciones ampliadas; workflows intactos; `test/skills-activation.test.js` (routing por paráfrasis).
+
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 
 **Pedido:** Opción 1 — usar el Studio como emprendedor y anotar fricción.

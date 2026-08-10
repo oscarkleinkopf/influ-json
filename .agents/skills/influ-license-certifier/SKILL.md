@@ -1,14 +1,29 @@
 ---
 name: influ-license-certifier
 description: >-
-  Emite y verifica Certificados de Licencia Comercial de Propiedad Intelectual (IP) B2B
-  para influencers virtuales sintéticos de influ-JSON. Genera certificados en JSON y HTML imprimible con hash SHA-256.
+  Emite y verifica Certificados de Licencia Comercial de Propiedad Intelectual (IP)
+  B2B para influencers virtuales sintéticos de influ-JSON (JSON y HTML imprimible,
+  hash SHA-256). Use when the user asks to issue, generate, or verify a commercial
+  IP license/certificate for a virtual influencer, rent image rights to a brand/agency,
+  produce printable HTML license docs, or run certifier_cli issue/verify. Expected
+  output: license JSON and/or printable HTML with licenseId + SHA-256 authenticity
+  hash. Self-check: certificate names the client (--client), includes scope/duration,
+  and verify succeeds for the issued licenseId.
 ---
 
 # influ-JSON License Certifier Skill
 
 ## Overview
 Esta skill automatiza la emisión de licencias comerciales B2B para alquilar la imagen de influencers virtuales sintéticos a clientes, agencias o marcas de e-commerce. Genera documentos con respaldo de firma digital hash SHA-256 y cláusula de garantía de IA sintética (libre de derechos de imagen de seres humanos reales).
+
+## Expected output
+- JSON de licencia con `licenseId`, cliente, alcance, vigencia y hash SHA-256.
+- Opcional: HTML imprimible (`--output *.html`) listo para PDF/correo al cliente.
+
+## Self-check
+1. El certificado incluye `--client` (nombre comercial) y no es genérico sin titular.
+2. Existe `licenseId` y un hash de autenticidad.
+3. `certifier_cli.js verify --licenseId …` confirma el documento emitido.
 
 ## Utility Scripts
 

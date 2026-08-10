@@ -1,15 +1,29 @@
 ---
 name: influ-json-studio
 description: >-
-  Estudio local de producción UGC con influencers virtuales. Administra el roster
-  en SQLite, bloquea la identidad de personajes vía JSON character_lock y genera
-  packs de prompts listos para copiar en chatbots gratuitos (ChatGPT, Gemini, Claude, Meta).
+  Estudio local de producción UGC con influencers virtuales: roster SQLite,
+  character_lock JSON y packs gratis para chatbots (ChatGPT, Gemini, Claude, Meta).
+  Use when the user asks to list/create/update influencers, manage the roster,
+  export a free chatbot pack, get a persona's character_lock, run influ_cli
+  status/list-personas/get-persona/export-pack, or keep visual identity consistent
+  without paid face-lock. Expected output: CLI status/list, character_lock JSON,
+  or a copy-ready pack (.txt block). Self-check: pack/lock includes must_match_every_image
+  (name, skin_tone, eyes, hair) and is not an empty character_lock.
 ---
 
 # influ-JSON Studio Skill
 
 ## Overview
 Esta skill permite administrar la producción local de influencers virtuales en **influ-JSON**, garantizando cero costos recurrentes. Utiliza el esquema **`character_lock`** para preservar el ADN visual (tez, ojos, pelo, silueta) y psicológico (MBTI, tono de voz, tabúes) a través de múltiples imágenes y campañas sin requerir GPUs ni APIs de pago.
+
+## Expected output
+- Roster: salida de `status` / `list-personas` / `get-persona`.
+- Free path: bloque `export-pack` (fullbody | bikini | spicy | product) con `character_lock` + instrucciones para chatbot gratis.
+
+## Self-check
+1. El artefacto menciona el nombre del influencer y campos fijos (`skin_tone` / ojos / pelo).
+2. `character_lock` no está vacío (`must_match_every_image` presente).
+3. No se exige Replicate ni GPU de pago para el path básico.
 
 ## Utility Scripts
 

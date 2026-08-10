@@ -156,6 +156,7 @@
 | 2026-08-10 | **Front smoke P0** serve index/app.js + save→appear | `test/frontend-smoke.test.js` en npm test |
 | 2026-08-08 | **Walkthrough W11** sesión chatbot (cerrado) | Sin P0; Daniela (#2) aparcado hasta PC |
 | 2026-08-10 | **Harness git creds** remote limpio + helper | Sin `x-access-token` en URL; `gh auth git-credential` |
+| 2026-08-10 | **Skills activation** Use when + expected output | 3 SKILL.md + skills-activation.test.js |
 | 2026-08-07 | **Pack resilience** + PIN skip localhost | `normalizePersonaForPack`; CLI export-pack; wizard «Más tarde» |
 | 2026-08-06 | **UX free** JSON primary + pollen→Ajustes | Fullbody CTA; banner dual; authFetch pollen-safe; gen auth→402 |
 | 2026-08-06 | **Sec #5** Permissions-Policy + COOP/CORP | Headers en `securityHeaders` tras CSP |
