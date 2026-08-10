@@ -34,7 +34,16 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-08-07 |
+P26-08-10 |
+
+### Sesión reciente (Cursor, 2026-08-10) — Git backup scoped paths
+
+**Pedido:** `/better-harness` — `runGitBackup` sin `git add .`.
+
+**Hecho:**
+- Nuevo `git-backup.js`: stage solo `data/`, `personas.json`, `influ.sqlite` + `git push origin main`
+- Callback HTTP sigue inmediato (non-blocking)
+- Tests: `test/git-backup-scoped.test.js` (temp repo + POST /api/personas)
 
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 
