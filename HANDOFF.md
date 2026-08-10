@@ -25,18 +25,21 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | tip batch harness merges (`cbd3ccd`+) |
-| **PR actual** | #64–#66,#68–#71 MERGED; #67 closed superseded |
-| **Commit base** | tip docs #63 (`27e2c6c`) |
-| **PR actual** | #63 pack resilience **MERGED** |
+| **Rama de trabajo** | `cursor/settings-nav-ux-173f` |
+| **Commit base** | tip `main` + Ajustes tabs UX |
+| **PR actual** | Ajustes: pestañas (no muro de perfiles) |
 | **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + harness batch |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Walkthrough **Daniela** en PC; OAuth/SMTP/video/deploy en pausa |
-| **Prioridad inmediata** | Harness git creds ✅ (helper local); **revocar token expuesto** (usuario); walkthroughs / OAuth/SMTP/video/deploy en pausa |
+| **Prioridad inmediata** | Merge Ajustes UX; walkthrough Daniela en PC |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy · Daniela body/skin/spicy (hasta PC) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-10) — Ajustes: tabs + lista perfiles
+
+**Pedido:** Al abrir Ajustes aparece una lista larga de usuarios y no se puede navegar a nada.
+
+**Hecho:** Modal con pestañas Claves / Perfiles / Invitaciones / Studio / Cuenta; lista de perfiles con búsqueda + scroll; admin abre en Claves (no en el muro de miembros).
 
 ### Sesión reciente (Cursor, 2026-08-10) — Batch merge harness PRs
 
@@ -367,6 +370,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-10 | Cursor | **Ajustes UX**: tabs Claves/Perfiles/Invites/Studio/Cuenta + filtro/scroll + prune harness vacíos | *(este PR)* |
 | 2026-08-05 | Cursor | **Happy path live**: create→JSON pack→export + boceto pollen; smoke 9/9 | *(docs)* |
 | 2026-08-05 | Cursor | **UX #2** + **L4c** Flux template | *(este PR)* |
 | 2026-08-05 | Cursor | Merge #53 Sec #2 + #54 L4 → `main` | *(main)* |
