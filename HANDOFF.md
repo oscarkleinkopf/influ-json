@@ -30,11 +30,24 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **PR actual** | #63 pack resilience **MERGED** |
 | **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + pack resilience #63 |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | OAuth/SMTP/video/deploy en pausa; más walkthrough si surge fricción |
+| **Prioridad inmediata** | Harness git creds ✅ (helper local); **revocar token expuesto** (usuario); walkthroughs / OAuth/SMTP/video/deploy en pausa |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-08-07 |
+P26-08-10 |
+
+
+### Sesión reciente (Cursor, 2026-08-10) — Harness git credentials
+
+**Pedido:** `/better-harness` — token embebido en URL efectiva del remote.
+
+**Hecho (local VM, no en el repo):**
+- Quitados `url.*.insteadOf` con `x-access-token` de `~/.gitconfig` (+ `managedauthrewritescope`).
+- `git remote set-url origin https://github.com/oscarkleinkopf/influ-json.git`
+- Credential helper: `gh auth git-credential`
+- Validado: `git remote get-url origin` limpio · `git ls-remote origin` OK · `git push --dry-run` OK (path de `runGitBackup`)
+
+**Pendiente usuario:** revocar/rotar el token que ya apareció en salida de terminal.
 
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 
