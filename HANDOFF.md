@@ -47,7 +47,7 @@ P26-08-10 |
 - Credential helper: `gh auth git-credential`
 - Validado: `git remote get-url origin` limpio · `git ls-remote origin` OK · `git push --dry-run` OK (path de `runGitBackup`)
 
-**Pendiente usuario:** revocar/rotar el token que ya apareció en salida de terminal.
+**Usuario:** token expuesto **revocado/rotado** (2026-08-10). PC Antigravity alineado a `origin/main` (`27e2c6c`) con remote limpio + Credential Manager.
 
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 
