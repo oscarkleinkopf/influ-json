@@ -34,7 +34,13 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-08-07 |
+P26-08-10 |
+
+### Sesión reciente (Cursor, 2026-08-10) — Front smoke P0
+
+**Pedido:** `/better-harness` — smoke node:test del front (serve `/` + `app.js` + wiring save→aparecer).
+
+**Hecho:** `test/frontend-smoke.test.js` (incluido en `npm test` vía `test/*.test.js`).
 
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 
