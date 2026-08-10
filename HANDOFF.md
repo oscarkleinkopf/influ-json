@@ -34,7 +34,13 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-| **Última actualización** | 2026-08-07 |
+P26-08-10 |
+
+### Sesión reciente (Cursor, 2026-08-10) — Skills activation triggers
+
+**Pedido:** `/better-harness` — Use when / Expected output / Self-check en los 3 SKILL.md.
+
+**Hecho:** descripciones ampliadas; workflows intactos; `test/skills-activation.test.js` (routing por paráfrasis).
 
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 

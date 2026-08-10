@@ -1,14 +1,28 @@
 ---
 name: influ-ugc-scriptwriter
 description: >-
-  Redacta guiones publicitarios de alta conversión (15s a 25s) para TikTok Ads, Reels y Shorts.
-  Aplica fórmulas AIDA, PAS y Unboxing adaptando el tono de voz al MBTI del influencer virtual de influ-JSON.
+  Redacta guiones publicitarios UGC de alta conversión (15s–25s) para TikTok Ads,
+  Reels y Shorts con fórmulas AIDA, PAS y Unboxing, adaptando el tono al MBTI del
+  influencer virtual de influ-JSON. Use when the user asks to write a short-form ad
+  script, TikTok/Reels/Shorts voiceover, UGC shooting script, AIDA/PAS/unboxing copy
+  for a product, or run scriptwriter_cli generate. Expected output: timed script with
+  Visual / VO / On-screen text columns (optionally JSON via --output). Self-check:
+  duration ~15–25s, strong 0–3s hook, and product/benefit named in the script.
 ---
 
 # influ-JSON UGC Scriptwriter Skill
 
 ## Overview
 Esta skill automatiza la creación de guiones de video corto (9:16) optimizados para pauta digital en TikTok Ads, Meta Reels y YouTube Shorts. Desglosa cada guión segundo a segundo en 3 columnas clave: **👁️ Visual/Encuadre del Avatar**, **🗣️ Voz en Off/Diálogo** y **📝 Subtítulos/Texto en Pantalla**.
+
+## Expected output
+- Guión 15–25s en columnas Visual / Voz en off / Texto en pantalla (fórmula AIDA, PAS o Unboxing).
+- Opcional: archivo JSON vía `--output`.
+
+## Self-check
+1. Duración objetivo entre 15 y 25 segundos.
+2. Los primeros 0–3s incluyen gancho visual/texto de impacto.
+3. Producto y beneficio aparecen en el diálogo o en pantalla.
 
 ## Utility Scripts
 
