@@ -26,17 +26,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | Campo | Valor |
 |-------|--------|
 | **Rama de trabajo** | `main` |
-| **Commit base** | tip mirror policy + FK cascade (merge batch) |
-| **PR actual** | #71 MERGED; batch #64–#70 in progress |
+| **Commit base** | tip batch harness merges (`cbd3ccd`+) |
+| **PR actual** | #64–#66,#68–#71 MERGED; #67 closed superseded |
 | **Commit base** | tip docs #63 (`27e2c6c`) |
 | **PR actual** | #63 pack resilience **MERGED** |
-| **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + pack resilience #63 |
+| **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + harness batch |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Walkthrough **Daniela (#2)** en escritorio (usuario en móvil ahora); OAuth/SMTP/video/deploy en pausa |
+| **Prioridad inmediata** | Walkthrough **Daniela** en PC; OAuth/SMTP/video/deploy en pausa |
 | **Prioridad inmediata** | Harness git creds ✅ (helper local); **revocar token expuesto** (usuario); walkthroughs / OAuth/SMTP/video/deploy en pausa |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy · Daniela body/skin/spicy (hasta PC) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-10) — Batch merge harness PRs
+
+**Pedido:** Mergear todo lo pendiente (#64–#70).
+
+**Hecho:** MERGED → `main`: #66 FK, #68 front smoke, #69 skills, #70 diagnostics, #64 W11 docs, #65 git creds (además de #71 ya en main). **#67 cerrado** (superseded por #71 — no reintroducir stage de `influ.sqlite`).
 
 ### Sesión reciente (Cursor, 2026-08-10) — Root influ.sqlite mirror policy
 
