@@ -41,7 +41,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 **Causa:** `/assets/references|generated` solo miraba `assets/`; ~55 thumbnails existían solo en `data/references|generated` (mirror dual-write / limpieza de tests).
 
-**Hecho:** `express.static` fallback a `DATA_DIR` tras `assets/` (auth gate intacto). Test `asset-data-dir-fallback.test.js`.
+**Hecho:** `express.static` fallback a `DATA_DIR` tras `assets/` (auth gate intacto). Placeholder real `mock_variant.jpg`. Resumen: demos harness al final + thumbs 8×8/404 → avatar. Test `asset-data-dir-fallback.test.js`.
 
 ### Sesión reciente (Cursor, 2026-08-10) — Batch merge harness PRs
 

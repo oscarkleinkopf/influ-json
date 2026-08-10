@@ -1369,6 +1369,41 @@ function isArchivedPersona(p) {
   return p && (p.archived === 1 || p.archived === true || p.archived === '1');
 }
 
+/** Placeholder cuando falta el archivo o el thumb es un fixture 8×8 de tests. */
+const DEFAULT_PERSONA_THUMB = 'assets/influencer_female.png';
+const HARNESS_PERSONA_RE = /^(SpeedTestPersona|DualSyncPersona|MetricsMem_|Onboard_|Member Sec|SmokeMember|SmokeMem|L5 Hello|HelloWorld)/i;
+
+function isHarnessPersonaName(name) {
+  return HARNESS_PERSONA_RE.test(String(name || ''));
+}
+
+function personaThumbSrc(p) {
+  const img = p && p.image != null ? String(p.image).trim() : '';
+  if (!img) return DEFAULT_PERSONA_THUMB;
+  return img;
+}
+
+/** onerror + thumbs minúsculos (fixtures de harness) → avatar por defecto. */
+function bindPersonaThumbFallback(imgEl) {
+  if (!imgEl || imgEl.dataset.thumbBound === '1') return;
+  imgEl.dataset.thumbBound = '1';
+  imgEl.addEventListener('error', () => {
+    if (imgEl.dataset.fallbackApplied === '1') return;
+    imgEl.dataset.fallbackApplied = '1';
+    imgEl.src = DEFAULT_PERSONA_THUMB;
+  });
+  imgEl.addEventListener('load', () => {
+    if (imgEl.dataset.fallbackApplied === '1') return;
+    // Fixtures de import/test suelen ser 8×8; se ven como bloque de color sólido en Resumen.
+    if (imgEl.naturalWidth > 0 && imgEl.naturalWidth < 48) {
+      imgEl.dataset.fallbackApplied = '1';
+      imgEl.src = DEFAULT_PERSONA_THUMB;
+    }
+  });
+}
+window.isHarnessPersonaName = isHarnessPersonaName;
+window.personaThumbSrc = personaThumbSrc;
+
 /** Always re-render portfolio + select grids from current state.personas. */
 function refreshPersonaLists() {
   try {
@@ -1497,6 +1532,14 @@ function getFilteredPortfolioPersonas() {
       return hay.includes(q);
     });
   }
+
+  // Resumen: demos de harness (thumbs 8×8 / basura) al final para no tapar el roster real.
+  filtered.sort((a, b) => {
+    const ha = isHarnessPersonaName(a?.name) ? 1 : 0;
+    const hb = isHarnessPersonaName(b?.name) ? 1 : 0;
+    if (ha !== hb) return ha - hb;
+    return String(a?.name || '').localeCompare(String(b?.name || ''), 'es', { sensitivity: 'base' });
+  });
 
   return filtered;
 }
@@ -1660,7 +1703,7 @@ function updateDashboardStats() {
 
     card.innerHTML = `
       <div class="portfolio-card-img-wrapper">
-        <img src="${p.image || 'assets/influencer_female.png'}" alt="${p.name || 'Influencer'}" onerror="this.src='assets/influencer_female.png'">
+        <img src="${personaThumbSrc(p)}" alt="${p.name || 'Influencer'}" loading="lazy">
         <span class="portfolio-badge badge-style">${p.style || 'Lifestyle'}</span>
         ${isArchivedPersona(p) ? '<span class="portfolio-badge badge-archived">Archivado</span>' : ''}
         ${isChatbotSessionPassingForPersona(p) ? '<span class="portfolio-badge badge-chatbot-ok" title="Checklist chatbot: cara + tez + pelo OK">Chatbot OK</span>' : ''}
@@ -1783,6 +1826,9 @@ function updateDashboardStats() {
       state.selectedPersona = p;
       await archivePersonaAction();
     });
+
+    const thumbImg = card.querySelector('.portfolio-card-img-wrapper img');
+    bindPersonaThumbFallback(thumbImg);
 
     // Make clicking the card select it too
     card.addEventListener('click', () => {
@@ -2858,12 +2904,13 @@ function renderPersonaGrids() {
     const card = document.createElement('div');
     card.className = `persona-card ${state.selectedPersona?.id === p.id ? 'selected' : ''}`;
     card.innerHTML = `
-      <img src="${p.image || 'assets/influencer_female.png'}" alt="${p.name || 'Influencer'}" onerror="this.src='assets/influencer_female.png'">
+      <img src="${personaThumbSrc(p)}" alt="${p.name || 'Influencer'}" loading="lazy">
       <div class="persona-card-info">
         <div class="persona-card-name">${p.name || 'Sin nombre'}</div>
         <div class="persona-card-tag">${p.age || ''} • ${p.ethnicity || p.ethnicity_appearance || ''}</div>
       </div>
     `;
+    bindPersonaThumbFallback(card.querySelector('img'));
     card.addEventListener('click', () => selectPersona(p));
     selectGrid.appendChild(card);
   });
@@ -7956,7 +8003,7 @@ function renderGenerationHistory() {
     }
 
     card.innerHTML = `
-      <img src="${gen.image_path}" alt="Generation image" class="history-card-img">
+      <img src="${gen.image_path || DEFAULT_PERSONA_THUMB}" alt="Generation image" class="history-card-img" loading="lazy">
       <div class="history-card-overlay">
         <span class="history-type-badge ${typeClass}">${typeLabel}</span>
         <div class="history-card-meta">
@@ -7966,6 +8013,7 @@ function renderGenerationHistory() {
       </div>
     `;
 
+    bindPersonaThumbFallback(card.querySelector('img'));
     card.addEventListener('click', () => openHistoryModal(gen));
     historyGrid.appendChild(card);
   });
@@ -8034,7 +8082,9 @@ function renderCurrentModalItem() {
 
   if (!modal || !item) return;
 
-  img.src = item.image_path;
+  img.dataset.fallbackApplied = '';
+  img.src = item.image_path || DEFAULT_PERSONA_THUMB;
+  bindPersonaThumbFallback(img);
 
   let typeLabel = 'Retrato Principal';
   const genType = item.generation_type || (item.pose ? 'variant' : 'portrait');

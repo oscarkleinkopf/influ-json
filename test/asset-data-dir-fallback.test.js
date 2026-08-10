@@ -117,3 +117,12 @@ test('server.js monta static DATA_DIR tras assets para references/generated', ()
   assert.match(src, /express\.static\(path\.join\(assetsDataDir, 'references'\)\)/);
   assert.match(src, /express\.static\(path\.join\(assetsDataDir, 'generated'\)\)/);
 });
+
+test('Resumen: fallback de thumbs minúsculos + demos de harness al final', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  assert.match(app, /function bindPersonaThumbFallback/);
+  assert.match(app, /naturalWidth\s*<\s*48/);
+  assert.match(app, /isHarnessPersonaName/);
+  assert.match(app, /demos de harness/);
+  assert.ok(fs.existsSync(path.join(__dirname, '..', 'assets', 'references', 'mock_variant.jpg')));
+});
