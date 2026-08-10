@@ -189,15 +189,29 @@ function publicProfileDTO(row) {
 
 // Assets: referencias y generadas requieren sesión (cookie) cuando auth está on.
 // Guías, PNGs demo en raíz de /assets y el resto siguen públicos (UI / docs).
+// Fallback a DATA_DIR/{references,generated}: imports/gens dual-write ahí y a veces
+// solo queda el mirror en data/ (p. ej. limpieza de assets/ref_* de tests) → Resumen 404.
 const assetsRoot = path.join(__dirname, 'assets');
-app.use('/assets/references', (req, res, next) => {
+const { DATA_DIR: assetsDataDir, ensureDataLayout } = require('./paths');
+ensureDataLayout();
+
+function gatedPrivateAssets(req, res, next) {
   if (!authService.isAuthEnabled()) return next();
   return requireAuth(req, res, next);
-}, express.static(path.join(assetsRoot, 'references')));
-app.use('/assets/generated', (req, res, next) => {
-  if (!authService.isAuthEnabled()) return next();
-  return requireAuth(req, res, next);
-}, express.static(path.join(assetsRoot, 'generated')));
+}
+
+app.use(
+  '/assets/references',
+  gatedPrivateAssets,
+  express.static(path.join(assetsRoot, 'references')),
+  express.static(path.join(assetsDataDir, 'references'))
+);
+app.use(
+  '/assets/generated',
+  gatedPrivateAssets,
+  express.static(path.join(assetsRoot, 'generated')),
+  express.static(path.join(assetsDataDir, 'generated'))
+);
 app.use('/assets', express.static(assetsRoot));
 
 // Serve main app pages
