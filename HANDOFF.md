@@ -49,6 +49,13 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 **Hecho:**
 - `db.js`: pragma tras `new Database`
 - `test/delete-cascade.test.js`: unit + DELETE `/api/personas/:id` limpian versions / persona_variants / generation_history / campaign_personas
+P26-08-10 |
+
+### Sesión reciente (Cursor, 2026-08-10) — Front smoke P0
+
+**Pedido:** `/better-harness` — smoke node:test del front (serve `/` + `app.js` + wiring save→aparecer).
+
+**Hecho:** `test/frontend-smoke.test.js` (incluido en `npm test` vía `test/*.test.js`).
 
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 
