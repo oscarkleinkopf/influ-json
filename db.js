@@ -15,6 +15,8 @@ const { runMigrations, getSchemaVersion } = require('./migrations');
 ensureDataLayout();
 const ACTIVE_DB_PATH = resolveDatabasePath();
 const db = new Database(ACTIVE_DB_PATH);
+// SQLite FK checks are off by default — required for ON DELETE CASCADE to fire.
+db.pragma('foreign_keys = ON');
 console.log(`[db] Opened SQLite at ${ACTIVE_DB_PATH}`);
 
 /**

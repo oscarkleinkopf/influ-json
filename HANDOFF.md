@@ -26,15 +26,14 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | Campo | Valor |
 |-------|--------|
 | **Rama de trabajo** | `main` |
-| **Commit base** | tip pack resilience (`9895494`) |
-| **PR actual** | #63 pack resilience **MERGED** |
+| **Commit base** | tip mirror policy + FK cascade (merge batch) |
+| **PR actual** | #71 MERGED; batch #64–#70 in progress |
 | **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + pack resilience #63 |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
 | **Prioridad inmediata** | OAuth/SMTP/video/deploy en pausa; más walkthrough si surge fricción |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
-P26-08-10 |
 
 ### Sesión reciente (Cursor, 2026-08-10) — Root influ.sqlite mirror policy
 
@@ -43,6 +42,13 @@ P26-08-10 |
 **Hallazgo:** ya untracked+gitignore (W6). Runtime write-only (`ENABLE_LEGACY_MIRRORS`); read solo migración one-shot en `paths.resolveDatabasePath`. **No** se ejecutó `git rm --cached` (nada tracked).
 
 **Hecho:** `git-backup.js` stagea solo `personas.json` (texto); nunca `influ.sqlite`. Docs recovery en AGENTS.md.
+### Sesión reciente (Cursor, 2026-08-10) — FK CASCADE delete
+
+**Pedido:** `/better-harness` — `db.pragma('foreign_keys = ON')` + test cascade.
+
+**Hecho:**
+- `db.js`: pragma tras `new Database`
+- `test/delete-cascade.test.js`: unit + DELETE `/api/personas/:id` limpian versions / persona_variants / generation_history / campaign_personas
 
 ### Sesión reciente (Cursor, 2026-08-07) — Walkthrough emprendedor
 
