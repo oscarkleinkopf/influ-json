@@ -49,7 +49,6 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 **Hecho:**
 - `db.js`: pragma tras `new Database`
 - `test/delete-cascade.test.js`: unit + DELETE `/api/personas/:id` limpian versions / persona_variants / generation_history / campaign_personas
-P26-08-10 |
 
 ### Sesión reciente (Cursor, 2026-08-10) — Front smoke P0
 
