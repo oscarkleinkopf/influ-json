@@ -219,6 +219,8 @@ body {
   flex-grow: 1;
   min-height: 100vh;
   padding: 40px;
+  /* UX-0c: espacio bajo #offlineModeBar (fixed, ~36px, always on) */
+  padding-top: 76px;
   max-width: 1400px;
 }
 
@@ -2577,7 +2579,7 @@ input:checked + .slider:before {
 
   body {
     padding-bottom: 64px; /* Space for bottom nav */
-    padding-top: 56px;    /* Space for mobile top header */
+    padding-top: 92px;    /* mobile-header 56px + offlineModeBar ~36px */
   }
 
   /* Mobile Top Header Bar */
@@ -2656,10 +2658,13 @@ input:checked + .slider:before {
     pointer-events: auto;
   }
 
-  /* Main Content Layout Adjustments */
+  /* Main Content Layout Adjustments (UX-0b: no heredar margin-left del escritorio) */
   .main-content {
+    margin-left: 0;
     padding: 16px;
-    width: 100vw;
+    padding-top: 16px;
+    width: 100%;
+    max-width: 100%;
   }
 
   /* Fixed Bottom Navigation Bar */
@@ -3824,10 +3829,13 @@ button.is-queue-locked:disabled {
   flex-shrink: 0;
 }
 
+/* UX-0c: fixed — sticky como hijo de body{display:flex} robaba ~300px de ancho a .app-container */
 .offline-mode-bar {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 50;
+  left: var(--sidebar-width);
+  right: 0;
+  z-index: 90;
 }
 
 .offline-pack-highlight {
@@ -3845,5 +3853,12 @@ button.is-queue-locked:disabled {
   .offline-banner {
     left: 0;
     top: 52px;
+  }
+}
+
+@media (max-width: 768px) {
+  .offline-mode-bar {
+    left: 0;
+    top: 56px; /* debajo del mobile-header */
   }
 }

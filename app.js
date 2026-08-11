@@ -9,6 +9,8 @@ let state = {
   selectedProduct: null,
   selectedCampaign: null,
   scripts: [],
+  /** UX-3d — contador real de scripts en campañas del perfil (/api/data) */
+  scriptsCount: 0,
   selectedAngleIndex: 0,
   baseFee: 150,
   selectedLicenceDays: 90,
@@ -1446,6 +1448,7 @@ async function reloadPersonasFromServer(selectTarget = null) {
   state.personas = Array.isArray(data.personas) ? data.personas : [];
   state.products = Array.isArray(data.products) ? data.products : state.products;
   state.generationStats = data.generationStats || { total: 0 };
+  if (Number.isFinite(data.scriptsCount)) state.scriptsCount = data.scriptsCount;
 
   refreshPersonaLists();
 
@@ -1481,6 +1484,7 @@ async function fetchData() {
     state.personas = Array.isArray(data.personas) ? data.personas : [];
     state.products = Array.isArray(data.products) ? data.products : [];
     state.generationStats = data.generationStats || { total: 0 };
+    state.scriptsCount = Number.isFinite(data.scriptsCount) ? data.scriptsCount : 0;
     if (data.profile) {
       state.currentProfile = data.profile;
       updateActiveProfileChip();
@@ -1621,18 +1625,17 @@ function updateDashboardStats() {
   const prodStat = document.getElementById('statProductsCount');
   if (prodStat) prodStat.textContent = state.products.length;
   
-  // Total generations count from stats state
+  // Total generations count from stats state (scoped by profile via /api/data)
   const totalGens = state.generationStats?.total || 0;
   const genStat = document.getElementById('statGenerationsCount');
   if (genStat) genStat.textContent = totalGens;
 
-  // Let's approximate scripts count or use campaigns
-  let scriptsCount = 0;
-  try {
-    scriptsCount = state.campaigns.length * 10;
-  } catch(e) {}
+  // UX-3d — scripts reales (API), nunca campañas×10 ni fallback inventado a 10
   const scriptStat = document.getElementById('statScriptsCount');
-  if (scriptStat) scriptStat.textContent = scriptsCount || 10;
+  if (scriptStat) {
+    const n = Number.isFinite(state.scriptsCount) ? state.scriptsCount : 0;
+    scriptStat.textContent = n;
+  }
   
   const personaGrid = document.getElementById('dashboardPersonaGrid');
   if (!personaGrid) return;
@@ -2143,7 +2146,7 @@ async function renderQaMatrix() {
         </div>`;
     }
     const packBtn = def.pack
-      ? `<button type="button" class="btn btn-secondary btn-sm" data-qa-pack="${def.pack}" style="font-size:10px;padding:6px 8px;">Copiar pack</button>`
+      ? `<button type="button" class="btn btn-secondary btn-sm" data-qa-pack="${def.pack}" style="font-size:10px;padding:6px 8px;">Copiar JSON</button>`
       : `<button type="button" class="btn btn-secondary btn-sm" data-qa-goto-gen style="font-size:10px;padding:6px 8px;">Generar variante</button>`;
     return `
       <div class="qa-slot">
@@ -3273,12 +3276,6 @@ const QueuePoller = {
 };
 
 window.QueuePoller = QueuePoller;
-
-/** @deprecated use toastSuccess / toastError — kept for call sites */
-function showSyncToast(success, message) {
-  if (success) toastSuccess(message, { gitOk: true });
-  else toastError(message, { gitOk: false });
-}
 
 function setGitSyncingState(message) {
   if (gitIndicator) gitIndicator.className = 'git-indicator syncing';
@@ -4635,7 +4632,7 @@ function setupPersonaEngine() {
     const exportText = buildChatbotExportText({ includePrompt: true });
     navigator.clipboard.writeText(exportText);
     markHappyPathCopied();
-    toastWithLockHealth('📋 Prompt + JSON copiados (consola) — para pack fullbody usa «Copiar pack cuerpo entero»', getFullPersonaJSON());
+    toastWithLockHealth('📋 Prompt + JSON copiados (consola) — para pack completo usa «Copiar JSON» en la ficha', getFullPersonaJSON());
   });
 
   document.getElementById('btnSaveToGallery').addEventListener('click', async () => {
@@ -4719,7 +4716,7 @@ function setupCopyButton(btnId, targetId, label) {
       const el = document.getElementById(targetId);
       if (el) {
         navigator.clipboard.writeText(el.textContent);
-        showSyncToast(true, `¡${label} copiado al portapapeles!`);
+        toastSuccess(`¡${label} copiado al portapapeles!`);
       }
     });
   }
@@ -5062,7 +5059,7 @@ async function savePersona(opts = {}) {
   const withPortrait = opts === true || opts?.withPortrait === true;
   const name = (document.getElementById('pName').value || '').trim();
   if (!name) {
-    showSyncToast(false, 'Indica un nombre para el influencer antes de guardar.');
+    toastError('Indica un nombre para el influencer antes de guardar.');
     return;
   }
 
@@ -5198,7 +5195,7 @@ async function savePersona(opts = {}) {
           gitOk: true
         });
       } else {
-        showSyncToast(true, withPortrait
+        toastSuccess(withPortrait
           ? `¡Persona "${name}" guardada${portraitPath ? ' con retrato' : ''}!`
           : `¡Persona "${name}" guardada!`);
       }
@@ -5214,10 +5211,10 @@ async function savePersona(opts = {}) {
       }
       renderHappyPathChecklist();
     } else {
-      showSyncToast(false, data.message || 'No se pudo guardar la persona.');
+      toastError(data.message || 'No se pudo guardar la persona.');
     }
   } catch (err) {
-    showSyncToast(false, 'Error de servidor al guardar.');
+    toastError('Error de servidor al guardar.');
   }
 }
 
@@ -5429,6 +5426,93 @@ function setupCampaigns() {
       toastError('Error al borrar la campaña.');
     }
   });
+
+  // UX-3a — cablear Regenerar Scripts → gen (Gemini o mock) + POST /api/campaigns/:id/scripts
+  document.getElementById('btnGenerateCampaignScripts')?.addEventListener('click', () => {
+    generateCampaignScriptsAction();
+  });
+}
+
+/** UX-3a — genera 10 scripts para la campaña seleccionada y los persiste. */
+async function generateCampaignScriptsAction() {
+  const campaign = state.selectedCampaign;
+  if (!campaign) {
+    toastInfo('Selecciona una campaña primero.');
+    return;
+  }
+  const btn = document.getElementById('btnGenerateCampaignScripts');
+  const prevLabel = btn?.textContent;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Generando scripts…';
+  }
+
+  const product = campaign.product || state.selectedProduct || {
+    name: campaign.name || 'Producto',
+    benefit: '',
+    audience: '',
+    frustration: ''
+  };
+  const persona = (campaign.personas && campaign.personas[0]) || state.selectedPersona || null;
+
+  let scripts = null;
+  try {
+    const statusRes = await fetch('/api/status');
+    const statusData = await statusRes.json();
+    if (statusData.apiConnected && persona) {
+      const aiRes = await authFetch('/api/ai/generate-scripts', {
+        method: 'POST',
+        body: JSON.stringify({ product, persona, count: 10 })
+      });
+      const aiData = await aiRes.json();
+      if (aiData.success && Array.isArray(aiData.scripts) && aiData.scripts.length) {
+        scripts = aiData.scripts;
+      }
+    }
+  } catch (err) {
+    console.warn('Campaign script AI gen failed, using offline templates:', err);
+  }
+
+  if (!scripts) {
+    // Offline templates (same shape as generateMockScripts)
+    const prevProduct = state.selectedProduct;
+    const prevPersona = state.selectedPersona;
+    state.selectedProduct = product;
+    if (persona) state.selectedPersona = persona;
+    generateMockScripts();
+    scripts = state.scripts.slice();
+    state.selectedProduct = prevProduct;
+    state.selectedPersona = prevPersona;
+  }
+
+  try {
+    const res = await authFetch(`/api/campaigns/${campaign.id}/scripts`, {
+      method: 'POST',
+      body: JSON.stringify({ scripts })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      toastError(data.message || 'No se pudieron guardar los scripts.');
+      return;
+    }
+    state.scripts = data.scripts || scripts;
+    // Refresh count from truth after save (avoid double-count on regenerate)
+    try {
+      const dataRes = await authFetch('/api/data');
+      const boot = await dataRes.json();
+      if (Number.isFinite(boot.scriptsCount)) state.scriptsCount = boot.scriptsCount;
+      updateDashboardStats();
+    } catch (_) {}
+    if (campaign) campaign.scripts = state.scripts;
+    toastSuccess(`✍️ ${state.scripts.length} scripts guardados en la campaña.`);
+  } catch (err) {
+    toastError('Error de red al guardar scripts de campaña.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = prevLabel || '✍️ Regenerar Scripts';
+    }
+  }
 }
 
 async function renderCampaigns() {
@@ -5442,7 +5526,16 @@ async function renderCampaigns() {
     
     listGrid.innerHTML = '';
     if (campaigns.length === 0) {
-      listGrid.innerHTML = '<p style="color:var(--text-secondary); padding: 12px 0;">No hay campañas registradas todavía.</p>';
+      listGrid.innerHTML = `
+        <div class="empty-roster-panel" style="padding: 8px 0;">
+          <p class="empty-roster-lead" style="margin-bottom: 12px;">Aún no hay campañas. Agrupa influencers + producto y exporta un ZIP comercial.</p>
+          <div class="empty-roster-actions">
+            <button type="button" class="btn btn-sm" id="btnEmptyCampaignCreate">+ Nueva Campaña</button>
+          </div>
+        </div>`;
+      document.getElementById('btnEmptyCampaignCreate')?.addEventListener('click', () => {
+        document.getElementById('btnNewCampaign')?.click();
+      });
       return;
     }
     
@@ -5584,8 +5677,8 @@ async function generateScriptsAction() {
           renderScriptsUI();
           populateActiveUgcData();
           updateLicensingCalculator();
-          showSyncToast(true, 'Scripts generados por Gemini con éxito!');
-          document.getElementById('btnGenerateScripts').textContent = 'Generar 10 Variaciones de Scripts (Conectar AI)';
+          toastSuccess('Guiones generados con Gemini.');
+          document.getElementById('btnGenerateScripts').textContent = 'Generar 10 guiones (plantillas locales / Gemini opt-in)';
           return;
         }
       } catch (err) {
@@ -5597,13 +5690,10 @@ async function generateScriptsAction() {
     generateMockScripts();
     populateActiveUgcData();
     updateLicensingCalculator();
-    document.getElementById('btnGenerateScripts').textContent = 'Generar 10 Variaciones de Scripts ( offline fallback )';
-    
-    if (data.gitSynced) {
-      showSyncToast(true, '¡Campaña guardada y respaldada en GitHub!');
-    } else {
-      showSyncToast(false, 'Guardado localmente. Fallo al subir.');
-    }
+    document.getElementById('btnGenerateScripts').textContent = 'Generar 10 guiones (plantillas locales / Gemini opt-in)';
+    toastSuccess(data.gitSynced
+      ? 'Producto guardado. Guiones locales listos (backup git OK).'
+      : 'Producto guardado. Guiones locales listos.');
   }
 }
 
@@ -5617,7 +5707,7 @@ function generateMockScripts() {
   
   const creator = state.selectedPersona?.name || "Sofia";
   
-  // 10 distinct marketing angles matching GPT-5.6 guidelines
+  // 10 distinct marketing angles (local templates; Gemini opt-in when API connected)
   state.scripts = [
     {
       angle: "El Escéptico (Skeptic Hook)",
@@ -5885,7 +5975,7 @@ function setupUgcStudio() {
   if (btnLicense) {
     btnLicense.addEventListener('click', async () => {
       const p = state.selectedPersona || state.personas[0];
-      if (!p) return typeof toastError === 'function' ? toastError('Seleccione un influencer primero.') : alert('Seleccione un influencer primero.');
+      if (!p) return toastError('Seleccione un influencer primero.');
 
       try {
         const res = await fetch(`/api/personas/${p.id}/commercial-license`);
@@ -5972,13 +6062,13 @@ Este certificado avala que los derechos comerciales de explotación de imagen, n
   if (btnStartBulk) {
     btnStartBulk.addEventListener('click', async () => {
       const p = state.selectedPersona || state.personas[0];
-      if (!p) return typeof toastError === 'function' ? toastError('Seleccione un influencer primero.') : alert('Seleccione un influencer primero.');
+      if (!p) return toastError('Seleccione un influencer primero.');
 
       const checkedBoxes = document.querySelectorAll('.bulk-prod-checkbox:checked');
       const selectedProductIds = Array.from(checkedBoxes).map(cb => cb.value);
 
       if (selectedProductIds.length === 0) {
-        return typeof toastError === 'function' ? toastError('Seleccione al menos 1 producto del catálogo.') : alert('Seleccione al menos 1 producto del catálogo.');
+        return toastError('Seleccione al menos 1 producto del catálogo.');
       }
 
       try {
@@ -6200,6 +6290,7 @@ async function generateAIImageAction() {
 }
 
 function startVideoPipelineSimulation() {
+  // UX-3c — demo local sin Veo/Runway; no inventa un render real
   const timelinePanel = document.getElementById('videoTimelinePreview');
   const progressText = document.getElementById('videoTimelineProgress');
   const progressBar = document.getElementById('videoProgressBar');
@@ -6222,7 +6313,7 @@ function startVideoPipelineSimulation() {
     if (progress >= 100) {
       document.getElementById('vtStep4').style.color = 'var(--success)';
       clearInterval(interval);
-      toastSuccess('🎥 Renderizado UGC finalizado. Timeline listo para entrega.');
+      toastInfo('Demo de timeline lista — no hay pipeline de vídeo real (Veo/Runway en pausa). Usa Copiar JSON o el pack UGC.');
     }
   }, 150);
 }
@@ -6292,6 +6383,8 @@ function setupLicensing() {
   });
   
   document.getElementById('btnCopyProposal').addEventListener('click', copyLicensingProposal);
+  // UX-3b — sin alert stub; descarga la misma propuesta como .txt
+  document.getElementById('btnDownloadProposal')?.addEventListener('click', downloadLicensingProposal);
 }
 
 function updateLicensingCalculator() {
@@ -6331,7 +6424,7 @@ function updateLicensingCalculator() {
   document.getElementById('pitchTotalVal').textContent = `$${total.toFixed(2)}`;
 }
 
-function copyLicensingProposal() {
+function buildLicensingProposalText() {
   const creator = state.selectedPersona || { name: "Sofia" };
   const prod = state.selectedProduct || { name: "Glow Serum Organics" };
   const base = state.baseFee;
@@ -6342,7 +6435,7 @@ function copyLicensingProposal() {
   
   const activeScript = state.scripts[state.selectedAngleIndex] || { angle: "El Escéptico" };
   
-  const proposal = `================================================
+  return `================================================
 PROPUESTA COMERCIAL - AI UGC CAMPAIGN
 ================================================
 Cliente: ${prod.name}
@@ -6352,7 +6445,7 @@ Creador Virtual: ${creator.name}
 DESGLOSE DE SERVICIOS:
 1. Creación de Activo UGC Sintético: $${base.toFixed(2)} USD
    - Persona consistente definible por JSON
-   - Prep. de guión optimizado por GPT-5.6
+   - Prep. de guión UGC (plantillas locales / Gemini opt-in)
    
 2. Licencia de Derechos de Uso Comercial:
    - Tipo: ${selectedText}
@@ -6364,9 +6457,28 @@ INVERSIÓN TOTAL: ${totalText} USD
 ================================================
 *Nota: Cumplimiento ético de divulgación sintética incluido de acuerdo con la ley de junio de 2026.
 `;
+}
 
-  navigator.clipboard.writeText(proposal);
+function copyLicensingProposal() {
+  navigator.clipboard.writeText(buildLicensingProposalText());
   toastSuccess('Propuesta formateada copiada al portapapeles');
+}
+
+/** UX-3b — descarga .txt en lugar del alert stub «Enviar Propuesta». */
+function downloadLicensingProposal() {
+  const text = buildLicensingProposalText();
+  const creator = state.selectedPersona?.name || 'influencer';
+  const safe = String(creator).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'propuesta';
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `propuesta_${safe}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toastSuccess('Propuesta descargada (.txt)');
 }
 
 // Prompt Gallery Logic
@@ -6398,7 +6510,25 @@ function renderGalleryGrid(items) {
   grid.innerHTML = '';
   
   if (items.length === 0) {
-    grid.innerHTML = '<p style="color:var(--text-secondary); grid-column:1/-1; text-align:center; padding:24px 0;">No hay prompts guardados que coincidan.</p>';
+    const q = (document.getElementById('gallerySearchInput')?.value || '').trim();
+    grid.innerHTML = `
+      <div class="empty-roster-panel" style="grid-column:1/-1;">
+        <p class="empty-roster-lead" style="margin-bottom: 12px;">
+          ${q
+            ? 'Ningún prompt coincide con la búsqueda.'
+            : 'La galería está vacía. Guarda un prompt exitoso desde Persona Engine (botón «Guardar en galería»).'}
+        </p>
+        <div class="empty-roster-actions">
+          ${q
+            ? '<button type="button" class="btn btn-secondary btn-sm" id="btnEmptyGalleryClear">Limpiar búsqueda</button>'
+            : '<button type="button" class="btn btn-sm" id="btnEmptyGalleryPersona">Ir a Persona Engine</button>'}
+        </div>
+      </div>`;
+    document.getElementById('btnEmptyGalleryClear')?.addEventListener('click', () => {
+      const input = document.getElementById('gallerySearchInput');
+      if (input) { input.value = ''; input.dispatchEvent(new Event('input')); }
+    });
+    document.getElementById('btnEmptyGalleryPersona')?.addEventListener('click', () => navigateToTab('persona-engine'));
     return;
   }
   
@@ -6636,9 +6766,9 @@ async function uploadToServer(file) {
     if (data.success) {
       uploadedImagePath = data.filePath;
       if (data.gitSynced) {
-        showSyncToast(true, '¡Foto subida y respaldada en GitHub!');
+        toastSuccess('¡Foto subida y respaldada en GitHub!');
       } else {
-        showSyncToast(false, 'Foto guardada localmente. Error en Git.');
+        toastError('Foto guardada localmente. Error en Git.');
       }
     }
   } catch (err) {
@@ -6672,7 +6802,7 @@ async function runPhotoAnalysis(imageDataUrl) {
       if (aiData.success && aiData.analysis) {
         analysisResult = aiData.analysis;
         displayAnalysisResults(colors);
-        showSyncToast(true, 'Análisis de foto completado con Gemini Vision API!');
+        toastSuccess('Análisis de foto completado con Gemini Vision API!');
         return;
       }
     } catch (err) {
@@ -7365,13 +7495,13 @@ async function saveAnalysisAsPersona() {
       }
 
       if (data.gitSynced) {
-        showSyncToast(true, '¡Persona del análisis guardada y respaldada en GitHub!');
+        toastSuccess('¡Persona del análisis guardada y respaldada en GitHub!');
       } else {
-        showSyncToast(false, 'Guardada localmente. Error en Git.');
+        toastError('Guardada localmente. Error en Git.');
       }
     }
   } catch (err) {
-    showSyncToast(false, 'Error de servidor al guardar persona.');
+    toastError('Error de servidor al guardar persona.');
   }
 }
 
@@ -7974,12 +8104,12 @@ window.setMainVariantAction = async function(imagePath, variantId) {
       renderPersonaGrids();
       populateActiveUgcData();
       updateSideBySideComparator(state.lastComparedVariant);
-      showSyncToast(true, '¡Retrato principal actualizado!');
+      toastSuccess('¡Retrato principal actualizado!');
     } else {
-      showSyncToast(false, data.message || 'Error al actualizar retrato.');
+      toastError(data.message || 'Error al actualizar retrato.');
     }
   } catch (e) {
-    showSyncToast(false, 'Error al actualizar retrato.');
+    toastError('Error al actualizar retrato.');
   }
 };
 
@@ -7996,10 +8126,10 @@ window.deleteVariantAction = async function(variantId) {
     if (data.success) {
       state.activeVariants = data.variants;
       renderVariantVaultGrid();
-      showSyncToast(true, 'Pose eliminada correctamente.');
+      toastSuccess('Pose eliminada correctamente.');
     }
   } catch (e) {
-    showSyncToast(false, 'Error al eliminar pose.');
+    toastError('Error al eliminar pose.');
   }
 };
 
@@ -8140,10 +8270,10 @@ async function archivePersonaAction() {
       // Update gallery view filters
       renderPersonaGrids();
       selectPersona(state.selectedPersona);
-      showSyncToast(true, isArchiving ? 'Influencer archivada.' : 'Influencer desarchivada.');
+      toastSuccess(isArchiving ? 'Influencer archivada.' : 'Influencer desarchivada.');
     }
   } catch (err) {
-    showSyncToast(false, 'Error al cambiar estado de archivo.');
+    toastError('Error al cambiar estado de archivo.');
   }
 }
 
@@ -8434,10 +8564,10 @@ async function deleteGenerationAction(id) {
       state.generationStats = dataJson.generationStats || { total: 0 };
       updateDashboardStats();
 
-      showSyncToast(true, 'Imagen eliminada del historial.');
+      toastSuccess('Imagen eliminada del historial.');
     }
   } catch (e) {
-    showSyncToast(false, 'Error al eliminar del historial.');
+    toastError('Error al eliminar del historial.');
   }
 }
 

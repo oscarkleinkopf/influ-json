@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.3.2">
+  <link rel="stylesheet" href="index.css?v=1.3.3">
 </head>
 <body>
   <div class="app-container">
@@ -1198,7 +1198,7 @@
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin: 0;">Prompt de Generación Compilado</h4>
                 <div style="display: flex; gap: 8px;">
-                  <button class="btn btn-sm" id="btnCopyChatbotPrompt" data-offline-highlight="pack" style="padding: 4px 10px; font-size: 10px; height: auto;" title="Copia el prompt compilado + character_lock de la consola. Para el pack fullbody usa el botón verde «Copiar pack cuerpo entero».">Copiar prompt + JSON</button>
+                  <button class="btn btn-sm" id="btnCopyChatbotPrompt" data-offline-highlight="pack" style="padding: 4px 10px; font-size: 10px; height: auto;" title="Copia el prompt compilado + character_lock de la consola. Para el pack free completo usa «Copiar JSON» en la ficha (izquierda).">Copiar prompt + JSON</button>
                   <button class="btn btn-secondary btn-sm" id="btnSaveToGallery" style="padding: 4px 10px; font-size: 10px; height: auto;">⭐ Guardar en Galería</button>
                 </div>
               </div>
@@ -1214,13 +1214,10 @@
               </div>
               <div class="prompt-text" id="promptPreview">Cargando prompt...</div>
               <div class="pack-library-inline" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
-                <div style="font-size: 10px; text-transform: uppercase; color: #34d399; font-weight: 700; margin-bottom: 8px;">🆓 Copiar JSON (recomendado) — packs free</div>
-                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 10px; padding: 6px 10px;">🧍 Cuerpo entero</button>
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 10px; padding: 6px 10px;">Bikini / playa</button>
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 10px; padding: 6px 10px;">Spicy</button>
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 10px; padding: 6px 10px;">Producto en mano</button>
-                </div>
+                <p style="font-size: 11px; color: var(--text-muted); margin: 0; line-height: 1.45;">
+                  Free path: usa <strong>Copiar JSON</strong> en la ficha (columna izquierda) — packs cuerpo / bikini / spicy / producto.
+                  Aquí solo previsualizas el prompt.
+                </p>
                 <p class="pack-last-status" data-last-pack-status style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;"></p>
               </div>
             </div>
@@ -1530,7 +1527,8 @@
               </div>
             </div>
           </div>
-        </div>
+          <!-- UX-0a: removed one extra closing div that previously closed
+               persona-engine section and main too early (4 tabs escaped). -->
 
         <!-- Generation History Section -->
         <div class="glass-card" id="generationHistorySection" style="margin-top: 28px; display: none;">
@@ -1556,8 +1554,8 @@
       <section id="script-engine" class="tab-panel">
         <div class="content-header">
           <div class="content-title">
-            <h1>Script Engine (GPT-5.6)</h1>
-            <p>Genera 10 ángulos publicitarios optimizados para el formato corto UGC de 15 a 25 segundos.</p>
+            <h1>Script Engine</h1>
+            <p>Genera 10 ángulos publicitarios UGC (15–25 s). Plantillas locales gratis; Gemini solo si hay clave en Ajustes.</p>
           </div>
         </div>
         
@@ -1588,7 +1586,7 @@
             
             <div style="margin-top: 10px;">
               <button type="button" class="btn" id="btnGenerateScripts" style="width: 100%;">
-                Generar 10 Variaciones de Scripts (Simular GPT-5.6)
+                Generar 10 guiones (plantillas locales / Gemini opt-in)
               </button>
             </div>
           </form>
@@ -1678,26 +1676,32 @@
               </div>
               
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">Generación & Producción AI</h3>
+                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 8px; color: var(--text-secondary);">Free path: Copiar JSON</h3>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.4;">Primero el pack gratis para chatbot. Bocetos Pollinations y descargas son opcionales.</p>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                  <button class="btn" id="btnExportUgcChatbot" data-offline-highlight="pack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff;">
+                    Copiar JSON (recomendado)
+                  </button>
                   <button class="btn btn-secondary" id="btnGenerateUgcImage" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Pollinations opt-in (token/pollen)">
                     Generar boceto (opt-in · puede pedir token)
                   </button>
-                  <button class="btn" id="btnExportUgcChatbot" data-offline-highlight="pack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    Copiar JSON (recomendado)
-                  </button>
+                  <details id="ugcDownloadsDetails" style="margin: 0;">
+                    <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 8px 0;">Descargas opcionales (ZIP / kit / licencia)</summary>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
                   <button class="btn btn-secondary" id="btnDownloadJsonPack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     📥 Descargar Pack Maestro JSON (.json)
                   </button>
                   <button class="btn btn-secondary" id="btnExportPersonaZip" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     📦 Exportar pack completo (.zip)
                   </button>
-                  <button class="btn" id="btnExportBrandKit" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--accent-gradient); border: none;">
+                  <button class="btn btn-secondary" id="btnExportBrandKit" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     🎁 Descargar kit marca (packs + guión)
                   </button>
                   <button class="btn btn-secondary" id="btnGenerateCommercialLicense" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     📄 Emitir Certificado de Licencia Comercial (TikTok / Meta)
                   </button>
+                    </div>
+                  </details>
                   <div class="analysis-status-card" id="ugcGenStatusCard" style="display: none; padding: 12px;">
                     <div class="analysis-spinner" style="width: 24px; height: 24px;"></div>
                     <span id="ugcGenStatusText" style="font-size: 12px; margin-left: 8px;">Generando imagen...</span>
@@ -1705,9 +1709,12 @@
                 </div>
               </div>
 
+              <details id="ugcAdvancedAdsDetails" style="margin-bottom: 20px;">
+                <summary style="cursor: pointer; font-family: var(--font-display); font-size: 15px; color: var(--text-secondary); padding: 8px 0;">Anuncios estáticos (boceto opt-in) — avanzado</summary>
+                <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🎯 Generador de Anuncios Publicitarios (Meta / TikTok Ads)</h3>
-                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
+                <h3 style="font-family: var(--font-display); font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">🎯 Anuncio estático (formato + gancho · boceto Pollinations opt-in)</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <label style="font-size: 12px;">Formato del Anuncio</label>
                   <select id="adFormatSelect" style="font-size: 12px; padding: 8px;">
                     <option value="9:16">📱 Vertical 9:16 (TikTok / Reels / Stories)</option>
@@ -1723,23 +1730,23 @@
                   </select>
                   
                   <button class="btn btn-secondary" id="btnRenderAdCreative" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
-                    🎨 Crear Anuncio Publicitario de Conversión
+                    🎨 Crear boceto de anuncio (opt-in · puede pedir token)
                   </button>
                 </div>
               </div>
 
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🚀 Generador de Anuncios Masivos en Lote (Matriz 5x2)</h3>
-                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
+                <h3 style="font-family: var(--font-display); font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">🚀 Lote de bocetos (opt-in · cola Pollinations)</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">
-                    Selecciona los productos para generar automáticamente 10 anuncios publicitarios (5 Ganchos x 2 Formatos) por producto:
+                    Selecciona productos para encolar bocetos (5 ganchos × 2 formatos por producto). No publica en Meta/TikTok — solo genera imágenes locales si hay token.
                   </p>
                   <div id="bulkProductSelectorContainer" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 6px;">
                     <span style="font-size: 11px; color: var(--text-muted);">Cargando catálogo...</span>
                   </div>
                   
-                  <button class="btn btn-primary" id="btnStartBulkAdGeneration" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
-                    ⚡ Generar Lote de Anuncios (10 por producto)
+                  <button class="btn btn-secondary" id="btnStartBulkAdGeneration" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
+                    ⚡ Encolar lote de bocetos (10 por producto · opt-in)
                   </button>
 
                   <div id="bulkBatchProgressCard" style="display: none; background: rgba(255,255,255,0.03); border: 1px solid var(--accent-color); border-radius: var(--border-radius-sm); padding: 12px; margin-top: 10px;">
@@ -1759,12 +1766,15 @@
                   </div>
                 </div>
               </div>
+                </div>
+              </details>
 
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🎬 Video UGC Pipeline (Infraestructura Veo/Runway)</h3>
+                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🎬 Video UGC Pipeline <span style="font-size:11px; font-weight:600; color:#f59e0b; letter-spacing:0.04em;">(DEMO — sin pipeline real)</span></h3>
+                <p style="font-size:12px; color:var(--text-muted); margin:0 0 10px; line-height:1.4;">Simulación de timeline local. Veo/Runway no están conectados; el path gratis sigue siendo Copiar JSON / packs UGC.</p>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <button class="btn btn-secondary" id="btnGenerateUgcVideo" style="width: 100%;">
-                    🎥 Renderizar Video UGC (15 Segundos)
+                    🎥 Probar timeline demo (15s · sin render real)
                   </button>
                   <div class="video-timeline-preview" id="videoTimelinePreview" style="display: none; margin-top: 10px;">
                     <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 6px;">
@@ -1962,7 +1972,7 @@
                 <tr>
                   <td>
                     <strong>Paquete de Redacción (10 Scripts)</strong><br>
-                    <span style="font-size: 12px; color: var(--text-secondary);">Ángulos publicitarios generados por GPT-5.6</span>
+                    <span style="font-size: 12px; color: var(--text-secondary);">Ángulos UGC (plantillas locales / Gemini opt-in)</span>
                   </td>
                   <td style="text-align: right; font-family: var(--font-mono);">$0.00 (Incluido)</td>
                 </tr>
@@ -1976,7 +1986,7 @@
             
             <div style="display: flex; gap: 12px;">
               <button class="btn btn-secondary" style="flex: 1;" id="btnCopyProposal">Copiar Propuesta</button>
-              <button class="btn" style="flex: 1;" onclick="alert('Propuesta lista para enviar a la marca!')">Enviar Propuesta</button>
+              <button type="button" class="btn" style="flex: 1;" id="btnDownloadProposal">Descargar propuesta (.txt)</button>
             </div>
           </div>
         </div>
@@ -2113,7 +2123,7 @@
         </div>
 
         <!-- Video Scripts -->
-        <h3 style="font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: #fbbf24; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🎬 Guiones UGC para Generación de Video</h3>
+        <h3 style="font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: #fbbf24; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🎬 Guiones UGC (texto · video es opcional/demo)</h3>
         <div id="importVideoPrompts" style="display: flex; flex-direction: column; gap: 12px; max-height: 200px; overflow-y: auto; margin-bottom: 24px; padding-right: 4px;">
           <!-- Dynamically populated scripts -->
         </div>

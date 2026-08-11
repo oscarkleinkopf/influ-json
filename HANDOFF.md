@@ -25,15 +25,54 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ugc-face-pack-173f` |
-| **Commit base** | `main` + face pack canónico 6 ángulos |
-| **PR actual** | ugc-creator Tier 1: face pack (texto free + bocetos opt-in) |
-| **`main` remoto** | cámara/shot types merged (`667a660`) |
+| **Rama de trabajo** | `cursor/ux-free-path-consolidar-9b67` |
+| **Commit base** | `main` + UX-0 + UX-3 + consolidación Free Path |
+| **PR actual** | [#87](https://github.com/oscarkleinkopf/influ-json/pull/87) Free Path: layout + honestidad + Copiar JSON primero |
+| **`main` remoto** | face pack merged (`f9822ec`); PRs #85/#86 supersedibles por este |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge face-pack; siguiente: outfit_variations / prompt_seed si aplica |
+| **Prioridad inmediata** | Merge este PR; Free Path claro sin CTAs falsos |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
-| **En pausa** | OAuth, SMTP, video, HostGator deploy |
+| **En pausa** | OAuth, SMTP, video real, HostGator deploy · **#72 Ajustes tabs** CONFLICTING (rebase aparte) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — Free Path consolidar
+
+**Pedido:** Mantener Free Path primero; usabilidad sencilla; sin links/botones falsos.
+
+**Hecho:**
+- Cherry-pick UX-0 + UX-3 sobre `main` (face pack)
+- UGC: **Copiar JSON** primero (verde); boceto secundario; ZIP/kit/ads en `<details>`
+- Script Engine / Licensing / import: sin claims GPT-5.6; guiones = plantillas locales / Gemini opt-in
+- Consola: sin fila duplicada de packs (`data-free-pack` solo en ficha)
+- Toasts: sin «Campaña… GitHub» falso tras guiones; sin `alert()` runtime
+- Tests: `test/ux-free-path-consolidar.test.js` (+ UX-0/UX-3)
+- **PR:** este branch supersede #85/#86
+
+### Sesión previa (Cursor, 2026-08-11) — UX-3 honestidad UI
+
+**Pedido:** Continuar con UX-3 del plan (operatividad / honestidad).
+
+**Hecho:**
+- **3a** `#btnGenerateCampaignScripts` → `generateCampaignScriptsAction` (Gemini o mock + `POST /api/campaigns/:id/scripts`)
+- **3b** «Enviar Propuesta» `alert()` → «Descargar propuesta (.txt)»
+- **3c** Vídeo UGC etiquetado DEMO; toast honesto (sin pipeline real)
+- **3d** Stat Scripts = `scriptsCount` real vía `/api/data` (nada de `campañas×10` ni `|| 10`)
+- **3e** `getGenerationStats(profileId)` scoped; productos ya lo estaban
+- **3f** Empty states campañas/galería con CTA
+- **3h** Eliminado `showSyncToast` (23 call sites → `toastSuccess`/`toastError`)
+- **3g** #72 sigue CONFLICTING — no mergeado aquí
+- Tests: `test/ux3-honestidad.test.js`
+
+### Sesión previa (Cursor, 2026-08-11) — UX-0 layout + estructura
+
+**Pedido:** Implementar UX-0 del PLAN-UX (partir: bug de layout + test).
+
+**Hecho:**
+- **UX-0a:** eliminado `</div>` sobrante tras `#variantManagerSection` que cerraba `<main>`/`#persona-engine` antes de tiempo (4 pestañas + historial salían a `<body>` flex)
+- **UX-0b:** `@media (max-width:768px)` → `.main-content { margin-left:0; width:100% }`
+- **UX-0c:** `#offlineModeBar` de `sticky` → `fixed` (ya no roba ancho al flex de `body`)
+- **UX-0d:** `test/html-structure.test.js` (balance de tags + tabs bajo `<main>` + historial dentro de persona-engine)
+- Cache-bust `index.css?v=1.3.3`
 
 ### Sesión reciente (Cursor, 2026-08-11) — face pack canónico
 
@@ -423,6 +462,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-11 | Cursor | **fix(ux-0)**: HTML nesting + móvil margin + offline bar fixed + test estructura | *(este PR)* |
 | 2026-08-10 | Cursor | **fix**: Resumen thumbs — fallback static `DATA_DIR` para references/generated | *(este PR)* |
 | 2026-08-05 | Cursor | **Happy path live**: create→JSON pack→export + boceto pollen; smoke 9/9 | *(docs)* |
 | 2026-08-05 | Cursor | **UX #2** + **L4c** Flux template | *(este PR)* |

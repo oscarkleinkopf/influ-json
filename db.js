@@ -1166,11 +1166,47 @@ module.exports = {
     syncDbToWorkspace();
   },
 
-  getGenerationStats() {
+  getGenerationStats(profileId = null) {
+    // UX-3e — contar solo gens de personas del perfil activo (antes era global y mentía el dashboard)
+    if (profileId) {
+      const total = db.prepare(`
+        SELECT COUNT(*) as count FROM generation_history g
+        INNER JOIN personas p ON p.id = g.persona_id
+        WHERE p.profile_id = ?
+      `).get(profileId);
+      const byType = db.prepare(`
+        SELECT g.generation_type, COUNT(*) as count FROM generation_history g
+        INNER JOIN personas p ON p.id = g.persona_id
+        WHERE p.profile_id = ?
+        GROUP BY g.generation_type
+      `).all(profileId);
+      const byPersona = db.prepare(`
+        SELECT g.persona_id, COUNT(*) as count FROM generation_history g
+        INNER JOIN personas p ON p.id = g.persona_id
+        WHERE p.profile_id = ?
+        GROUP BY g.persona_id
+        ORDER BY count DESC
+      `).all(profileId);
+      return { total: total.count, byType, byPersona };
+    }
     const total = db.prepare('SELECT COUNT(*) as count FROM generation_history').get();
     const byType = db.prepare('SELECT generation_type, COUNT(*) as count FROM generation_history GROUP BY generation_type').all();
     const byPersona = db.prepare('SELECT persona_id, COUNT(*) as count FROM generation_history GROUP BY persona_id ORDER BY count DESC').all();
     return { total: total.count, byType, byPersona };
+  },
+
+  /** UX-3d — scripts reales guardados en campañas del perfil (no campañas×10). */
+  countScriptsForProfile(profileId = null) {
+    if (profileId) {
+      const row = db.prepare(`
+        SELECT COUNT(*) as count FROM scripts s
+        INNER JOIN campaigns c ON c.id = s.campaign_id
+        WHERE c.profile_id = ?
+      `).get(profileId);
+      return row?.count || 0;
+    }
+    const row = db.prepare('SELECT COUNT(*) as count FROM scripts').get();
+    return row?.count || 0;
   },
 
   /**

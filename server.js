@@ -580,11 +580,13 @@ app.get('/api/data', (req, res) => {
   const { mapPersonasDisplayImages } = require('./persona-image');
   const personas = mapPersonasDisplayImages(dbService.getAllPersonas(profileId));
   const products = dbService.getAllProducts(profileId);
-  const generationStats = dbService.getGenerationStats();
+  const generationStats = dbService.getGenerationStats(profileId);
+  const scriptsCount = dbService.countScriptsForProfile(profileId);
   res.json({
     personas,
     products,
     generationStats,
+    scriptsCount,
     profile: {
       id: req.session.profileId,
       name: req.session.profileName,
