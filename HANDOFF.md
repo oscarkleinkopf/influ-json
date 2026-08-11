@@ -25,15 +25,27 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/spicy-setting-lock-173f` |
-| **Commit base** | tip `main` (#73+#74) + INDOOR SETTING LOCK |
-| **PR actual** | Spicy: lock setting del vault + OUTFIT látex (no playa/bikini) |
-| **`main` remoto** | #73 thumbs + #74 `/mar/` fix MERGED |
+| **Rama de trabajo** | `cursor/eru-face-anchor-mix-173f` |
+| **Commit base** | tip `main` (#75) + face-anchor mismatch guard |
+| **PR actual** | Eru: no clavar cara de foto que contradice character_lock |
+| **`main` remoto** | #75 spicy indoor setting lock MERGED |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge setting-lock; Colorina spicy hotel+látex; walkthrough Daniela |
+| **Prioridad inmediata** | Merge face-anchor mix; walkthrough Daniela |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — Eru café = cara de otra influencer
+
+**Pedido:** Creé Eru; gen en café muestra a otra influencer que ya existía.
+
+**Causa:** El retrato subido de Eru es una rubia clara, pero el `character_lock` pide morena / pelo negro. `POST /variants` hacía img2img siempre con `persona.image` → clavaba la cara equivocada. Además `getFullPersonaJSON()` prefería `analysisResult` stale de otro análisis.
+
+**Hecho:**
+- `anchor-lock-consistency.js`: si foto contradice tez/pelo del lock → skip face-anchor (texto JSON gana)
+- Placeholders `nano_banana_*` ya no se suben como face DNA
+- Limpiar `analysisResult` al crear/seleccionar/reset upload; variantes usan JSON de esa persona
+- Toast al guardar con foto de referencia
 
 ### Sesión reciente (Cursor, 2026-08-11) — Spicy hotel+látex aún derivaba a playa
 

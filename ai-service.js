@@ -856,8 +856,16 @@ module.exports = {
 
   async uploadToTmpFiles(localPath) {
     try {
-      if (!localPath || localPath.includes('influencer_female.png') || localPath.includes('influencer_male.png')) {
-        return null;
+      // Never face-anchor shared stock stubs (same PNG reused by many personas → cara cruzada)
+      try {
+        const { isPlaceholderAnchorImage } = require('./character-lock-validator');
+        if (!localPath || isPlaceholderAnchorImage(localPath)) {
+          return null;
+        }
+      } catch (_) {
+        if (!localPath || localPath.includes('influencer_female.png') || localPath.includes('influencer_male.png') || /nano_banana/i.test(localPath)) {
+          return null;
+        }
       }
       const { resolveSafeAssetPath } = require('./safe-paths');
       const absolutePath = resolveSafeAssetPath(localPath);

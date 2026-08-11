@@ -251,13 +251,14 @@
     return ns <= ps - 8;
   }
 
-  /** Paths de imagen stock — no cuentan como ancla real (W16). */
-  const PLACEHOLDER_ANCHOR_RE = /(?:^|\/)(?:influencer_(?:female|male)(?:_bottle|_serum)?|nano_banana_influencer)\.png$/i;
+  /** Paths de imagen stock — no cuentan como ancla real (W16). Incluye nano_banana_* compartidos. */
+  const PLACEHOLDER_ANCHOR_RE = /(?:^|\/)(?:influencer_(?:female|male)(?:_bottle|_serum)?|nano_banana_(?:influencer|ugc))\.png$/i;
 
   function isPlaceholderAnchorImage(imagePath) {
     if (imagePath == null || String(imagePath).trim() === '') return true;
-    const s = String(imagePath).trim().split('?')[0];
-    return PLACEHOLDER_ANCHOR_RE.test(s) || s === 'assets/influencer_female.png' || s === 'assets/influencer_male.png';
+    const s = String(imagePath).trim().split('?')[0].replace(/\\/g, '/');
+    const base = s.split('/').pop() || s;
+    return PLACEHOLDER_ANCHOR_RE.test(s) || PLACEHOLDER_ANCHOR_RE.test(base);
   }
 
   /**

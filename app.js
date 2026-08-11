@@ -2567,6 +2567,7 @@ function resetPersonaFormForNew() {
   state.scratchExtendedTraits = null;
   state.activeNicheId = null;
   uploadedImagePath = null;
+  analysisResult = null; // Never reuse another influencer's photo analysis as new DNA
 
   // Clear selection highlight on portfolio / select grids
   try { refreshPersonaLists(); } catch (e) { /* grids may not be ready */ }
@@ -2700,6 +2701,7 @@ function selectPersona(persona) {
   state.isCreatingNewPersona = false;
   state.selectedPersona = persona;
   uploadedImagePath = null; // Clear upload session when selecting another persona
+  analysisResult = null; // Clear photo-analysis DNA so variants/exports use THIS persona's lock
   state.activeNicheId = null;
   try {
     let d = persona.detailedJSON;
@@ -3188,12 +3190,16 @@ function isRealPersonaObject(obj) {
   return _promptBuilder().isRealPersonaObject(obj);
 }
 
-function getFullPersonaJSON() {
+function getFullPersonaJSON(opts = {}) {
   let base = {};
   
-  // 1. Start with the richest source (analysisResult or stored detailedJSON)
-  // IMPORTANT: only treat as object if it's a real persona object (not a string / char-map)
-  if (typeof analysisResult !== 'undefined' && analysisResult && isRealPersonaObject(analysisResult)) {
+  // 1. Start with the richest source.
+  // NEVER prefer stale analysisResult when editing/generating for a selected persona
+  // (that mixed Colorina DNA into Eru variants). Analysis only wins in create/analyze flows.
+  const allowAnalysis = opts.preferAnalysis === true
+    || (state.isCreatingNewPersona === true && !state.selectedPersona?.id)
+    || opts.fromAnalysis === true;
+  if (allowAnalysis && typeof analysisResult !== 'undefined' && analysisResult && isRealPersonaObject(analysisResult)) {
     base = JSON.parse(JSON.stringify(analysisResult));
   } else if (state.selectedPersona && state.selectedPersona.detailedJSON) {
     try {
@@ -3202,6 +3208,9 @@ function getFullPersonaJSON() {
         base = JSON.parse(JSON.stringify(stored));
       }
     } catch (e) {}
+  } else if (typeof analysisResult !== 'undefined' && analysisResult && isRealPersonaObject(analysisResult)) {
+    // Create-from-scratch with an in-progress analysis and no selection yet
+    base = JSON.parse(JSON.stringify(analysisResult));
   }
   
   // 2. Ensure nested structures exist (face + full body)
@@ -4876,11 +4885,23 @@ async function savePersona(opts = {}) {
     || (creatingNew ? null : state.selectedPersona?.imageUGC)
     || (gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/nano_banana_ugc.png');
 
+  // Uploaded photo becomes face DNA for Pollinations variants — warn if it may disagree with form lock
+  if (uploadedImagePath && !portraitPath) {
+    const skinForm = (document.getElementById('pSkinTone')?.value || '').toLowerCase();
+    const hairForm = (document.getElementById('pHairColor')?.value || document.getElementById('pHair')?.value || '').toLowerCase();
+    const looksDarkLock = /morena|oscura|profunda|dark|negra/.test(skinForm) || /negro|black|castaño oscuro/.test(hairForm);
+    if (looksDarkLock) {
+      toastInfo('La foto subida será la cara en las variantes. Si es de otra persona (p. ej. rubia) y el JSON pide morena/pelo negro, mejor «Crear + retrato» sin esa foto o cámbiala.');
+    } else {
+      toastInfo('Foto de referencia: las poses anclarán esta cara (más fuerte que el texto del JSON si no coinciden).');
+    }
+  }
+
   const personaData = {
     name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting,
     image: finalImage,
     imageUGC: finalImageUGC,
-    detailedJSON: getFullPersonaJSON()
+    detailedJSON: getFullPersonaJSON({ preferAnalysis: false })
   };
 
   // Critical: only attach id when UPDATING an existing selection (not create mode)
@@ -6345,6 +6366,8 @@ async function handlePhotoFile(file) {
 }
 
 function resetUploadDropzone() {
+  uploadedImagePath = null;
+  analysisResult = null;
   const dropzone = document.getElementById('uploadDropzone');
   dropzone.classList.remove('has-image');
   dropzone.innerHTML = `
@@ -7794,10 +7817,16 @@ async function generateOneVariant(p, index, total) {
   statusCard.style.display = 'flex';
   statusCard.classList.add('loading-pulse');
   statusText.textContent = `Renderizando ${mode === 'spicy' ? 'spicy' : 'pose'} de ${p.name}${counter}...`;
-  toastLoading(`Generando variante${counter} de ${p.name} — misma cara que el retrato principal...`);
+  toastLoading(`Generando variante${counter} de ${p.name} — identidad desde su character_lock...`);
 
-  // SAME identity pipeline for traditional + spicy (only pose/clothes/scene change)
-  const detailed = getFullPersonaJSON();
+  // Identity from THIS persona only — never stale analysisResult of another influencer
+  let detailed;
+  if (state.selectedPersona?.id === p.id) {
+    detailed = getFullPersonaJSON({ preferAnalysis: false });
+  } else {
+    detailed = parseDetailedJSON(p.detailedJSON);
+    if (!isRealPersonaObject(detailed)) detailed = {};
+  }
   const skin = resolveSkinForPrompt(detailed, p);
   const id = buildIdentityLockBlock(p, detailed, skin);
   const framing = _promptBuilder().detectVariantFraming(pose);
@@ -7841,10 +7870,15 @@ async function generateOneVariant(p, index, total) {
       statusText.textContent = framing === 'fullbody'
         ? `✓ Cuerpo entero generado${counter}!`
         : `✓ Pose agregada${counter}!`;
+      if (data.faceAnchorSkipped) {
+        toastInfo(`Retrato no coincidía con el JSON de ${p.name} — generé con character_lock (sin clavar la foto equivocada).`);
+      }
       if (total === 1) {
         toastSuccess(framing === 'fullbody'
           ? `Cuerpo entero de ${p.name} listo`
-          : `Variante lista — cara anclada a ${p.name}`);
+          : (data.faceAnchorSkipped
+            ? `Variante lista — identidad desde JSON de ${p.name}`
+            : `Variante lista — cara anclada a ${p.name}`));
       }
       statusCard.classList.remove('loading-pulse');
       if (index + 1 >= total) setTimeout(() => statusCard.style.display = 'none', 3000);

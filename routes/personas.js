@@ -277,9 +277,11 @@ function registerPersonasRoutes(app, deps) {
     let { prompt } = req.body;
   
     const persona = req.persona;
-    // ALWAYS prefer main portrait as face DNA (same for traditional + spicy)
+    // Prefer main portrait as face DNA (same for traditional + spicy).
     // Do not use a previous spicy/variant image as anchor or faces diverge.
+    // Skip shared stubs + portraits that contradict character_lock (Eru bug: JSON morena, foto rubia).
     let referenceLocalPath = (persona && persona.image) ? persona.image : null;
+    let skipFaceAnchorReason = null;
     if (persona && persona.detailedJSON) {
       try {
         let d = persona.detailedJSON;
@@ -298,7 +300,35 @@ function registerPersonasRoutes(app, deps) {
             prompt += `. ${aiService.buildSkinLockFragment(skinTone || skinInfo.label, skinHex || '#f0d5c0', skinInfo)}`;
           }
         }
+        // Dark-skin lock reinforcement (symmetric to fair)
+        if (prompt && (skinHex || /morena|oscura|profunda|dark/i.test(skinTone))) {
+          if (!/SKIN LOCK/i.test(prompt) && /morena|oscura|profunda|dark/i.test(skinTone)) {
+            prompt += `. SKIN LOCK: ${skinTone}${skinHex ? ` hex ${skinHex}` : ''}, keep deep/dark undertone, NOT fair, NOT blonde porcelain`;
+          }
+        }
       } catch (e) {}
+    }
+
+    try {
+      const { isPlaceholderAnchorImage } = require('../character-lock-validator');
+      if (referenceLocalPath && isPlaceholderAnchorImage(referenceLocalPath)) {
+        skipFaceAnchorReason = `placeholder:${referenceLocalPath}`;
+        referenceLocalPath = null;
+      }
+    } catch (_) {}
+
+    if (referenceLocalPath && persona?.detailedJSON) {
+      try {
+        const { anchorConflictsWithLock } = require('../anchor-lock-consistency');
+        const check = await anchorConflictsWithLock(referenceLocalPath, persona.detailedJSON, { rootDir });
+        if (check.conflict) {
+          skipFaceAnchorReason = check.reason || 'lock_vs_portrait_mismatch';
+          console.warn(`[variant] Skip face anchor for ${persona.name}: ${skipFaceAnchorReason}`);
+          referenceLocalPath = null;
+        }
+      } catch (err) {
+        console.warn('[variant] anchor-lock check skipped:', err.message);
+      }
     }
   
     let referenceUrl = null;
@@ -309,6 +339,8 @@ function registerPersonasRoutes(app, deps) {
       } catch (e) {
         console.warn('Failed to upload variant reference photo:', e);
       }
+    } else if (skipFaceAnchorReason) {
+      console.log(`[variant] Text-only identity (no face anchor): ${skipFaceAnchorReason}`);
     }
   
     const photoreal = req.body.photoreal === true
@@ -376,6 +408,7 @@ function registerPersonasRoutes(app, deps) {
                 seed,
                 framing,
                 referenceLocalPath,
+                faceAnchorSkipped: skipFaceAnchorReason || null,
                 preferFaceLock,
                 consistency_distance: scored?.distance ?? null,
                 consistency_grade: scored?.grade ?? null
@@ -398,7 +431,14 @@ function registerPersonasRoutes(app, deps) {
             console.warn('[gen-metrics]', mErr.message);
           }
           runGitBackup((gitSuccess, msg) => {
-            res.json({ success: true, variant, variants: dbService.getVariantsForPersona(req.params.id), gitSynced: gitSuccess, gitMessage: msg });
+            res.json({
+              success: true,
+              variant,
+              variants: dbService.getVariantsForPersona(req.params.id),
+              faceAnchorSkipped: skipFaceAnchorReason || null,
+              gitSynced: gitSuccess,
+              gitMessage: msg
+            });
           });
         } else {
           try {
