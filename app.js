@@ -299,9 +299,10 @@ async function loadLoginProfiles() {
   const select = document.getElementById('loginProfileSelect');
   if (!select) return;
   try {
-    const res = await fetch('/api/auth/profiles');
+    const res = await fetch('/api/auth/profiles', { credentials: 'same-origin' });
     const data = await res.json();
-    const profiles = data.profiles || [];
+    const harnessRe = /^(MetricsMem_|Onboard_|Member Sec|SmokeMem|SmokeMember|L5 |HelloWorld|SpeedTest|DualSync)/i;
+    const profiles = (data.profiles || []).filter((p) => !harnessRe.test(String(p.name || '')));
     select.innerHTML = '<option value="">Detectar por PIN…</option>' +
       profiles.map(p => {
         const tag = (p.role === 'admin' || p.role === 'owner') ? ' (admin)' : '';
@@ -325,6 +326,7 @@ function setupLogin() {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin, profileId: profileId || undefined })
       });
@@ -342,7 +344,9 @@ function setupLogin() {
           maybeShowMemberOnboarding();
         }
       } else {
-        const msg = data.message || 'PIN incorrecto.';
+        const msg = data.retryAfterSec
+          ? (data.message || `Demasiados intentos. Espera ${data.retryAfterSec}s.`)
+          : (data.message || 'PIN incorrecto.');
         if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
         toastError(msg);
       }

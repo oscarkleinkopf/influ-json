@@ -25,42 +25,37 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/fix-github-pages-landing-9b67` |
-| **Commit base** | `main` @ UX-1 |
-| **PR actual** | [#91](https://github.com/oscarkleinkopf/influ-json/pull/91) Fix GitHub Pages — landing estático |
-| **`main` remoto** | UX-1 merged; #90 PIN fix puede estar abierto |
-| **Prioridad inmediata** | Merge [#91](https://github.com/oscarkleinkopf/influ-json/pull/91) → `main` (Pages ya publica `main` `/`) |
-| **PIN local** | `1234` en `http://127.0.0.1:3000` — **no** en github.io |
-| **Pages** | `main` + `/` → github.io; tras merge #91 = modal honesto (no login PIN) |
+| **Rama de trabajo** | `cursor/fix-login-pin-unlock-9b67` |
+| **Commit base** | `main` @ #91 Pages merged |
+| **PR actual** | [#90](https://github.com/oscarkleinkopf/influ-json/pull/90) Fix login PIN |
+| **`main` remoto** | #91 Pages merged |
+| **Prioridad inmediata** | Merge #90 → luego #89 UX-2 → UX-4 |
+| **PIN local** | `1234` (default). Tras 5 fallos → espera 60s. Selector: «Detectar por PIN…» |
+| **Pages** | `main` `/` → github.io = modal local (no Studio) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 
-### Sesión reciente (Cursor, 2026-08-11) — GitHub Pages no funciona
+### Sesión reciente (Cursor, 2026-08-11) — Fix unlock PIN
 
-**Pedido:** En GitHub Pages no funciona (PIN / Studio). Confirmado: Pages despliega **`main`** (path `/`).
+**Pedido:** No deja desbloquear con el PIN.
 
-**Causa:** Pages sirve `index.html` estático sin Express. `/api/*` → 404. Login PIN inútil.
+**Causa:**
+1. `.env` quedó vacío (1 byte) en la VM
+2. Rate-limit login (5 fallos → bloqueo 60s)
+3. Selector de login listaba perfiles de `npm test` (MetricsMem_/Onboard_/…); al elegir uno + PIN `1234` → «incorrecto»
 
-**Hecho:**
-- Detectar `*.github.io` / `file://` / API no-JSON → `#staticHostModal` con `npm start`
-- Landing opcional `docs/index.html` + `.nojekyll` (no requiere cambiar Settings)
-- README: Pages = `main` `/`; Studio solo en local
-- Tests: `test/github-pages-static.test.js`
-- **Para que github.io se actualice:** merge #91 a `main` (Pages rebuild automático)
+**Hecho:** restaurar `.env`; filtrar harness en `/api/auth/profiles`; credentials + mensaje 429; desactivar perfiles harness en DB local. Rebase sobre #91 Pages.
 
-### Sesión previa — UX-1 / Free Path / PIN
+### Sesión previa (Cursor, 2026-08-11) — GitHub Pages
 
-Ver log; PIN unlock en #90 si sigue abierto.
+**Pedido:** Pages no funciona. Confirmado: despliega `main` `/`.
+
+**Hecho:** #91 merged — modal estático + `docs/` landing opcional.
 
 ### Sesión previa (Cursor, 2026-08-11) — UX-1 IA navegación
 
-**Pedido:** Merge #87 + implementar UX-1.
+### Sesión previa — UX-2 / Free Path
 
-**Hecho:**
-- Merge #87 → `main`; cerrados #85/#86
-- **1a** Sidebar/móvil: Influencers · Producir · Negocio (+ ?); `hub-subnav` para hijas
-- **1b** Chip global «Trabajando con» + Copiar JSON de contexto
-- **1c** Pack canónico + menú Packs ▾; UGC navega a ficha (sin duplicar destino)
-- Tests: `test/ux1-ia-navegacion.test.js`
+Ver log; UX-2 sigue en #89.
 
 ### Sesión previa (Cursor, 2026-08-11) — Free Path consolidar
 
