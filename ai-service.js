@@ -28,16 +28,57 @@ dotenv.config();
 function promptImpliesBeachSetting(text) {
   const t = String(text || '');
   if (!t) return false;
-  if (/\b(playa|beach|ocean|seaside|shore|piscina|pool)\b/i.test(t)) return true;
-  if (/\b(mar|costa)\b/i.test(t)) return true;
-  if (/tropical\s+beach|golden\s+sand|turquoise\s+ocean|ocean\s+shoreline/i.test(t)) return true;
+  // "NOT beach" / "NOT ocean" no deben contar como pedido de playa
+  const cleaned = t.replace(
+    /\bNOT\s+(a\s+)?(beach|ocean|sand|seaside|shore|playa|mar|costa|palm(?:\s+trees)?|tropical\s+outdoor|bikini\s+beach)[^\s,.]*/gi,
+    ' '
+  );
+  if (/\b(playa|beach|ocean|seaside|shore|piscina|pool)\b/i.test(cleaned)) return true;
+  if (/\b(mar|costa)\b/i.test(cleaned)) return true;
+  if (/tropical\s+beach|golden\s+sand|turquoise\s+ocean|ocean\s+shoreline/i.test(cleaned)) return true;
   return false;
 }
 
 /** Si el prompt ya fija Background/location indoor, no pisar con playa. */
 function promptHasExplicitIndoorSetting(text) {
   const t = String(text || '');
-  return /Background\/location:\s*[^.\n]*(bedroom|hotel|boudoir|dormitorio|habitaci[oó]n|apartment|apartamento|cafe|office|oficina|gym|gimnasio|indoor|interior)/i.test(t);
+  return /Background\/location:\s*[^.\n]*(bedroom|hotel|boudoir|dormitorio|habitaci[oó]n|apartment|apartamento|cafe|office|oficina|gym|gimnasio|indoor|interior|penthouse)/i.test(t);
+}
+
+function extractRequestedSetting(prompt, options = {}) {
+  if (options && options.setting && String(options.setting).trim()) {
+    return String(options.setting).trim();
+  }
+  const m = String(prompt || '').match(/Background\/location:\s*([^.]+)\./i);
+  return m ? m[1].trim() : '';
+}
+
+function isIndoorSettingText(text) {
+  return /\b(bedroom|hotel|boudoir|dormitorio|habitaci[oó]n|apartment|apartamento|penthouse|indoor|interior|living\s*room|sala|office|oficina|cafe|café|gym|gimnasio|studio)\b/i.test(
+    String(text || '')
+  );
+}
+
+/**
+ * Prefijo fuerte con el setting que eligió el usuario (vault spicy/tradicional).
+ * Evita que el modelo ignore "hotel bedroom" y pinte playa/bikini.
+ */
+function buildRequestedSettingPrefix(requested) {
+  const r = String(requested || '').trim();
+  if (!r) return '';
+  if (promptImpliesBeachSetting(r)) {
+    return `SCENE: ${r}. SETTING LOCK: ${r}. `;
+  }
+  if (isIndoorSettingText(r)) {
+    return (
+      `SCENE: ${r}. `
+      + `INDOOR SETTING LOCK (critical): ${r}. Stay fully indoors in that location. `
+      + `Windows show only city night lights, curtains, or blank wall — NOT outdoor scenery. `
+      + `NOT beach, NOT ocean, NOT sand, NOT palm trees, NOT tropical outdoor shoreline, NOT seaside, `
+      + `NOT ocean view through window, NOT beach visible outside, NOT bikini beach photoshoot. `
+    );
+  }
+  return `SCENE: ${r}. SETTING LOCK: ${r}. `;
 }
 
 const apiKey = process.env.GEMINI_API_KEY;
@@ -67,6 +108,9 @@ if (apiKey) {
 module.exports = {
   promptImpliesBeachSetting,
   promptHasExplicitIndoorSetting,
+  extractRequestedSetting,
+  isIndoorSettingText,
+  buildRequestedSettingPrefix,
 
   isApiConnected() {
     return ai !== null;
@@ -562,20 +606,26 @@ module.exports = {
       finalPrompt += ' Keep the exact same face as the reference image; only outfit, pose and background may change.';
     }
 
+    const requestedSetting = extractRequestedSetting(finalPrompt, options);
+
     // 1. Detect Setting & Outfit Overrides from user prompt dynamically
+    //    Solo si el usuario NO eligió setting en el vault / Background/location.
     let detectedSetting = null;
     let detectedOutfit = null;
 
-    if (/café|cafe|coffee shop|oficina|office|escritorio|desk|negocios|business/i.test(finalPrompt)) {
-      detectedSetting = 'COZY MODERN CAFE INTERIOR, elegant coffee shop table, warm ambient indoor lighting, professional atmosphere';
-      if (/oficina|office|ejecutiva|business|ropas de oficina/i.test(finalPrompt)) {
-        detectedOutfit = 'professional office business attire, elegant blazer and trousers';
+    if (!requestedSetting) {
+      if (/café|cafe|coffee shop|oficina|office|escritorio|desk|negocios|business/i.test(finalPrompt)) {
+        detectedSetting = 'COZY MODERN CAFE INTERIOR, elegant coffee shop table, warm ambient indoor lighting, professional atmosphere';
+        if (/oficina|office|ejecutiva|business|ropas de oficina/i.test(finalPrompt)) {
+          detectedOutfit = 'professional office business attire, elegant blazer and trousers';
+        }
+      } else if (promptImpliesBeachSetting(finalPrompt) && !promptHasExplicitIndoorSetting(finalPrompt)) {
+        detectedSetting = 'OUTDOOR SUNNY TROPICAL BEACH, direct bright midday sunlight, clear blue sky, turquoise ocean, golden sand';
       }
-    } else if (promptImpliesBeachSetting(finalPrompt) && !promptHasExplicitIndoorSetting(finalPrompt)) {
-      detectedSetting = 'OUTDOOR SUNNY TROPICAL BEACH, direct bright midday sunlight, clear blue sky, turquoise ocean, golden sand';
     }
 
-    if (/bikini|swimsuit|swimwear|traje de baño|trajedebaño/i.test(finalPrompt)) {
+    if (/bikini|swimsuit|swimwear|traje de baño|trajedebaño/i.test(finalPrompt)
+      && !/latex|látex|catsuit|corset|lingerie|lencería|leather/i.test(finalPrompt)) {
       detectedOutfit = 'stylish two-piece beach bikini swimsuit, high quality swimwear';
     }
 
@@ -593,6 +643,15 @@ module.exports = {
 
     if (detectedOutfit) {
       finalPrompt = `${finalPrompt} OUTFIT LOCK: wearing ${detectedOutfit}.`;
+    } else if (/latex|látex|catsuit/i.test(finalPrompt)) {
+      // Evita que un fondo erróneo (playa) arrastre bikini en vez del látex pedido.
+      finalPrompt += ' OUTFIT LOCK: keep the described latex/catsuit outfit; NOT bikini, NOT swimsuit, NOT beachwear.';
+    }
+
+    // Setting del vault al FINAL (después del clean) para que no lo borre el replace.
+    const settingPrefix = buildRequestedSettingPrefix(requestedSetting);
+    if (settingPrefix) {
+      finalPrompt = `${settingPrefix}${finalPrompt}`;
     }
 
     const framing = this.resolveFraming(options, finalPrompt);
@@ -631,8 +690,11 @@ module.exports = {
         // (or no ref) so the camera can pull back; face is held by IDENTITY text + seed.
         let strength = 0.72;
         if (framing === 'fullbody') strength = 0.32; // allow composition change from portrait ref
-        else if (identityLock) strength = 0.78;
-        else if (wantsPhotoreal) strength = 0.72;
+        else if (identityLock) {
+          // Medium + face lock alto (~0.78) congela fondo del retrato. Si el vault pide
+          // otra escena (hotel/bedroom), bajar strength para que cambie el fondo.
+          strength = (requestedSetting && isIndoorSettingText(requestedSetting)) ? 0.45 : 0.78;
+        } else if (wantsPhotoreal) strength = 0.72;
         if (strengthOverride != null) strength = strengthOverride;
 
         // Modern endpoint (gen.pollinations.ai/image/{prompt}) per the live OpenAPI spec.
