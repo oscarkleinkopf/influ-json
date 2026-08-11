@@ -25,12 +25,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/fix-mar-beach-false-positive-173f` |
-| **Commit base** | tip `main` + fix `/mar/` → playa |
-| **PR actual** | Spicy látex ya no fuerza playa (falso positivo smartphone) |
-| **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + harness batch |
+| **Rama de trabajo** | `main` |
+| **Commit base** | tip con #73 thumbs + #74 fix playa |
+| **PR actual** | #73 MERGED · #74 merge (fix `/mar/` → playa) |
+| **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + harness + thumbs |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge fix playa + [#73](https://github.com/oscarkleinkopf/influ-json/pull/73) thumbs; walkthrough Daniela |
+| **Prioridad inmediata** | Walkthrough Daniela / Colorina spicy tras #74; OAuth/SMTP/video en pausa |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy · Daniela body/skin/spicy (hasta PC) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
@@ -42,6 +42,14 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 **Causa:** `ai-service` detectaba playa con `/mar/` suelto; coincidía dentro de **smartphone** (siempre en prompts de variante) y forzaba `SETTING LOCK` tropical beach.
 
 **Hecho:** `promptImpliesBeachSetting` con word boundaries + no pisar `Background/location` indoor. Test `beach-mar-false-positive.test.js`.
+
+### Sesión reciente (Cursor, 2026-08-10) — Resumen images 404 → DATA_DIR fallback
+
+**Pedido:** En Resumen hay varias imágenes que no cargan.
+
+**Causa:** `/assets/references|generated` solo miraba `assets/`; ~55 thumbnails existían solo en `data/references|generated` (mirror dual-write / limpieza de tests).
+
+**Hecho:** `express.static` fallback a `DATA_DIR`; `persona-image.js` sustituye thumbs &lt;2KB (bloque amarillo) por avatar en `/api/data`; client `img.complete` + demos harness al final. Tests `asset-data-dir-fallback` + `persona-image-display`.
 
 ### Sesión reciente (Cursor, 2026-08-10) — Batch merge harness PRs
 
@@ -372,6 +380,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-10 | Cursor | **fix**: Resumen thumbs — fallback static `DATA_DIR` para references/generated | *(este PR)* |
 | 2026-08-05 | Cursor | **Happy path live**: create→JSON pack→export + boceto pollen; smoke 9/9 | *(docs)* |
 | 2026-08-05 | Cursor | **UX #2** + **L4c** Flux template | *(este PR)* |
 | 2026-08-05 | Cursor | Merge #53 Sec #2 + #54 L4 → `main` | *(main)* |
