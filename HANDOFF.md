@@ -25,17 +25,31 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux1-ia-navegacion-9b67` |
-| **Commit base** | `main` @ merge #87 Free Path |
-| **PR actual** | [#88](https://github.com/oscarkleinkopf/influ-json/pull/88) UX-1 IA: hubs + chip + Copiar JSON |
-| **`main` remoto** | Free Path merged (`9c0529c`); #85/#86 cerrados |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge UX-1; luego UX-2 (partir Persona Engine) |
-| **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
-| **En pausa** | OAuth, SMTP, video real, HostGator deploy · **#72 Ajustes tabs** CONFLICTING (rebase aparte) |
-| **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+| **Rama de trabajo** | `cursor/fix-github-pages-landing-9b67` |
+| **Commit base** | `main` @ UX-1 |
+| **PR actual** | (este) Fix GitHub Pages — landing estático |
+| **`main` remoto** | UX-1 merged; #90 PIN fix puede estar abierto |
+| **Prioridad inmediata** | Merge Pages fix; usuario debe poner Pages → `/docs` en Settings |
+| **PIN local** | `1234` en `http://127.0.0.1:3000` — **no** en github.io |
+| **Servidor correcto** | `npm start` → `node server.js` |
 
-### Sesión reciente (Cursor, 2026-08-11) — UX-1 IA navegación
+### Sesión reciente (Cursor, 2026-08-11) — GitHub Pages no funciona
+
+**Pedido:** En GitHub Pages no funciona (PIN / Studio).
+
+**Causa:** Pages sirve `index.html` estático sin Express. `/api/status` y `/api/auth/login` → 404. El front mostraba login PIN inútil.
+
+**Hecho:**
+- Detectar `*.github.io` / `file://` / API no-JSON → `#staticHostModal` con `npm start`
+- Landing `docs/index.html` + `.nojekyll`
+- README: Pages ≠ Studio; aconsejar Settings → Pages → `/docs`
+- Tests: `test/github-pages-static.test.js`
+
+### Sesión previa — UX-1 / Free Path / PIN
+
+Ver log; PIN unlock en #90 si sigue abierto.
+
+### Sesión previa (Cursor, 2026-08-11) — UX-1 IA navegación
 
 **Pedido:** Merge #87 + implementar UX-1.
 
