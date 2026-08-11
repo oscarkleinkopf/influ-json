@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-11 | **GitHub Pages** estático honesto | Modal en raíz `main` `/`; Pages ≠ Studio (`npm start`) |
 | 2026-08-11 | **UX-1** IA navegación | Hubs Influencers/Producir/Negocio; chip global; ≤3 Copiar JSON |
 | 2026-08-11 | **Free Path consolidar** (#87) | Copiar JSON primero; sin GPT-5.6/Meta Ads live; dedupe packs; toasts honestos |
 | 2026-08-11 | **UX-3** honestidad UI | Scripts campaña cableados; stats reales; vídeo DEMO; sin alert/showSyncToast |

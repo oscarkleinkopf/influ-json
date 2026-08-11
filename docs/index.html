@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>influ-JSON — Studio local de influencers virtuales</title>
+  <meta name="description" content="Crea prompts y JSON character_lock para influencers virtuales consistentes. Corre en local con npm start — GitHub Pages no hospeda el Studio.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08070d;
+      --bg-2: #110e1c;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --dim: #64748b;
+      --line: rgba(255,255,255,0.08);
+      --accent: #6366f1;
+      --accent-2: #a855f7;
+      --grad: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      color: var(--text);
+      font-family: var(--font-body);
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(at 12% 8%, rgba(99,102,241,0.18) 0px, transparent 42%),
+        radial-gradient(at 88% 92%, rgba(168,85,247,0.12) 0px, transparent 45%),
+        linear-gradient(180deg, #08070d 0%, #0c0a14 100%);
+      background-attachment: fixed;
+    }
+    .shell {
+      width: min(920px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2.5rem 0 4rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: rise 0.7s ease forwards;
+    }
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--grad);
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+    }
+    .brand-name {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      letter-spacing: -0.03em;
+    }
+    .hero {
+      display: grid;
+      gap: 1.25rem;
+      margin-bottom: 2.25rem;
+      opacity: 0;
+      animation: rise 0.8s ease 0.12s forwards;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(1.35rem, 3.4vw, 1.85rem);
+      line-height: 1.25;
+      max-width: 18ch;
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 1.02rem;
+      line-height: 1.55;
+      max-width: 46ch;
+    }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.35rem;
+    }
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 10px;
+      padding: 0.85rem 1.15rem;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .btn-primary { background: var(--grad); color: #fff; }
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(160deg, rgba(25,22,41,0.85), rgba(12,10,20,0.92));
+      padding: 1.25rem 1.35rem;
+      opacity: 0;
+      animation: rise 0.85s ease 0.22s forwards;
+    }
+    .panel h2 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .panel p {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    pre {
+      margin: 0;
+      padding: 1rem 1.1rem;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .note {
+      margin-top: 1.5rem;
+      color: var(--dim);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      opacity: 0;
+      animation: rise 0.9s ease 0.32s forwards;
+    }
+    .note code {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #cbd5e1;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 640px) {
+      .shell { padding-top: 1.5rem; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="brand" aria-label="influ-JSON">
+      <div class="brand-mark" aria-hidden="true">I</div>
+      <div class="brand-name">influ-JSON</div>
+    </div>
+
+    <section class="hero">
+      <h1>Studio local para influencers virtuales consistentes</h1>
+      <p>
+        Genera prompts y JSON <code style="font-family:var(--font-mono);font-size:0.9em;color:#e2e8f0;">character_lock</code>
+        y pégalos en chatbots gratis. GitHub Pages no ejecuta el Studio: corre en tu PC.
+      </p>
+      <div class="cta-row">
+        <button type="button" class="btn btn-primary" id="btnCopy">Copiar comandos de arranque</button>
+        <a class="btn btn-ghost" href="https://github.com/oscarkleinkopf/influ-json" target="_blank" rel="noopener noreferrer">Abrir repositorio</a>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="runTitle">
+      <h2 id="runTitle">Arranque en 4 líneas</h2>
+      <p>Necesitas Node.js. El PIN por defecto es <strong style="color:#fff;font-weight:600;">1234</strong>.</p>
+      <pre id="cmds">git clone https://github.com/oscarkleinkopf/influ-json.git
+cd influ-json
+npm install
+npm start</pre>
+    </section>
+
+    <p class="note">
+      Luego abre <code>http://127.0.0.1:3000</code>.
+      GitHub Pages publica la rama <code>main</code> (raíz del repo): esa URL es informativa;
+      el Studio completo solo corre en local con <code>npm start</code>.
+    </p>
+  </main>
+  <script>
+    document.getElementById('btnCopy').addEventListener('click', async () => {
+      const text = document.getElementById('cmds').textContent.trim();
+      try {
+        await navigator.clipboard.writeText(text);
+        const btn = document.getElementById('btnCopy');
+        const prev = btn.textContent;
+        btn.textContent = 'Copiado';
+        setTimeout(() => { btn.textContent = prev; }, 1600);
+      } catch (_) {
+        alert('Copia el bloque de comandos a mano.');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -25,17 +25,33 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux1-ia-navegacion-9b67` |
-| **Commit base** | `main` @ merge #87 Free Path |
-| **PR actual** | [#88](https://github.com/oscarkleinkopf/influ-json/pull/88) UX-1 IA: hubs + chip + Copiar JSON |
-| **`main` remoto** | Free Path merged (`9c0529c`); #85/#86 cerrados |
-| **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge UX-1; luego UX-2 (partir Persona Engine) |
-| **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
-| **En pausa** | OAuth, SMTP, video real, HostGator deploy · **#72 Ajustes tabs** CONFLICTING (rebase aparte) |
-| **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+| **Rama de trabajo** | `cursor/fix-github-pages-landing-9b67` |
+| **Commit base** | `main` @ UX-1 |
+| **PR actual** | [#91](https://github.com/oscarkleinkopf/influ-json/pull/91) Fix GitHub Pages — landing estático |
+| **`main` remoto** | UX-1 merged; #90 PIN fix puede estar abierto |
+| **Prioridad inmediata** | Merge [#91](https://github.com/oscarkleinkopf/influ-json/pull/91) → `main` (Pages ya publica `main` `/`) |
+| **PIN local** | `1234` en `http://127.0.0.1:3000` — **no** en github.io |
+| **Pages** | `main` + `/` → github.io; tras merge #91 = modal honesto (no login PIN) |
+| **Servidor correcto** | `npm start` → `node server.js` |
 
-### Sesión reciente (Cursor, 2026-08-11) — UX-1 IA navegación
+### Sesión reciente (Cursor, 2026-08-11) — GitHub Pages no funciona
+
+**Pedido:** En GitHub Pages no funciona (PIN / Studio). Confirmado: Pages despliega **`main`** (path `/`).
+
+**Causa:** Pages sirve `index.html` estático sin Express. `/api/*` → 404. Login PIN inútil.
+
+**Hecho:**
+- Detectar `*.github.io` / `file://` / API no-JSON → `#staticHostModal` con `npm start`
+- Landing opcional `docs/index.html` + `.nojekyll` (no requiere cambiar Settings)
+- README: Pages = `main` `/`; Studio solo en local
+- Tests: `test/github-pages-static.test.js`
+- **Para que github.io se actualice:** merge #91 a `main` (Pages rebuild automático)
+
+### Sesión previa — UX-1 / Free Path / PIN
+
+Ver log; PIN unlock en #90 si sigue abierto.
+
+### Sesión previa (Cursor, 2026-08-11) — UX-1 IA navegación
 
 **Pedido:** Merge #87 + implementar UX-1.
 

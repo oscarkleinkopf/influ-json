@@ -215,10 +215,57 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Authentication Modal Logic
+
+/** GitHub Pages / file:// no tienen Express — el PIN no puede desbloquear nada. */
+function isStaticHostEnvironment() {
+  const host = String(location.hostname || '');
+  const proto = String(location.protocol || '');
+  return proto === 'file:' || /\.github\.io$/i.test(host);
+}
+
+async function probeStudioApiStatus() {
+  try {
+    const res = await fetch('/api/status', { credentials: 'same-origin' });
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    if (!res.ok || !ct.includes('application/json')) return null;
+    return await res.json();
+  } catch (_) {
+    return null;
+  }
+}
+
+function showStaticHostScreen() {
+  const modal = document.getElementById('staticHostModal');
+  if (modal) modal.style.display = 'flex';
+  const login = document.getElementById('loginModal');
+  if (login) login.style.display = 'none';
+  const copyBtn = document.getElementById('btnStaticHostCopy');
+  if (copyBtn && !copyBtn.dataset.bound) {
+    copyBtn.dataset.bound = '1';
+    copyBtn.addEventListener('click', async () => {
+      const cmd = document.getElementById('staticHostCmd')?.textContent || '';
+      try {
+        await navigator.clipboard.writeText(cmd.trim());
+        toastSuccess('Comandos copiados. Ejecútalos en tu terminal.');
+      } catch (_) {
+        toastError('No se pudo copiar. Selecciona el bloque a mano.');
+      }
+    });
+  }
+}
+
 function checkAuthAndInit() {
-  fetch('/api/status')
-    .then(res => res.json())
+  if (isStaticHostEnvironment()) {
+    showStaticHostScreen();
+    return;
+  }
+  probeStudioApiStatus()
     .then(status => {
+      if (!status) {
+        // API caída / HTML 404 (p. ej. hosting estático mal configurado)
+        showStaticHostScreen();
+        return;
+      }
       state.pinIsDefault = !!status.pinIsDefault;
       if (status.profile) {
         state.currentProfile = status.profile;
@@ -234,11 +281,12 @@ function checkAuthAndInit() {
       } else {
         showLoginScreen();
       }
-    })
-    .catch(() => showLoginScreen());
+    });
 }
 
 function showLoginScreen() {
+  const staticModal = document.getElementById('staticHostModal');
+  if (staticModal) staticModal.style.display = 'none';
   document.getElementById('loginModal').style.display = 'flex';
   loadLoginProfiles();
 }

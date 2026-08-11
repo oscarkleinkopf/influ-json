@@ -28,6 +28,14 @@ npm start
 
 Abrir `http://localhost:3000` (PIN por defecto: `1234`, configurable en `.env` como `STUDIO_PIN`).
 
+### GitHub Pages
+
+Despliegue actual: rama **`main`**, carpeta **`/`** → `https://oscarkleinkopf.github.io/influ-json/`.
+
+Esa URL **no es el Studio**. Pages solo sirve estáticos (sin Node, SQLite ni `/api/*`), así que el PIN no desbloquea nada ahí. Tras el fix de Pages, la home en `main` muestra cómo arrancar en local (`npm start` → `http://127.0.0.1:3000`).
+
+Landing alternativa (opcional): [`docs/index.html`](./docs/index.html) — no hace falta cambiar Settings si ya publicas la raíz de `main`.
+
 | Comando | Qué arranca |
 |---------|-------------|
 | `npm start` | **Studio completo** (`server.js` + SQLite) |
