@@ -25,17 +25,32 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/spicy-setting-lock-173f` |
-| **Commit base** | tip `main` (#73+#74) + INDOOR SETTING LOCK |
-| **PR actual** | Spicy: lock setting del vault + OUTFIT látex (no playa/bikini) |
-| **`main` remoto** | #73 thumbs + #74 `/mar/` fix MERGED |
+| **Rama de trabajo** | `cursor/ugc-anchors-asymmetry-173f` |
+| **Commit base** | tip `main` + asimetría/marcas + realism/negative packs |
+| **PR actual** | ugc-creator quick wins: `facial_asymmetry` + realism anchors + negative en packs free |
+| **`main` remoto** | tip actual |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge setting-lock; Colorina spicy hotel+látex; walkthrough Daniela |
+| **Prioridad inmediata** | Merge anchors; luego cámara chips / shot types (siguientes ideas ugc-creator) |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 
-### Sesión reciente (Cursor, 2026-08-11) — Spicy hotel+látex aún derivaba a playa
+### Sesión reciente (Cursor, 2026-08-11) — ugc-creator: asimetría + realism
+
+**Pedido:** Revisar [0xAnni/ugc-creator](https://github.com/0xAnni/ugc-creator) e implementar quick wins (1)+(2).
+
+**Hecho:**
+- Campo `facial_asymmetry` en ficha + `must_match_every_image` + packs / export / variantes
+- Marcas reforzadas (`keep visible`, never_do anti-beautify)
+- Bloques **REALISMO (Layer 5)** + **NEGATIVE PROMPT** en packs free y export chatbot
+- Validador: info si falta asimetría; «Sin marcas» también sugiere ancla
+- Tests: `test/ugc-anchors-asymmetry.test.js`
+
+**No tocar path free:** sigue sin Replicate; solo fortalece JSON/packs.
+
+---
+
+### Sesión previa — Spicy hotel+látex aún derivaba a playa
 
 **Pedido:** Tras #74, Colorina 2.5 spicy látex sigue en playa (cara OK).
 

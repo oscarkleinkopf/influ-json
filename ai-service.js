@@ -176,6 +176,7 @@ module.exports = {
             "jawline": "Description",
             "cheekbones": "Description",
             "facial_hair": "Description or Ninguno",
+            "facial_asymmetry": "Deliberate asymmetry e.g. left eye ~2% smaller, left jaw slightly softer — or Ninguno",
             "distinctive_marks": "Description or Ninguno",
             "smile_type": "Description"
           },
@@ -302,6 +303,7 @@ module.exports = {
             "jawline": "Description",
             "cheekbones": "Description",
             "facial_hair": "Description or Ninguno",
+            "facial_asymmetry": "Deliberate asymmetry e.g. left eye ~2% smaller, left jaw slightly softer — or Ninguno",
             "distinctive_marks": "Description or Ninguno",
             "smile_type": "Description"
           },
@@ -1470,6 +1472,7 @@ Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markd
     "eyebrow_style": "string",
     "lip_shape": "string",
     "jawline": "string",
+    "facial_asymmetry": "string",
     "smile_type": "string",
     "distinctive_marks": "string"
   },
@@ -1561,6 +1564,11 @@ Responde ÚNICAMENTE con un JSON válido usando esta estructura exacta sin markd
         eyebrow_style: pick(eyebrows),
         lip_shape: pick(lips),
         jawline: isMale ? 'Mandíbula firme y estructurada' : 'Mandíbula suave y definida',
+        facial_asymmetry: pick([
+          'Ojo izquierdo ~2% más pequeño, mandíbula izquierda ligeramente más suave',
+          'Cejas ligeramente asimétricas (derecha un poco más alta), mentón apenas desviado a la izquierda',
+          'Ojo derecho levemente más abierto, pómulos con ligera asimetría natural'
+        ]),
         smile_type: 'Sonrisa cálida, auténtica y natural',
         distinctive_marks: pick(['Peca sutil en el pómulo izquierdo', 'Pequeño lunar cerca de los labios', 'Lunar natural en el cuello', 'Ligeras pecas en el puente de la nariz'])
       },

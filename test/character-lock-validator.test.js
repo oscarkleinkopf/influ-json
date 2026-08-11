@@ -22,7 +22,8 @@ function healthyPersona() {
       eyebrow_style: 'Cejas naturales definidas',
       lip_shape: 'Labios carnosos',
       smile_type: 'Natural',
-      distinctive_marks: 'Lunar bajo el ojo izquierdo'
+      distinctive_marks: 'Lunar bajo el ojo izquierdo',
+      facial_asymmetry: 'Ojo izquierdo ~2% más pequeño, mandíbula izquierda ligeramente más suave'
     },
     hair: {
       color: 'Castaño oscuro',
@@ -49,7 +50,9 @@ function healthyPersona() {
       must_match_every_image: {
         name: 'Daniela Ríos',
         skin_tone: 'Piel clara / beige claro',
-        skin_tone_hex: '#f0d5c0'
+        skin_tone_hex: '#f0d5c0',
+        distinctive_marks: 'Lunar bajo el ojo izquierdo',
+        facial_asymmetry: 'Ojo izquierdo ~2% más pequeño, mandíbula izquierda ligeramente más suave'
       }
     }
   };
@@ -165,6 +168,16 @@ test('score es monótono: más problemas → menor score', () => {
   const bad = validateCharacterLock({});
   assert.ok(good.score > mid.score);
   assert.ok(mid.score > bad.score);
+});
+
+test('sin asimetría facial → sugerencia info', () => {
+  const p = healthyPersona();
+  delete p.facial_features.facial_asymmetry;
+  delete p.character_lock.must_match_every_image.facial_asymmetry;
+  const v = validateCharacterLock(p);
+  assert.equal(v.errors.length, 0);
+  assert.ok(v.infos.some((i) => i.field === 'facial_features.facial_asymmetry'));
+  assert.match(v.infos.find((i) => i.field === 'facial_features.facial_asymmetry').message, /asimetr/i);
 });
 
 test('isValidHex acepta #RRGGBB y rechaza basura', () => {
