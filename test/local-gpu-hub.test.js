@@ -284,7 +284,7 @@ test('UI: panel L4 dentro de #loraAdvancedPanel (demoted)', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   assert.match(html, /id="loraAdvancedPanel"/);
   const loraIdx = html.indexOf('id="loraAdvancedPanel"');
-  const packIdx = html.indexOf('Copiar JSON (recomendado)');
+  const packIdx = html.indexOf('id="btnCopyPackFullbodyPrimary"');
   assert.ok(packIdx >= 0 && loraIdx > packIdx, 'LoRA panel must be after Copiar JSON card');
   assert.match(html, /GPU local \(L4\)/);
   assert.match(html, /id="localGpuStatusPanel"/);
