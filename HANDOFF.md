@@ -35,11 +35,18 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **En pausa** | OAuth, SMTP, video real, HostGator deploy · **#72 Ajustes tabs** CONFLICTING (rebase aparte) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 
-### Sesión reciente (Cursor, 2026-08-11) — Free Path consolidar (en curso)
+### Sesión reciente (Cursor, 2026-08-11) — Free Path consolidar
 
 **Pedido:** Mantener Free Path primero; usabilidad sencilla; sin links/botones falsos.
 
-**Incluye:** UX-0 (layout) + UX-3 (honestidad) + claims GPT/Veo + jerarquía Copiar JSON.
+**Hecho:**
+- Cherry-pick UX-0 + UX-3 sobre `main` (face pack)
+- UGC: **Copiar JSON** primero (verde); boceto secundario; ZIP/kit/ads en `<details>`
+- Script Engine / Licensing / import: sin claims GPT-5.6; guiones = plantillas locales / Gemini opt-in
+- Consola: sin fila duplicada de packs (`data-free-pack` solo en ficha)
+- Toasts: sin «Campaña… GitHub» falso tras guiones; sin `alert()` runtime
+- Tests: `test/ux-free-path-consolidar.test.js` (+ UX-0/UX-3)
+- **PR:** este branch supersede #85/#86
 
 ### Sesión previa (Cursor, 2026-08-11) — UX-3 honestidad UI
 

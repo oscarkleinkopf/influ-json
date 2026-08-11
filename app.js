@@ -2146,7 +2146,7 @@ async function renderQaMatrix() {
         </div>`;
     }
     const packBtn = def.pack
-      ? `<button type="button" class="btn btn-secondary btn-sm" data-qa-pack="${def.pack}" style="font-size:10px;padding:6px 8px;">Copiar pack</button>`
+      ? `<button type="button" class="btn btn-secondary btn-sm" data-qa-pack="${def.pack}" style="font-size:10px;padding:6px 8px;">Copiar JSON</button>`
       : `<button type="button" class="btn btn-secondary btn-sm" data-qa-goto-gen style="font-size:10px;padding:6px 8px;">Generar variante</button>`;
     return `
       <div class="qa-slot">
@@ -4632,7 +4632,7 @@ function setupPersonaEngine() {
     const exportText = buildChatbotExportText({ includePrompt: true });
     navigator.clipboard.writeText(exportText);
     markHappyPathCopied();
-    toastWithLockHealth('📋 Prompt + JSON copiados (consola) — para pack fullbody usa «Copiar pack cuerpo entero»', getFullPersonaJSON());
+    toastWithLockHealth('📋 Prompt + JSON copiados (consola) — para pack completo usa «Copiar JSON» en la ficha', getFullPersonaJSON());
   });
 
   document.getElementById('btnSaveToGallery').addEventListener('click', async () => {
@@ -5677,8 +5677,8 @@ async function generateScriptsAction() {
           renderScriptsUI();
           populateActiveUgcData();
           updateLicensingCalculator();
-          toastSuccess('Scripts generados por Gemini con éxito!');
-          document.getElementById('btnGenerateScripts').textContent = 'Generar 10 Variaciones de Scripts (Conectar AI)';
+          toastSuccess('Guiones generados con Gemini.');
+          document.getElementById('btnGenerateScripts').textContent = 'Generar 10 guiones (plantillas locales / Gemini opt-in)';
           return;
         }
       } catch (err) {
@@ -5690,13 +5690,10 @@ async function generateScriptsAction() {
     generateMockScripts();
     populateActiveUgcData();
     updateLicensingCalculator();
-    document.getElementById('btnGenerateScripts').textContent = 'Generar 10 Variaciones de Scripts ( offline fallback )';
-    
-    if (data.gitSynced) {
-      toastSuccess('¡Campaña guardada y respaldada en GitHub!');
-    } else {
-      toastError('Guardado localmente. Fallo al subir.');
-    }
+    document.getElementById('btnGenerateScripts').textContent = 'Generar 10 guiones (plantillas locales / Gemini opt-in)';
+    toastSuccess(data.gitSynced
+      ? 'Producto guardado. Guiones locales listos (backup git OK).'
+      : 'Producto guardado. Guiones locales listos.');
   }
 }
 
@@ -5710,7 +5707,7 @@ function generateMockScripts() {
   
   const creator = state.selectedPersona?.name || "Sofia";
   
-  // 10 distinct marketing angles matching GPT-5.6 guidelines
+  // 10 distinct marketing angles (local templates; Gemini opt-in when API connected)
   state.scripts = [
     {
       angle: "El Escéptico (Skeptic Hook)",
@@ -5978,7 +5975,7 @@ function setupUgcStudio() {
   if (btnLicense) {
     btnLicense.addEventListener('click', async () => {
       const p = state.selectedPersona || state.personas[0];
-      if (!p) return typeof toastError === 'function' ? toastError('Seleccione un influencer primero.') : alert('Seleccione un influencer primero.');
+      if (!p) return toastError('Seleccione un influencer primero.');
 
       try {
         const res = await fetch(`/api/personas/${p.id}/commercial-license`);
@@ -6065,13 +6062,13 @@ Este certificado avala que los derechos comerciales de explotación de imagen, n
   if (btnStartBulk) {
     btnStartBulk.addEventListener('click', async () => {
       const p = state.selectedPersona || state.personas[0];
-      if (!p) return typeof toastError === 'function' ? toastError('Seleccione un influencer primero.') : alert('Seleccione un influencer primero.');
+      if (!p) return toastError('Seleccione un influencer primero.');
 
       const checkedBoxes = document.querySelectorAll('.bulk-prod-checkbox:checked');
       const selectedProductIds = Array.from(checkedBoxes).map(cb => cb.value);
 
       if (selectedProductIds.length === 0) {
-        return typeof toastError === 'function' ? toastError('Seleccione al menos 1 producto del catálogo.') : alert('Seleccione al menos 1 producto del catálogo.');
+        return toastError('Seleccione al menos 1 producto del catálogo.');
       }
 
       try {
@@ -6386,7 +6383,7 @@ function setupLicensing() {
   });
   
   document.getElementById('btnCopyProposal').addEventListener('click', copyLicensingProposal);
-  // UX-3b — sin alert(); descarga la misma propuesta como .txt
+  // UX-3b — sin alert stub; descarga la misma propuesta como .txt
   document.getElementById('btnDownloadProposal')?.addEventListener('click', downloadLicensingProposal);
 }
 
@@ -6448,7 +6445,7 @@ Creador Virtual: ${creator.name}
 DESGLOSE DE SERVICIOS:
 1. Creación de Activo UGC Sintético: $${base.toFixed(2)} USD
    - Persona consistente definible por JSON
-   - Prep. de guión optimizado por GPT-5.6
+   - Prep. de guión UGC (plantillas locales / Gemini opt-in)
    
 2. Licencia de Derechos de Uso Comercial:
    - Tipo: ${selectedText}
@@ -6467,7 +6464,7 @@ function copyLicensingProposal() {
   toastSuccess('Propuesta formateada copiada al portapapeles');
 }
 
-/** UX-3b — descarga .txt en lugar del alert «Enviar Propuesta». */
+/** UX-3b — descarga .txt en lugar del alert stub «Enviar Propuesta». */
 function downloadLicensingProposal() {
   const text = buildLicensingProposalText();
   const creator = state.selectedPersona?.name || 'influencer';
