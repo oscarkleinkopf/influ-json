@@ -25,15 +25,28 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ugc-face-pack-173f` |
-| **Commit base** | `main` + face pack canónico 6 ángulos |
-| **PR actual** | ugc-creator Tier 1: face pack (texto free + bocetos opt-in) |
-| **`main` remoto** | cámara/shot types merged (`667a660`) |
+| **Rama de trabajo** | `cursor/ux0-layout-structure-9b67` |
+| **Commit base** | `main` + UX-0 layout/structure |
+| **PR actual** | UX-0: HTML nesting + móvil + offline bar + test estructura |
+| **`main` remoto** | face pack merged (`f9822ec`) |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge face-pack; siguiente: outfit_variations / prompt_seed si aplica |
+| **Prioridad inmediata** | Merge UX-0; siguiente: UX-3 honestidad + un solo Copiar JSON (PLAN-UX) |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — UX-0 layout + estructura
+
+**Pedido:** Implementar UX-0 del PLAN-UX (partir: bug de layout + test).
+
+**Hecho:**
+- **UX-0a:** eliminado `</div>` sobrante tras `#variantManagerSection` que cerraba `<main>`/`#persona-engine` antes de tiempo (4 pestañas + historial salían a `<body>` flex)
+- **UX-0b:** `@media (max-width:768px)` → `.main-content { margin-left:0; width:100% }`
+- **UX-0c:** `#offlineModeBar` de `sticky` → `fixed` (ya no roba ancho al flex de `body`)
+- **UX-0d:** `test/html-structure.test.js` (balance de tags + tabs bajo `<main>` + historial dentro de persona-engine)
+- Cache-bust `index.css?v=1.3.3`
+
+**Siguiente:** UX-3 (botones muertos) + consolidar «Copiar JSON»; luego soft-group de pestañas (PLAN-UX).
 
 ### Sesión reciente (Cursor, 2026-08-11) — face pack canónico
 
@@ -423,6 +436,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-11 | Cursor | **fix(ux-0)**: HTML nesting + móvil margin + offline bar fixed + test estructura | *(este PR)* |
 | 2026-08-10 | Cursor | **fix**: Resumen thumbs — fallback static `DATA_DIR` para references/generated | *(este PR)* |
 | 2026-08-05 | Cursor | **Happy path live**: create→JSON pack→export + boceto pollen; smoke 9/9 | *(docs)* |
 | 2026-08-05 | Cursor | **UX #2** + **L4c** Flux template | *(este PR)* |
