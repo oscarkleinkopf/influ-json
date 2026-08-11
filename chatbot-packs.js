@@ -216,7 +216,7 @@ ${STANDARD_NEGATIVE_PROMPT}`;
   /**
    * @param {object} personaJSON
    * @param {string} packId
-   * @param {{ productData?: object, extraScene?: string, fallbackName?: string }} [opts]
+   * @param {{ productData?: object, extraScene?: string, fallbackName?: string, cameraId?: string, shotTypeId?: string }} [opts]
    */
   function buildFreeChatbotPack(personaJSON, packId, opts = {}) {
     const pack = FREE_CHATBOT_PACKS[packId];
@@ -237,13 +237,33 @@ PRODUCTO A MOSTRAR:
 `;
     }
 
+    let shotExtras = '';
+    let cameraLabel = '';
+    let shotLabel = '';
+    try {
+      const composer =
+        (typeof InfluUgcShotComposer !== 'undefined' && InfluUgcShotComposer) ||
+        (typeof require === 'function' ? require('./ugc-shot-composer') : null);
+      if (composer && (opts.cameraId || opts.shotTypeId)) {
+        const composed = composer.composeShotExtras({
+          cameraId: opts.cameraId || null,
+          shotTypeId: opts.shotTypeId || null
+        });
+        if (composed.extraScene) shotExtras = `\n${composed.extraScene}\n`;
+        if (composed.camera) cameraLabel = composed.camera.label;
+        if (composed.shot) shotLabel = composed.shot.label;
+      }
+    } catch (_) { /* composer optional */ }
+
     const extra = opts.extraScene ? `\nDetalle extra del usuario: ${opts.extraScene}\n` : '';
+    const shotMeta = (cameraLabel || shotLabel)
+      ? `\nCámara/formato: ${[shotLabel, cameraLabel].filter(Boolean).join(' · ')}\n`
+      : '';
 
     return `═══════════════════════════════════════════
 PACK GRATIS PARA CHATBOT — ${pack.label}
 Influencer: ${name}
-Cero costo: sin Replicate / InstantID / GPU de pago
-═══════════════════════════════════════════
+Cero costo: sin Replicate / InstantID / GPU de pago${shotMeta}═══════════════════════════════════════════
 
 ${lock.free_chatbot_system || 'Mantén la misma persona del JSON en todas las imágenes.'}
 
@@ -258,7 +278,7 @@ ${formatLockSummary(must, name)}
 PETICIÓN DE ESTA IMAGEN
 ───────────────────────────────────────────
 ${pack.sceneInstruction}
-${productBlock}${extra}
+${productBlock}${shotExtras}${extra}
 ${formatRealismNegativeSections()}
 
 ───────────────────────────────────────────
@@ -271,8 +291,9 @@ AL FINAL
 ───────────────────────────────────────────
 1) Genera la imagen respetando el CHARACTER LOCK (asimetría + marcas incluidas).
 2) Aplica el bloque REALISMO; si el modelo acepta negativo, úsalo.
-3) Si la cara, tez o marcas cambian, re-pega el lock y regenera.
-4) Responde en español con una línea: "OK — pack ${pack.id} para ${name}".
+3) Si hay CAMERA / SHOT TYPE, respétalos (Layer 4 / escenario) sin renegociar la cara.
+4) Si la cara, tez o marcas cambian, re-pega el lock y regenera.
+5) Responde en español con una línea: "OK — pack ${pack.id} para ${name}".
 `;
   }
 

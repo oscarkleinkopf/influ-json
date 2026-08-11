@@ -120,8 +120,9 @@ test('UI: campo pFacialAsymmetry cableado en form + getFullPersonaJSON', () => {
   assert.match(html, /id="pFacialAsymmetry"/);
   assert.match(app, /pFacialAsymmetry/);
   assert.match(app, /facial_asymmetry/);
-  assert.match(html, /chatbot-packs\.js\?v=1\.3\.0/);
+  assert.match(html, /chatbot-packs\.js\?v=1\.4\.0/);
   assert.match(html, /prompt-builder\.js\?v=1\.1\.0/);
+  assert.match(html, /ugc-shot-composer\.js\?v=1\.0\.0/);
 });
 
 test('pack spicy sigue trayendo realism + negative tras synthesize', () => {

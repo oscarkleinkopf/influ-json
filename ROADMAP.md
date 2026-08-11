@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-11 | **ugc camera/shots** chips + 7 formatos + semana | `ugc-shot-composer.js`; packs Layer 4 |
 | 2026-08-11 | **ugc-creator anchors** asimetría + realism/negative packs | `facial_asymmetry`; Layer 5 + negative en free packs |
 | 2026-08-10 | **Mirror policy** backup sin binario influ.sqlite | git-backup → personas.json only |
 | 2026-08-10 | **FK CASCADE** foreign_keys ON + test delete | pragma + delete-cascade.test.js |

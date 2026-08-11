@@ -29,7 +29,11 @@ let state = {
   /** Tras canjear invitación: mostrar onboarding una vez */
   justRedeemedInvite: false,
   /** Preset de nicho activo al crear (beauty|fitness|moda) */
-  activeNicheId: null
+  activeNicheId: null,
+  /** ugc-creator Layer 4 — cámara iPhone activa para packs */
+  ugcCameraId: 'selfie',
+  /** Formato UGC activo (testimonial, lifestyle, …) */
+  ugcShotTypeId: null
 };
 
 const HAPPY_PATH_COPY_KEY = 'influ_happy_path_copied_v1';
@@ -3376,7 +3380,9 @@ function buildFreeChatbotPack(packId, opts = {}) {
   return InfluChatbotPacks.buildFreeChatbotPack(getFullPersonaJSON(), packId, {
     productData: opts.productData || state.selectedProduct,
     extraScene: opts.extraScene,
-    fallbackName: state.selectedPersona?.name
+    fallbackName: state.selectedPersona?.name,
+    cameraId: opts.cameraId !== undefined ? opts.cameraId : state.ugcCameraId,
+    shotTypeId: opts.shotTypeId !== undefined ? opts.shotTypeId : state.ugcShotTypeId
   });
 }
 
@@ -4064,6 +4070,102 @@ function setupNichePresets() {
   window.applyNichePreset = applyNichePreset;
 }
 
+function refreshUgcComposerChips() {
+  document.querySelectorAll('[data-ugc-camera]').forEach((btn) => {
+    const active = btn.getAttribute('data-ugc-camera') === state.ugcCameraId;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    if (active) {
+      btn.style.background = 'rgba(52, 211, 153, 0.25)';
+      btn.style.borderColor = 'rgba(52, 211, 153, 0.55)';
+      btn.style.color = '#fff';
+    } else {
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+  });
+  document.querySelectorAll('[data-ugc-shot]').forEach((btn) => {
+    const active = btn.getAttribute('data-ugc-shot') === state.ugcShotTypeId;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    if (active) {
+      btn.style.background = 'rgba(52, 211, 153, 0.25)';
+      btn.style.borderColor = 'rgba(52, 211, 153, 0.55)';
+      btn.style.color = '#fff';
+    } else {
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+  });
+  const hint = document.getElementById('ugcShotComposerHint');
+  if (!hint || typeof InfluUgcShotComposer === 'undefined') return;
+  const composed = InfluUgcShotComposer.composeShotExtras({
+    cameraId: state.ugcCameraId,
+    shotTypeId: state.ugcShotTypeId
+  });
+  const bits = [];
+  if (composed.shot) bits.push(`formato «${composed.shot.label}»`);
+  if (composed.camera) bits.push(`cámara «${composed.camera.label}»`);
+  hint.textContent = bits.length
+    ? `Activo: ${bits.join(' + ')}. Se inyecta al copiar el pack (cara fija del lock).`
+    : 'Elige cámara y/o formato; se inyectan al copiar el pack (sin renegociar la cara).';
+}
+
+function setUgcCamera(cameraId) {
+  if (typeof InfluUgcShotComposer === 'undefined') return;
+  const cam = InfluUgcShotComposer.getCamera(cameraId);
+  if (!cam) return;
+  state.ugcCameraId = cam.id;
+  const pCam = document.getElementById('pCamera');
+  if (pCam) pCam.value = cam.fieldValue;
+  try { compilePromptAndJSON(); } catch (_) {}
+  refreshUgcComposerChips();
+  toastInfo(`Cámara UGC: ${cam.label}`);
+}
+
+function setUgcShotType(shotTypeId) {
+  if (typeof InfluUgcShotComposer === 'undefined') return;
+  // Toggle off if clicking the same chip
+  if (state.ugcShotTypeId === shotTypeId) {
+    state.ugcShotTypeId = null;
+    refreshUgcComposerChips();
+    toastInfo('Formato UGC quitado');
+    return;
+  }
+  const shot = InfluUgcShotComposer.getShotType(shotTypeId);
+  if (!shot) return;
+  state.ugcShotTypeId = shot.id;
+  if (shot.defaultCamera) setUgcCamera(shot.defaultCamera);
+  else refreshUgcComposerChips();
+  toastInfo(`Formato UGC: ${shot.label}`);
+}
+
+async function copyUgcWeekCalendar() {
+  if (typeof InfluUgcShotComposer === 'undefined') {
+    toastError('ugc-shot-composer.js no cargado');
+    return;
+  }
+  try {
+    const json = getFullPersonaJSON();
+    const name = json?.identity?.name || state.selectedPersona?.name || 'Influencer';
+    const lock = json?.character_lock || {};
+    const week = InfluUgcShotComposer.buildWeekCalendarText(name, { cameraId: state.ugcCameraId });
+    const text = `═══════════════════════════════════════════
+CHARACTER LOCK (pegar una vez — byte-idéntico en las 7 tomas)
+═══════════════════════════════════════════
+${JSON.stringify(lock, null, 2)}
+
+${week}`;
+    await navigator.clipboard.writeText(text);
+    toastSuccess(`Semana UGC (7 tomas) copiada — ${name}`);
+  } catch (err) {
+    console.error(err);
+    toastError('No se pudo copiar el calendario UGC');
+  }
+}
+
 function setupFreeChatbotPacks() {
   document.querySelectorAll('[data-free-pack]').forEach(btn => {
     btn.setAttribute('data-offline-highlight', 'pack');
@@ -4073,6 +4175,23 @@ function setupFreeChatbotPacks() {
       copyFreeChatbotPack(id);
     });
   });
+  document.querySelectorAll('[data-ugc-camera]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      setUgcCamera(btn.getAttribute('data-ugc-camera'));
+    });
+  });
+  document.querySelectorAll('[data-ugc-shot]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      setUgcShotType(btn.getAttribute('data-ugc-shot'));
+    });
+  });
+  document.getElementById('btnCopyUgcWeek')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    copyUgcWeekCalendar();
+  });
+  refreshUgcComposerChips();
   document.getElementById('btnRecopyLastPack')?.addEventListener('click', (e) => {
     e.preventDefault();
     copyLastFreeChatbotPack();
@@ -4089,6 +4208,9 @@ function setupFreeChatbotPacks() {
   window.copyLastFreeChatbotPack = copyLastFreeChatbotPack;
   window.buildFreeChatbotPack = buildFreeChatbotPack;
   window.copyChatbotSessionCheck = copyChatbotSessionCheck;
+  window.copyUgcWeekCalendar = copyUgcWeekCalendar;
+  window.setUgcCamera = setUgcCamera;
+  window.setUgcShotType = setUgcShotType;
   window.FREE_CHATBOT_PACKS = FREE_CHATBOT_PACKS;
   refreshLastPackStatus();
   // Actualizar “copiado hace Xs” cada 15s si hay ficha abierta

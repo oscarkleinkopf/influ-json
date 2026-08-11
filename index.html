@@ -659,6 +659,28 @@
                 <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
                   El producto es el pack: pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Pollinations es solo un boceto inestable.
                 </p>
+                <div id="ugcCameraChips" style="margin-bottom: 10px;">
+                  <p style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 6px; font-weight: 700; letter-spacing: 0.4px;">Cámara UGC (Layer 4)</p>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px;" data-ugc-camera-chips>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-camera="selfie" style="font-size: 10px; padding: 5px 9px;">Selfie front</button>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-camera="rear" style="font-size: 10px; padding: 5px 9px;">Rear cam</button>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-camera="mirror" style="font-size: 10px; padding: 5px 9px;">Mirror</button>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-camera="overhead" style="font-size: 10px; padding: 5px 9px;">Overhead</button>
+                  </div>
+                </div>
+                <div id="ugcShotTypeChips" style="margin-bottom: 12px;">
+                  <p style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 6px; font-weight: 700; letter-spacing: 0.4px;">Formato UGC</p>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px;" data-ugc-shot-chips>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-shot="testimonial" style="font-size: 10px; padding: 5px 9px;">Testimonial</button>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-shot="lifestyle" style="font-size: 10px; padding: 5px 9px;">Lifestyle</button>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-shot="unboxing" style="font-size: 10px; padding: 5px 9px;">Unboxing</button>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-shot="grwm" style="font-size: 10px; padding: 5px 9px;">GRWM</button>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-shot="product_demo" style="font-size: 10px; padding: 5px 9px;">Demo</button>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-shot="haul" style="font-size: 10px; padding: 5px 9px;">Haul</button>
+                    <button type="button" class="btn btn-secondary btn-sm ugc-chip" data-ugc-shot="day_in_life" style="font-size: 10px; padding: 5px 9px;">Day in life</button>
+                  </div>
+                  <p id="ugcShotComposerHint" style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;">Elige cámara y/o formato; se inyectan al copiar el pack (sin renegociar la cara).</p>
+                </div>
                 <button type="button" class="btn btn-sm" data-free-pack="fullbody" id="btnCopyPackFullbodyPrimary" style="width: 100%; font-size: 12px; padding: 10px 12px; margin-bottom: 8px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff; text-align: left;">
                   🧍 Copiar JSON · cuerpo entero (recomendado)
                 </button>
@@ -666,6 +688,7 @@
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 11px; padding: 8px 10px; text-align: left;">Bikini / playa</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px; text-align: left;">Spicy (realista)</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px; text-align: left;">Producto en mano</button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnCopyUgcWeek" style="font-size: 11px; padding: 8px 10px; text-align: left;" title="7 one-liners con el mismo character_lock">📅 Semana UGC (7 tomas)</button>
                 </div>
                 <p class="pack-last-status" data-last-pack-status style="font-size: 10px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.4;"></p>
                 <button type="button" class="btn btn-secondary btn-sm" id="btnRecopyLastPack" data-offline-highlight="pack" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;" disabled>
@@ -1055,12 +1078,14 @@
               </datalist>
 
               <datalist id="dlCamera">
+                <option value="iPhone front selfie camera, arm's-length, mild wide-lens distortion"></option>
+                <option value="iPhone rear main camera, candid, natural depth of field"></option>
+                <option value="iPhone mirror selfie, phone visible in hand, reflection glare"></option>
+                <option value="iPhone overhead flatlay, top-down, hands in frame"></option>
                 <option value="iPhone 15 Pro front camera selfie"></option>
                 <option value="Amateur smartphone mirror selfie, camera lens visible"></option>
                 <option value="Candid hand-held smartphone snapshot"></option>
                 <option value="Close-up raw portrait shot on iPhone 15"></option>
-                <option value="Cámara profesional de estudio 85mm"></option>
-                <option value="Cámara Vlog 4K gran angular"></option>
               </datalist>
 
               <datalist id="dlClothing">
@@ -2428,9 +2453,10 @@
   <script src="character-lock-validator.js?v=1.3.0"></script>
   <script src="niche-presets.js?v=1.0.0"></script>
   <script src="qa-matrix.js?v=1.0.0"></script>
-  <script src="chatbot-packs.js?v=1.3.0"></script>
+  <script src="ugc-shot-composer.js?v=1.0.0"></script>
+  <script src="chatbot-packs.js?v=1.4.0"></script>
   <script src="import-flow.js?v=1.0.0"></script>
   <script src="prompt-builder.js?v=1.1.0"></script>
-  <script src="app.js?v=1.11.0"></script>
+  <script src="app.js?v=1.12.0"></script>
 </body>
 </html>
