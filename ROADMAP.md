@@ -151,7 +151,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
-| 2026-08-11 | **Free Path consolidar** | Copiar JSON primero; sin GPT-5.6/Meta Ads live; dedupe packs; toasts honestos |
+| 2026-08-11 | **UX-1** IA navegación | Hubs Influencers/Producir/Negocio; chip global; ≤3 Copiar JSON |
+| 2026-08-11 | **Free Path consolidar** (#87) | Copiar JSON primero; sin GPT-5.6/Meta Ads live; dedupe packs; toasts honestos |
 | 2026-08-11 | **UX-3** honestidad UI | Scripts campaña cableados; stats reales; vídeo DEMO; sin alert/showSyncToast |
 | 2026-08-11 | **UX-0** layout: nesting HTML + móvil + offline bar + test estructura | `</div>` sobrante; `test/html-structure.test.js` |
 | 2026-08-11 | **ugc face pack** 6 ángulos + texto free | `face-pack.js`; regenerate opt-in Pollinations |

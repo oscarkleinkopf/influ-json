@@ -18,7 +18,9 @@ test('pulido: Cómo usar packs scrollea al Copiar JSON primary (no ZIP kit)', ()
 test('pulido: consola distingue prompt+JSON del pack fullbody', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /id="btnCopyChatbotPrompt"[^>]*>Copiar prompt \+ JSON</);
-  assert.match(html, /Copiar JSON · cuerpo entero \(recomendado\)/);
+  // UX-1c: canónico es «Copiar JSON» (id primary); variantes viven en Packs ▾
+  assert.match(html, /id="btnCopyPackFullbodyPrimary"[\s\S]{0,200}>[\s\S]{0,40}Copiar JSON/);
+  assert.match(html, /id="packVariantsMenu"|Packs ▾/);
 });
 
 test('pulido: happy path 3/3 core — gen no se completa al copiar', () => {
