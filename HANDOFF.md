@@ -25,37 +25,32 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/fix-login-pin-unlock-9b67` |
-| **Commit base** | `main` @ #91 Pages merged |
-| **PR actual** | [#90](https://github.com/oscarkleinkopf/influ-json/pull/90) Fix login PIN |
-| **`main` remoto** | #91 Pages merged |
-| **Prioridad inmediata** | Merge #90 → luego #89 UX-2 → UX-4 |
-| **PIN local** | `1234` (default). Tras 5 fallos → espera 60s. Selector: «Detectar por PIN…» |
-| **Pages** | `main` `/` → github.io = modal local (no Studio) |
+| **Rama de trabajo** | `cursor/ux2-persona-pasos-9b67` |
+| **Commit base** | `main` @ #91 Pages + #90 PIN |
+| **PR actual** | [#89](https://github.com/oscarkleinkopf/influ-json/pull/89) UX-2 Persona Engine 3 pasos |
+| **`main` remoto** | #91 + #90 merged |
+| **Prioridad inmediata** | Merge UX-2 → **UX-4** (parciales HTML / trocear app.js) |
+| **PIN local** | `1234` · Pages = modal local (no Studio) |
+| **En pausa** | OAuth, SMTP, video · **#72** Ajustes tabs CONFLICTING |
 | **Servidor correcto** | `npm start` → `node server.js` |
 
-### Sesión reciente (Cursor, 2026-08-11) — Fix unlock PIN
+### Sesión reciente (Cursor, 2026-08-11) — UX-2 Persona Engine 3 pasos
 
-**Pedido:** No deja desbloquear con el PIN.
+**Pedido:** Merge Pages/PIN y continuar; siguiente = UX-2.
 
-**Causa:**
-1. `.env` quedó vacío (1 byte) en la VM
-2. Rate-limit login (5 fallos → bloqueo 60s)
-3. Selector de login listaba perfiles de `npm test` (MetricsMem_/Onboard_/…); al elegir uno + PIN `1234` → «incorrecto»
+**Hecho:** stepper Identidad → Lock & Packs → Variaciones; Avanzado plegado; rebase sobre #91+#90.
 
-**Hecho:** restaurar `.env`; filtrar harness en `/api/auth/profiles`; credentials + mensaje 429; desactivar perfiles harness en DB local. Rebase sobre #91 Pages.
+### Sesión previa — Fix unlock PIN (#90 merged)
 
-### Sesión previa (Cursor, 2026-08-11) — GitHub Pages
+Filtrar harness en login; credentials + 429; `.env` local.
 
-**Pedido:** Pages no funciona. Confirmado: despliega `main` `/`.
+### Sesión previa — GitHub Pages (#91 merged)
 
-**Hecho:** #91 merged — modal estático + `docs/` landing opcional.
+Modal estático en github.io; Studio solo con `npm start`.
 
-### Sesión previa (Cursor, 2026-08-11) — UX-1 IA navegación
+### Sesión previa — UX-1 / Free Path
 
-### Sesión previa — UX-2 / Free Path
-
-Ver log; UX-2 sigue en #89.
+Ver log.
 
 ### Sesión previa (Cursor, 2026-08-11) — Free Path consolidar
 

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.3.4">
+  <link rel="stylesheet" href="index.css?v=1.3.5">
 </head>
 <body>
   <div class="app-container">
@@ -449,20 +449,37 @@
       </section>
       
       <!-- TAB: PERSONA ENGINE -->
-      <section id="persona-engine" class="tab-panel">
+      <section id="persona-engine" class="tab-panel" data-active-step="1">
         <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
           <div class="content-title">
-            <h1>Persona Engine (influ-JSON)</h1>
-            <p>Configura la identidad base de tu modelo AI usando un formato estructurado.</p>
+            <h1>Influencers · Ficha</h1>
+            <p>3 pasos: Identidad → Lock &amp; Packs → Variaciones. Free path = copiar el JSON en el paso 2.</p>
           </div>
           <button type="button" class="btn" id="btnOpenImportModal" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 20px;">
-            📥 IMPORTAR IMAGEN DE REFERENCIA
+            📥 Importar referencia
           </button>
         </div>
+
+        <!-- UX-2: stepper -->
+        <nav class="persona-stepper" id="personaStepper" aria-label="Pasos del influencer">
+          <button type="button" class="persona-step-btn is-active" data-persona-goto="1" id="btnPersonaStep1">
+            <span class="persona-step-num">1</span>
+            <span class="persona-step-label">Identidad</span>
+          </button>
+          <button type="button" class="persona-step-btn" data-persona-goto="2" id="btnPersonaStep2">
+            <span class="persona-step-num">2</span>
+            <span class="persona-step-label">Lock &amp; Packs</span>
+          </button>
+          <button type="button" class="persona-step-btn" data-persona-goto="3" id="btnPersonaStep3">
+            <span class="persona-step-num">3</span>
+            <span class="persona-step-label">Variaciones</span>
+          </button>
+        </nav>
+        <p class="persona-step-hint" id="personaStepHint">Define cara y rasgos que anclan el character_lock. Lo demás va a «Detalles».</p>
         
         <!-- Photo Upload & AI Analysis -->
         <!-- Action Dashboard: Añadir Nuevo Influencer -->
-        <div class="glass-card" style="margin-bottom: 28px; padding: 24px;">
+        <div class="glass-card" data-persona-step="1" style="margin-bottom: 28px; padding: 24px;">
           <h2 style="font-family: var(--font-display); margin-bottom: 6px; font-size: 18px; color: #fff;">✨ Añadir Nuevo Influencer</h2>
           <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">Elige cómo deseas crear el perfil de tu influencer virtual para iniciar la producción de contenido UGC.</p>
           
@@ -501,18 +518,21 @@
           </div>
         </div>
         
-        <!-- Comparison & Version History Controls -->
-        <div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: flex-end;">
-          <button class="btn btn-secondary btn-sm" id="btnToggleAB" style="display: flex; align-items: center; gap: 6px;">
+        <!-- UX-2 Avanzado: A/B + versiones (plegado) -->
+        <details id="personaAdvancedTools" data-persona-step="advanced" class="persona-advanced-block" style="margin-bottom: 20px;">
+          <summary style="cursor:pointer; font-size:13px; color:var(--text-secondary); font-weight:600; padding:8px 0;">Avanzado · Comparador A/B y versiones del personaje</summary>
+          <div style="display: flex; gap: 12px; margin: 12px 0 0; justify-content: flex-start; flex-wrap:wrap;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnToggleAB" style="display: flex; align-items: center; gap: 6px;">
             ⚖️ Comparador A/B Split
           </button>
-          <button class="btn btn-secondary btn-sm" id="btnToggleHistory" style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnToggleHistory" style="display: flex; align-items: center; gap: 6px;">
             ⏳ Historial de Versiones
           </button>
-        </div>
+          </div>
+        </details>
 
         <!-- Hidden A/B Split-View Comparator -->
-        <div id="abComparatorContainer" style="display: none; margin-bottom: 28px;">
+        <div id="abComparatorContainer" data-persona-step="advanced" style="display: none; margin-bottom: 28px;">
           <div class="glass-card">
             <h2 style="font-family: var(--font-display); margin-bottom: 16px;">⚖️ Comparador A/B de Personas</h2>
             <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px;">Configura y compara dos variaciones de prompt en paralelo para evaluar la consistencia de identidad.</p>
@@ -575,19 +595,19 @@
         </div>
 
         <!-- Hidden Version History Timeline Container -->
-        <div id="historyTimelineContainer" style="display: none; margin-bottom: 28px;" class="glass-card">
+        <div id="historyTimelineContainer" data-persona-step="advanced" style="display: none; margin-bottom: 28px;" class="glass-card">
           <h2 style="font-family: var(--font-display); margin-bottom: 16px;">⏳ Historial de Versiones</h2>
           <div class="version-timeline-list" id="versionTimelineList" style="display: flex; flex-direction: column; gap: 12px;">
             <!-- Dynamically populated timeline -->
           </div>
         </div>
 
-        <div class="editor-layout">
+        <div class="editor-layout" data-persona-step="1-2" id="personaEditorLayout">
           <div class="glass-card">
             <h2 id="editorHeaderTitle" style="font-family: var(--font-display); margin-bottom: 20px;">Configuración del Personaje</h2>
             
             <!-- Editorial Profile Sheet -->
-            <div id="personaProfileSheet" style="display: none; margin-bottom: 20px;">
+            <div id="personaProfileSheet" data-persona-step="2" style="display: none; margin-bottom: 20px;">
               <div style="display: flex; gap: 24px; margin-bottom: 24px; align-items: flex-start; flex-wrap: wrap;">
                 <!-- Profile Image -->
                 <div class="profile-image-container" style="position: relative; width: 140px; height: 140px; border-radius: 20px; overflow: hidden; border: 2px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); cursor: pointer;">
@@ -657,7 +677,7 @@
               </div>
 
               <!-- F5/W13/W15: Free chatbot packs (zero cost) — UX-1c: un canónico + Packs ▾ -->
-              <div class="glass-card pack-library-card" style="margin-top: 16px; padding: 14px; background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.2);">
+              <div class="glass-card pack-library-card" data-persona-step="2" style="margin-top: 16px; padding: 14px; background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.2);">
                 <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 6px; letter-spacing: 0.4px;">Pack free para chatbot</h4>
                 <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
                   Pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Pollinations es solo un boceto opt-in.
@@ -719,7 +739,7 @@
               </div>
 
               <!-- LoRA L1–L3: avanzado / opt-in — fuera del card verde de Copiar JSON -->
-              <details id="loraAdvancedPanel" style="margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+              <details id="loraAdvancedPanel" data-persona-step="advanced" style="margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
                 <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); font-weight: 600;">
                   Avanzado · LoRA (opt-in, no es el path free)
                 </summary>
@@ -789,7 +809,7 @@
               </details>
 
               <!-- Matriz QA consistencia (gratis, a ojo + dHash local) -->
-              <div id="qaMatrixPanel" class="qa-matrix-panel" style="display:none;">
+              <div id="qaMatrixPanel" class="qa-matrix-panel" data-persona-step="3" style="display:none;">
                 <div class="qa-matrix-head">
                   <div>
                     <h4>Matriz QA de consistencia</h4>
@@ -807,7 +827,7 @@
               </div>
 
               <!-- Face pack canónico (ugc-creator Tier 1) -->
-              <div id="facePackPanel" class="glass-card" style="display:none; margin-top: 14px; padding: 14px; background: rgba(52, 211, 153, 0.05); border: 1px solid rgba(52, 211, 153, 0.18);">
+              <div id="facePackPanel" data-persona-step="3" class="glass-card" style="display:none; margin-top: 14px; padding: 14px; background: rgba(52, 211, 153, 0.05); border: 1px solid rgba(52, 211, 153, 0.18);">
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
                   <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0; letter-spacing: 0.4px;">Face pack · 6 ángulos</h4>
                   <span id="facePackStatus" style="font-size: 10px; color: var(--text-muted);">—</span>
@@ -834,7 +854,7 @@
               </div>
             </div>
             
-            <form id="personaForm" class="editor-form-group" style="display: none;">
+            <form id="personaForm" class="editor-form-group" data-persona-step="1" style="display: none;">
               <div class="form-row">
                 <div>
                   <label for="pName">Nombre del Influencer</label>
@@ -871,27 +891,29 @@
                 </div>
               </div>
               
-              <div class="form-row">
-                <div>
-                  <label for="pLighting">Iluminación</label>
-                  <input type="text" id="pLighting" list="dlLighting" placeholder="Selecciona o escribe..." value="Luz natural de ventana casual">
+              <details id="personaIdentitySceneDetails" class="persona-identity-details">
+                <summary>Detalles de escena (iluminación, cámara, ropa, fondo) — opcional</summary>
+                <div class="form-row" style="margin-top:10px;">
+                  <div>
+                    <label for="pLighting">Iluminación</label>
+                    <input type="text" id="pLighting" list="dlLighting" placeholder="Selecciona o escribe..." value="Luz natural de ventana casual">
+                  </div>
+                  <div>
+                    <label for="pCamera">Cámara / Lente</label>
+                    <input type="text" id="pCamera" list="dlCamera" placeholder="Selecciona o escribe..." value="iPhone 15 Pro front camera selfie">
+                  </div>
                 </div>
-                <div>
-                  <label for="pCamera">Cámara / Lente</label>
-                  <input type="text" id="pCamera" list="dlCamera" placeholder="Selecciona o escribe..." value="iPhone 15 Pro front camera selfie">
+                <div class="form-row" style="margin-top: 10px;">
+                  <div>
+                    <label for="pClothing">Vestimenta</label>
+                    <input type="text" id="pClothing" list="dlClothing" placeholder="Selecciona o escribe..." value="Casual chic (Top blanco y jeans)">
+                  </div>
+                  <div>
+                    <label for="pSetting">Ubicación / Fondo</label>
+                    <input type="text" id="pSetting" list="dlSetting" placeholder="Selecciona o escribe..." value="Sala de estar moderna y neutral">
+                  </div>
                 </div>
-              </div>
-              
-              <div class="form-row">
-                <div>
-                  <label for="pClothing">Vestimenta</label>
-                  <input type="text" id="pClothing" list="dlClothing" placeholder="Selecciona o escribe..." value="Casual chic (Top blanco y jeans)">
-                </div>
-                <div>
-                  <label for="pSetting">Ubicación / Fondo</label>
-                  <input type="text" id="pSetting" list="dlSetting" placeholder="Selecciona o escribe..." value="Sala de estar moderna y neutral">
-                </div>
-              </div>
+              </details>
 
               <!-- Detalles Físicos Detallados Accordion/Row -->
               <div class="glass-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); margin-top: 14px; padding: 14px; border-radius: var(--border-radius-md);">
@@ -997,7 +1019,7 @@
               <!-- Personalidad y Reglas de Marca -->
               <div class="glass-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); margin-top: 14px; padding: 14px; border-radius: var(--border-radius-md);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                  <h4 style="font-size: 11px; text-transform: uppercase; color: #ec4899; margin: 0; font-family: var(--font-display);">🧠 Personalidad, Marcas Distintivas y Reglas de Marca</h4>
+                  <h4 style="font-size: 11px; text-transform: uppercase; color: #ec4899; margin: 0; font-family: var(--font-display);">🧠 Anclas visuales (marcas + asimetría)</h4>
                 </div>
                 
                 <div class="form-row">
@@ -1011,6 +1033,8 @@
                   </div>
                 </div>
 
+                <details id="personaIdentityBrandDetails" class="persona-identity-details" style="margin-top:12px;">
+                  <summary>Personalidad y reglas de marca (MBTI, tono, tabúes) — opcional</summary>
                 <div class="form-row" style="margin-top: 10px;">
                   <div>
                     <label for="pMbti">Arquetipo Psicológico (MBTI)</label>
@@ -1037,6 +1061,7 @@
                     <input type="text" id="pTaboos" value="No promociona fast fashion, No usa lenguaje agresivo, No habla de política" placeholder="Ej: No fast fashion, No lenguaje agresivo, No política">
                   </div>
                 </div>
+                </details>
               </div>
               
               <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
@@ -1209,8 +1234,8 @@
                   <button class="btn btn-secondary btn-sm" id="btnSaveToGallery" style="padding: 4px 10px; font-size: 10px; height: auto;">⭐ Guardar en Galería</button>
                 </div>
               </div>
-              <div id="lockHealthPanel" class="lock-health" style="display:none;"></div>
-              <div id="lockRevisionsPanel" class="lock-revisions" style="display:none;">
+              <div id="lockHealthPanel" data-persona-step="2" class="lock-health" style="display:none;"></div>
+              <div id="lockRevisionsPanel" data-persona-step="advanced" class="lock-revisions" style="display:none;">
                 <div class="lock-revisions-head">
                   <strong>Versiones del character_lock</strong>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshLockRevisions" style="padding:4px 8px;font-size:10px;">Actualizar</button>
@@ -1230,7 +1255,7 @@
             </div>
           </div>
           
-          <div class="right-panel-tabbed-container">
+          <div class="right-panel-tabbed-container" data-persona-step="1-2" id="personaRightPanel">
             <!-- Tabs Switcher Header -->
             <div class="right-panel-tabs">
               <button type="button" class="panel-tab-btn active" id="btnTabBible">📋 Biblia de Personaje</button>
@@ -1373,13 +1398,13 @@
               <button class="btn btn-secondary btn-sm" id="btnFilterArchived" style="background: transparent; color: var(--text-secondary); padding: 4px 12px; font-size: 11px; height: auto; border: none;">Archivados</button>
             </div>
           </div>
-          <div class="persona-gallery-grid" id="personaSelectGrid">
+          <div class="persona-gallery-grid" id="personaSelectGrid" data-persona-step="all">
             <!-- Dynamic selection grid -->
           </div>
         </div>
 
         <!-- Influencer Variant Vault & Pose Manager -->
-        <div class="glass-card" style="margin-top: 28px;" id="variantManagerSection">
+        <div class="glass-card" style="margin-top: 28px;" id="variantManagerSection" data-persona-step="3">
           <h2 style="font-family: var(--font-display); margin-bottom: 8px;">🎬 Repositorio de Poses y Variaciones</h2>
           <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px;">Genera y administra variaciones visuales consistentes (poses, vestuario, actitud) para <strong id="activeInfluencerName">Sofia</strong>.</p>
           
@@ -1538,7 +1563,7 @@
                persona-engine section and main too early (4 tabs escaped). -->
 
         <!-- Generation History Section -->
-        <div class="glass-card" id="generationHistorySection" style="margin-top: 28px; display: none;">
+        <div class="glass-card" id="generationHistorySection" data-persona-step="3" style="margin-top: 28px; display: none;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
             <h2 style="font-family: var(--font-display); margin: 0;">📜 Historial de Generaciones — <span id="historyInfluencerName" style="color: var(--accent-primary);"></span></h2>
             <div style="display: flex; gap: 8px; align-items: center;">
@@ -1555,6 +1580,13 @@
             Sin gens — igual puedes exportar packs. Copia el JSON a un chatbot free; Pollinations es opcional.
           </p>
         </div>
+      
+        <div class="persona-step-footer" id="personaStepFooter" data-persona-step="all">
+          <button type="button" class="btn btn-secondary" id="btnPersonaStepPrev" hidden>← Anterior</button>
+          <div style="flex:1"></div>
+          <button type="button" class="btn" id="btnPersonaStepNext">Siguiente: Lock &amp; Packs →</button>
+        </div>
+
       </section>
       
       <!-- TAB: SCRIPT ENGINE -->

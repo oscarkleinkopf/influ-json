@@ -385,6 +385,136 @@ body {
   }
 }
 
+/* UX-2 — Persona Engine 3 pasos */
+.persona-stepper {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 10px;
+  padding: 6px;
+  border-radius: var(--border-radius-md);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--glass-border);
+}
+
+.persona-step-btn {
+  flex: 1;
+  min-width: 120px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.persona-step-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.persona-step-btn.is-active {
+  color: #fff;
+  background: rgba(52, 211, 153, 0.18);
+  border-color: rgba(52, 211, 153, 0.45);
+}
+
+.persona-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.persona-step-btn.is-active .persona-step-num {
+  background: rgba(52, 211, 153, 0.45);
+}
+
+.persona-step-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 18px;
+  line-height: 1.4;
+}
+
+.persona-step-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.persona-identity-details {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.persona-identity-details > summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.persona-advanced-block > summary {
+  list-style: none;
+}
+
+#persona-engine[data-active-step="1"] [data-persona-step="2"],
+#persona-engine[data-active-step="1"] [data-persona-step="3"],
+#persona-engine[data-active-step="2"] [data-persona-step="1"],
+#persona-engine[data-active-step="2"] [data-persona-step="3"],
+#persona-engine[data-active-step="3"] [data-persona-step="1"],
+#persona-engine[data-active-step="3"] [data-persona-step="2"] {
+  display: none !important;
+}
+
+/* Editor layout visible en pasos 1–2; dentro, form vs sheet por data-step */
+#persona-engine[data-active-step="3"] [data-persona-step="1-2"] {
+  display: none !important;
+}
+
+#persona-engine[data-active-step="1"] .pack-library-card,
+#persona-engine[data-active-step="1"] #personaProfileSheet {
+  display: none !important;
+}
+
+#persona-engine[data-active-step="2"] #personaForm {
+  display: none !important;
+}
+
+/* Avanzado: oculto en el flujo principal salvo details abiertas por el usuario en paso 2 */
+#persona-engine[data-active-step="1"] [data-persona-step="advanced"],
+#persona-engine[data-active-step="3"] [data-persona-step="advanced"] {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .persona-step-label {
+    font-size: 12px;
+  }
+  .persona-step-btn {
+    min-width: 0;
+    padding: 8px 6px;
+  }
+}
+
 /* Header */
 .content-header {
   margin-bottom: 32px;
