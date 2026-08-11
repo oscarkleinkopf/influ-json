@@ -735,15 +735,32 @@ module.exports = {
           }
         }
         let promptForUrl = finalPrompt;
-        // img2img hosts are picky about URL length
-        if (useRef && promptForUrl.length > 850) {
-          promptForUrl = promptForUrl.slice(0, 850);
+        // img2img hosts are picky about URL length — inspiration locks get a compact pack
+        if (useRef) {
+          const maxLen = options.inspirationFaceAnchor ? 620 : 850;
+          if (promptForUrl.length > maxLen) {
+            // Keep identity + hair/skin locks; drop long body boilerplate
+            const hairBit = (finalPrompt.match(/HAIR LOCK:[^.]+/i) || [])[0] || 'HAIR LOCK: honey-blonde Rubio dorado';
+            const skinBit = (finalPrompt.match(/SKIN LOCK:[^.]+/i) || [])[0] || 'SKIN LOCK: fair Caucasian skin';
+            const eyeBit = (finalPrompt.match(/EYES:[^.]+/i) || [])[0] || '';
+            const inspireBit = (finalPrompt.match(/INSPIRATION FACE LOCK:[^.]+/i) || [])[0]
+              || 'INSPIRATION FACE LOCK: same fair Caucasian honey-blonde woman as reference';
+            promptForUrl = [
+              'Photoreal medium shot of the same woman as the reference image.',
+              inspireBit,
+              skinBit,
+              hairBit,
+              eyeBit,
+              'NOT Latina stereotype, NOT black hair, NOT brunette, NOT dark skin.',
+              finalPrompt.slice(0, 180)
+            ].filter(Boolean).join('. ').slice(0, maxLen);
+          }
         }
-        const buildUrl = (m, promptText) => {
+        const buildUrl = (m, promptText, { withNeg = true } = {}) => {
           let u = `https://gen.pollinations.ai/image/${encodeURIComponent(promptText)}?model=${encodeURIComponent(m)}&width=${width}&height=${height}&seed=${seed}`;
           if (useRef) u += `&image=${encodeURIComponent(refUrl)}`;
-          // Inspiration / fair-blonde: push model away from Latina-morena / black-hair bias
-          if (options.inspirationFaceAnchor || /INSPIRATION FACE LOCK|Rubio|blonde|tez blanca|Piel clara|Cauc[aá]sic/i.test(finalPrompt)) {
+          // Prefer prompt-text negatives for img2img (URL + negative_prompt often → 400)
+          if (withNeg && !useRef && (options.inspirationFaceAnchor || /INSPIRATION FACE LOCK|Rubio|blonde|tez blanca|Piel clara|Cauc[aá]sic/i.test(finalPrompt))) {
             const neg = encodeURIComponent(
               'dark skin, deep tan, morena, black hair, brunette, dark brown hair, Latina stereotype, different person, male'
             );
@@ -812,8 +829,29 @@ module.exports = {
             if (is429 || refErr.paymentRequired || refErr.authRequired) {
               throw refErr;
             }
-            console.warn(`Pollinations img2img non-429 error (${refErr.message}), text-only fallback.`);
-            res = await fetchPollinations(null);
+            // Inspiration: one compact retry before dropping the face-anchor (text-only
+            // reintroduces Latina/dark-hair bias against Caucasian refs).
+            if (options.inspirationFaceAnchor && (refErr.status === 400 || /400/.test(refErr.message || ''))) {
+              try {
+                const compact = [
+                  'Same woman as reference photo, fair Caucasian honey-blonde, light eyes.',
+                  'HAIR LOCK: Rubio dorado / honey blonde curls. NOT black hair. NOT brunette.',
+                  'SKIN LOCK: fair light skin. NOT morena. NOT Latina stereotype.',
+                  String(finalPrompt || '').slice(0, 200)
+                ].join(' ');
+                console.warn('[gen] img2img 400 — retry compact inspiration prompt');
+                const prev = finalPrompt;
+                finalPrompt = compact;
+                res = await fetchPollinations(referenceUrl);
+                finalPrompt = prev;
+              } catch (retryErr) {
+                console.warn(`Pollinations img2img retry failed (${retryErr.message}), text-only fallback.`);
+                res = await fetchPollinations(null);
+              }
+            } else {
+              console.warn(`Pollinations img2img non-429 error (${refErr.message}), text-only fallback.`);
+              res = await fetchPollinations(null);
+            }
           }
         } else {
           // fullbody path (or no ref): text-to-image with strong face description
