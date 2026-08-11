@@ -25,17 +25,28 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux-free-path-consolidar-9b67` |
-| **Commit base** | `main` + UX-0 + UX-3 + consolidación Free Path |
-| **PR actual** | [#87](https://github.com/oscarkleinkopf/influ-json/pull/87) Free Path: layout + honestidad + Copiar JSON primero |
-| **`main` remoto** | face pack merged (`f9822ec`); PRs #85/#86 supersedibles por este |
+| **Rama de trabajo** | `cursor/ux1-ia-navegacion-9b67` |
+| **Commit base** | `main` @ merge #87 Free Path |
+| **PR actual** | UX-1 IA: hubs Influencers/Producir/Negocio + chip + un Copiar JSON |
+| **`main` remoto** | Free Path merged (`9c0529c`); #85/#86 cerrados |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge este PR; Free Path claro sin CTAs falsos |
+| **Prioridad inmediata** | Merge UX-1; luego UX-2 (partir Persona Engine) |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video real, HostGator deploy · **#72 Ajustes tabs** CONFLICTING (rebase aparte) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 
-### Sesión reciente (Cursor, 2026-08-11) — Free Path consolidar
+### Sesión reciente (Cursor, 2026-08-11) — UX-1 IA navegación
+
+**Pedido:** Merge #87 + implementar UX-1.
+
+**Hecho:**
+- Merge #87 → `main`; cerrados #85/#86
+- **1a** Sidebar/móvil: Influencers · Producir · Negocio (+ ?); `hub-subnav` para hijas
+- **1b** Chip global «Trabajando con» + Copiar JSON de contexto
+- **1c** Pack canónico + menú Packs ▾; UGC navega a ficha (sin duplicar destino)
+- Tests: `test/ux1-ia-navegacion.test.js`
+
+### Sesión previa (Cursor, 2026-08-11) — Free Path consolidar
 
 **Pedido:** Mantener Free Path primero; usabilidad sencilla; sin links/botones falsos.
 
@@ -46,7 +57,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - Consola: sin fila duplicada de packs (`data-free-pack` solo en ficha)
 - Toasts: sin «Campaña… GitHub» falso tras guiones; sin `alert()` runtime
 - Tests: `test/ux-free-path-consolidar.test.js` (+ UX-0/UX-3)
-- **PR:** este branch supersede #85/#86
+- **PR #87** merged a `main`
 
 ### Sesión previa (Cursor, 2026-08-11) — UX-3 honestidad UI
 

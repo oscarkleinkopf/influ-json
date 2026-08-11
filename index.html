@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.3.3">
+  <link rel="stylesheet" href="index.css?v=1.3.4">
 </head>
 <body>
   <div class="app-container">
@@ -28,53 +28,24 @@
         <span class="logo-text">influ-JSON</span>
       </div>
       
-      <nav class="nav-links">
-        <li class="nav-item active" data-tab="dashboard">
-          <button>
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-            Resumen
-          </button>
-        </li>
-        <li class="nav-item" data-tab="campaigns">
-          <button>
-            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-            Campañas
-          </button>
-        </li>
-        <li class="nav-item" data-tab="persona-engine">
-          <button>
+      <nav class="nav-links" aria-label="Navegación principal">
+        <!-- UX-1a: 3 hubs + ayuda (?). Secciones hijas vía hub-subnav. -->
+        <li class="nav-item active" data-tab="dashboard" data-nav-hub="influencers">
+          <button type="button">
             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Persona Engine
+            Influencers
           </button>
         </li>
-        <li class="nav-item" data-tab="script-engine">
-          <button>
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            Script Engine
-          </button>
-        </li>
-        <li class="nav-item" data-tab="ugc-studio">
-          <button>
+        <li class="nav-item" data-tab="ugc-studio" data-nav-hub="produce">
+          <button type="button">
             <svg viewBox="0 0 24 24"><path d="M23 7a2 2 0 0 0-2.45-1.45L16 7V5a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2l4.55 1.45A2 2 0 0 0 23 17V7z"/></svg>
-            UGC Studio
+            Producir
           </button>
         </li>
-        <li class="nav-item" data-tab="licensing">
-          <button>
-            <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            Licensing & Pitch
-          </button>
-        </li>
-        <li class="nav-item" data-tab="gallery">
-          <button>
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-            Galería Prompts
-          </button>
-        </li>
-        <li class="nav-item" data-tab="como-usar">
-          <button>
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Cómo usar
+        <li class="nav-item" data-tab="campaigns" data-nav-hub="business">
+          <button type="button">
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            Negocio
           </button>
         </li>
       </nav>
@@ -92,8 +63,8 @@
           <span class="queue-status-dot"></span>
           <span id="queueStatusChipText">Cola libre</span>
         </div>
-        <button class="btn btn-secondary btn-sm" id="btnOpenComoUsar" style="width: 100%; margin-bottom: 8px;">
-          Cómo usar
+        <button type="button" class="btn btn-secondary btn-sm" id="btnOpenComoUsar" title="Ayuda / Cómo usar" style="width: 100%; margin-bottom: 8px;">
+          ? Cómo usar
         </button>
         <button class="btn btn-secondary btn-sm" id="btnOpenSettings" style="width: 100%; margin-bottom: 8px; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--accent-primary); color: #fff;">
           ⚙️ Ajustes & Claves API
@@ -106,13 +77,45 @@
     
     <!-- Main Content Panel -->
     <main class="main-content">
+
+      <!-- UX-1b: influencer activo global -->
+      <div class="studio-context-bar" id="studioContextBar">
+        <div class="active-persona-chip" id="activePersonaChip">
+          <span class="active-persona-label">Trabajando con</span>
+          <button type="button" class="active-persona-btn" id="btnActivePersonaMenu" aria-haspopup="listbox" aria-expanded="false">
+            <span id="activePersonaChipName">Sin influencer</span>
+            <span class="active-persona-caret" aria-hidden="true">▾</span>
+          </button>
+          <div class="active-persona-menu" id="activePersonaMenu" role="listbox" hidden></div>
+        </div>
+        <button type="button" class="btn btn-sm studio-context-copy" id="btnContextCopyJson" title="Copia el pack free recomendado (character_lock)">
+          Copiar JSON
+        </button>
+      </div>
+
+      <!-- UX-1a: sub-navegación por hub -->
+      <div class="hub-subnav" id="hubSubnav" hidden>
+        <div class="hub-subnav-inner" data-hub="influencers">
+          <button type="button" class="hub-subnav-btn active" data-tab="dashboard">Portafolio</button>
+          <button type="button" class="hub-subnav-btn" data-tab="persona-engine">Ficha / Editor</button>
+        </div>
+        <div class="hub-subnav-inner" data-hub="produce" hidden>
+          <button type="button" class="hub-subnav-btn active" data-tab="ugc-studio">UGC</button>
+          <button type="button" class="hub-subnav-btn" data-tab="script-engine">Guiones</button>
+          <button type="button" class="hub-subnav-btn" data-tab="gallery">Galería</button>
+        </div>
+        <div class="hub-subnav-inner" data-hub="business" hidden>
+          <button type="button" class="hub-subnav-btn active" data-tab="campaigns">Campañas</button>
+          <button type="button" class="hub-subnav-btn" data-tab="licensing">Licensing</button>
+        </div>
+      </div>
       
       <!-- TAB: DASHBOARD -->
       <section id="dashboard" class="tab-panel active">
         <div class="content-header">
           <div class="content-title">
-            <h1>Panel de Control</h1>
-            <p>Tu agencia de influencers virtuales — portafolio completo.</p>
+            <h1>Influencers</h1>
+            <p>Portafolio — crea, importa y elige con quién trabajas.</p>
           </div>
         </div>
         
@@ -653,11 +656,11 @@
                 <div class="prompt-text" id="sheetPromptPreview" style="font-size: 11px; max-height: 80px; overflow-y: auto; line-height: 1.5; color: #ccc;">Cargando...</div>
               </div>
 
-              <!-- F5/W13/W15: Free chatbot packs (zero cost) -->
+              <!-- F5/W13/W15: Free chatbot packs (zero cost) — UX-1c: un canónico + Packs ▾ -->
               <div class="glass-card pack-library-card" style="margin-top: 16px; padding: 14px; background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.2);">
-                <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 6px; letter-spacing: 0.4px;">Copiar JSON (recomendado)</h4>
+                <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 6px; letter-spacing: 0.4px;">Pack free para chatbot</h4>
                 <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
-                  El producto es el pack: pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Pollinations es solo un boceto inestable.
+                  Pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Pollinations es solo un boceto opt-in.
                 </p>
                 <div id="ugcCameraChips" style="margin-bottom: 10px;">
                   <p style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 6px; font-weight: 700; letter-spacing: 0.4px;">Cámara UGC (Layer 4)</p>
@@ -682,14 +685,18 @@
                   <p id="ugcShotComposerHint" style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;">Elige cámara y/o formato; se inyectan al copiar el pack (sin renegociar la cara).</p>
                 </div>
                 <button type="button" class="btn btn-sm" data-free-pack="fullbody" id="btnCopyPackFullbodyPrimary" style="width: 100%; font-size: 12px; padding: 10px 12px; margin-bottom: 8px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff; text-align: left;">
-                  🧍 Copiar JSON · cuerpo entero (recomendado)
+                  Copiar JSON
                 </button>
-                <div class="pack-library-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 11px; padding: 8px 10px; text-align: left;">Bikini / playa</button>
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px; text-align: left;">Spicy (realista)</button>
-                  <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px; text-align: left;">Producto en mano</button>
-                  <button type="button" class="btn btn-secondary btn-sm" id="btnCopyUgcWeek" style="font-size: 11px; padding: 8px 10px; text-align: left;" title="7 one-liners con el mismo character_lock">📅 Semana UGC (7 tomas)</button>
-                </div>
+                <details id="packVariantsMenu" style="margin: 0 0 8px;">
+                  <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 6px 0;">Packs ▾ (bikini · spicy · producto · semana)</summary>
+                  <div class="pack-library-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 11px; padding: 8px 10px; text-align: left;">Cuerpo entero</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 11px; padding: 8px 10px; text-align: left;">Bikini / playa</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px; text-align: left;">Spicy (realista)</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px; text-align: left;">Producto en mano</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnCopyUgcWeek" style="font-size: 11px; padding: 8px 10px; text-align: left; grid-column: 1 / -1;" title="7 one-liners con el mismo character_lock">📅 Semana UGC (7 tomas)</button>
+                  </div>
+                </details>
                 <p class="pack-last-status" data-last-pack-status style="font-size: 10px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.4;"></p>
                 <button type="button" class="btn btn-secondary btn-sm" id="btnRecopyLastPack" data-offline-highlight="pack" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;" disabled>
                   Volver a copiar último pack
@@ -705,7 +712,7 @@
                   Copia un bloque con lock + retrato + cuerpo + producto. Valida identidad en ChatGPT free sin pagar face-lock.
                 </p>
                 <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
-                  <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px;">Descargas (opcional, no sustituyen Copiar JSON)</p>
+                  <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px;">Descargas (opcional, no sustituyen el pack free)</p>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnExportBrandKitSheet" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;">🎁 Descargar kit marca (packs + guión)</button>
                 </div>
@@ -2292,23 +2299,23 @@
     </div>
   </div>
   
-  <!-- Mobile Bottom Fixed Navigation Bar -->
-  <nav class="mobile-bottom-nav">
-    <button class="mobile-nav-item active" data-tab="persona-engine" id="mbNavInfluencers">
+  <!-- Mobile Bottom Fixed Navigation Bar (mismas 3 hubs + ? que el sidebar) -->
+  <nav class="mobile-bottom-nav" aria-label="Navegación móvil">
+    <button type="button" class="mobile-nav-item active" data-tab="dashboard" data-nav-hub="influencers" id="mbNavInfluencers">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span>Influencers</span>
     </button>
-    <button class="mobile-nav-item" data-tab="ugc-studio" id="mbNavStudio">
+    <button type="button" class="mobile-nav-item" data-tab="ugc-studio" data-nav-hub="produce" id="mbNavStudio">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-      <span>Studio</span>
+      <span>Producir</span>
     </button>
-    <button class="mobile-nav-item" data-tab="como-usar" id="mbNavGuide">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span>Cómo usar</span>
-    </button>
-    <button class="mobile-nav-item" data-tab="campaigns" id="mbNavCampaigns">
+    <button type="button" class="mobile-nav-item" data-tab="campaigns" data-nav-hub="business" id="mbNavCampaigns">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      <span>Campañas</span>
+      <span>Negocio</span>
+    </button>
+    <button type="button" class="mobile-nav-item" data-tab="como-usar" id="mbNavGuide" title="Ayuda">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>?</span>
     </button>
   </nav>
 

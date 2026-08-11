@@ -171,6 +171,7 @@ function setupOfflineBanner() {
 document.addEventListener('DOMContentLoaded', () => {
   const initSteps = [
     { name: 'setupTabs', fn: setupTabs },
+    { name: 'setupActivePersonaChip', fn: setupActivePersonaChip },
     { name: 'checkAuthAndInit', fn: checkAuthAndInit },
     { name: 'setupLogin', fn: setupLogin },
     { name: 'setupPersonaEngine', fn: setupPersonaEngine },
@@ -1284,66 +1285,104 @@ async function refreshSettingsKeysStatus() {
     }
   } catch (_) { /* ignore */ }
 }
-// Tab Switcher & Mobile Responsive Navigation Logic
+// Tab Switcher & Mobile Responsive Navigation Logic (UX-1a hubs)
+const TAB_ALIASES = {
+  personas: 'persona-engine',
+  products: 'ugc-studio'
+};
+
+const TAB_TO_HUB = {
+  dashboard: 'influencers',
+  'persona-engine': 'influencers',
+  'ugc-studio': 'produce',
+  'script-engine': 'produce',
+  gallery: 'produce',
+  campaigns: 'business',
+  licensing: 'business',
+  'como-usar': null
+};
+
+function resolveStudioTab(rawTabId) {
+  return TAB_ALIASES[rawTabId] || rawTabId;
+}
+
+function updateHubSubnav(tabId) {
+  const hub = TAB_TO_HUB[tabId];
+  const bar = document.getElementById('hubSubnav');
+  if (!bar) return;
+  if (!hub) {
+    bar.hidden = true;
+    return;
+  }
+  bar.hidden = false;
+  bar.querySelectorAll('.hub-subnav-inner').forEach((inner) => {
+    const match = inner.getAttribute('data-hub') === hub;
+    inner.hidden = !match;
+    if (match) {
+      inner.querySelectorAll('.hub-subnav-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+      });
+    }
+  });
+}
+
+function syncNavActiveForTab(tabId) {
+  const hub = TAB_TO_HUB[tabId];
+  getNavItems().forEach((nav) => {
+    const navHub = nav.getAttribute('data-nav-hub');
+    const navTab = nav.getAttribute('data-tab');
+    const active = hub
+      ? navHub === hub
+      : navTab === tabId;
+    nav.classList.toggle('active', !!active);
+  });
+  document.querySelectorAll('.mobile-nav-item').forEach((mbItem) => {
+    const mbHub = mbItem.getAttribute('data-nav-hub');
+    const mbTab = resolveStudioTab(mbItem.getAttribute('data-tab'));
+    const active = hub
+      ? mbHub === hub
+      : mbTab === tabId || mbItem.getAttribute('data-tab') === tabId;
+    mbItem.classList.toggle('active', !!active);
+  });
+}
+
+function switchStudioTab(rawTabId) {
+  const tabId = resolveStudioTab(rawTabId);
+  state.activeTab = tabId;
+
+  syncNavActiveForTab(tabId);
+  updateHubSubnav(tabId);
+
+  getTabPanels().forEach((panel) => {
+    panel.classList.toggle('active', panel.id === tabId);
+  });
+
+  closeMobileSidebar();
+
+  if (tabId === 'campaigns') renderCampaigns();
+  if (tabId === 'gallery') renderGallery();
+  if (tabId === 'ugc-studio' && typeof renderBulkProductSelector === 'function') renderBulkProductSelector();
+  if (tabId === 'licensing' && typeof updateLicensingCalculator === 'function') updateLicensingCalculator();
+}
+
 function setupTabs() {
-  // Alias legacy / mobile tabs → paneles reales
-  const TAB_ALIASES = {
-    personas: 'persona-engine',
-    products: 'ugc-studio'
-  };
+  switchStudioTab(state.activeTab || 'dashboard');
 
-  const switchTab = (rawTabId) => {
-    const tabId = TAB_ALIASES[rawTabId] || rawTabId;
-    state.activeTab = tabId;
-    
-    // Update sidebar nav items
-    getNavItems().forEach(nav => {
-      if (nav.getAttribute('data-tab') === tabId) {
-        nav.classList.add('active');
-      } else {
-        nav.classList.remove('active');
-      }
-    });
-
-    // Update mobile bottom nav items (acepta alias o id real)
-    document.querySelectorAll('.mobile-nav-item').forEach(mbItem => {
-      const mbTab = mbItem.getAttribute('data-tab');
-      const resolved = TAB_ALIASES[mbTab] || mbTab;
-      if (resolved === tabId || mbTab === tabId) {
-        mbItem.classList.add('active');
-      } else {
-        mbItem.classList.remove('active');
-      }
-    });
-    
-    // Update active panel class
-    getTabPanels().forEach(panel => {
-      if (panel.id === tabId) {
-        panel.classList.add('active');
-      } else {
-        panel.classList.remove('active');
-      }
-    });
-    
-    // Close mobile drawer if open
-    closeMobileSidebar();
-
-    // Hook triggers for specific tabs
-    if (tabId === 'campaigns') renderCampaigns();
-    if (tabId === 'gallery') renderGallery();
-    if (tabId === 'ugc-studio' && typeof renderBulkProductSelector === 'function') renderBulkProductSelector();
-  };
-
-  getNavItems().forEach(item => {
+  getNavItems().forEach((item) => {
     item.addEventListener('click', () => {
-      switchTab(item.getAttribute('data-tab'));
+      switchStudioTab(item.getAttribute('data-tab'));
     });
   });
 
-  // Mobile Bottom Navigation Bar listeners
-  document.querySelectorAll('.mobile-nav-item').forEach(mbItem => {
+  document.querySelectorAll('.mobile-nav-item').forEach((mbItem) => {
     mbItem.addEventListener('click', () => {
-      switchTab(mbItem.getAttribute('data-tab'));
+      switchStudioTab(mbItem.getAttribute('data-tab'));
+    });
+  });
+
+  document.querySelectorAll('.hub-subnav-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      switchStudioTab(btn.getAttribute('data-tab'));
     });
   });
 
@@ -1369,6 +1408,82 @@ function closeMobileSidebar() {
   const backdrop = document.getElementById('mobileSidebarBackdrop');
   if (sidebar) sidebar.classList.remove('mobile-open');
   if (backdrop) backdrop.classList.remove('active');
+}
+
+/** UX-1b — chip global «Trabajando con» + Copiar JSON de contexto */
+function updateActivePersonaChip() {
+  const nameEl = document.getElementById('activePersonaChipName');
+  const copyBtn = document.getElementById('btnContextCopyJson');
+  const p = state.selectedPersona;
+  if (nameEl) nameEl.textContent = p?.name || 'Sin influencer';
+  if (copyBtn) copyBtn.disabled = !p;
+}
+
+function closeActivePersonaMenu() {
+  const menu = document.getElementById('activePersonaMenu');
+  const btn = document.getElementById('btnActivePersonaMenu');
+  if (menu) menu.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function renderActivePersonaMenu() {
+  const menu = document.getElementById('activePersonaMenu');
+  if (!menu) return;
+  const list = (state.personas || []).filter((p) => !isArchivedPersona(p));
+  if (!list.length) {
+    menu.innerHTML = '<div class="active-persona-empty">Sin influencers — crea o importa uno</div>';
+    return;
+  }
+  const selectedId = state.selectedPersona?.id;
+  menu.innerHTML = list.map((p) => {
+    const active = p.id === selectedId ? ' is-active' : '';
+    const safeName = String(p.name || 'Sin nombre').replace(/</g, '&lt;');
+    return `<button type="button" class="active-persona-option${active}" role="option" data-persona-id="${p.id}">${safeName}</button>`;
+  }).join('');
+  menu.querySelectorAll('[data-persona-id]').forEach((opt) => {
+    opt.addEventListener('click', () => {
+      const id = opt.getAttribute('data-persona-id');
+      const persona = (state.personas || []).find((x) => String(x.id) === String(id));
+      if (persona) {
+        selectPersona(persona);
+        if (state.activeTab === 'dashboard') navigateToTab('persona-engine');
+      }
+      closeActivePersonaMenu();
+    });
+  });
+}
+
+function setupActivePersonaChip() {
+  updateActivePersonaChip();
+  const btn = document.getElementById('btnActivePersonaMenu');
+  const menu = document.getElementById('activePersonaMenu');
+  const copyBtn = document.getElementById('btnContextCopyJson');
+
+  btn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!menu) return;
+    const open = menu.hidden;
+    if (open) {
+      renderActivePersonaMenu();
+      menu.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+    } else {
+      closeActivePersonaMenu();
+    }
+  });
+
+  copyBtn?.addEventListener('click', () => {
+    if (!state.selectedPersona) {
+      toastInfo('Elige un influencer primero (chip «Trabajando con»).');
+      return;
+    }
+    if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
+  });
+
+  document.addEventListener('click', (e) => {
+    const chip = document.getElementById('activePersonaChip');
+    if (chip && !chip.contains(e.target)) closeActivePersonaMenu();
+  });
 }
 
 /** Normalize archived flag (sqlite may return 0/1, true/false, or null). */
@@ -1435,6 +1550,11 @@ function refreshPersonaLists() {
     renderPersonaGrids();
   } catch (e) {
     console.warn('renderPersonaGrids failed:', e);
+  }
+  try {
+    if (typeof updateActivePersonaChip === 'function') updateActivePersonaChip();
+  } catch (e) {
+    console.warn('updateActivePersonaChip failed:', e);
   }
 }
 
@@ -2554,26 +2674,15 @@ function updateQueueStatusChip(q) {
 }
 
 function navigateToTab(tabId) {
-  // Prefer direct switch so paneles nuevos (p. ej. cómo usar) siempre activan
-  const panel = document.getElementById(tabId);
+  const resolved = resolveStudioTab(tabId);
+  const panel = document.getElementById(resolved);
   if (panel && panel.classList.contains('tab-panel')) {
-    state.activeTab = tabId;
-    getNavItems().forEach(nav => {
-      nav.classList.toggle('active', nav.getAttribute('data-tab') === tabId);
-    });
-    document.querySelectorAll('.mobile-nav-item').forEach(mbItem => {
-      mbItem.classList.toggle('active', mbItem.getAttribute('data-tab') === tabId);
-    });
-    getTabPanels().forEach(p => {
-      p.classList.toggle('active', p.id === tabId);
-    });
-    if (typeof closeMobileSidebar === 'function') closeMobileSidebar();
-    if (tabId === 'campaigns' && typeof renderCampaigns === 'function') renderCampaigns();
-    if (tabId === 'gallery' && typeof renderGallery === 'function') renderGallery();
+    switchStudioTab(resolved);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
-  const navItem = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('data-tab') === tabId);
+  const navItem = Array.from(document.querySelectorAll('.nav-item, .hub-subnav-btn, .mobile-nav-item'))
+    .find(el => el.getAttribute('data-tab') === resolved || el.getAttribute('data-tab') === tabId);
   if (navItem) navItem.click();
 }
 
@@ -2859,6 +2968,7 @@ function selectPersona(persona) {
   renderPersonaGrids();
   populateActiveUgcData();
   updateLicensingCalculator();
+  if (typeof updateActivePersonaChip === 'function') updateActivePersonaChip();
   
   // Update inputs in Persona Form (safe for missing nodes / non-matching <select> values)
   const setInputValue = (id, val) => {
@@ -5896,27 +6006,17 @@ function setupUgcStudio() {
   // Generate Image AI Action
   document.getElementById('btnGenerateUgcImage').addEventListener('click', generateAIImageAction);
 
-  // Export active bundle for chatbot
+  // Export → UX-1c: no duplicar destino; ir a la ficha canónica
   document.getElementById('btnExportUgcChatbot').addEventListener('click', () => {
-    const activeScript = state.scripts.length > 0 ? state.scripts[state.selectedAngleIndex] : null;
-    const product = state.selectedProduct || {
-      name: document.getElementById('prodName')?.value || '',
-      benefit: document.getElementById('prodBenefit')?.value || '',
-      audience: document.getElementById('prodAudience')?.value || '',
-      frustration: document.getElementById('prodFrustration')?.value || ''
-    };
-    
-    const exportText = buildChatbotExportText({
-      includePrompt: true,
-      includeScript: !!activeScript,
-      includeProduct: true,
-      scriptData: activeScript,
-      productData: product
-    });
-    
-    navigator.clipboard.writeText(exportText);
-    markHappyPathCopied();
-    toastSuccess('📋 Pack completo copiado para tu chatbot');
+    navigateToTab('persona-engine');
+    setTimeout(() => {
+      const target = document.getElementById('btnCopyPackFullbodyPrimary');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.focus?.();
+      }
+    }, 80);
+    toastInfo('Pack free está en la ficha — usa «Copiar JSON» (verde).');
   });
 
   // Download Master JSON Pack
