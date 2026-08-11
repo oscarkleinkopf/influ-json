@@ -25,18 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | tip batch harness merges (`cbd3ccd`+) |
-| **PR actual** | #64–#66,#68–#71 MERGED; #67 closed superseded |
-| **Commit base** | tip docs #63 (`27e2c6c`) |
-| **PR actual** | #63 pack resilience **MERGED** |
+| **Rama de trabajo** | `cursor/fix-mar-beach-false-positive-173f` |
+| **Commit base** | tip `main` + fix `/mar/` → playa |
+| **PR actual** | Spicy látex ya no fuerza playa (falso positivo smartphone) |
 | **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + harness batch |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Walkthrough **Daniela** en PC; OAuth/SMTP/video/deploy en pausa |
-| **Prioridad inmediata** | Harness git creds ✅ (helper local); **revocar token expuesto** (usuario); walkthroughs / OAuth/SMTP/video/deploy en pausa |
+| **Prioridad inmediata** | Merge fix playa + [#73](https://github.com/oscarkleinkopf/influ-json/pull/73) thumbs; walkthrough Daniela |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy · Daniela body/skin/spicy (hasta PC) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — Spicy látex salía en playa
+
+**Pedido:** Colorina 2.5 spicy látex rojo → imagen en playa (había gen playa antes).
+
+**Causa:** `ai-service` detectaba playa con `/mar/` suelto; coincidía dentro de **smartphone** (siempre en prompts de variante) y forzaba `SETTING LOCK` tropical beach.
+
+**Hecho:** `promptImpliesBeachSetting` con word boundaries + no pisar `Background/location` indoor. Test `beach-mar-false-positive.test.js`.
 
 ### Sesión reciente (Cursor, 2026-08-10) — Batch merge harness PRs
 
