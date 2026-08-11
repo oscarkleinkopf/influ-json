@@ -25,17 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux3-honestidad-ui-9b67` |
-| **Commit base** | `main` + UX-3 honestidad UI |
-| **PR actual** | UX-3: botones muertos, stats reales, vídeo demo, toasts |
-| **`main` remoto** | face pack merged (`f9822ec`); UX-0 en PR #85 |
+| **Rama de trabajo** | `cursor/ux-free-path-consolidar-9b67` |
+| **Commit base** | `main` + UX-0 + UX-3 + consolidación Free Path |
+| **PR actual** | Free Path: layout + honestidad + Copiar JSON primero |
+| **`main` remoto** | face pack merged (`f9822ec`); PRs #85/#86 supersedibles por este |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge UX-0 (#85) + UX-3; siguiente: consolidar Copiar JSON / soft-group pestañas |
+| **Prioridad inmediata** | Merge este PR; Free Path claro sin CTAs falsos |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video real, HostGator deploy · **#72 Ajustes tabs** CONFLICTING (rebase aparte) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 
-### Sesión reciente (Cursor, 2026-08-11) — UX-3 honestidad UI
+### Sesión reciente (Cursor, 2026-08-11) — Free Path consolidar (en curso)
+
+**Pedido:** Mantener Free Path primero; usabilidad sencilla; sin links/botones falsos.
+
+**Incluye:** UX-0 (layout) + UX-3 (honestidad) + claims GPT/Veo + jerarquía Copiar JSON.
+
+### Sesión previa (Cursor, 2026-08-11) — UX-3 honestidad UI
 
 **Pedido:** Continuar con UX-3 del plan (operatividad / honestidad).
 
@@ -49,6 +55,17 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - **3h** Eliminado `showSyncToast` (23 call sites → `toastSuccess`/`toastError`)
 - **3g** #72 sigue CONFLICTING — no mergeado aquí
 - Tests: `test/ux3-honestidad.test.js`
+
+### Sesión previa (Cursor, 2026-08-11) — UX-0 layout + estructura
+
+**Pedido:** Implementar UX-0 del PLAN-UX (partir: bug de layout + test).
+
+**Hecho:**
+- **UX-0a:** eliminado `</div>` sobrante tras `#variantManagerSection` que cerraba `<main>`/`#persona-engine` antes de tiempo (4 pestañas + historial salían a `<body>` flex)
+- **UX-0b:** `@media (max-width:768px)` → `.main-content { margin-left:0; width:100% }`
+- **UX-0c:** `#offlineModeBar` de `sticky` → `fixed` (ya no roba ancho al flex de `body`)
+- **UX-0d:** `test/html-structure.test.js` (balance de tags + tabs bajo `<main>` + historial dentro de persona-engine)
+- Cache-bust `index.css?v=1.3.3`
 
 ### Sesión reciente (Cursor, 2026-08-11) — face pack canónico
 
@@ -438,6 +455,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-11 | Cursor | **fix(ux-0)**: HTML nesting + móvil margin + offline bar fixed + test estructura | *(este PR)* |
 | 2026-08-10 | Cursor | **fix**: Resumen thumbs — fallback static `DATA_DIR` para references/generated | *(este PR)* |
 | 2026-08-05 | Cursor | **Happy path live**: create→JSON pack→export + boceto pollen; smoke 9/9 | *(docs)* |
 | 2026-08-05 | Cursor | **UX #2** + **L4c** Flux template | *(este PR)* |
