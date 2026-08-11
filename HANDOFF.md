@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/ux4-html-partials-9b67` |
 | **Commit base** | `main` @ #91+#90+#89 |
-| **PR actual** | UX-4: views/ parciales HTML |
+| **PR actual** | [#92](https://github.com/oscarkleinkopf/influ-json/pull/92) UX-4 parciales HTML |
 | **`main` remoto** | Pages #91 · PIN #90 · UX-2 #89 merged |
 | **Prioridad inmediata** | Merge UX-4; luego UX-5 (DB tests aislada) o #72 |
 | **PIN local** | `1234` · Pages = modal (no Studio) |
