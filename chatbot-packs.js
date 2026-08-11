@@ -76,17 +76,74 @@
     return null;
   }
 
+  const REALISM_ANCHORS_ES =
+    'Realismo (imperfecciones a propósito): poros visibles y brillo leve en zona T, baby hairs y mechones sueltos, ' +
+    'textura sutil bajo los ojos, tono de piel irregular con rojez leve en nariz, textura real de tela con pliegues, ' +
+    'un poco de clutter en el borde del cuadro, un highlight ligeramente quemado, grain suave de celular, ' +
+    'uñas con cutículas naturales, joyas con peso metálico real.';
+
+  const REALISM_ANCHORS_BLOCK =
+    'Realism: visible skin pores and slight T-zone shine, fine flyaway and baby hairs at the hairline, ' +
+    'faint under-eye texture and natural shadow, slightly uneven skin tone with mild redness around the nose, ' +
+    'real fabric texture with small wrinkles and strap indentation, a little environmental clutter at the frame edge, ' +
+    'one slightly blown highlight and uneven natural fill light, mild sensor grain and real-lens softness with a touch of motion blur, ' +
+    'natural cuticles and slightly worn nails, jewelry that hangs and catches light with real metal weight.';
+
+  const STANDARD_NEGATIVE_PROMPT =
+    'plastic skin, airbrushed, poreless, waxy, perfectly symmetric face, beauty filter, smoothed skin, ' +
+    'doll-like, CGI sheen, over-saturated, HDR glow, extra fingers, deformed hands, mangled jewelry, ' +
+    'warped background, text artifacts, watermark, over-whitened teeth, uncanny eyes, glossy mannequin look, ' +
+    '3d render, cartoon, anime, different person, face swap';
+
+  function isMeaningfulMarks(v) {
+    if (v == null) return false;
+    const s = String(v).trim();
+    if (!s) return false;
+    return !/^(ninguno|ninguna|n\/a|na|sin marcas|sin marcas distintivas|sin marcas distintivas visibles|none)$/i.test(s);
+  }
+
+  function formatLockSummary(must, name) {
+    const marks = isMeaningfulMarks(must.distinctive_marks) ? must.distinctive_marks : '—';
+    const asym = must.facial_asymmetry || '—';
+    return `RESUMEN FIJO:
+• ${must.name || name} · ${must.age || ''} · ${must.gender || ''} · ${must.ethnicity || ''}
+• Cara: ${must.face_shape || '—'} | ojos ${must.eye_color || '—'} | ${must.eyebrows || ''}
+• Asimetría (fija): ${asym}
+• Marcas (siempre visibles): ${marks}
+• Piel: ${must.skin_tone || '—'}${must.skin_tone_hex ? ' ' + must.skin_tone_hex : ''} (NO cambiar)
+• Cabello: ${must.hair_color || ''} · ${must.hair_texture || ''} · ${must.hair_length || ''}
+• Cuerpo: ${must.body_type || ''} · ${must.height || ''} · ${must.proportions || ''}`;
+  }
+
+  function formatRealismNegativeSections() {
+    return `───────────────────────────────────────────
+REALISMO (imperfecciones — Layer 5)
+───────────────────────────────────────────
+${REALISM_ANCHORS_ES}
+
+${REALISM_ANCHORS_BLOCK}
+
+───────────────────────────────────────────
+NEGATIVE PROMPT (si el modelo lo acepta)
+───────────────────────────────────────────
+${STANDARD_NEGATIVE_PROMPT}`;
+  }
+
   function synthesizeCharacterLock(json, fallbackName) {
     const id = json.identity || {};
     const face = json.facial_features || {};
     const hair = json.hair || {};
     const body = json.body || {};
     const name = id.name || fallbackName || 'Influencer';
+    const marks = face.distinctive_marks || null;
+    const asymmetry = face.facial_asymmetry || null;
+    const marksHint = isMeaningfulMarks(marks) ? ` Marcas fijas: ${marks}.` : '';
+    const asymHint = asymmetry ? ` Asimetría fija: ${asymmetry}.` : '';
     return {
       version: 1,
       free_tier: true,
       purpose: 'Mantener la misma persona en chatbots gratuitos sin face-lock de pago',
-      free_chatbot_system: `Sos ${name}. Misma cara, tez y pelo en todas las imágenes.`,
+      free_chatbot_system: `Sos ${name}. Misma cara, tez y pelo en todas las imágenes.${asymHint}${marksHint} No simetrices ni «arregles» el rostro.`,
       must_match_every_image: {
         name,
         gender: id.gender || null,
@@ -97,6 +154,10 @@
         face_shape: face.face_shape || null,
         eye_color: face.eye_color || null,
         eyebrows: face.eyebrow_style || face.eyebrows || null,
+        lips: face.lip_shape || face.lips || null,
+        jawline: face.jawline || null,
+        facial_asymmetry: asymmetry,
+        distinctive_marks: marks,
         hair_color: hair.color || null,
         hair_texture: hair.texture || null,
         hair_length: hair.length || null,
@@ -108,6 +169,8 @@
       never_do: [
         'Cambiar tono de piel o etnia aparente',
         'Cambiar forma de rostro',
+        'Borrar o mover asimetría / marcas distintivas',
+        'Simetrizar o embellecer el rostro',
         'Cuerpo con proporciones distintas'
       ]
     };
@@ -189,18 +252,15 @@ CHARACTER LOCK (obligatorio)
 ───────────────────────────────────────────
 ${JSON.stringify(lock, null, 2)}
 
-RESUMEN FIJO:
-• ${must.name || name} · ${must.age || ''} · ${must.gender || ''} · ${must.ethnicity || ''}
-• Cara: ${must.face_shape || '—'} | ojos ${must.eye_color || '—'} | ${must.eyebrows || ''}
-• Piel: ${must.skin_tone || '—'}${must.skin_tone_hex ? ' ' + must.skin_tone_hex : ''} (NO cambiar)
-• Cabello: ${must.hair_color || ''} · ${must.hair_texture || ''} · ${must.hair_length || ''}
-• Cuerpo: ${must.body_type || ''} · ${must.height || ''} · ${must.proportions || ''}
+${formatLockSummary(must, name)}
 
 ───────────────────────────────────────────
 PETICIÓN DE ESTA IMAGEN
 ───────────────────────────────────────────
 ${pack.sceneInstruction}
 ${productBlock}${extra}
+${formatRealismNegativeSections()}
+
 ───────────────────────────────────────────
 JSON COMPLETO (referencia)
 ───────────────────────────────────────────
@@ -209,9 +269,10 @@ ${JSON.stringify(json, null, 2)}
 ───────────────────────────────────────────
 AL FINAL
 ───────────────────────────────────────────
-1) Genera la imagen respetando el CHARACTER LOCK.
-2) Si la cara o la tez cambian, re-pega el lock y regenera.
-3) Responde en español con una línea: "OK — pack ${pack.id} para ${name}".
+1) Genera la imagen respetando el CHARACTER LOCK (asimetría + marcas incluidas).
+2) Aplica el bloque REALISMO; si el modelo acepta negativo, úsalo.
+3) Si la cara, tez o marcas cambian, re-pega el lock y regenera.
+4) Responde en español con una línea: "OK — pack ${pack.id} para ${name}".
 `;
   }
 
@@ -264,7 +325,7 @@ Genera UNA imagen UGC del influencer mostrando producto:
 SESIÓN DE PRUEBA — 3 PROMPTS (cero costo)
 Influencer: ${name}
 Pega TODO este bloque en ChatGPT / Gemini / Claude / Meta (gratis).
-Objetivo: comprobar si el character_lock ancla cara + tez + pelo.
+Objetivo: comprobar si el character_lock ancla cara + tez + pelo + asimetría/marcas.
 ═══════════════════════════════════════════
 
 ${compactLock.free_chatbot_system}
@@ -274,18 +335,17 @@ CHARACTER LOCK (compacto — obligatorio)
 ───────────────────────────────────────────
 ${JSON.stringify(compactLock, null, 2)}
 
-RESUMEN FIJO:
-• ${must.name || name} · ${must.age || ''} · ${must.gender || ''} · ${must.ethnicity || ''}
-• Cara: ${must.face_shape || '—'} | ojos ${must.eye_color || '—'}
-• Piel: ${must.skin_tone || '—'}${must.skin_tone_hex ? ' ' + must.skin_tone_hex : ''} (NO cambiar)
-• Cabello: ${must.hair_color || ''} · ${must.hair_texture || ''} · ${must.hair_length || ''}
+${formatLockSummary(must, name)}
+
+${formatRealismNegativeSections()}
 
 ───────────────────────────────────────────
 CÓMO USAR
 ───────────────────────────────────────────
 1) Genera PROMPT A, luego B, luego C (una imagen cada uno).
 2) No reescribas el CHARACTER LOCK entre prompts.
-3) Vuelve al Studio y marca el checklist: ¿misma cara? ¿misma tez? ¿mismo pelo?
+3) Conserva asimetría y marcas en las 3 tomas.
+4) Vuelve al Studio y marca el checklist: ¿misma cara? ¿misma tez? ¿mismo pelo?
 
 ───────────────────────────────────────────
 ${promptA}
@@ -300,7 +360,7 @@ ${promptC}
 AL FINAL
 ───────────────────────────────────────────
 Responde en español: "OK — sesión 3 prompts para ${name}".
-Si cara/tez/pelo cambian entre A/B/C, dilo explícitamente.
+Si cara/tez/pelo/marcas cambian entre A/B/C, dilo explícitamente.
 `;
   }
 
@@ -356,6 +416,10 @@ Si cara/tez/pelo cambian entre A/B/C, dilo explícitamente.
     isSessionChecklistPassing,
     listPackIds,
     formatRelativeCopyAge,
-    packLabel
+    packLabel,
+    REALISM_ANCHORS_BLOCK,
+    REALISM_ANCHORS_ES,
+    STANDARD_NEGATIVE_PROMPT,
+    isMeaningfulMarks
   };
 });

@@ -2518,6 +2518,7 @@ function applyGeneratedTraitsToForm(details) {
   setInputValue('pLips', f.lip_shape);
   setInputValue('pSmileType', f.smile_type);
   setInputValue('pDistinctiveMarks', f.distinctive_marks);
+  setInputValue('pFacialAsymmetry', f.facial_asymmetry);
   
   if (details.personality) {
     setInputValue('pMbti', details.personality.mbti);
@@ -2653,6 +2654,7 @@ function resetPersonaFormForNew() {
   setIf('pFitness', 'Tono natural ligero, sin musculatura exagerada');
   setIf('pBodySkin', 'Mismo tono de piel que el rostro en cuello, hombros y brazos; textura natural continua');
   setIf('pDistinctiveMarks', 'Peca sutil en el pómulo izquierdo, pequeño lunar natural en el cuello');
+  setIf('pFacialAsymmetry', 'Ojo izquierdo ~2% más pequeño, mandíbula izquierda ligeramente más suave');
   setIf('pMbti', 'ENFP - El Entusiasta Creativo');
   setIf('pCommunicationStyle', 'Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia');
   setIf('pTaboos', 'No promociona fast fashion, No usa lenguaje agresivo, No habla de temas políticos controversiales');
@@ -2785,6 +2787,7 @@ function selectPersona(persona) {
   setInputValue('pFaceShape', detailed.facial_features?.face_shape || 'Ovalada con mandíbula definida');
   setInputValue('pSmileType', detailed.facial_features?.smile_type || 'Sonrisa cálida, accesible y natural');
   setInputValue('pDistinctiveMarks', detailed.facial_features?.distinctive_marks || 'Peca sutil en el pómulo izquierdo, pequeño lunar natural en el cuello');
+  setInputValue('pFacialAsymmetry', detailed.facial_features?.facial_asymmetry || detailed.character_lock?.must_match_every_image?.facial_asymmetry || 'Ojo izquierdo ~2% más pequeño, mandíbula izquierda ligeramente más suave');
   setInputValue('pMbti', detailed.personality?.mbti || 'ENFP - El Entusiasta Creativo');
   setInputValue('pCommunicationStyle', detailed.personality?.communication_style || 'Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia');
   const taboos = detailed.personality?.taboos;
@@ -3275,6 +3278,8 @@ function getFullPersonaJSON() {
   base.facial_features.smile_type = document.getElementById('pSmileType')?.value || base.facial_features.smile_type || 'Natural';
   const marks = document.getElementById('pDistinctiveMarks')?.value;
   if (marks) base.facial_features.distinctive_marks = marks;
+  const asymmetry = document.getElementById('pFacialAsymmetry')?.value;
+  if (asymmetry) base.facial_features.facial_asymmetry = asymmetry;
   
   base.hair.color = document.getElementById('pHairColor')?.value || base.hair.color || 'Castaño';
   base.hair.texture = document.getElementById('pHairTexture')?.value || base.hair.texture || 'Ondulado';

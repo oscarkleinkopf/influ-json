@@ -52,6 +52,34 @@
     return !!(obj.identity || obj.facial_features || obj.body || obj.hair || keys.length <= 30);
   }
 
+  /** Layer 5 — imperfecciones anti-look-AI (inspirado en ugc-creator realism anchors). */
+  const REALISM_ANCHORS_BLOCK =
+    'Realism: visible skin pores and slight T-zone shine, fine flyaway and baby hairs at the hairline, ' +
+    'faint under-eye texture and natural shadow, slightly uneven skin tone with mild redness around the nose, ' +
+    'real fabric texture with small wrinkles and strap indentation, a little environmental clutter at the frame edge, ' +
+    'one slightly blown highlight and uneven natural fill light, mild sensor grain and real-lens softness with a touch of motion blur, ' +
+    'natural cuticles and slightly worn nails, jewelry that hangs and catches light with real metal weight.';
+
+  const REALISM_ANCHORS_ES =
+    'Realismo (imperfecciones a propósito): poros visibles y brillo leve en zona T, baby hairs y mechones sueltos, ' +
+    'textura sutil bajo los ojos, tono de piel irregular con rojez leve en nariz, textura real de tela con pliegues, ' +
+    'un poco de clutter en el borde del cuadro, un highlight ligeramente quemado, grain suave de celular, ' +
+    'uñas con cutículas naturales, joyas con peso metálico real.';
+
+  /** Standard negative block for free chatbots / image models that accept negatives. */
+  const STANDARD_NEGATIVE_PROMPT =
+    'plastic skin, airbrushed, poreless, waxy, perfectly symmetric face, beauty filter, smoothed skin, ' +
+    'doll-like, CGI sheen, over-saturated, HDR glow, extra fingers, deformed hands, mangled jewelry, ' +
+    'warped background, text artifacts, watermark, over-whitened teeth, uncanny eyes, glossy mannequin look, ' +
+    '3d render, cartoon, anime, different person, face swap';
+
+  function isMeaningfulMarks(v) {
+    if (v == null) return false;
+    const s = String(v).trim();
+    if (!s) return false;
+    return !/^(ninguno|ninguna|n\/a|na|sin marcas|sin marcas distintivas|sin marcas distintivas visibles|none|n\/a)$/i.test(s);
+  }
+
   /**
    * Character lock card — for free chatbots without paid face-lock APIs.
    * @param {object} base — persona detailedJSON-shaped object (mutated)
@@ -61,6 +89,10 @@
     if (!base || typeof base !== 'object') return base;
     const skinTone = base.facial_features?.skin_tone || '';
     const skinHex = base.facial_features?.skin_tone_hex || '';
+    const marks = base.facial_features?.distinctive_marks || null;
+    const asymmetry = base.facial_features?.facial_asymmetry || null;
+    const marksHint = isMeaningfulMarks(marks) ? ` Marcas fijas (siempre visibles): ${marks}.` : '';
+    const asymHint = asymmetry ? ` Asimetría facial fija: ${asymmetry}.` : '';
     base.character_lock = {
       version: 1,
       free_tier: true,
@@ -79,9 +111,10 @@
         nose: base.facial_features?.nose_shape || null,
         lips: base.facial_features?.lip_shape || base.facial_features?.lips,
         jawline: base.facial_features?.jawline || null,
+        facial_asymmetry: asymmetry,
         skin_tone: skinTone,
         skin_tone_hex: skinHex,
-        distinctive_marks: base.facial_features?.distinctive_marks || null,
+        distinctive_marks: marks,
         hair_color: base.hair?.color,
         hair_color_hex: base.hair?.color_hex || null,
         hair_texture: base.hair?.texture,
@@ -102,11 +135,13 @@
       never_do: [
         'Cambiar tono de piel o etnia aparente',
         'Cambiar forma de rostro, ojos, nariz o mandíbula',
+        'Borrar o mover asimetría facial / marcas distintivas (lunares, pecas, cicatrices)',
+        'Simetrizar o «embellecer» el rostro (beauty filter)',
         'Edad muy distinta',
         'Cuerpo con proporciones distintas',
         'Estilo 3D/CGI/anime si el JSON pide UGC real'
       ],
-      free_chatbot_system: `Eres un generador de UGC. Debes mantener SIEMPRE la misma persona definida en character_lock.must_match_every_image. Solo puedes variar: ${['pose', 'ropa', 'fondo', 'expresión suave', 'producto'].join(', ')}. Si el usuario pide bikini, spicy o cuerpo entero, cambia ropa/pose/encuadre pero NUNCA la cara ni la tez (${skinTone}${skinHex ? ' ' + skinHex : ''}). Estilo: foto amateur de smartphone, no cine.`
+      free_chatbot_system: `Eres un generador de UGC. Debes mantener SIEMPRE la misma persona definida en character_lock.must_match_every_image. Solo puedes variar: ${['pose', 'ropa', 'fondo', 'expresión suave', 'producto'].join(', ')}. Si el usuario pide bikini, spicy o cuerpo entero, cambia ropa/pose/encuadre pero NUNCA la cara ni la tez (${skinTone}${skinHex ? ' ' + skinHex : ''}).${asymHint}${marksHint} Conserva asimetría e imperfecciones; no «arregles» el rostro. Estilo: foto amateur de smartphone, no cine.`
     };
 
     const niche = opts.nicheExtras;
@@ -147,9 +182,9 @@
       f.jawline && `${f.jawline} jawline`,
       f.cheekbones && `${f.cheekbones}`,
       f.smile_type && `${f.smile_type}`,
-      f.distinctive_marks &&
-        f.distinctive_marks !== 'Ninguno' &&
-        `marks: ${f.distinctive_marks}`
+      f.facial_asymmetry && `facial asymmetry (keep exactly): ${f.facial_asymmetry}`,
+      isMeaningfulMarks(f.distinctive_marks) &&
+        `distinguishing marks (keep visible): ${f.distinctive_marks}`
     ]
       .filter(Boolean)
       .join(', ');
@@ -188,6 +223,8 @@
       hairHex,
       bodyBits,
       skinClause,
+      facialAsymmetry: f.facial_asymmetry || '',
+      distinctiveMarks: isMeaningfulMarks(f.distinctive_marks) ? f.distinctive_marks : '',
       name: persona?.name || detailed?.identity?.name || 'Influencer'
     };
   }
@@ -405,12 +442,21 @@
           ? 'FRAMING: close-medium on face and shoulders.'
           : 'FRAMING: medium shot, head to mid-thigh.';
 
+    const asymLine = id.facialAsymmetry
+      ? `Asymmetry lock (do not beautify/symmetrize): ${id.facialAsymmetry}.`
+      : '';
+    const marksLine = id.distinctiveMarks
+      ? `Distinguishing marks (keep visible, do not remove): ${id.distinctiveMarks}.`
+      : '';
+
     return [
       framingLead,
       framingClause,
       `IDENTITY LOCK (same person as ${id.name} — match face DNA even if camera is far):`,
       `A real ${id.age} ${id.ethnicity} ${id.genderWord} human influencer named ${id.name}.`,
       `Face (must match): ${id.faceBits || 'consistent facial structure'}.`,
+      asymLine,
+      marksLine,
       `Hair: ${id.hairBits || opts.hairFallback || 'consistent hair'}.${id.hairHex || ''}`,
       `Skin: ${id.skinClause}. SKIN LOCK: ${skin.tone}${skin.hex ? ' ' + skin.hex : ''}.`,
       `Body: ${id.bodyBits || 'natural proportional body'}.`,
@@ -419,13 +465,16 @@
       `Wearing: ${clothing}.`,
       `Background/location: ${setting}.`,
       lightClause + '.',
-      'Photorealistic amateur UGC smartphone photo, real fabric, natural skin pores, raw unedited iPhone look.',
+      REALISM_ANCHORS_BLOCK,
+      'Photorealistic amateur UGC smartphone photo, real fabric, raw unedited iPhone look.',
       'PROPORTIONS: natural anatomy, correct head size relative to body, NOT elongated face, NOT stretched body.',
       framing === 'fullbody'
         ? 'CRITICAL: show the entire person head to toe — if only the face is visible the image is WRONG.'
         : 'Keep identity consistent.',
-      'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, elongated face, vertical stretch, accidental close-up portrait when full body requested.'
-    ].join(' ');
+      `Avoid: ${STANDARD_NEGATIVE_PROMPT}, elongated face, vertical stretch, accidental close-up portrait when full body requested.`
+    ]
+      .filter(Boolean)
+      .join(' ');
   }
 
   /**
@@ -443,7 +492,8 @@
     sections.push(`Eres un generador de contenido UGC para un influencer virtual de un pequeño emprendedor (flujo CERO COSTO: sin APIs de face-lock de pago).
 
 • Respeta la personalidad (${personaJSON?.personality?.mbti || ''}), el tono de voz ("${personaJSON?.personality?.communication_style || ''}") y evita los tabúes de la marca: [${(personaJSON?.personality?.taboos || []).join(', ')}].
-• En la imagen/video, mantén las marcas distintivas únicas: ${personaJSON?.facial_features?.distinctive_marks || 'Ninguna específica'}.
+• En la imagen/video, mantén las marcas distintivas únicas: ${must.distinctive_marks || personaJSON?.facial_features?.distinctive_marks || 'Ninguna específica'}.
+• Conserva la asimetría facial: ${must.facial_asymmetry || personaJSON?.facial_features?.facial_asymmetry || 'asimetría natural del lock (no simetrizar)'}.
 
 REGLA DE ORO: Es SIEMPRE la misma persona. El JSON es la única fuente de verdad de identidad.
 
@@ -456,12 +506,14 @@ RESUMEN OBLIGATORIO (no negociable en ninguna imagen):
 • Nombre: ${must.name || '—'}
 • Edad / género / etnia: ${must.age || '—'} · ${must.gender || '—'} · ${must.ethnicity || '—'}
 • Rostro: ${must.face_shape || '—'} | ojos ${must.eye_color || '—'} | cejas ${must.eyebrows || '—'} | labios ${must.lips || '—'}
+• Asimetría (fija): ${must.facial_asymmetry || personaJSON?.facial_features?.facial_asymmetry || '—'}
+• Marcas (siempre visibles): ${must.distinctive_marks || personaJSON?.facial_features?.distinctive_marks || '—'}
 • Piel: ${must.skin_tone || '—'}${must.skin_tone_hex ? ' (' + must.skin_tone_hex + ')' : ''} — NO oscurecer ni aclarar
 • Cabello: ${must.hair_color || '—'} · ${must.hair_texture || '—'} · ${must.hair_length || '—'}
 • Cuerpo: ${must.body_type || '—'} · ${must.height || '—'} · ${must.proportions || '—'}
 
 PUEDE CAMBIAR: pose, ropa (bikini/spicy/etc.), fondo, expresión suave, producto en mano.
-NO PUEDE CAMBIAR: cara, tez, peinado base, proporciones corporales, edad aparente.
+NO PUEDE CAMBIAR: cara, tez, asimetría, marcas, peinado base, proporciones corporales, edad aparente.
 ═══════════════════════════════════════════`);
 
     sections.push(`
@@ -513,19 +565,35 @@ Dirección visual: ${scriptData.ctaCue}
       const prompt = opts.promptText || '';
       sections.push(`
 ═══════════════════════════════════════════
-  PROMPT DE GENERACIÓN DE IMAGEN
+  PROMPT DE GENERACIÓN DE IMAGEN (POSITIVE)
 ═══════════════════════════════════════════
 ${prompt}
 ═══════════════════════════════════════════`);
     }
 
     sections.push(`
+═══════════════════════════════════════════
+  REALISMO (imperfecciones — Layer 5)
+═══════════════════════════════════════════
+${REALISM_ANCHORS_ES}
+
+${REALISM_ANCHORS_BLOCK}
+═══════════════════════════════════════════`);
+
+    sections.push(`
+═══════════════════════════════════════════
+  NEGATIVE PROMPT (si el modelo lo acepta)
+═══════════════════════════════════════════
+${STANDARD_NEGATIVE_PROMPT}
+═══════════════════════════════════════════`);
+
+    sections.push(`
 INSTRUCCIONES PARA CHATBOTS GRATUITOS (ChatGPT / Gemini / Claude / Meta / etc.):
 1. Pega este texto completo al inicio del chat (o como instrucción de sistema si el producto lo permite).
-2. Cada petición de imagen debe reutilizar character_lock.must_match_every_image al pie de la letra.
-3. Si pides cuerpo entero, bikini o modo spicy: cambia SOLO ropa/pose/fondo; la cara y la tez son fijas.
-4. Estilo UGC: foto de celular amateur, no "cinematic 8K studio".
-5. Si el modelo se desvía (otra cara u otra tez), re-pega el bloque CHARACTER LOCK y repite la petición.
+2. Cada petición de imagen debe reutilizar character_lock.must_match_every_image al pie de la letra (incl. asimetría y marcas).
+3. Si pides cuerpo entero, bikini o modo spicy: cambia SOLO ropa/pose/fondo; la cara, tez, asimetría y marcas son fijas.
+4. Estilo UGC: foto de celular amateur + bloque REALISMO; no "cinematic 8K studio".
+5. Si el modelo se desvía (otra cara, simetriza o borra marcas), re-pega el CHARACTER LOCK y el NEGATIVE PROMPT.
 6. Este flujo es deliberadamente gratis: no requiere Replicate, InstantID ni GPU de pago.`);
 
     return sections.join('\n');
@@ -541,6 +609,10 @@ INSTRUCCIONES PARA CHATBOTS GRATUITOS (ChatGPT / Gemini / Claude / Meta / etc.):
     buildFormPrompt,
     detectVariantFraming,
     buildVariantPrompt,
-    buildChatbotExportTextFromPersona
+    buildChatbotExportTextFromPersona,
+    isMeaningfulMarks,
+    REALISM_ANCHORS_BLOCK,
+    REALISM_ANCHORS_ES,
+    STANDARD_NEGATIVE_PROMPT
   };
 });

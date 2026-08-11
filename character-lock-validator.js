@@ -147,6 +147,18 @@
       infos.push(issue('info', 'facial_features.distinctive_marks',
         'Una marca distintiva (lunar, pecas, hoyuelos) es el ancla más fuerte que existe para un chatbot free.',
         'Formulario → Marcas distintivas'));
+    } else {
+      const marksVal = String(face.distinctive_marks || must.distinctive_marks || '').trim();
+      if (/^(ninguno|ninguna|sin marcas|sin marcas distintivas|sin marcas distintivas visibles|none)$/i.test(marksVal)) {
+        infos.push(issue('info', 'facial_features.distinctive_marks',
+          '«Sin marcas» debilita el ancla: un lunar/peca con ubicación concreta sostiene mejor la identidad entre prompts.',
+          'Formulario → Marcas distintivas'));
+      }
+    }
+    if (isEmpty(face.facial_asymmetry) && isEmpty(must.facial_asymmetry)) {
+      infos.push(issue('info', 'facial_features.facial_asymmetry',
+        'Una asimetría concreta (ej. «ojo izquierdo ~2% más pequeño») evita el look «cara simétrica CGI».',
+        'Formulario → Asimetría facial'));
     }
 
     // ── Cabello ────────────────────────────────────────────────────────

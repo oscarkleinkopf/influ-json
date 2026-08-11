@@ -36,6 +36,38 @@ test('buildFreeChatbotPack incluye character_lock y escena', () => {
   assert.match(text, /CUERPO ENTERO/);
   assert.match(text, /Luna/);
   assert.match(text, /sin Replicate/);
+  assert.match(text, /REALISMO/);
+  assert.match(text, /NEGATIVE PROMPT/);
+  assert.match(text, /visible skin pores/i);
+  assert.match(text, /plastic skin/);
+});
+
+test('buildFreeChatbotPack incluye asimetría y marcas en resumen', () => {
+  const text = buildFreeChatbotPack(
+    {
+      identity: { name: 'Eru' },
+      facial_features: {
+        skin_tone: 'piel clara',
+        skin_tone_hex: '#f0d5c0',
+        facial_asymmetry: 'Ojo izquierdo ~2% más pequeño',
+        distinctive_marks: 'Lunar bajo mandíbula derecha'
+      },
+      character_lock: {
+        free_chatbot_system: 'Misma Eru.',
+        must_match_every_image: {
+          name: 'Eru',
+          skin_tone: 'piel clara',
+          skin_tone_hex: '#f0d5c0',
+          facial_asymmetry: 'Ojo izquierdo ~2% más pequeño',
+          distinctive_marks: 'Lunar bajo mandíbula derecha'
+        }
+      }
+    },
+    'spicy'
+  );
+  assert.match(text, /Asimetría \(fija\): Ojo izquierdo/);
+  assert.match(text, /Marcas \(siempre visibles\): Lunar bajo mandíbula/);
+  assert.match(text, /REALISMO/);
 });
 
 test('buildFreeChatbotPack acepta fila API con detailedJSON (no pega lock vacío)', () => {
