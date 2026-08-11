@@ -1,0 +1,128 @@
+      <section id="licensing" class="tab-panel">
+        <div class="content-header">
+          <div class="content-title">
+            <h1>Licensing & Pitch Builder</h1>
+            <p>Calcula el valor comercial del uso de tus modelos AI e imágenes licenciadas y construye una cotización premium para marcas.</p>
+          </div>
+        </div>
+        
+        <div class="pricing-grid">
+          <div class="glass-card">
+            <h2 style="font-family: var(--font-display); margin-bottom: 20px;">Calculadora de Derechos Comerciales</h2>
+            
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+              <div>
+                <label for="baseFeeInput">Tarifa Base por Video ($ USD)</label>
+                <input type="text" id="baseFeeInput" value="150">
+              </div>
+              
+              <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                <label>Duración de la Licencia</label>
+                
+                <div class="licensing-card">
+                  <div class="licensing-info">
+                    <h4>Licencia Estándar (30 Días)</h4>
+                    <p>Uso en redes sociales de la marca para campañas orgánicas y pagadas.</p>
+                  </div>
+                  <div class="licensing-price">
+                    <span id="price30">+ $75.00</span>
+                    <span class="price-multiplier">+50% de la tarifa</span>
+                  </div>
+                </div>
+                
+                <div class="licensing-card">
+                  <div class="licensing-info">
+                    <h4>Licencia Campaña (90 Días)</h4>
+                    <p>Ideal para escalar anuncios pagados durante una temporada trimestral.</p>
+                  </div>
+                  <div class="licensing-price">
+                    <span id="price90">+ $150.00</span>
+                    <span class="price-multiplier">+100% de la tarifa</span>
+                  </div>
+                </div>
+                
+                <div class="licensing-card">
+                  <div class="licensing-info">
+                    <h4>Licencia Anual (12 Meses)</h4>
+                    <p>Uso continuo en landing pages, correos de marketing y publicidad.</p>
+                  </div>
+                  <div class="licensing-price">
+                    <span id="priceYear">+ $300.00</span>
+                    <span class="price-multiplier">+200% de la tarifa</span>
+                  </div>
+                </div>
+                
+                <div class="licensing-card">
+                  <div class="licensing-info">
+                    <h4>Licencia Perpetua (Ilimitado)</h4>
+                    <p>Derechos de marca completos para uso de por vida del modelo sintético.</p>
+                  </div>
+                  <div class="licensing-price">
+                    <span id="pricePerpetual">+ $450.00</span>
+                    <span class="price-multiplier">+300% de la tarifa</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="pitch-preview">
+            <div class="pitch-header">
+              <div>
+                <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 4px;">Cotización de Campaña</h3>
+                <p id="pitchClientName" style="font-size: 13px; color: var(--text-secondary);">Propuesta para Glow Serum Organics</p>
+              </div>
+              <span class="pitch-badge">AI UGC Studio</span>
+            </div>
+            
+            <table class="pitch-invoice-table">
+              <thead>
+                <tr>
+                  <th>Concepto</th>
+                  <th style="text-align: right;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <strong>Creación de Activo UGC Sintético</strong><br>
+                    <span style="font-size: 12px; color: var(--text-secondary);" id="pitchInfluName">Sofia - Modelo Virtual</span>
+                  </td>
+                  <td style="text-align: right; font-family: var(--font-mono);" id="pitchBaseFeeVal">$150.00</td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>Licencia de Derechos de Uso</strong><br>
+                    <select id="pitchLicenceSelect" style="padding: 6px 12px; font-size: 12px; margin-top: 6px; width: auto; background: rgba(0,0,0,0.3);">
+                      <option value="30">Licencia Estándar (30 Días) - +50%</option>
+                      <option value="90" selected>Licencia Campaña (90 Días) - +100%</option>
+                      <option value="365">Licencia Anual (12 Meses) - +200%</option>
+                      <option value="infinite">Licencia Perpetua (Ilimitado) - +300%</option>
+                    </select>
+                  </td>
+                  <td style="text-align: right; font-family: var(--font-mono); vertical-align: bottom;" id="pitchLicenceFeeVal">$150.00</td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>Paquete de Redacción (10 Scripts)</strong><br>
+                    <span style="font-size: 12px; color: var(--text-secondary);">Ángulos UGC (plantillas locales / Gemini opt-in)</span>
+                  </td>
+                  <td style="text-align: right; font-family: var(--font-mono);">$0.00 (Incluido)</td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <div class="pitch-total-section">
+              <span class="pitch-total-label">Inversión Estimada:</span>
+              <span class="pitch-total-value" id="pitchTotalVal">$300.00</span>
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+              <button class="btn btn-secondary" style="flex: 1;" id="btnCopyProposal">Copiar Propuesta</button>
+              <button type="button" class="btn" style="flex: 1;" id="btnDownloadProposal">Descargar propuesta (.txt)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- TAB: GALLERY -->

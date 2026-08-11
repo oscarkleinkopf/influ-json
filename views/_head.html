@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>influ-JSON - AI UGC Production Studio</title>
+  <link rel="stylesheet" href="index.css?v=1.3.5">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Mobile Top Navigation Header -->
+    <header class="mobile-header">
+      <button class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Abrir menú">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="mobile-logo">
+        <div class="logo-icon" style="width: 28px; height: 28px; font-size: 14px;">I</div>
+        <span class="logo-text" style="font-size: 16px;">influ-JSON</span>
+      </div>
+    </header>
+    <div class="mobile-sidebar-backdrop" id="mobileSidebarBackdrop"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="logo-container">
+        <div class="logo-icon">I</div>
+        <span class="logo-text">influ-JSON</span>
+      </div>
+      
+      <nav class="nav-links" aria-label="Navegación principal">
+        <!-- UX-1a: 3 hubs + ayuda (?). Secciones hijas vía hub-subnav. -->
+        <li class="nav-item active" data-tab="dashboard" data-nav-hub="influencers">
+          <button type="button">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Influencers
+          </button>
+        </li>
+        <li class="nav-item" data-tab="ugc-studio" data-nav-hub="produce">
+          <button type="button">
+            <svg viewBox="0 0 24 24"><path d="M23 7a2 2 0 0 0-2.45-1.45L16 7V5a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2l4.55 1.45A2 2 0 0 0 23 17V7z"/></svg>
+            Producir
+          </button>
+        </li>
+        <li class="nav-item" data-tab="campaigns" data-nav-hub="business">
+          <button type="button">
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            Negocio
+          </button>
+        </li>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="git-status">
+          <div class="git-indicator" id="gitIndicator"></div>
+          <span id="gitStatusText">Repositorio sincronizado</span>
+        </div>
+        <div id="activeProfileChip" class="active-profile-chip" style="display:none;">
+          <span class="active-profile-label">Perfil</span>
+          <strong id="activeProfileName">—</strong>
+        </div>
+        <div id="queueStatusChip" class="queue-status-chip" style="display:none;" aria-live="polite">
+          <span class="queue-status-dot"></span>
+          <span id="queueStatusChipText">Cola libre</span>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnOpenComoUsar" title="Ayuda / Cómo usar" style="width: 100%; margin-bottom: 8px;">
+          ? Cómo usar
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnOpenSettings" style="width: 100%; margin-bottom: 8px; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--accent-primary); color: #fff;">
+          ⚙️ Ajustes & Claves API
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnSyncNow" style="width: 100%;">
+          Sincronizar Git
+        </button>
+      </div>
+    </aside>
+    
+    <!-- Main Content Panel -->
+    <main class="main-content">
+
+      <!-- UX-1b: influencer activo global -->
+      <div class="studio-context-bar" id="studioContextBar">
+        <div class="active-persona-chip" id="activePersonaChip">
+          <span class="active-persona-label">Trabajando con</span>
+          <button type="button" class="active-persona-btn" id="btnActivePersonaMenu" aria-haspopup="listbox" aria-expanded="false">
+            <span id="activePersonaChipName">Sin influencer</span>
+            <span class="active-persona-caret" aria-hidden="true">▾</span>
+          </button>
+          <div class="active-persona-menu" id="activePersonaMenu" role="listbox" hidden></div>
+        </div>
+        <button type="button" class="btn btn-sm studio-context-copy" id="btnContextCopyJson" title="Copia el pack free recomendado (character_lock)">
+          Copiar JSON
+        </button>
+      </div>
+
+      <!-- UX-1a: sub-navegación por hub -->
+      <div class="hub-subnav" id="hubSubnav" hidden>
+        <div class="hub-subnav-inner" data-hub="influencers">
+          <button type="button" class="hub-subnav-btn active" data-tab="dashboard">Portafolio</button>
+          <button type="button" class="hub-subnav-btn" data-tab="persona-engine">Ficha / Editor</button>
+        </div>
+        <div class="hub-subnav-inner" data-hub="produce" hidden>
+          <button type="button" class="hub-subnav-btn active" data-tab="ugc-studio">UGC</button>
+          <button type="button" class="hub-subnav-btn" data-tab="script-engine">Guiones</button>
+          <button type="button" class="hub-subnav-btn" data-tab="gallery">Galería</button>
+        </div>
+        <div class="hub-subnav-inner" data-hub="business" hidden>
+          <button type="button" class="hub-subnav-btn active" data-tab="campaigns">Campañas</button>
+          <button type="button" class="hub-subnav-btn" data-tab="licensing">Licensing</button>
+        </div>
+      </div>
+      
+      <!-- TAB: DASHBOARD -->

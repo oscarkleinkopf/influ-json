@@ -25,32 +25,29 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux2-persona-pasos-9b67` |
-| **Commit base** | `main` @ #91 Pages + #90 PIN |
-| **PR actual** | [#89](https://github.com/oscarkleinkopf/influ-json/pull/89) UX-2 Persona Engine 3 pasos |
-| **`main` remoto** | #91 + #90 merged |
-| **Prioridad inmediata** | Merge UX-2 → **UX-4** (parciales HTML / trocear app.js) |
-| **PIN local** | `1234` · Pages = modal local (no Studio) |
-| **En pausa** | OAuth, SMTP, video · **#72** Ajustes tabs CONFLICTING |
+| **Rama de trabajo** | `cursor/ux4-html-partials-9b67` |
+| **Commit base** | `main` @ #91+#90+#89 |
+| **PR actual** | UX-4: views/ parciales HTML |
+| **`main` remoto** | Pages #91 · PIN #90 · UX-2 #89 merged |
+| **Prioridad inmediata** | Merge UX-4; luego UX-5 (DB tests aislada) o #72 |
+| **PIN local** | `1234` · Pages = modal (no Studio) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 
-### Sesión reciente (Cursor, 2026-08-11) — UX-2 Persona Engine 3 pasos
+### Sesión reciente (Cursor, 2026-08-11) — Merge + UX-4 parciales
 
-**Pedido:** Merge Pages/PIN y continuar; siguiente = UX-2.
+**Pedido:** Merge y continuar siguiente paso.
 
-**Hecho:** stepper Identidad → Lock & Packs → Variaciones; Avanzado plegado; rebase sobre #91+#90.
+**Merges:** #91 Pages → #90 PIN → #89 UX-2 → `main`.
 
-### Sesión previa — Fix unlock PIN (#90 merged)
+**UX-4 (este PR):**
+- `views/_head.html` + `views/tabs/*.html` + `views/_foot.html`
+- `views/compose-index.js` · `server.js` sirve `composeIndexHtml()`
+- `npm run build:index` regenera `index.html` (Pages)
+- Tests: `test/ux4-html-partials.test.js`
 
-Filtrar harness en login; credentials + 429; `.env` local.
+### Sesión previa — UX-2 / Pages / PIN
 
-### Sesión previa — GitHub Pages (#91 merged)
-
-Modal estático en github.io; Studio solo con `npm start`.
-
-### Sesión previa — UX-1 / Free Path
-
-Ver log.
+Ya en `main`.
 
 ### Sesión previa (Cursor, 2026-08-11) — Free Path consolidar
 

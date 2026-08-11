@@ -214,9 +214,11 @@ app.use(
 );
 app.use('/assets', express.static(assetsRoot));
 
-// Serve main app pages
+const { composeIndexHtml } = require('./views/compose-index');
+
+// Serve main app pages (HTML composed from views/ partials — UX-4)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.type('html').send(composeIndexHtml(__dirname));
 });
 app.get('/app.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'app.js'));

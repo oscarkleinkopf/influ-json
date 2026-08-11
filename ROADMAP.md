@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-11 | **UX-4** parciales HTML | `views/` + `composeIndexHtml`; `npm run build:index` |
 | 2026-08-11 | **UX-2** Persona Engine 3 pasos | Identidad / Lock&Packs / Variaciones; Avanzado plegado |
 | 2026-08-11 | **GitHub Pages** estático honesto | Modal en raíz `main` `/`; Pages ≠ Studio (`npm start`) |
 | 2026-08-11 | **UX-1** IA navegación (#88) | Hubs Influencers/Producir/Negocio; chip global; ≤3 Copiar JSON |

@@ -1,0 +1,112 @@
+      <section id="campaigns" class="tab-panel">
+        <div class="content-header">
+          <div class="content-title">
+            <h1>Gestión de Campañas</h1>
+            <p>Agrupa tus productos, influencers, scripts y licencias en un solo paquete comercial exportable.</p>
+          </div>
+          <button class="btn" id="btnNewCampaign">+ Nueva Campaña</button>
+        </div>
+        
+        <!-- Modal for creating campaign -->
+        <div id="campaignModal" class="modal-overlay" style="display: none;">
+          <div class="glass-card modal-card">
+            <h2 style="font-family: var(--font-display); margin-bottom: 20px;">Crear Nueva Campaña</h2>
+            <form id="campaignForm" class="editor-form-group">
+              <div>
+                <label for="cName">Nombre de la Campaña</label>
+                <input type="text" id="cName" placeholder="ej. Campaña Glow Serum Verano 2026" required>
+              </div>
+              <div class="form-row" style="margin-top: 12px;">
+                <div>
+                  <label for="cClient">Nombre del Cliente / Marca</label>
+                  <input type="text" id="cClient" placeholder="ej. Organics Labs Co." required>
+                </div>
+                <div>
+                  <label for="cBudget">Presupuesto ($ USD)</label>
+                  <input type="number" id="cBudget" value="300" required>
+                </div>
+              </div>
+              <div class="form-row" style="margin-top: 12px;">
+                <div>
+                  <label for="cProductSelect">Producto Vinculado</label>
+                  <select id="cProductSelect" required></select>
+                </div>
+                <div>
+                  <label for="cStatusSelect">Estado</label>
+                  <select id="cStatusSelect">
+                    <option value="draft">Borrador</option>
+                    <option value="active">Activa</option>
+                    <option value="completed">Completada</option>
+                  </select>
+                </div>
+              </div>
+              <div style="margin-top: 16px;">
+                <label>Asignar Influencer(s)</label>
+                <div class="campaign-persona-checklist" id="cPersonaChecklist" style="max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: var(--border-radius-sm); border: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 8px;">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+              <div style="margin-top: 24px; display: flex; gap: 12px;">
+                <button type="button" class="btn btn-secondary" id="btnCancelCampaign">Cancelar</button>
+                <button type="submit" class="btn">Guardar Campaña</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="editor-layout">
+          <!-- Left: Campaign List -->
+          <div class="glass-card">
+            <h2 style="font-family: var(--font-display); margin-bottom: 20px;">Campañas Activas</h2>
+            <div id="campaignListGrid" class="campaign-list-grid" style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          
+          <!-- Right: Campaign Details & Exports -->
+          <div class="glass-card" id="campaignDetailCard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--glass-border); padding-bottom: 16px; margin-bottom: 20px;">
+              <div>
+                <h2 id="cdName" style="font-family: var(--font-display); margin-bottom: 4px;">Nombre Campaña</h2>
+                <span id="cdStatus" class="badge">Borrador</span>
+              </div>
+              <button class="btn btn-sm btn-secondary" id="btnDeleteCampaign" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171;">Eliminar</button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+              <div class="form-row">
+                <div class="analysis-field">
+                  <span class="analysis-field-label">Cliente / Marca</span>
+                  <span class="analysis-field-value" id="cdClient">Marca</span>
+                </div>
+                <div class="analysis-field">
+                  <span class="analysis-field-label">Presupuesto Comercial</span>
+                  <span class="analysis-field-value" id="cdBudget">$0.00</span>
+                </div>
+              </div>
+              
+              <div class="analysis-field">
+                <span class="analysis-field-label">Producto Vinculado</span>
+                <span class="analysis-field-value" id="cdProduct">Producto</span>
+              </div>
+
+              <div>
+                <label style="margin-bottom: 8px; display: block;">Modelos AI Asignados</label>
+                <div class="persona-gallery-grid" id="cdPersonaGrid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;">
+                  <!-- Dynamic campaign personas -->
+                </div>
+              </div>
+
+              <div class="prompt-console" style="margin-top: 10px;">
+                <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 8px;">Acciones de Entrega</h4>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                  <a href="" id="btnExportZip" class="btn" style="flex: 1; text-align: center; text-decoration: none; padding: 12px 16px;">📦 Exportar Campaña (ZIP)</a>
+                  <button class="btn btn-secondary" id="btnGenerateCampaignScripts" style="flex: 1;">✍️ Regenerar Scripts</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- TAB: PERSONA ENGINE -->
