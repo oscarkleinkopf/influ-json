@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/fix-github-pages-landing-9b67` |
 | **Commit base** | `main` @ UX-1 |
-| **PR actual** | (este) Fix GitHub Pages — landing estático |
+| **PR actual** | [#91](https://github.com/oscarkleinkopf/influ-json/pull/91) Fix GitHub Pages — landing estático |
 | **`main` remoto** | UX-1 merged; #90 PIN fix puede estar abierto |
 | **Prioridad inmediata** | Merge Pages fix; usuario debe poner Pages → `/docs` en Settings |
 | **PIN local** | `1234` en `http://127.0.0.1:3000` — **no** en github.io |
