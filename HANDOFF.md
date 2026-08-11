@@ -25,15 +25,21 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/spicy-setting-lock-173f` |
-| **Commit base** | tip `main` (#73+#74) + INDOOR SETTING LOCK |
-| **PR actual** | Spicy: lock setting del vault + OUTFIT látex (no playa/bikini) |
-| **`main` remoto** | #73 thumbs + #74 `/mar/` fix MERGED |
+| **Rama de trabajo** | `cursor/photoreal-boost-173f` |
+| **Commit base** | tip `main` + toggle Más fotorrealismo |
+| **PR actual** | Photoreal: PHOTO QUALITY LOCK + modelo zimage |
+| **`main` remoto** | tip actual |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge setting-lock; Colorina spicy hotel+látex; walkthrough Daniela |
+| **Prioridad inmediata** | Merge photoreal; #76 inspiración rubia si sigue abierto |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — Más fotorrealismo
+
+**Pedido:** ¿Se pueden hacer las imágenes más fotorrealistas?
+
+**Hecho:** Toggle «Más fotorrealismo» (default on) → `photoQuality=high` añade PHOTO QUALITY LOCK + modelo `zimage` (~2× pollen vs flux). Sigue path free con token.
 
 ### Sesión reciente (Cursor, 2026-08-11) — Spicy hotel+látex aún derivaba a playa
 

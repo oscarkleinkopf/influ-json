@@ -4852,7 +4852,8 @@ async function savePersona(opts = {}) {
           // Never borrow another persona's face when creating new
           referenceLocalPath: uploadedImagePath || (creatingNew ? null : state.selectedPersona?.image),
           personaId: creatingNew ? 'new_persona' : (state.selectedPersona?.id || 'new_persona'),
-          generationType: 'portrait'
+          generationType: 'portrait',
+          photoQuality: !!(document.getElementById('photoQualityToggle')?.checked !== false) ? 'high' : 'draft'
         })
       });
       const imgData = await imgRes.json();
@@ -7826,6 +7827,8 @@ async function generateOneVariant(p, index, total) {
         identityLock: true,
         framing,
         mode,
+        // Más fotorrealismo (zimage + prompt) — default on
+        photoQuality: !!(document.getElementById('photoQualityToggle')?.checked !== false),
         // Semilla distinta por imagen del lote → misma identidad, composición variada
         seed: personaSeed(p.id) + index,
         // R2 — face-lock pago solo si el toggle está marcado (default off)

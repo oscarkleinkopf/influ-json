@@ -602,6 +602,16 @@ module.exports = {
     if (wantsPhotoreal && !/NOT 3D render|not cgi|photorealistic raw/i.test(finalPrompt)) {
       finalPrompt += '. PHOTOREAL: real smartphone photograph of a real human, real material texture, subtle sheen only, natural pores, NOT 3D render, NOT CGI plastic, NOT mirror chrome, NOT doll.';
     }
+    // Modo "Más fotorrealismo" (UI) — refuerzo extra sin salir del path free/Pollinations
+    if (options.photoQuality === 'high' || options.photoQuality === true) {
+      if (!/PHOTO QUALITY LOCK/i.test(finalPrompt)) {
+        finalPrompt += '. PHOTO QUALITY LOCK: ultra-photorealistic DSLR/smartphone photo, natural skin pores and fine vellus hair, realistic subsurface scattering, authentic catchlights in eyes, subtle film grain, accurate white balance, shallow depth of field, no beauty-filter plastic skin, no illustration, no anime, no 3D render.';
+      }
+      // Evitar look "amateur CGI" que a veces introduce "UGC style" suelto
+      finalPrompt = finalPrompt
+        .replace(/\bAmateur casual UGC style\b/gi, 'Candid lifestyle smartphone photo')
+        .replace(/\bunedited\b/gi, 'light natural grade, still photoreal');
+    }
     if (identityLock && referenceUrl) {
       finalPrompt += ' Keep the exact same face as the reference image; only outfit, pose and background may change.';
     }
@@ -701,14 +711,15 @@ module.exports = {
         // The legacy image.pollinations.ai host only exposes the paid "sana" model now.
         // enhance is kept in the prompt log context but is not a param of the modern API.
         void enhance;
-        // Model is configurable to stretch small free daily grants: flux (default, best
-        // quality, ~0.002 pollen/img) vs dreamshaper (~0.0001, ~20x cheaper). All models
-        // now cost pollen; a registered key with account:usage or a budget is required.
-        const model = (process.env.POLLINATIONS_MODEL || 'flux').trim() || 'flux';
-        let url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPrompt)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}`;
         // Full-body: skip img2img ref by default (portrait ref freezes headshot crop).
         // Caller can force ref with options.forceReference === true
         const useRef = refUrl && (framing !== 'fullbody' || options.forceReference === true);
+        // Model: flux default (~0.002). photoQuality=high → zimage (~0.004) text-only for more realism.
+        let model = (process.env.POLLINATIONS_MODEL || 'flux').trim() || 'flux';
+        if ((options.photoQuality === 'high' || options.photoQuality === true) && !useRef) {
+          model = (process.env.POLLINATIONS_PHOTO_MODEL || 'zimage').trim() || 'zimage';
+        }
+        let url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPrompt)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}`;
         if (useRef) {
           url += `&image=${encodeURIComponent(refUrl)}`;
         }
@@ -719,7 +730,7 @@ module.exports = {
         if (referrer) url += `&referrer=${encodeURIComponent(referrer)}`;
         const token = (process.env.POLLINATIONS_TOKEN || process.env.POLLINATIONS_API_TOKEN || '').trim();
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${useRef ? strength : 'text-only'} identityLock=${identityLock} ref=${!!useRef} auth=${token ? 'token' : 'anon'}`);
+        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${useRef ? strength : 'text-only'} model=${model} photoQuality=${options.photoQuality || 'default'} identityLock=${identityLock} ref=${!!useRef} auth=${token ? 'token' : 'anon'}`);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 55000);
         try {

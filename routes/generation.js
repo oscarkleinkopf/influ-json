@@ -122,6 +122,13 @@ function registerGenerationRoutes(app, deps) {
     if (personaId) genOptions.personaId = personaId;
     // R2 — face-lock only when client explicitly opts in (never default)
     if (req.body.preferFaceLock === true) genOptions.preferFaceLock = true;
+    if (req.body.photoQuality === true || req.body.photoQuality === 'high') {
+      genOptions.photoQuality = 'high';
+    } else if (req.body.photoQuality === false || req.body.photoQuality === 'draft') {
+      genOptions.photoQuality = 'draft';
+    } else {
+      genOptions.photoQuality = 'high'; // default: más fotorrealismo
+    }
     if (referenceLocalPath) {
       genOptions.referenceLocalPath = referenceLocalPath;
       genOptions.faceImagePath = referenceLocalPath;

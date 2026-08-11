@@ -331,6 +331,9 @@ function registerPersonasRoutes(app, deps) {
     const t0 = Date.now();
     const profileId = req.profileId || req.session?.profileId;
     const preferFaceLock = req.body.preferFaceLock === true;
+    const photoQuality = (req.body.photoQuality === true || req.body.photoQuality === 'high')
+      ? 'high'
+      : (req.body.photoQuality === false || req.body.photoQuality === 'draft' ? 'draft' : 'high');
     aiService.generateInfluencerImage(prompt, referenceUrl, {
       photoreal,
       identityLock,
@@ -341,7 +344,8 @@ function registerPersonasRoutes(app, deps) {
       referenceLocalPath,
       faceImagePath: referenceLocalPath,
       setting: setting || '',
-      mode: req.body.mode || ''
+      mode: req.body.mode || '',
+      photoQuality
     })
       .then(async (imagePath) => {
         const durationMs = Date.now() - t0;
@@ -377,6 +381,7 @@ function registerPersonasRoutes(app, deps) {
                 framing,
                 referenceLocalPath,
                 preferFaceLock,
+                photoQuality,
                 consistency_distance: scored?.distance ?? null,
                 consistency_grade: scored?.grade ?? null
               })
