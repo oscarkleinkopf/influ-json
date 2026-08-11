@@ -388,7 +388,7 @@ app.get('/api/auth/me', (req, res) => {
 app.get('/api/auth/profiles', (req, res) => {
   res.json({
     success: true,
-    profiles: dbService.listStudioProfilesPublic().map(publicProfileDTO),
+    profiles: dbService.listStudioProfilesPublic({ forLogin: true }).map(publicProfileDTO),
     pinRequired: authService.isAuthEnabled(),
     pinIsDefault: authService.isPinDefault()
   });

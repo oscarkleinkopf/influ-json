@@ -127,6 +127,17 @@ function normalizeInviteCode(code) {
 }
 
 /**
+ * Perfiles creados por npm test / smoke — no deben aparecer en el login.
+ * El emprendedor elige uno, pone 1234 y ve «PIN incorrecto».
+ */
+const HARNESS_STUDIO_PROFILE_RE =
+  /^(MetricsMem_|Onboard_|Member Sec|SmokeMem|SmokeMember|L5 |HelloWorld|SpeedTest|DualSync)/i;
+
+function isHarnessStudioProfileName(name) {
+  return HARNESS_STUDIO_PROFILE_RE.test(String(name || '').trim());
+}
+
+/**
  * Asegura al menos un perfil local (Administración) con el PIN de .env / 1234.
  * Backfill personas.profile_id huérfanas al perfil por defecto.
  */
@@ -1385,18 +1396,22 @@ module.exports = {
   },
 
   // ─── Studio profiles (local multi-user, free) ─────────────────
-  listStudioProfilesPublic() {
-    return db.prepare(`
+  listStudioProfilesPublic({ forLogin = false } = {}) {
+    const rows = db.prepare(`
       SELECT id, name, role, active, created_at, last_login_at
       FROM studio_profiles
       WHERE active = 1
       ORDER BY created_at ASC
     `).all();
+    if (!forLogin) return rows;
+    return rows.filter((p) => !isHarnessStudioProfileName(p.name));
   },
 
   listStudioProfilesAdmin() {
     return this.listStudioProfilesPublic();
   },
+
+  isHarnessStudioProfileName,
 
   getStudioProfileById(id) {
     return db.prepare('SELECT * FROM studio_profiles WHERE id = ?').get(id);
