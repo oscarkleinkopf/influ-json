@@ -25,17 +25,28 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ugc-anchors-asymmetry-173f` |
-| **Commit base** | tip `main` + asimetría/marcas + realism/negative packs |
-| **PR actual** | ugc-creator quick wins: `facial_asymmetry` + realism anchors + negative en packs free |
-| **`main` remoto** | tip actual |
+| **Rama de trabajo** | `cursor/ugc-camera-shot-types-173f` |
+| **Commit base** | `main` (asymmetry #81 merged) + cámara/shot types |
+| **PR actual** | ugc-creator: chips cámara iPhone + 7 shot types + semana UGC |
+| **`main` remoto** | asimetría/realismo merged (`ad62ad5`) |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge anchors; luego cámara chips / shot types (siguientes ideas ugc-creator) |
+| **Prioridad inmediata** | Merge camera/shot-types; siguiente: face pack canónico (4–6 ángulos) |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 
-### Sesión reciente (Cursor, 2026-08-11) — ugc-creator: asimetría + realism
+### Sesión reciente (Cursor, 2026-08-11) — cámara + shot types
+
+**Pedido:** Merge #81 y continuar con chips cámara + formatos UGC.
+
+**Hecho:**
+- #81 merged a `main` (`ad62ad5`)
+- `ugc-shot-composer.js`: 4 cams (selfie/rear/mirror/overhead) + 7 shot types
+- UI chips en card «Copiar JSON» + «Semana UGC (7 tomas)»
+- Packs inyectan SHOT TYPE + CAMERA sin renegociar cara
+- Tests: `test/ugc-camera-shot-types.test.js`
+
+### Sesión previa (Cursor, 2026-08-11) — ugc-creator: asimetría + realism
 
 **Pedido:** Revisar [0xAnni/ugc-creator](https://github.com/0xAnni/ugc-creator) e implementar quick wins (1)+(2).
 

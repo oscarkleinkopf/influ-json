@@ -464,6 +464,7 @@
       `Pose: ${pose}.`,
       `Wearing: ${clothing}.`,
       `Background/location: ${setting}.`,
+      opts.cameraPromptBlock || '',
       lightClause + '.',
       REALISM_ANCHORS_BLOCK,
       'Photorealistic amateur UGC smartphone photo, real fabric, raw unedited iPhone look.',

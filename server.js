@@ -233,6 +233,9 @@ app.get('/qa-matrix.js', (req, res) => {
 app.get('/chatbot-packs.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'chatbot-packs.js'));
 });
+app.get('/ugc-shot-composer.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'ugc-shot-composer.js'));
+});
 app.get('/import-flow.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'import-flow.js'));
 });
