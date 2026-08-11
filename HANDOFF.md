@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/ux-free-path-consolidar-9b67` |
 | **Commit base** | `main` + UX-0 + UX-3 + consolidación Free Path |
-| **PR actual** | Free Path: layout + honestidad + Copiar JSON primero |
+| **PR actual** | [#87](https://github.com/oscarkleinkopf/influ-json/pull/87) Free Path: layout + honestidad + Copiar JSON primero |
 | **`main` remoto** | face pack merged (`f9822ec`); PRs #85/#86 supersedibles por este |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
 | **Prioridad inmediata** | Merge este PR; Free Path claro sin CTAs falsos |
