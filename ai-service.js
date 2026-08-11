@@ -513,15 +513,17 @@ module.exports = {
    * fullbody needs taller canvas + lower img2img strength or portrait refs force close-ups
    */
   resolveFraming(options = {}, prompt = '') {
-    const f = options.framing || options.shotType || '';
-    const text = `${f} ${prompt}`;
+    const f = String(options.framing || options.shotType || '').toLowerCase().trim();
+    // Explicit framing from client/API wins — never let boilerplate prompt text
+    // (e.g. "when full body requested" in Avoid:) force fullbody and drop face-anchor.
+    if (f === 'fullbody' || f === 'portrait' || f === 'medium') return f;
+    const text = `${prompt}`;
     if (/full\s*body|full-body|cuerpo entero|cuerpo completo|de cuerpo entero|de cuerpo completo|bikini completo|head to toe|head-to-toe|mirror selfie.*full|standing full|wide shot|plano entero/i.test(text)) {
       return 'fullbody';
     }
     if (/close-up|primer plano|selfie portrait|macro beauty|face only|headshot/i.test(text)) {
       return 'portrait';
     }
-    if (f === 'fullbody' || f === 'portrait' || f === 'medium') return f;
     return 'medium';
   },
 
@@ -715,41 +717,66 @@ module.exports = {
         // Caller can force ref with options.forceReference === true
         const useRef = refUrl && (framing !== 'fullbody' || options.forceReference === true);
         // Model: flux default (~0.002). photoQuality=high → zimage (~0.004) text-only for more realism.
+        // flux ignores `image=` — face-anchor refs need an img2img model (nanobanana).
         let model = (process.env.POLLINATIONS_MODEL || 'flux').trim() || 'flux';
-        if ((options.photoQuality === 'high' || options.photoQuality === true) && !useRef) {
-          model = (process.env.POLLINATIONS_PHOTO_MODEL || 'zimage').trim() || 'zimage';
-        }
-        let url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPrompt)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}`;
         if (useRef) {
-          url += `&image=${encodeURIComponent(refUrl)}`;
+          model = (process.env.POLLINATIONS_IMG2IMG_MODEL || 'nanobanana').trim() || 'nanobanana';
+        } else if ((options.photoQuality === 'high' || options.photoQuality === true)) {
+          // Spicy / lingerie: zimage is flaky (503). Keep PHOTO QUALITY LOCK in prompt; use flux.
+          const spicyOrNsfw = options.mode === 'spicy'
+            || /lingerie|lencer|latex|látex|catsuit|boudoir|bikini|corset|corsé/i.test(finalPrompt);
+          if (!spicyOrNsfw) {
+            model = (process.env.POLLINATIONS_PHOTO_MODEL || 'zimage').trim() || 'zimage';
+          }
         }
+        let promptForUrl = finalPrompt;
+        // img2img hosts are picky about URL length
+        if (useRef && promptForUrl.length > 850) {
+          promptForUrl = promptForUrl.slice(0, 850);
+        }
+        const buildUrl = (m, promptText) => {
+          let u = `https://gen.pollinations.ai/image/${encodeURIComponent(promptText)}?model=${encodeURIComponent(m)}&width=${width}&height=${height}&seed=${seed}`;
+          if (useRef) u += `&image=${encodeURIComponent(refUrl)}`;
+          const referrer = (process.env.POLLINATIONS_REFERRER || '').trim();
+          if (referrer) u += `&referrer=${encodeURIComponent(referrer)}`;
+          return u;
+        };
         // Pollinations moved to a prepaid "pollen" credit system and the modern API
         // requires a Bearer key (pk_/sk_). Registered developers get free daily grants
         // that cover flux — stay zero-cost by pasting a free token. Optional referrer too.
-        const referrer = (process.env.POLLINATIONS_REFERRER || '').trim();
-        if (referrer) url += `&referrer=${encodeURIComponent(referrer)}`;
         const token = (process.env.POLLINATIONS_TOKEN || process.env.POLLINATIONS_API_TOKEN || '').trim();
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${useRef ? strength : 'text-only'} model=${model} photoQuality=${options.photoQuality || 'default'} identityLock=${identityLock} ref=${!!useRef} auth=${token ? 'token' : 'anon'}`);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 55000);
+        const parsePollinationsError = async (res) => {
+          let body = '';
+          try { body = await res.text(); } catch (_) { /* ignore */ }
+          const paymentRequired = res.status === 402
+            || /PAYMENT_REQUIRED|Insufficient balance/i.test(body);
+          const authRequired = res.status === 401 || res.status === 403
+            || /unauthorized|forbidden|invalid.*(key|token)|authentication/i.test(body);
+          const err = new Error(`Pollinations HTTP error: ${res.status}`);
+          err.status = res.status;
+          err.paymentRequired = paymentRequired;
+          err.authRequired = authRequired;
+          if (res.status === 429) genQueue.markRateLimited();
+          return err;
+        };
         try {
-          const res = await fetch(url, { signal: controller.signal, headers });
+          let res = await fetch(buildUrl(model, promptForUrl), { signal: controller.signal, headers });
+          // zimage (or primary model) flaky 5xx/400 → one flux retry (keeps Spicy generating)
+          if (!res.ok && model !== 'flux' && !useRef
+              && (res.status >= 500 || res.status === 400)) {
+            const failStatus = res.status;
+            try { await res.text(); } catch (_) { /* drain */ }
+            console.warn(`[gen] model=${model} HTTP ${failStatus} — retry flux`);
+            model = 'flux';
+            res = await fetch(buildUrl(model, promptForUrl), { signal: controller.signal, headers });
+          }
           clearTimeout(timer);
           if (!res.ok) {
-            let body = '';
-            try { body = await res.text(); } catch (_) { /* ignore */ }
-            const paymentRequired = res.status === 402
-              || /PAYMENT_REQUIRED|Insufficient balance/i.test(body);
-            // Modern API requires a Bearer key; missing/invalid → 401/403.
-            const authRequired = res.status === 401 || res.status === 403
-              || /unauthorized|forbidden|invalid.*(key|token)|authentication/i.test(body);
-            const err = new Error(`Pollinations HTTP error: ${res.status}`);
-            err.status = res.status;
-            err.paymentRequired = paymentRequired;
-            err.authRequired = authRequired;
-            if (res.status === 429) genQueue.markRateLimited();
-            throw err;
+            throw await parsePollinationsError(res);
           }
           return res;
         } catch (err) {

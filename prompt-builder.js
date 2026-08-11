@@ -424,7 +424,11 @@
       framing === 'fullbody'
         ? 'CRITICAL: show the entire person head to toe — if only the face is visible the image is WRONG.'
         : 'Keep identity consistent.',
-      'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, elongated face, vertical stretch, accidental close-up portrait when full body requested.'
+      // Do NOT say "full body" in medium/portrait Avoid: — resolveFraming used to
+      // mis-read that phrase and force fullbody (dropped face-anchor; broke Spicy).
+      framing === 'fullbody'
+        ? 'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, elongated face, vertical stretch, accidental close-up portrait when head-to-toe was requested.'
+        : 'Avoid: different person, face swap look, 3d render, CGI plastic, doll, mannequin, beauty filter, cartoon, anime, elongated face, vertical stretch.'
     ].join(' ');
   }
 

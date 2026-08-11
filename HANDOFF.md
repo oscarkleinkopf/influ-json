@@ -25,15 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/photoreal-boost-173f` |
-| **Commit base** | tip `main` + toggle Más fotorrealismo |
-| **PR actual** | Photoreal: PHOTO QUALITY LOCK + modelo zimage |
+| **Rama de trabajo** | `cursor/fix-spicy-gen-173f` |
+| **Commit base** | tip photoreal-boost + fix Spicy gen |
+| **PR actual** | Fix: Spicy no generaba (framing + zimage) |
 | **`main` remoto** | tip actual |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge photoreal; #76 inspiración rubia si sigue abierto |
+| **Prioridad inmediata** | Merge fix Spicy; photoreal #77; #76 inspiración rubia si sigue abierto |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — Spicy no genera imagen
+
+**Pedido:** «No genera la imagen Spicy».
+
+**Causa:** (1) `buildVariantPrompt` metía «when full body requested» en *todas* las variantes → `resolveFraming` forzaba `fullbody` y soltaba face-anchor; (2) con «Más fotorrealismo» Spicy iba a `zimage`, que a veces responde 503 en NSFW.
+
+**Hecho:** framing explícito gana; Avoid: sin «full body» en medium; Spicy/lingerie usa `flux` (+ PHOTO QUALITY LOCK); fallback `zimage`→`flux` en 5xx/400; img2img con `nanobanana`. Test `spicy-framing-gen.test.js`.
 
 ### Sesión reciente (Cursor, 2026-08-11) — Más fotorrealismo
 
