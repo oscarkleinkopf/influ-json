@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupComoUsarGuide', fn: setupComoUsarGuide },
     { name: 'setupSideBySideComparator', fn: setupSideBySideComparator },
     { name: 'setupQaMatrix', fn: setupQaMatrix },
+    { name: 'setupFacePack', fn: setupFacePack },
     { name: 'setupOfflineBanner', fn: setupOfflineBanner },
     { name: 'setupSettings', fn: setupSettings },
     { name: 'setupPinWizard', fn: setupPinWizard },
@@ -2242,6 +2243,126 @@ function setupQaMatrix() {
   }
 }
 
+let _facePackRenderSeq = 0;
+
+function facePackThumbUrl(imagePath) {
+  if (!imagePath) return '';
+  const s = String(imagePath);
+  if (/^https?:\/\//i.test(s)) return s;
+  return s.startsWith('/') ? s : `/${s.replace(/^\.\//, '')}`;
+}
+
+async function renderFacePack() {
+  const panel = document.getElementById('facePackPanel');
+  const slotsEl = document.getElementById('facePackSlots');
+  const statusEl = document.getElementById('facePackStatus');
+  if (!panel || !slotsEl) return;
+
+  const persona = state.selectedPersona;
+  if (!persona?.id) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+  const renderSeq = ++_facePackRenderSeq;
+
+  // Optimistic empty slots from client module while API loads
+  const localSlots = (typeof InfluFacePack !== 'undefined' && InfluFacePack.FACE_PACK_SLOTS)
+    ? InfluFacePack.FACE_PACK_SLOTS
+    : [];
+  if (!slotsEl.dataset.hydrated) {
+    slotsEl.innerHTML = localSlots.map((s) => `
+      <div class="face-pack-slot" data-slot="${s.id}" style="border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;background:rgba(0,0,0,0.2);min-height:96px;">
+        <div style="aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:10px;padding:6px;text-align:center;">${s.title}</div>
+      </div>`).join('');
+  }
+
+  try {
+    const res = await authFetch(`/api/personas/${persona.id}/anchor-pack`);
+    const data = await res.json();
+    if (renderSeq !== _facePackRenderSeq || state.selectedPersona?.id !== persona.id) return;
+    if (!data.success) throw new Error(data.error || 'No se pudo cargar face pack');
+
+    const slots = data.slots || [];
+    slotsEl.dataset.hydrated = '1';
+    slotsEl.innerHTML = slots.map((s) => {
+      const img = s.image_path
+        ? `<img src="${facePackThumbUrl(s.image_path)}" alt="${s.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;" />`
+        : `<span style="font-size:10px;color:var(--text-muted);padding:6px;text-align:center;line-height:1.3;">${s.title}<br/><span style="opacity:.7">sin boceto</span></span>`;
+      return `<div class="face-pack-slot" data-slot="${s.id}" title="${s.short || s.title}" style="border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;background:rgba(0,0,0,0.2);">
+        <div style="aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;">${img}</div>
+        <div style="font-size:9px;padding:4px 6px;color:var(--text-secondary);text-align:center;border-top:1px solid rgba(255,255,255,0.06);">${s.title}</div>
+      </div>`;
+    }).join('');
+
+    if (statusEl) {
+      statusEl.textContent = data.summary?.label || '—';
+      statusEl.style.color = data.summary?.complete ? '#34d399' : 'var(--text-muted)';
+    }
+  } catch (err) {
+    if (statusEl) statusEl.textContent = 'Error al cargar';
+    console.warn('[face-pack] render:', err.message);
+  }
+}
+
+async function copyFacePackText() {
+  try {
+    let text = '';
+    if (typeof InfluFacePack !== 'undefined' && InfluFacePack.buildFacePackChatbotText) {
+      text = InfluFacePack.buildFacePackChatbotText(getFullPersonaJSON(), {
+        fallbackName: state.selectedPersona?.name
+      });
+    } else if (state.selectedPersona?.id) {
+      const res = await authFetch(`/api/personas/${state.selectedPersona.id}/face-pack.txt`);
+      text = await res.text();
+    } else {
+      throw new Error('Selecciona un influencer');
+    }
+    await navigator.clipboard.writeText(text);
+    toastSuccess('Face pack (6 ángulos) copiado — pégalo en chatbot free');
+  } catch (err) {
+    console.error(err);
+    toastError(err.message || 'No se pudo copiar el face pack');
+  }
+}
+
+async function regenerateFacePackSketches() {
+  const personaId = state.selectedPersona?.id;
+  if (!personaId) {
+    toastError('Selecciona un influencer');
+    return;
+  }
+  try {
+    const res = await authFetch(`/api/personas/${personaId}/face-pack/regenerate`, {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Error al encolar');
+    toastInfo(data.message || 'Bocetos en cola (Pollinations opt-in)');
+    setTimeout(() => { try { renderFacePack(); } catch (_) {} }, 4000);
+  } catch (err) {
+    toastError(err.message || 'No se pudo encolar el face pack');
+  }
+}
+
+function setupFacePack() {
+  window.renderFacePack = renderFacePack;
+  window.copyFacePackText = copyFacePackText;
+  document.getElementById('btnCopyFacePackText')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    copyFacePackText();
+  });
+  document.getElementById('btnRefreshFacePack')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    renderFacePack();
+  });
+  document.getElementById('btnRegenFacePack')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    regenerateFacePackSketches();
+  });
+}
+
 /** Alias legacy — QueuePoller / import llamaban loadPersonaVariants */
 function loadPersonaVariants(personaId) {
   return loadVariantsForPersona(personaId);
@@ -2843,6 +2964,7 @@ function selectPersona(persona) {
 
   // Matriz QA: mostrar panel enseguida (slots se rellenan al cargar variantes/gens)
   try { renderQaMatrix(); } catch (_) {}
+  try { renderFacePack(); } catch (_) {}
 
   const sheetImg = document.getElementById('sheetProfileImg');
   if (sheetImg) {
@@ -7733,9 +7855,11 @@ async function loadVariantsForPersona(personaId) {
     }
     renderVariantVaultGrid();
     renderQaMatrix();
+    try { renderFacePack(); } catch (_) {}
   } catch (err) {
     grid.innerHTML = '<div style="color: #ff6b6b; font-size: 13px;">Error al cargar poses.</div>';
     renderQaMatrix();
+    try { renderFacePack(); } catch (_) {}
   }
 }
 

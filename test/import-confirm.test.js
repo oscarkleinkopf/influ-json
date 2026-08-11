@@ -126,16 +126,16 @@ test('1.2 import confirm: previewOnly no persiste; confirmar guarda + variantes'
 
     const personaId = saved.persona.id;
     let attempts = 0;
-    while (attempts < 80) {
+    while (attempts < 120) {
       const qStatus = genQueue.getStatus();
       const variantsInDb = dbService.getVariantsForPersona(personaId);
-      if (!qStatus.active && qStatus.pendingCount === 0 && variantsInDb.length >= 4) break;
+      if (!qStatus.active && qStatus.pendingCount === 0 && variantsInDb.length >= 6) break;
       await sleep(50);
       attempts++;
     }
 
     const variantsInDb = dbService.getVariantsForPersona(personaId);
-    assert.equal(variantsInDb.length, 4, 'Tras confirmar deben generarse 4 anclas');
+    assert.equal(variantsInDb.length, 6, 'Tras confirmar deben generarse 6 anclas (face pack)');
 
     dbService.deletePersona(personaId);
   });

@@ -242,6 +242,9 @@ app.get('/import-flow.js', (req, res) => {
 app.get('/prompt-builder.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'prompt-builder.js'));
 });
+app.get('/face-pack.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'face-pack.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });
