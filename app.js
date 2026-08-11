@@ -4885,16 +4885,9 @@ async function savePersona(opts = {}) {
     || (creatingNew ? null : state.selectedPersona?.imageUGC)
     || (gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/nano_banana_ugc.png');
 
-  // Uploaded photo becomes face DNA for Pollinations variants — warn if it may disagree with form lock
+  // Uploaded photo becomes face DNA for Pollinations variants
   if (uploadedImagePath && !portraitPath) {
-    const skinForm = (document.getElementById('pSkinTone')?.value || '').toLowerCase();
-    const hairForm = (document.getElementById('pHairColor')?.value || document.getElementById('pHair')?.value || '').toLowerCase();
-    const looksDarkLock = /morena|oscura|profunda|dark|negra/.test(skinForm) || /negro|black|castaño oscuro/.test(hairForm);
-    if (looksDarkLock) {
-      toastInfo('La foto subida será la cara en las variantes. Si es de otra persona (p. ej. rubia) y el JSON pide morena/pelo negro, mejor «Crear + retrato» sin esa foto o cámbiala.');
-    } else {
-      toastInfo('Foto de referencia: las poses anclarán esta cara (más fuerte que el texto del JSON si no coinciden).');
-    }
+    toastInfo('Foto de inspiración: las poses anclarán esta cara. Si es rubia / tez blanca / ojos claros, el JSON se alineará con la foto al generar.');
   }
 
   const personaData = {
@@ -7872,6 +7865,8 @@ async function generateOneVariant(p, index, total) {
         : `✓ Pose agregada${counter}!`;
       if (data.faceAnchorSkipped) {
         toastInfo(`Retrato no coincidía con el JSON de ${p.name} — generé con character_lock (sin clavar la foto equivocada).`);
+      } else if (data.inspirationSynced) {
+        toastInfo(`Inspiración: anclé la cara de la foto de ${p.name} y alineé tez/pelo/ojos del JSON.`);
       }
       if (total === 1) {
         toastSuccess(framing === 'fullbody'

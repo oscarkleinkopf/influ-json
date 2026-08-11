@@ -139,6 +139,7 @@ module.exports = {
       const prompt = `
         Analyze this reference photo of a person for an AI UGC Influencer model template.
         CRITICAL: Match the real skin lightness from the photo. If the person is fair/light-skinned, set skin_tone and skin_tone_hex accordingly — do NOT darken or assume "Latina = morena".
+        CRITICAL: If hair is blonde/rubia/platinum, set hair.color accordingly (not brown/black). If eyes are blue/green/grey/light, set eye_color exactly — do NOT default to brown.
         You MUST respond ONLY with a single JSON object matching this exact structure:
         {
           "identity": {
@@ -264,6 +265,12 @@ module.exports = {
         You are an expert AI Prompt Engineer and visual content director.
         Analyze all of the provided reference photos of the SAME person/influencer.
         Combine information from these different angles, expressions, lighting conditions, and outfits to establish a single, highly consistent visual identity sheet.
+
+        CRITICAL — match the REAL person in the photos:
+        - Skin: if fair / light / white / pale / porcelain, set skin_tone + skin_tone_hex accordingly. Do NOT darken or assume "Latina = morena".
+        - Hair: if blonde / rubia / platinum / honey blonde, say so explicitly (not castaño oscuro).
+        - Eyes: if blue / green / grey / light, set eye_color exactly (not default brown).
+        - Ethnicity appearance may be Europea, Eslava, Mediterránea clara, Latina de tez clara, etc. — follow the face, not stereotypes.
         
         You MUST respond ONLY with a single JSON object matching this exact structure:
         {
@@ -513,15 +520,17 @@ module.exports = {
    * fullbody needs taller canvas + lower img2img strength or portrait refs force close-ups
    */
   resolveFraming(options = {}, prompt = '') {
-    const f = options.framing || options.shotType || '';
-    const text = `${f} ${prompt}`;
+    const f = String(options.framing || options.shotType || '').toLowerCase().trim();
+    // Explicit framing from client/API wins — never let prompt keywords (e.g. "head to mid-thigh"
+    // or body copy) force fullbody and drop the inspiration face-anchor.
+    if (f === 'fullbody' || f === 'portrait' || f === 'medium') return f;
+    const text = `${prompt}`;
     if (/full\s*body|full-body|cuerpo entero|cuerpo completo|de cuerpo entero|de cuerpo completo|bikini completo|head to toe|head-to-toe|mirror selfie.*full|standing full|wide shot|plano entero/i.test(text)) {
       return 'fullbody';
     }
     if (/close-up|primer plano|selfie portrait|macro beauty|face only|headshot/i.test(text)) {
       return 'portrait';
     }
-    if (f === 'fullbody' || f === 'portrait' || f === 'medium') return f;
     return 'medium';
   },
 
@@ -693,7 +702,12 @@ module.exports = {
         else if (identityLock) {
           // Medium + face lock alto (~0.78) congela fondo del retrato. Si el vault pide
           // otra escena (hotel/bedroom), bajar strength para que cambie el fondo.
-          strength = (requestedSetting && isIndoorSettingText(requestedSetting)) ? 0.45 : 0.78;
+          // Inspiración (rubia/ref_*): mantener strength más alta para que la cara de la foto pegue.
+          if (options.inspirationFaceAnchor) {
+            strength = 0.68;
+          } else {
+            strength = (requestedSetting && isIndoorSettingText(requestedSetting)) ? 0.45 : 0.78;
+          }
         } else if (wantsPhotoreal) strength = 0.72;
         if (strengthOverride != null) strength = strengthOverride;
 
@@ -701,16 +715,30 @@ module.exports = {
         // The legacy image.pollinations.ai host only exposes the paid "sana" model now.
         // enhance is kept in the prompt log context but is not a param of the modern API.
         void enhance;
-        // Model is configurable to stretch small free daily grants: flux (default, best
-        // quality, ~0.002 pollen/img) vs dreamshaper (~0.0001, ~20x cheaper). All models
-        // now cost pollen; a registered key with account:usage or a budget is required.
-        const model = (process.env.POLLINATIONS_MODEL || 'flux').trim() || 'flux';
-        let url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPrompt)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}`;
-        // Full-body: skip img2img ref by default (portrait ref freezes headshot crop).
-        // Caller can force ref with options.forceReference === true
+        // Model: flux is text-only (ignores `image=`). For face-anchor refs use a text+image
+        // model — nanobanana works with hosted image URLs; kontext often 400s on tmpfiles URLs.
+        let model = (process.env.POLLINATIONS_MODEL || 'flux').trim() || 'flux';
         const useRef = refUrl && (framing !== 'fullbody' || options.forceReference === true);
         if (useRef) {
+          model = (process.env.POLLINATIONS_IMG2IMG_MODEL || 'nanobanana').trim() || 'nanobanana';
+        }
+        // img2img hosts are picky about URL length — keep prompt compact when anchoring a face
+        let promptForUrl = finalPrompt;
+        if (useRef && promptForUrl.length > 850) {
+          promptForUrl = promptForUrl.slice(0, 850);
+        }
+        let url = `https://gen.pollinations.ai/image/${encodeURIComponent(promptForUrl)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}`;
+        // Full-body: skip img2img ref by default (portrait ref freezes headshot crop).
+        // Caller can force ref with options.forceReference === true
+        if (useRef) {
           url += `&image=${encodeURIComponent(refUrl)}`;
+        }
+        // Inspiration / fair-blonde: push model away from default Latina-morena bias
+        if (options.inspirationFaceAnchor || /INSPIRATION FACE LOCK|Rubio|blonde|tez blanca|Piel clara/i.test(finalPrompt)) {
+          const neg = encodeURIComponent(
+            'dark skin, deep tan, morena, black hair, brunette, different person, male'
+          );
+          url += `&negative_prompt=${neg}`;
         }
         // Pollinations moved to a prepaid "pollen" credit system and the modern API
         // requires a Bearer key (pk_/sk_). Registered developers get free daily grants
@@ -719,7 +747,7 @@ module.exports = {
         if (referrer) url += `&referrer=${encodeURIComponent(referrer)}`;
         const token = (process.env.POLLINATIONS_TOKEN || process.env.POLLINATIONS_API_TOKEN || '').trim();
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${useRef ? strength : 'text-only'} identityLock=${identityLock} ref=${!!useRef} auth=${token ? 'token' : 'anon'}`);
+        console.log(`[gen] pollinations seed=${seed} ${width}x${height} framing=${framing} strength=${useRef ? strength : 'text-only'} model=${model} identityLock=${identityLock} ref=${!!useRef} promptLen=${promptForUrl.length} urlLen=${url.length} auth=${token ? 'token' : 'anon'}`);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 55000);
         try {
@@ -762,8 +790,25 @@ module.exports = {
             if (is429 || refErr.paymentRequired || refErr.authRequired) {
               throw refErr;
             }
-            console.warn(`Pollinations img2img non-429 error (${refErr.message}), text-only fallback.`);
-            res = await fetchPollinations(null);
+            // One compact retry for inspiration (long prompts / flaky hosts → 400)
+            if (options.inspirationFaceAnchor && refErr.status === 400) {
+              try {
+                const compact = finalPrompt.length > 400
+                  ? `${finalPrompt.slice(0, 280)}. INSPIRATION FACE LOCK: same woman as reference, fair blonde, cafe scene.`
+                  : finalPrompt;
+                console.warn('[gen] img2img 400 — retry compact inspiration prompt');
+                const prev = finalPrompt;
+                finalPrompt = compact;
+                res = await fetchPollinations(referenceUrl);
+                finalPrompt = prev;
+              } catch (retryErr) {
+                console.warn(`Pollinations img2img retry failed (${retryErr.message}), text-only fallback.`);
+                res = await fetchPollinations(null);
+              }
+            } else {
+              console.warn(`Pollinations img2img non-429 error (${refErr.message}), text-only fallback.`);
+              res = await fetchPollinations(null);
+            }
           }
         } else {
           // fullbody path (or no ref): text-to-image with strong face description

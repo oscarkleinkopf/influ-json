@@ -7,7 +7,10 @@ const os = require('os');
 const {
   classifyLockAppearance,
   sampleImageAppearance,
-  anchorConflictsWithLock
+  anchorConflictsWithLock,
+  enrichDetailedFromInspiration,
+  isInspirationPortrait,
+  reconcilePromptWithInspiration
 } = require('../anchor-lock-consistency');
 const { isPlaceholderAnchorImage } = require('../character-lock-validator');
 
@@ -86,6 +89,35 @@ test('fair blonde portrait conflicts with dark Latina lock', async () => {
   }
 });
 
+test('enrichDetailedFromInspiration: dark defaults → fair lock from fair photo', async () => {
+  const tmp = path.join(os.tmpdir(), `influ-fair-blonde-${Date.now()}.jpg`);
+  await writeFairBlondeFixture(tmp);
+  try {
+    const bad = {
+      identity: { ethnicity_appearance: 'Latina' },
+      facial_features: {
+        skin_tone: 'Piel morena oscura / profunda',
+        skin_tone_hex: '#72442e',
+        eye_color: 'marrón oscuro'
+      },
+      hair: { color: 'Negro' }
+    };
+    const enriched = await enrichDetailedFromInspiration(tmp, bad, { rootDir: path.join(__dirname, '..') });
+    assert.equal(enriched.inspired_from_photo, true);
+    assert.equal(enriched.anchor_source, 'inspiration_upload');
+    assert.match(enriched.facial_features.skin_tone, /clara|blanca|fair/i);
+    assert.match(enriched.hair.color, /rubio|blonde|castaño claro/i);
+  } finally {
+    try { fs.unlinkSync(tmp); } catch (_) {}
+  }
+});
+
+test('isInspirationPortrait detects ref_* uploads', () => {
+  assert.equal(isInspirationPortrait('assets/references/ref_abc.jpg', {}), true);
+  assert.equal(isInspirationPortrait('assets/generated/gen_x.jpg', {}), false);
+  assert.equal(isInspirationPortrait('assets/generated/gen_x.jpg', { inspired_from_photo: true }), true);
+});
+
 test('matching dark lock + missing file does not false-positive', async () => {
   const check = await anchorConflictsWithLock(
     'assets/references/does-not-exist-xyz.jpg',
@@ -93,6 +125,23 @@ test('matching dark lock + missing file does not false-positive', async () => {
     { rootDir: path.join(__dirname, '..') }
   );
   assert.equal(check.conflict, false);
+});
+
+test('reconcilePromptWithInspiration strips morena lock for fair DNA', () => {
+  const prompt = 'IDENTITY LOCK. SKIN LOCK: Piel morena oscura hex #72442e, keep deep/dark undertone. Negro hair.';
+  const detailed = {
+    facial_features: {
+      skin_tone: 'Piel clara / tez blanca',
+      skin_tone_hex: '#f0d5c0',
+      skin_lock: 'fair light porcelain',
+      eye_color: 'Azul claro / cristalino'
+    },
+    hair: { color: 'Rubio dorado / rubia natural' }
+  };
+  const out = reconcilePromptWithInspiration(prompt, detailed);
+  assert.match(out, /HAIR LOCK:.*Rubio/i);
+  assert.match(out, /EYES:.*Azul/i);
+  assert.doesNotMatch(out, /keep deep\/dark undertone/i);
 });
 
 test('real Eru upload (if present) conflicts with her dark lock', async (t) => {

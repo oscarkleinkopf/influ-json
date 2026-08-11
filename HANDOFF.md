@@ -26,14 +26,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | Campo | Valor |
 |-------|--------|
 | **Rama de trabajo** | `cursor/eru-face-anchor-mix-173f` |
-| **Commit base** | tip `main` (#75) + face-anchor mismatch guard |
-| **PR actual** | Eru: no clavar cara de foto que contradice character_lock |
+| **Commit base** | tip `main` (#75) + face-anchor + inspiración rubia |
+| **PR actual** | Inspiración: foto gana (rubia/tez blanca/ojos claros) + face-anchor |
 | **`main` remoto** | #75 spicy indoor setting lock MERGED |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge face-anchor mix; walkthrough Daniela |
+| **Prioridad inmediata** | Merge face-anchor/inspiración; walkthrough Daniela |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — Inspiración rubia / tez blanca / ojos azules
+
+**Pedido:** La app debe poder inspirarse en una rubia de tez blanca y ojos azules; la gen no se parecía a la foto de inspiración.
+
+**Causa:** JSON default/morena pelearba con la foto; el guard anterior *saltaba* el face-anchor en mismatch → Pollinations ignoraba la inspiración.
+
+**Hecho:** En inspiración (`ref_*` / `inspired_from_photo`) la **foto gana**: sync tez/pelo/ojos + img2img con `nanobanana` (flux ignora `image=`). Framing explícito `medium` ya no se degrada a fullbody. Import offline/Gemini ya no fuerza marrón/castaño.
 
 ### Sesión reciente (Cursor, 2026-08-11) — Eru café = cara de otra influencer
 
