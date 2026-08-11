@@ -20,6 +20,26 @@ function getGenQueueStatusSafe() {
 // Load environment variables
 dotenv.config();
 
+/**
+ * ¿El texto pide locación playa/costa de verdad?
+ * Nunca usar `/mar/` suelto: coincide dentro de "smartphone", "camara", "primary"…
+ * y forzaba SETTING LOCK tropical beach en variantes spicy (látex + dormitorio).
+ */
+function promptImpliesBeachSetting(text) {
+  const t = String(text || '');
+  if (!t) return false;
+  if (/\b(playa|beach|ocean|seaside|shore|piscina|pool)\b/i.test(t)) return true;
+  if (/\b(mar|costa)\b/i.test(t)) return true;
+  if (/tropical\s+beach|golden\s+sand|turquoise\s+ocean|ocean\s+shoreline/i.test(t)) return true;
+  return false;
+}
+
+/** Si el prompt ya fija Background/location indoor, no pisar con playa. */
+function promptHasExplicitIndoorSetting(text) {
+  const t = String(text || '');
+  return /Background\/location:\s*[^.\n]*(bedroom|hotel|boudoir|dormitorio|habitaci[oó]n|apartment|apartamento|cafe|office|oficina|gym|gimnasio|indoor|interior)/i.test(t);
+}
+
 const apiKey = process.env.GEMINI_API_KEY;
 let ai = null;
 
@@ -45,6 +65,9 @@ if (apiKey) {
 }
 
 module.exports = {
+  promptImpliesBeachSetting,
+  promptHasExplicitIndoorSetting,
+
   isApiConnected() {
     return ai !== null;
   },
@@ -402,7 +425,7 @@ module.exports = {
 
     // 6. Universal Setting & Environment Parsing
     let settingClause = setting ? `Background is ${setting}. Lighting: ${lighting}.` : `Background is a bright modern indoor room. Lighting: ${lighting}.`;
-    if (/playa|beach|mar|ocean|seaside|costa|shore|piscina|pool|solead[ao]|mediodia/i.test(fullText)) {
+    if (promptImpliesBeachSetting(fullText) && !promptHasExplicitIndoorSetting(fullText)) {
       settingClause = `Background is a bright sunny outdoor tropical beach at midday, clear blue sky, turquoise ocean shoreline, golden sand. Direct bright midday sunlight.`;
     } else if (/café|cafe|coffee shop|oficina|office|escritorio|desk|negocios/i.test(fullText)) {
       settingClause = `Background is a cozy modern cafe interior with coffee shop wooden table, warm ambient indoor lighting, professional atmosphere.`;
@@ -548,7 +571,7 @@ module.exports = {
       if (/oficina|office|ejecutiva|business|ropas de oficina/i.test(finalPrompt)) {
         detectedOutfit = 'professional office business attire, elegant blazer and trousers';
       }
-    } else if (/playa|beach|mar|ocean|seaside|costa|shore|piscina|pool/i.test(finalPrompt)) {
+    } else if (promptImpliesBeachSetting(finalPrompt) && !promptHasExplicitIndoorSetting(finalPrompt)) {
       detectedSetting = 'OUTDOOR SUNNY TROPICAL BEACH, direct bright midday sunlight, clear blue sky, turquoise ocean, golden sand';
     }
 

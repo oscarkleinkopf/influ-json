@@ -25,15 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/resumen-asset-fallback-173f` |
-| **Commit base** | tip `main` + asset DATA_DIR fallback |
-| **PR actual** | Resumen: servir refs/gens desde `data/` si faltan en `assets/` |
-| **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + harness batch |
+| **Rama de trabajo** | `main` |
+| **Commit base** | tip con #73 thumbs + #74 fix playa |
+| **PR actual** | #73 MERGED · #74 merge (fix `/mar/` → playa) |
+| **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + harness + thumbs |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge asset fallback + Ajustes UX #72; walkthrough Daniela |
+| **Prioridad inmediata** | Walkthrough Daniela / Colorina spicy tras #74; OAuth/SMTP/video en pausa |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy · Daniela body/skin/spicy (hasta PC) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — Spicy látex salía en playa
+
+**Pedido:** Colorina 2.5 spicy látex rojo → imagen en playa (había gen playa antes).
+
+**Causa:** `ai-service` detectaba playa con `/mar/` suelto; coincidía dentro de **smartphone** (siempre en prompts de variante) y forzaba `SETTING LOCK` tropical beach.
+
+**Hecho:** `promptImpliesBeachSetting` con word boundaries + no pisar `Background/location` indoor. Test `beach-mar-false-positive.test.js`.
 
 ### Sesión reciente (Cursor, 2026-08-10) — Resumen images 404 → DATA_DIR fallback
 
