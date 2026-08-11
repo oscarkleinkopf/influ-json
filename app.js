@@ -2131,10 +2131,14 @@ async function renderQaMatrix() {
   slotsEl.innerHTML = defs.map((def) => {
     const slot = slots[def.id];
     if (slot?.image_path) {
+      const src = escapeLockHtml(slot.image_path);
+      const label = escapeLockHtml(def.label);
       return `
         <div class="qa-slot">
-          <div class="qa-slot-label">${escapeLockHtml(def.label)}</div>
-          <img src="${escapeLockHtml(slot.image_path)}" alt="${escapeLockHtml(def.label)}" loading="lazy">
+          <div class="qa-slot-label"><span>${label}</span><span class="qa-slot-zoom-hint">clic = zoom</span></div>
+          <button type="button" class="qa-slot-media" data-qa-zoom="${src}" data-qa-zoom-label="${label}" title="Ampliar para ver la cara">
+            <img src="${src}" alt="${label}" loading="lazy">
+          </button>
         </div>`;
     }
     const packBtn = def.pack
@@ -2189,6 +2193,11 @@ async function renderQaMatrix() {
   slotsEl.querySelector('[data-qa-goto-gen]')?.addEventListener('click', () => {
     document.getElementById('variantManagerSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+  slotsEl.querySelectorAll('[data-qa-zoom]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      openQaMatrixLightbox(btn.getAttribute('data-qa-zoom'), btn.getAttribute('data-qa-zoom-label'));
+    });
+  });
   checksEl.querySelectorAll('[data-qa-check]').forEach((input) => {
     input.addEventListener('change', () => {
       const next = loadQaChecks(persona.id);
@@ -2202,6 +2211,48 @@ async function renderQaMatrix() {
       if (sum.allOk) toastSuccess('QA OK: cara, tez y pelo base alineados');
     });
   });
+}
+
+function ensureQaMatrixLightbox() {
+  let el = document.getElementById('qaMatrixLightbox');
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = 'qaMatrixLightbox';
+  el.className = 'qa-matrix-lightbox';
+  el.hidden = true;
+  el.innerHTML = `
+    <div class="qa-matrix-lightbox-inner" role="dialog" aria-modal="true" aria-label="Ampliar imagen QA">
+      <button type="button" class="qa-matrix-lightbox-close" aria-label="Cerrar">&times;</button>
+      <img src="" alt="">
+      <div class="qa-matrix-lightbox-caption"></div>
+    </div>`;
+  document.body.appendChild(el);
+  const close = () => {
+    el.hidden = true;
+    const img = el.querySelector('img');
+    if (img) img.removeAttribute('src');
+  };
+  el.addEventListener('click', (e) => {
+    if (e.target === el || e.target.classList.contains('qa-matrix-lightbox-close')) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !el.hidden) close();
+  });
+  return el;
+}
+
+function openQaMatrixLightbox(src, label) {
+  if (!src) return;
+  const el = ensureQaMatrixLightbox();
+  const img = el.querySelector('img');
+  const caption = el.querySelector('.qa-matrix-lightbox-caption');
+  if (img) {
+    img.src = src;
+    img.alt = label || 'Variante QA';
+  }
+  if (caption) caption.textContent = label ? `${label} — misma persona a ojo?` : 'Misma persona a ojo?';
+  el.hidden = false;
+  el.querySelector('.qa-matrix-lightbox-close')?.focus();
 }
 
 function setupQaMatrix() {

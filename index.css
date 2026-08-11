@@ -3679,9 +3679,10 @@ button.is-queue-locked:disabled {
 }
 
 .qa-matrix-slots {
+  /* Prefer wide face-readable tiles; wrap to 1–2 cols in narrow sheets */
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
   margin-bottom: 12px;
 }
 
@@ -3690,7 +3691,7 @@ button.is-queue-locked:disabled {
   border-radius: 10px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.28);
-  min-height: 150px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -3700,15 +3701,55 @@ button.is-queue-locked:disabled {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
-  padding: 6px 8px 0;
+  padding: 8px 10px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
 }
 
-.qa-slot img {
+.qa-slot-zoom-hint {
+  font-size: 9px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.qa-slot-media {
+  position: relative;
+  display: block;
   width: 100%;
-  height: 110px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #111;
+  cursor: zoom-in;
+  /* Was fixed 110px — too small to judge face identity */
+  aspect-ratio: 3 / 4;
+  min-height: 280px;
+  max-height: 420px;
+  overflow: hidden;
+}
+
+.qa-slot-media:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: -2px;
+}
+
+.qa-slot-media img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  /* Fullbody/spicy: keep face in frame (was centered → face tiny) */
+  object-position: top center;
   background: #111;
   display: block;
+  transition: transform 0.2s ease;
+}
+
+.qa-slot-media:hover img {
+  transform: scale(1.03);
 }
 
 .qa-slot-empty {
@@ -3718,10 +3759,74 @@ button.is-queue-locked:disabled {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 8px;
+  padding: 24px 8px;
+  min-height: 220px;
   text-align: center;
   font-size: 11px;
   color: var(--text-muted);
+}
+
+/* Lightbox: cara grande para comparar a ojo */
+.qa-matrix-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.qa-matrix-lightbox[hidden] {
+  display: none !important;
+}
+
+.qa-matrix-lightbox-inner {
+  position: relative;
+  max-width: min(920px, 96vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.qa-matrix-lightbox-inner img {
+  max-width: 100%;
+  max-height: calc(92vh - 48px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  background: #0a0a0a;
+}
+
+.qa-matrix-lightbox-caption {
+  font-size: 12px;
+  color: #e2e8f0;
+  text-align: center;
+}
+
+.qa-matrix-lightbox-close {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(15, 23, 42, 0.9);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.qa-matrix-lightbox-close:hover {
+  background: rgba(56, 189, 248, 0.35);
 }
 
 .qa-matrix-checks {
@@ -3760,6 +3865,11 @@ button.is-queue-locked:disabled {
 
   .qa-matrix-slots {
     grid-template-columns: 1fr;
+  }
+
+  .qa-slot-media {
+    max-height: 520px;
+    min-height: 320px;
   }
 }
 

@@ -25,15 +25,21 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/caucasian-ref-lock-173f` |
+| **Rama de trabajo** | `cursor/qa-matrix-face-size-173f` |
 | **Commit base** | tip fix-spicy + sync Caucásica desde foto |
-| **PR actual** | Fix: ref caucásica no debe quedar como Latina |
+| **PR actual** | UX: Matriz QA thumbs más grandes + zoom |
 | **`main` remoto** | tip actual |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
 | **Prioridad inmediata** | Merge Caucásica-ref + Spicy #78 |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — Matriz QA: cara ilegible
+
+**Pedido:** En Matriz de Consistencia es difícil ver la cara (imagen muy pequeña).
+
+**Hecho:** thumbs QA `110px` → `min-height: 280px` + `object-position: top`; grid `minmax(200px)`; clic abre lightbox. Cache-bust `index.css?v=1.3.4` / `app.js?v=1.10.3`.
 
 ### Sesión reciente (Cursor, 2026-08-11) — Ref caucásica clasificada Latina
 
