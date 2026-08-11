@@ -48,6 +48,8 @@ test('ai-service ya no usa /mar/ suelto en detección de playa', () => {
   assert.doesNotMatch(src, /\/playa\|beach\|mar\|ocean\|seaside\|costa\|shore\|piscina\|pool\/i/);
   assert.match(src, /promptImpliesBeachSetting\(finalPrompt\)/);
   assert.match(src, /promptImpliesBeachSetting\(fullText\)/);
+  assert.match(src, /buildRequestedSettingPrefix/);
+  assert.match(src, /INDOOR SETTING LOCK/);
 });
 
 test('prompt-builder variant siempre incluye smartphone (regresión del bug)', () => {

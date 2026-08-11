@@ -339,7 +339,9 @@ function registerPersonasRoutes(app, deps) {
       personaId: persona.id,
       preferFaceLock,
       referenceLocalPath,
-      faceImagePath: referenceLocalPath
+      faceImagePath: referenceLocalPath,
+      setting: setting || '',
+      mode: req.body.mode || ''
     })
       .then(async (imagePath) => {
         const durationMs = Date.now() - t0;

@@ -25,15 +25,21 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | tip con #73 thumbs + #74 fix playa |
-| **PR actual** | #73 MERGED · #74 merge (fix `/mar/` → playa) |
-| **`main` remoto** | Moat free + Sec + LoRA + UX + Fase R + harness + thumbs |
+| **Rama de trabajo** | `cursor/spicy-setting-lock-173f` |
+| **Commit base** | tip `main` (#73+#74) + INDOOR SETTING LOCK |
+| **PR actual** | Spicy: lock setting del vault + OUTFIT látex (no playa/bikini) |
+| **`main` remoto** | #73 thumbs + #74 `/mar/` fix MERGED |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Walkthrough Daniela / Colorina spicy tras #74; OAuth/SMTP/video en pausa |
-| **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402 |
-| **En pausa** | OAuth, SMTP, video, HostGator deploy · Daniela body/skin/spicy (hasta PC) |
+| **Prioridad inmediata** | Merge setting-lock; Colorina spicy hotel+látex; walkthrough Daniela |
+| **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
+| **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — Spicy hotel+látex aún derivaba a playa
+
+**Pedido:** Tras #74, Colorina 2.5 spicy látex sigue en playa (cara OK).
+
+**Hallazgo:** gens 01:35–01:50 corrían con server viejo (arranque 00:11, sin #74). Output = playa+bikini pese a prompt hotel. Tras reinicio+#74 base: látex+hotel OK; refuerzo INDOOR SETTING LOCK + OUTFIT LOCK látex + strength medium más baja si indoor.
 
 ### Sesión reciente (Cursor, 2026-08-11) — Spicy látex salía en playa
 
