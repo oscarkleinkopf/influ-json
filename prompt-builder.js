@@ -133,7 +133,13 @@
     const genderWord = persona?.gender === 'Male' ? 'male' : 'female';
     const age = detailed?.identity?.apparent_age || persona?.age || '25 años';
     let ethnicity = detailed?.identity?.ethnicity_appearance || persona?.ethnicity || 'Latina';
-    if (skin?.isLight && /latina/i.test(ethnicity) && !/clara|fair|light/i.test(ethnicity)) {
+    const blondeHair = /rubio|blonde|platino/i.test(
+      `${detailed?.hair?.color || ''} ${persona?.hair || ''} ${detailed?.character_lock?.must_match_every_image?.hair_color || ''}`
+    );
+    // Fair + blonde inspiration: "Latina" biases models toward dark hair — use Caucasian.
+    if (skin?.isLight && blondeHair && /latina/i.test(ethnicity)) {
+      ethnicity = 'Caucásica / Europea de tez clara';
+    } else if (skin?.isLight && /latina/i.test(ethnicity) && !/clara|fair|light|cauc/i.test(ethnicity)) {
       ethnicity = `${ethnicity} de tez clara`;
     }
 

@@ -25,15 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/fix-spicy-gen-173f` |
-| **Commit base** | tip photoreal-boost + fix Spicy gen |
-| **PR actual** | Fix: Spicy no generaba (framing + zimage) |
+| **Rama de trabajo** | `cursor/caucasian-ref-lock-173f` |
+| **Commit base** | tip fix-spicy + sync Caucásica desde foto |
+| **PR actual** | Fix: ref caucásica no debe quedar como Latina |
 | **`main` remoto** | tip actual |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge fix Spicy; photoreal #77; #76 inspiración rubia si sigue abierto |
+| **Prioridad inmediata** | Merge Caucásica-ref + Spicy #78 |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — Ref caucásica clasificada Latina
+
+**Pedido:** La última gen gustó más; problema = clasifica Latina (pelo oscuro) pero la foto de referencia es blanca caucásica (Eru rubia).
+
+**Causa:** defaults Latina/Negro + sample de pelo confundía madera oscura del fondo con pelo negro; etnia «Latina» sesga el modelo.
+
+**Hecho:** `anchor-lock-consistency` → etnia `Caucásica / Europea de tez clara` (sin Latina); honey-blonde vs furniture; sync columnas hair/ethnicity en variantes; import offline sin marrón oscuro forzado. Tests ampliados.
 
 ### Sesión reciente (Cursor, 2026-08-11) — Spicy no genera imagen
 

@@ -522,13 +522,17 @@ function registerImportRoutes(app, deps) {
           console.warn('Spatial color extraction failed:', ce.message);
         }
 
-        // Local heuristic classifier for hair
+        // Local heuristic classifier for hair (relaxed blonde thresholds + appearance sample)
         let hairClass = 'Castaño Oscuro';
         const hairRgb = aiService.hexToRgb(colors.hair);
         if (hairRgb) {
           const { r, g, b } = hairRgb;
-          if (r > 190 && g > 170 && b < 120) hairClass = 'Rubio';
-          else if (r > 160 && g < 100 && b < 80) hairClass = 'Pelirrojo';
+          const bright = (r + g + b) / 3;
+          const warm = (r + g) / 2 - b;
+          // Rubio: bright warm hair (dim lighting still catches honey/gold)
+          if ((r > 160 && g > 130 && b < 140 && warm > 20) || (bright > 140 && warm > 25 && r >= g)) {
+            hairClass = 'Rubio dorado / rubia natural';
+          } else if (r > 160 && g < 100 && b < 80) hairClass = 'Pelirrojo';
           else if (r < 60 && g < 60 && b < 60) hairClass = 'Negro';
           else if (Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && r > 160) hairClass = 'Canoso';
         }
@@ -538,12 +542,20 @@ function registerImportRoutes(app, deps) {
         const skinClass = skinInfo.label || 'Piel clara / beige claro';
         const skinHex = colors.skin || '#f0d5c0';
 
-        // Ethnicity: if skin is light, prefer "Latina de tez clara" so models don't auto-darken
-        let ethnicity = req.body.ethnicity || 'Latina';
+        // Fair / blonde photo → Caucásica (NOT Latina — models bias to dark hair)
+        let ethnicity = req.body.ethnicity || null;
         if (skinInfo.band === 'very_light' || skinInfo.band === 'light' || skinInfo.band === 'light_warm') {
-          if (/latina/i.test(ethnicity) && !/clara|fair|light/i.test(ethnicity)) {
-            ethnicity = 'Latina de tez clara / Mediterránea clara';
-          }
+          ethnicity = ethnicity && !/latina/i.test(ethnicity)
+            ? ethnicity
+            : 'Caucásica / Europea de tez clara';
+        } else {
+          ethnicity = ethnicity || 'Latina';
+        }
+
+        // Eyes: never hardcode marrón oscuro for fair blondes — sample when possible
+        let eyeColor = 'ojos claros según foto de referencia';
+        if (skinInfo.band === 'dark' || skinInfo.band === 'medium_dark') {
+          eyeColor = 'marrón oscuro';
         }
 
         analysis = {
@@ -575,7 +587,7 @@ function registerImportRoutes(app, deps) {
             skin_lock: skinInfo.lock,
             skin_avoid: skinInfo.avoid,
             skin_texture: "piel real con textura suave y poros naturales",
-            eye_color: "marrón oscuro",
+            eye_color: eyeColor,
             eye_shape: "almendrados",
             eyebrow_style: "cejas naturales y delgadas",
             nose_shape: "recta y proporcionada",
@@ -629,8 +641,34 @@ function registerImportRoutes(app, deps) {
             neckline: "cuello redondo",
             fit: "regular, se adapta a la silueta proporcionada",
             visible_brand_logos: "Ninguno"
-          }
+          },
+          inspired_from_photo: true,
+          anchor_source: 'inspiration_upload',
+          anchor_reference: primaryPath
         };
+
+        // Photo sampling overrides weak hair/eyes/skin (rubia / tez blanca)
+        try {
+          const { enrichDetailedFromInspiration } = require('../anchor-lock-consistency');
+          analysis = await enrichDetailedFromInspiration(primaryPath, analysis, { rootDir: path.join(__dirname, '..') });
+        } catch (enrichErr) {
+          console.warn('[import] inspiration enrich skipped:', enrichErr.message);
+        }
+      }
+
+      // After Gemini OR offline: always stamp inspiration metadata + enrich from photo
+      if (analysis && imagePaths[0]) {
+        try {
+          const { enrichDetailedFromInspiration } = require('../anchor-lock-consistency');
+          analysis = await enrichDetailedFromInspiration(imagePaths[0], analysis, {
+            rootDir: path.join(__dirname, '..')
+          });
+        } catch (enrichErr) {
+          analysis.inspired_from_photo = true;
+          analysis.anchor_source = 'inspiration_upload';
+          analysis.anchor_reference = imagePaths[0];
+          console.warn('[import] post-analysis enrich skipped:', enrichErr.message);
+        }
       }
 
       // Prepare Persona model database columns (primary image is the first optimized image)
@@ -644,7 +682,7 @@ function registerImportRoutes(app, deps) {
         name: personaName,
         gender: req.body.gender || analysis.identity.gender || "Female",
         age: req.body.age || analysis.identity.apparent_age || "25 años",
-        ethnicity: req.body.ethnicity || analysis.identity.ethnicity_appearance || "Latina",
+        ethnicity: req.body.ethnicity || analysis.identity.ethnicity_appearance || "Caucásica / Europea",
         style: analysis.identity.persona_archetype || analysis.aesthetic.overall_vibe || "Lifestyle & UGC",
         hair: `${analysis.hair.length}, ${analysis.hair.texture}, color ${analysis.hair.color}`,
         lighting: analysis.photography.lighting_type,

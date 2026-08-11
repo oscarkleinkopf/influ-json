@@ -277,9 +277,12 @@ function registerPersonasRoutes(app, deps) {
     let { prompt } = req.body;
   
     const persona = req.persona;
-    // ALWAYS prefer main portrait as face DNA (same for traditional + spicy)
+    // Prefer main portrait as face DNA (same for traditional + spicy).
     // Do not use a previous spicy/variant image as anchor or faces diverge.
+    // Inspiration uploads KEEP face-anchor even if form JSON was wrong (Latina vs Caucasian photo).
     let referenceLocalPath = (persona && persona.image) ? persona.image : null;
+    let skipFaceAnchorReason = null;
+    let inspirationSynced = false;
     if (persona && persona.detailedJSON) {
       try {
         let d = persona.detailedJSON;
@@ -298,7 +301,112 @@ function registerPersonasRoutes(app, deps) {
             prompt += `. ${aiService.buildSkinLockFragment(skinTone || skinInfo.label, skinHex || '#f0d5c0', skinInfo)}`;
           }
         }
+        // Dark-skin lock reinforcement (symmetric to fair) — only when lock is actually dark
+        if (prompt && /morena|oscura|profunda/i.test(skinTone) && !/clara|fair|beige/i.test(skinTone)) {
+          if (!/SKIN LOCK/i.test(prompt)) {
+            prompt += `. SKIN LOCK: ${skinTone}${skinHex ? ` hex ${skinHex}` : ''}, keep deep/dark undertone, NOT fair, NOT blonde porcelain`;
+          }
+        }
       } catch (e) {}
+    }
+
+    try {
+      const { isPlaceholderAnchorImage } = require('../character-lock-validator');
+      if (referenceLocalPath && isPlaceholderAnchorImage(referenceLocalPath)) {
+        skipFaceAnchorReason = `placeholder:${referenceLocalPath}`;
+        referenceLocalPath = null;
+      }
+    } catch (_) {}
+
+    if (referenceLocalPath && persona?.detailedJSON) {
+      try {
+        const {
+          anchorConflictsWithLock,
+          isInspirationPortrait,
+          enrichDetailedFromInspiration,
+          reconcilePromptWithInspiration,
+          personaFieldsFromDetailed
+        } = require('../anchor-lock-consistency');
+        const PromptBuilder = require('../prompt-builder');
+        const inspire = isInspirationPortrait(referenceLocalPath, persona.detailedJSON);
+        const check = await anchorConflictsWithLock(referenceLocalPath, persona.detailedJSON, { rootDir });
+
+        const rebuildInspiredPrompt = (enriched) => {
+          const skin = PromptBuilder.resolveSkinForPrompt(enriched, persona);
+          const id = PromptBuilder.buildIdentityLockBlock(
+            {
+              ...persona,
+              name: persona.name,
+              gender: persona.gender,
+              ethnicity: enriched.identity?.ethnicity_appearance || persona.ethnicity,
+              hair: enriched.hair?.color || persona.hair
+            },
+            enriched,
+            skin
+          );
+          const framingGuess = req.body.framing
+            || (/full\s*body|cuerpo entero/i.test(`${pose} ${prompt}`) ? 'fullbody'
+              : (/close-up|portrait|primer plano/i.test(`${pose} ${prompt}`) ? 'portrait' : 'medium'));
+          let rebuilt = PromptBuilder.buildVariantPrompt({
+            id,
+            skin,
+            pose: pose || 'natural pose',
+            attitude: attitude || 'warm expression',
+            clothing: clothing || 'casual outfit',
+            setting: setting || 'cozy cafe interior',
+            framing: framingGuess,
+            hairFallback: enriched.hair?.color || persona.hair
+          });
+          rebuilt = reconcilePromptWithInspiration(rebuilt, enriched);
+          const f2 = enriched.facial_features || {};
+          const h2 = enriched.hair || {};
+          rebuilt += `. INSPIRATION FACE LOCK: same woman as reference photo, ${f2.skin_tone || 'fair skin'}, ${h2.color || 'blonde hair'}, ${f2.eye_color || 'light eyes'}, Caucasian fair features matching reference — NOT Latina with black hair`;
+          return rebuilt;
+        };
+
+        if (check.conflict && !inspire) {
+          skipFaceAnchorReason = check.reason || 'lock_vs_portrait_mismatch';
+          console.warn(`[variant] Skip face anchor for ${persona.name}: ${skipFaceAnchorReason}`);
+          referenceLocalPath = null;
+        } else if (inspire) {
+          const enriched = await enrichDetailedFromInspiration(
+            referenceLocalPath,
+            persona.detailedJSON,
+            { rootDir }
+          );
+          try {
+            prompt = rebuildInspiredPrompt(enriched);
+            inspirationSynced = true;
+          } catch (rebuildErr) {
+            console.warn('[variant] inspire prompt rebuild failed:', rebuildErr.message);
+            prompt = reconcilePromptWithInspiration(prompt, enriched);
+            inspirationSynced = true;
+          }
+          try {
+            const cols = personaFieldsFromDetailed(persona, enriched);
+            dbService.savePersona({
+              ...persona,
+              id: persona.id,
+              ethnicity: cols.ethnicity,
+              hair: cols.hair,
+              detailedJSON: enriched,
+              forceCreate: false
+            });
+            persona.detailedJSON = enriched;
+            persona.ethnicity = cols.ethnicity;
+            persona.hair = cols.hair;
+          } catch (saveErr) {
+            console.warn('[variant] could not persist inspiration sync:', saveErr.message);
+          }
+          if (check.conflict) {
+            console.warn(`[variant] Inspiration face kept for ${persona.name}: ${check.reason}`);
+          } else {
+            console.log(`[variant] Inspiration prompt rebuilt for ${persona.name}`);
+          }
+        }
+      } catch (err) {
+        console.warn('[variant] anchor-lock check skipped:', err.message);
+      }
     }
   
     let referenceUrl = null;
@@ -309,6 +417,8 @@ function registerPersonasRoutes(app, deps) {
       } catch (e) {
         console.warn('Failed to upload variant reference photo:', e);
       }
+    } else if (skipFaceAnchorReason) {
+      console.log(`[variant] Text-only identity (no face anchor): ${skipFaceAnchorReason}`);
     }
   
     const photoreal = req.body.photoreal === true
@@ -334,6 +444,13 @@ function registerPersonasRoutes(app, deps) {
     const photoQuality = (req.body.photoQuality === true || req.body.photoQuality === 'high')
       ? 'high'
       : (req.body.photoQuality === false || req.body.photoQuality === 'draft' ? 'draft' : 'high');
+    let inspirationFaceAnchor = inspirationSynced;
+    try {
+      const { isInspirationPortrait } = require('../anchor-lock-consistency');
+      if (referenceLocalPath && isInspirationPortrait(referenceLocalPath, persona.detailedJSON)) {
+        inspirationFaceAnchor = true;
+      }
+    } catch (_) {}
     aiService.generateInfluencerImage(prompt, referenceUrl, {
       photoreal,
       identityLock,
@@ -345,7 +462,8 @@ function registerPersonasRoutes(app, deps) {
       faceImagePath: referenceLocalPath,
       setting: setting || '',
       mode: req.body.mode || '',
-      photoQuality
+      photoQuality,
+      inspirationFaceAnchor
     })
       .then(async (imagePath) => {
         const durationMs = Date.now() - t0;
@@ -403,7 +521,15 @@ function registerPersonasRoutes(app, deps) {
             console.warn('[gen-metrics]', mErr.message);
           }
           runGitBackup((gitSuccess, msg) => {
-            res.json({ success: true, variant, variants: dbService.getVariantsForPersona(req.params.id), gitSynced: gitSuccess, gitMessage: msg });
+            res.json({
+              success: true,
+              variant,
+              variants: dbService.getVariantsForPersona(req.params.id),
+              faceAnchorSkipped: skipFaceAnchorReason || null,
+              inspirationSynced: inspirationSynced || false,
+              gitSynced: gitSuccess,
+              gitMessage: msg
+            });
           });
         } else {
           try {
