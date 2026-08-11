@@ -25,15 +25,30 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ugc-face-pack-173f` |
-| **Commit base** | `main` + face pack canónico 6 ángulos |
-| **PR actual** | ugc-creator Tier 1: face pack (texto free + bocetos opt-in) |
-| **`main` remoto** | cámara/shot types merged (`667a660`) |
+| **Rama de trabajo** | `cursor/ux3-honestidad-ui-9b67` |
+| **Commit base** | `main` + UX-3 honestidad UI |
+| **PR actual** | UX-3: botones muertos, stats reales, vídeo demo, toasts |
+| **`main` remoto** | face pack merged (`f9822ec`); UX-0 en PR #85 |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge face-pack; siguiente: outfit_variations / prompt_seed si aplica |
+| **Prioridad inmediata** | Merge UX-0 (#85) + UX-3; siguiente: consolidar Copiar JSON / soft-group pestañas |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
-| **En pausa** | OAuth, SMTP, video, HostGator deploy |
+| **En pausa** | OAuth, SMTP, video real, HostGator deploy · **#72 Ajustes tabs** CONFLICTING (rebase aparte) |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
+
+### Sesión reciente (Cursor, 2026-08-11) — UX-3 honestidad UI
+
+**Pedido:** Continuar con UX-3 del plan (operatividad / honestidad).
+
+**Hecho:**
+- **3a** `#btnGenerateCampaignScripts` → `generateCampaignScriptsAction` (Gemini o mock + `POST /api/campaigns/:id/scripts`)
+- **3b** «Enviar Propuesta» `alert()` → «Descargar propuesta (.txt)»
+- **3c** Vídeo UGC etiquetado DEMO; toast honesto (sin pipeline real)
+- **3d** Stat Scripts = `scriptsCount` real vía `/api/data` (nada de `campañas×10` ni `|| 10`)
+- **3e** `getGenerationStats(profileId)` scoped; productos ya lo estaban
+- **3f** Empty states campañas/galería con CTA
+- **3h** Eliminado `showSyncToast` (23 call sites → `toastSuccess`/`toastError`)
+- **3g** #72 sigue CONFLICTING — no mergeado aquí
+- Tests: `test/ux3-honestidad.test.js`
 
 ### Sesión reciente (Cursor, 2026-08-11) — face pack canónico
 
