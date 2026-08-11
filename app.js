@@ -172,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const initSteps = [
     { name: 'setupTabs', fn: setupTabs },
     { name: 'setupActivePersonaChip', fn: setupActivePersonaChip },
+    { name: 'setupPersonaSteps', fn: setupPersonaSteps },
     { name: 'checkAuthAndInit', fn: checkAuthAndInit },
     { name: 'setupLogin', fn: setupLogin },
     { name: 'setupPersonaEngine', fn: setupPersonaEngine },
@@ -589,6 +590,7 @@ function startCreateScratchFlow({ dismissFounder = false, dismissMember = false 
   }
   navigateToTab('persona-engine');
   setTimeout(() => {
+    if (typeof setPersonaStep === 'function') setPersonaStep(1, { scroll: false });
     const card = document.getElementById('cardCreateScratch');
     if (card) card.click();
     else if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
@@ -1536,6 +1538,84 @@ function setupActivePersonaChip() {
     const chip = document.getElementById('activePersonaChip');
     if (chip && !chip.contains(e.target)) closeActivePersonaMenu();
   });
+}
+
+/** UX-2 — pasos Identidad / Lock & Packs / Variaciones */
+const PERSONA_STEP_HINTS = {
+  1: 'Define cara y rasgos que anclan el character_lock. Lo demás va a «Detalles».',
+  2: 'Copia el pack free (Copiar JSON). Bocetos y LoRA son opcionales.',
+  3: 'Variantes, face pack, QA e historial — opcionales; no bloquean el free path.'
+};
+
+function getPersonaStep() {
+  const n = Number(document.getElementById('persona-engine')?.getAttribute('data-active-step') || 1);
+  return [1, 2, 3].includes(n) ? n : 1;
+}
+
+function setPersonaStep(step, { scroll = true } = {}) {
+  const n = Number(step);
+  if (![1, 2, 3].includes(n)) return;
+  const root = document.getElementById('persona-engine');
+  if (!root) return;
+  root.setAttribute('data-active-step', String(n));
+  state.personaStep = n;
+
+  document.querySelectorAll('.persona-step-btn').forEach((btn) => {
+    btn.classList.toggle('is-active', Number(btn.getAttribute('data-persona-goto')) === n);
+  });
+
+  const hint = document.getElementById('personaStepHint');
+  if (hint) hint.textContent = PERSONA_STEP_HINTS[n] || '';
+
+  const prev = document.getElementById('btnPersonaStepPrev');
+  const next = document.getElementById('btnPersonaStepNext');
+  if (prev) prev.hidden = n <= 1;
+  if (next) {
+    next.hidden = n >= 3;
+    if (n === 1) next.textContent = 'Siguiente: Lock & Packs →';
+    else if (n === 2) next.textContent = 'Siguiente: Variaciones →';
+  }
+
+  // Paso 1: priorizar formulario; paso 2: ficha + packs
+  const form = document.getElementById('personaForm');
+  const sheet = document.getElementById('personaProfileSheet');
+  if (n === 1 && form && state.isCreatingNewPersona) {
+    form.style.display = '';
+    if (sheet) sheet.style.display = 'none';
+  }
+  if (n === 2 && sheet && state.selectedPersona && !state.isCreatingNewPersona) {
+    sheet.style.display = '';
+    if (form) form.style.display = 'none';
+  }
+  if (n === 3) {
+    const face = document.getElementById('facePackPanel');
+    const qa = document.getElementById('qaMatrixPanel');
+    if (face && state.selectedPersona) face.style.display = '';
+    if (qa && state.selectedPersona) qa.style.display = '';
+    if (typeof renderFacePack === 'function' && state.selectedPersona) {
+      try { renderFacePack(); } catch (_) {}
+    }
+    if (typeof renderQaMatrix === 'function' && state.selectedPersona) {
+      try { renderQaMatrix(); } catch (_) {}
+    }
+  }
+
+  if (scroll) {
+    document.getElementById('personaStepper')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function setupPersonaSteps() {
+  document.querySelectorAll('[data-persona-goto]').forEach((btn) => {
+    btn.addEventListener('click', () => setPersonaStep(btn.getAttribute('data-persona-goto')));
+  });
+  document.getElementById('btnPersonaStepPrev')?.addEventListener('click', () => {
+    setPersonaStep(Math.max(1, getPersonaStep() - 1));
+  });
+  document.getElementById('btnPersonaStepNext')?.addEventListener('click', () => {
+    setPersonaStep(Math.min(3, getPersonaStep() + 1));
+  });
+  setPersonaStep(state.personaStep || 1, { scroll: false });
 }
 
 /** Normalize archived flag (sqlite may return 0/1, true/false, or null). */
@@ -2761,6 +2841,7 @@ function setupComoUsarGuide() {
       } else if (action === 'packs') {
         navigateToTab('persona-engine');
         setTimeout(() => {
+          if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: false });
           const target = document.getElementById('btnCopyPackFullbodyPrimary')
             || document.querySelector('.pack-library-card')
             || document.querySelector('[data-free-pack="fullbody"]');
@@ -3021,6 +3102,7 @@ function selectPersona(persona) {
   populateActiveUgcData();
   updateLicensingCalculator();
   if (typeof updateActivePersonaChip === 'function') updateActivePersonaChip();
+  if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: false });
   
   // Update inputs in Persona Form (safe for missing nodes / non-matching <select> values)
   const setInputValue = (id, val) => {
@@ -4741,10 +4823,15 @@ function setupPersonaEngine() {
   const btnSheetPose = document.getElementById('btnSheetPose');
   if (btnSheetPose) {
     btnSheetPose.addEventListener('click', () => {
-      const sceneInput = document.getElementById('sceneDescriptionInput');
-      if (sceneInput) {
-        sceneInput.focus();
-        sceneInput.scrollIntoView({ behavior: 'smooth' });
+      if (typeof setPersonaStep === 'function') setPersonaStep(3);
+      const vault = document.getElementById('variantManagerSection');
+      if (vault) vault.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      else {
+        const sceneInput = document.getElementById('sceneDescriptionInput');
+        if (sceneInput) {
+          sceneInput.focus();
+          sceneInput.scrollIntoView({ behavior: 'smooth' });
+        }
       }
     });
   }
@@ -5348,6 +5435,7 @@ async function savePersona(opts = {}) {
       
       // W14 — tras primer save: CTA único = copiar pack (no generar imagen)
       if (creatingNew) {
+        if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: false });
         toastSuccess(`«${name}» guardado. Siguiente: Copiar JSON (recomendado) — pack fullbody, sin gen.`, {
           actionLabel: 'Copiar JSON (recomendado)',
           onAction: () => {
