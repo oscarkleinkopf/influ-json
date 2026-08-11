@@ -30,10 +30,11 @@ Abrir `http://localhost:3000` (PIN por defecto: `1234`, configurable en `.env` c
 
 ### GitHub Pages
 
-La URL `https://oscarkleinkopf.github.io/influ-json/` **no es el Studio**. Pages solo sirve estáticos: no hay Node, SQLite ni `/api/*`, así que el PIN no puede desbloquear nada ahí.
+Despliegue actual: rama **`main`**, carpeta **`/`** → `https://oscarkleinkopf.github.io/influ-json/`.
 
-- En la raíz del repo, el front detecta `*.github.io` y muestra cómo arrancar en local (`npm start` → `http://127.0.0.1:3000`).
-- Landing dedicada: [`docs/index.html`](./docs/index.html). En **Settings → Pages**, publica la carpeta **`/docs`** (rama `main`) para que esa sea la home pública.
+Esa URL **no es el Studio**. Pages solo sirve estáticos (sin Node, SQLite ni `/api/*`), así que el PIN no desbloquea nada ahí. Tras el fix de Pages, la home en `main` muestra cómo arrancar en local (`npm start` → `http://127.0.0.1:3000`).
+
+Landing alternativa (opcional): [`docs/index.html`](./docs/index.html) — no hace falta cambiar Settings si ya publicas la raíz de `main`.
 
 | Comando | Qué arranca |
 |---------|-------------|

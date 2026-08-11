@@ -29,21 +29,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **Commit base** | `main` @ UX-1 |
 | **PR actual** | [#91](https://github.com/oscarkleinkopf/influ-json/pull/91) Fix GitHub Pages — landing estático |
 | **`main` remoto** | UX-1 merged; #90 PIN fix puede estar abierto |
-| **Prioridad inmediata** | Merge Pages fix; usuario debe poner Pages → `/docs` en Settings |
+| **Prioridad inmediata** | Merge [#91](https://github.com/oscarkleinkopf/influ-json/pull/91) → `main` (Pages ya publica `main` `/`) |
 | **PIN local** | `1234` en `http://127.0.0.1:3000` — **no** en github.io |
+| **Pages** | `main` + `/` → github.io; tras merge #91 = modal honesto (no login PIN) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 
 ### Sesión reciente (Cursor, 2026-08-11) — GitHub Pages no funciona
 
-**Pedido:** En GitHub Pages no funciona (PIN / Studio).
+**Pedido:** En GitHub Pages no funciona (PIN / Studio). Confirmado: Pages despliega **`main`** (path `/`).
 
-**Causa:** Pages sirve `index.html` estático sin Express. `/api/status` y `/api/auth/login` → 404. El front mostraba login PIN inútil.
+**Causa:** Pages sirve `index.html` estático sin Express. `/api/*` → 404. Login PIN inútil.
 
 **Hecho:**
 - Detectar `*.github.io` / `file://` / API no-JSON → `#staticHostModal` con `npm start`
-- Landing `docs/index.html` + `.nojekyll`
-- README: Pages ≠ Studio; aconsejar Settings → Pages → `/docs`
+- Landing opcional `docs/index.html` + `.nojekyll` (no requiere cambiar Settings)
+- README: Pages = `main` `/`; Studio solo en local
 - Tests: `test/github-pages-static.test.js`
+- **Para que github.io se actualice:** merge #91 a `main` (Pages rebuild automático)
 
 ### Sesión previa — UX-1 / Free Path / PIN
 
