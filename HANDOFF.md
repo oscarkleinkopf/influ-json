@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/ux1-ia-navegacion-9b67` |
 | **Commit base** | `main` @ merge #87 Free Path |
-| **PR actual** | UX-1 IA: hubs Influencers/Producir/Negocio + chip + un Copiar JSON |
+| **PR actual** | [#88](https://github.com/oscarkleinkopf/influ-json/pull/88) UX-1 IA: hubs + chip + Copiar JSON |
 | **`main` remoto** | Free Path merged (`9c0529c`); #85/#86 cerrados |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
 | **Prioridad inmediata** | Merge UX-1; luego UX-2 (partir Persona Engine) |
