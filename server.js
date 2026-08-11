@@ -571,7 +571,8 @@ registerAdminRoutes(app, {
 // Get All Data (legacy fallback endpoint)
 app.get('/api/data', (req, res) => {
   const profileId = req.session.profileId || resolveSessionProfile(req);
-  const personas = dbService.getAllPersonas(profileId);
+  const { mapPersonasDisplayImages } = require('./persona-image');
+  const personas = mapPersonasDisplayImages(dbService.getAllPersonas(profileId));
   const products = dbService.getAllProducts(profileId);
   const generationStats = dbService.getGenerationStats();
   res.json({

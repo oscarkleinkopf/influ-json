@@ -1380,26 +1380,39 @@ function isHarnessPersonaName(name) {
 function personaThumbSrc(p) {
   const img = p && p.image != null ? String(p.image).trim() : '';
   if (!img) return DEFAULT_PERSONA_THUMB;
+  // Demos de harness: no cargar el JPEG 8×8 (bloque amarillo al escalar).
+  if (isHarnessPersonaName(p?.name)) return DEFAULT_PERSONA_THUMB;
   return img;
 }
 
 /** onerror + thumbs minúsculos (fixtures de harness) → avatar por defecto. */
 function bindPersonaThumbFallback(imgEl) {
-  if (!imgEl || imgEl.dataset.thumbBound === '1') return;
-  imgEl.dataset.thumbBound = '1';
-  imgEl.addEventListener('error', () => {
+  if (!imgEl) return;
+  const applyTinyOrBroken = () => {
     if (imgEl.dataset.fallbackApplied === '1') return;
-    imgEl.dataset.fallbackApplied = '1';
-    imgEl.src = DEFAULT_PERSONA_THUMB;
-  });
-  imgEl.addEventListener('load', () => {
-    if (imgEl.dataset.fallbackApplied === '1') return;
-    // Fixtures de import/test suelen ser 8×8; se ven como bloque de color sólido en Resumen.
-    if (imgEl.naturalWidth > 0 && imgEl.naturalWidth < 48) {
+    // broken / vacío
+    if (!imgEl.naturalWidth) {
+      imgEl.dataset.fallbackApplied = '1';
+      imgEl.src = DEFAULT_PERSONA_THUMB;
+      return;
+    }
+    // Fixtures de import/test suelen ser 8×8; se ven amarillo/peach sólido en Resumen.
+    if (imgEl.naturalWidth < 48) {
       imgEl.dataset.fallbackApplied = '1';
       imgEl.src = DEFAULT_PERSONA_THUMB;
     }
-  });
+  };
+  if (imgEl.dataset.thumbBound !== '1') {
+    imgEl.dataset.thumbBound = '1';
+    imgEl.addEventListener('error', () => {
+      if (imgEl.dataset.fallbackApplied === '1') return;
+      imgEl.dataset.fallbackApplied = '1';
+      imgEl.src = DEFAULT_PERSONA_THUMB;
+    });
+    imgEl.addEventListener('load', applyTinyOrBroken);
+  }
+  // Si la imagen ya está en caché, `load` no vuelve a dispararse.
+  if (imgEl.complete) applyTinyOrBroken();
 }
 window.isHarnessPersonaName = isHarnessPersonaName;
 window.personaThumbSrc = personaThumbSrc;
