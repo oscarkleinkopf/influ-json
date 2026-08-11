@@ -705,7 +705,12 @@ module.exports = {
         else if (identityLock) {
           // Medium + face lock alto (~0.78) congela fondo del retrato. Si el vault pide
           // otra escena (hotel/bedroom), bajar strength para que cambie el fondo.
-          strength = (requestedSetting && isIndoorSettingText(requestedSetting)) ? 0.45 : 0.78;
+          // Inspiración (rubia/ref_*): mantener strength más alta para que la cara de la foto pegue.
+          if (options.inspirationFaceAnchor) {
+            strength = 0.68;
+          } else {
+            strength = (requestedSetting && isIndoorSettingText(requestedSetting)) ? 0.45 : 0.78;
+          }
         } else if (wantsPhotoreal) strength = 0.72;
         if (strengthOverride != null) strength = strengthOverride;
 
@@ -737,6 +742,13 @@ module.exports = {
         const buildUrl = (m, promptText) => {
           let u = `https://gen.pollinations.ai/image/${encodeURIComponent(promptText)}?model=${encodeURIComponent(m)}&width=${width}&height=${height}&seed=${seed}`;
           if (useRef) u += `&image=${encodeURIComponent(refUrl)}`;
+          // Inspiration / fair-blonde: push model away from Latina-morena / black-hair bias
+          if (options.inspirationFaceAnchor || /INSPIRATION FACE LOCK|Rubio|blonde|tez blanca|Piel clara|Cauc[aá]sic/i.test(finalPrompt)) {
+            const neg = encodeURIComponent(
+              'dark skin, deep tan, morena, black hair, brunette, dark brown hair, Latina stereotype, different person, male'
+            );
+            u += `&negative_prompt=${neg}`;
+          }
           const referrer = (process.env.POLLINATIONS_REFERRER || '').trim();
           if (referrer) u += `&referrer=${encodeURIComponent(referrer)}`;
           return u;

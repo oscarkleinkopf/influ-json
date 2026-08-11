@@ -360,7 +360,7 @@ function registerPersonasRoutes(app, deps) {
           rebuilt = reconcilePromptWithInspiration(rebuilt, enriched);
           const f2 = enriched.facial_features || {};
           const h2 = enriched.hair || {};
-          rebuilt += `. INSPIRATION FACE LOCK: same woman as reference photo, ${f2.skin_tone || 'fair skin'}, ${h2.color || 'blonde hair'}, ${f2.eye_color || 'light eyes'}, Caucasian fair features matching reference — NOT Latina with black hair`;
+          rebuilt += `. INSPIRATION FACE LOCK: same woman as reference photo, ${f2.skin_tone || 'fair skin'}, honey-blonde / Rubio dorado hair (NOT black, NOT brunette, NOT dark brown), ${f2.eye_color || 'light eyes'}, Caucasian fair features matching reference — NOT Latina with black hair. HAIR LOCK CRITICAL: voluminous honey-blonde curls like the reference.`;
           return rebuilt;
         };
 
