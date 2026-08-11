@@ -251,24 +251,71 @@ function registerPersonasRoutes(app, deps) {
     });
   });
 
-  // Persona Anchor Pack endpoint (4 official face anchor reference photos)
+  // Persona Face Pack (ugc-creator Tier 1) — structured slots + free text
   app.get('/api/personas/:id/anchor-pack', requireOwnedPersona, (req, res) => {
     try {
+      const facePack = require('../face-pack');
       const persona = req.persona;
       const variants = dbService.getVariantsForPersona(req.params.id) || [];
       const history = dbService.getGenerationsForPersona(req.params.id) || [];
-
       const anchors = history.filter(h => h.generation_type === 'anchor_pack');
+      const slots = facePack.mapPackImages({
+        history: anchors,
+        variants,
+        mainImage: persona ? persona.image : null
+      });
+      const summary = facePack.summarizePack(slots);
+      let fingerprint = null;
+      try {
+        fingerprint = facePack.lockFingerprint(facePack.normalizePersonaJson(persona));
+      } catch (_) {}
 
       res.json({
         success: true,
         personaId: req.params.id,
         personaName: persona ? persona.name : 'Influencer',
         mainImage: persona ? persona.image : null,
-        anchors: anchors.length > 0 ? anchors : variants.slice(0, 4)
+        slots,
+        summary,
+        lockFingerprint: fingerprint,
+        // Legacy shape (tests / older clients)
+        anchors: anchors.length > 0 ? anchors : variants.slice(0, 4),
+        note: 'Pack = salida del character_lock. Path free: copiar texto face pack. Bocetos Pollinations = opt-in.'
       });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.get('/api/personas/:id/face-pack.txt', requireOwnedPersona, (req, res) => {
+    try {
+      const facePack = require('../face-pack');
+      const persona = req.persona;
+      const text = facePack.buildFacePackChatbotText(persona, { fallbackName: persona?.name });
+      res.type('text/plain; charset=utf-8').send(text);
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.post('/api/personas/:id/face-pack/regenerate', requireOwnedPersona, (req, res) => {
+    try {
+      const persona = req.persona;
+      if (!triggerBackgroundVariants) {
+        return res.status(500).json({ success: false, message: 'Face pack generator no disponible' });
+      }
+      // Fire-and-forget — same as create/import (HTTP stays fast)
+      Promise.resolve(triggerBackgroundVariants(persona)).catch((err) => {
+        console.warn('[face-pack] regenerate failed:', err.message);
+      });
+      res.json({
+        success: true,
+        queued: true,
+        slots: 6,
+        message: 'Bocetos del face pack en cola (Pollinations opt-in). El texto free se puede copiar ya.'
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
     }
   });
 

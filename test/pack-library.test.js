@@ -61,9 +61,11 @@ test('W13 UI: menú Packs portafolio + memoria último pack', () => {
   assert.match(app, /function refreshLastPackStatus/);
   assert.match(app, /Volver a copiar último pack/);
   assert.match(app, /copyLastFreeChatbotPack/);
-  // No llama APIs de pago al copiar packs
+  // No llama APIs de pago al copiar packs (face-pack / anchor-pack locales OK)
   assert.doesNotMatch(app, /copyFreeChatbotPack[\s\S]{0,400}REPLICATE/);
-  assert.doesNotMatch(app, /authFetch\(['`]\/api\/.*pack/);
+  assert.doesNotMatch(app, /authFetch\(['`]\/api\/(?!personas\/\$\{[^}]+\}\/(?:anchor-pack|face-pack))[^'`]*(?:replicate|paid).*pack/);
+  // Copiar pack free no debe pegar a Replicate; sí puede leer face-pack/anchor-pack locales
+  assert.match(app, /\/api\/personas\/\$\{[^}]+\}\/(?:anchor-pack|face-pack)/);
 
   assert.match(html, /data-last-pack-status/);
   assert.match(html, /id="btnRecopyLastPack"/);

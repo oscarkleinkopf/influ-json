@@ -25,17 +25,28 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ugc-camera-shot-types-173f` |
-| **Commit base** | `main` (asymmetry #81 merged) + cámara/shot types |
-| **PR actual** | ugc-creator: chips cámara iPhone + 7 shot types + semana UGC |
-| **`main` remoto** | asimetría/realismo merged (`ad62ad5`) |
+| **Rama de trabajo** | `cursor/ugc-face-pack-173f` |
+| **Commit base** | `main` + face pack canónico 6 ángulos |
+| **PR actual** | ugc-creator Tier 1: face pack (texto free + bocetos opt-in) |
+| **`main` remoto** | cámara/shot types merged (`667a660`) |
 | **Etapa de producto** | Usabilidad free ✅ · Seguridad ✅ · Fase L ✅ · Fase R ✅ |
-| **Prioridad inmediata** | Merge camera/shot-types; siguiente: face pack canónico (4–6 ángulos) |
+| **Prioridad inmediata** | Merge face-pack; siguiente: outfit_variations / prompt_seed si aplica |
 | **⚠ Imagen (Pollinations)** | Token en Ajustes (admin) o `.env`. Anónimo → 401/402. **Reiniciar `npm start` tras pull.** |
 | **En pausa** | OAuth, SMTP, video, HostGator deploy |
 | **Servidor correcto** | `npm start` → `node server.js` (bind default `127.0.0.1`) |
 
-### Sesión reciente (Cursor, 2026-08-11) — cámara + shot types
+### Sesión reciente (Cursor, 2026-08-11) — face pack canónico
+
+**Pedido:** Continuar ugc-creator → Tier 1 face pack (6 ángulos).
+
+**Hecho:**
+- `face-pack.js`: slots front / ¾ L / ¾ R / profile / laughing / fullbody
+- Texto free `buildFacePackChatbotText` + UI «Copiar face pack (JSON)»
+- Bocetos Pollinations via `triggerBackgroundVariants` (6 slots) + `POST .../face-pack/regenerate`
+- `GET /anchor-pack` ahora devuelve `slots` + `summary` (legacy `anchors` intacto)
+- Tests: `test/face-pack.test.js`
+
+### Sesión previa (Cursor, 2026-08-11) — cámara + shot types
 
 **Pedido:** Merge #81 y continuar con chips cámara + formatos UGC.
 

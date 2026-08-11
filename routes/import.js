@@ -273,68 +273,46 @@ function registerImportRoutes(app, deps) {
   async function triggerBackgroundVariants(persona) {
     if (!persona || !persona.id) return;
 
-    const anchorSpecs = [
-      {
-        anchorType: 'front_portrait',
-        title: 'Retrato de Frente',
-        pose: 'Retrato de frente mirando directamente a cámara',
-        clothing: persona.clothing || 'Atuendo casual cómodo',
-        attitude: 'Expresión neutra y natural',
-        setting: 'Estudio de fotografía minimalista',
-        mode: 'anchor',
-        framing: 'portrait'
-      },
-      {
-        anchorType: 'profile_45',
-        title: 'Perfil 45 Grados',
-        pose: 'Retrato en ángulo de 3/4 a 45 grados de perfil',
-        clothing: persona.clothing || 'Atuendo casual cómodo',
-        attitude: 'Mirada en 3/4 suave',
-        setting: 'Estudio de fotografía minimalista',
-        mode: 'anchor',
-        framing: 'portrait'
-      },
-      {
-        anchorType: 'expression_wink',
-        title: 'Expresión y Sonrisa',
-        pose: 'Plano medio con sonrisa abierta y guiño de ojo espontáneo',
-        clothing: persona.clothing || 'Atuendo casual cómodo',
-        attitude: 'Alegre, divertida, expresiva',
-        setting: 'Ambiente de luz natural',
-        mode: 'anchor',
-        framing: 'medium'
-      },
-      {
-        anchorType: 'fullbody_studio',
-        title: 'Cuerpo Completo',
-        pose: 'Fotografía de cuerpo completo de pie en estudio',
-        clothing: persona.clothing || 'Atuendo casual completo',
-        attitude: 'Postura erguida y profesional',
-        setting: 'Fondo de estudio neutro con luz uniforme',
-        mode: 'anchor',
-        framing: 'fullbody'
-      }
-    ];
+    let facePackApi = null;
+    try { facePackApi = require('../face-pack'); } catch (_) { facePackApi = null; }
+
+    const anchorSpecs = facePackApi
+      ? facePackApi.buildAnchorSpecsForPersona(persona)
+      : [
+          {
+            anchorType: 'front',
+            title: 'Frontal',
+            pose: 'Frontal portrait, looking directly at camera',
+            clothing: persona.clothing || 'Atuendo casual cómodo',
+            attitude: 'Expresión neutra y natural',
+            setting: 'Estudio de fotografía minimalista',
+            mode: 'anchor',
+            framing: 'portrait'
+          }
+        ];
 
     for (let i = 0; i < anchorSpecs.length; i++) {
       const spec = anchorSpecs[i];
       const label = `anchor_${spec.anchorType}_${persona.name || persona.id}`;
 
       genQueue.enqueue(label, async () => {
+        const hints = spec._lockHints || {};
         const prompt = aiService.buildUnifiedMasterPrompt({
-          name: persona.name || 'Influencer',
+          name: hints.name || persona.name || 'Influencer',
           age: persona.age || '25 años',
           gender: persona.gender || 'Female',
           ethnicity: persona.ethnicity || 'Latina',
           hair: persona.hair || 'dark brown wavy hair',
-          skinTone: persona.skinTone || 'fair light',
-          skinHex: persona.skinHex || '#f0d5c0',
+          skinTone: hints.skin_tone || persona.skinTone || 'fair light',
+          skinHex: hints.skin_tone_hex || persona.skinHex || '#f0d5c0',
           framing: spec.framing,
           clothing: spec.clothing,
           pose: spec.pose,
           setting: spec.setting,
           photoreal: true,
-          identityLock: true
+          identityLock: true,
+          facialAsymmetry: hints.facial_asymmetry || null,
+          distinctiveMarks: hints.distinctive_marks || null
         });
 
         const referenceUrl = persona.image || null;
@@ -368,17 +346,25 @@ function registerImportRoutes(app, deps) {
             image_path: imagePath,
             generation_type: 'anchor_pack',
             metadata: JSON.stringify({
-              ...spec,
+              anchorType: spec.anchorType,
+              title: spec.title,
+              pose: spec.pose,
+              clothing: spec.clothing,
+              attitude: spec.attitude,
+              setting: spec.setting,
+              mode: spec.mode,
+              framing: spec.framing,
+              short: spec.short,
               seed,
               consistency_distance: scored?.distance ?? null,
               consistency_grade: scored?.grade ?? null
             })
           });
 
-          console.log(`[anchor-pack] Generated anchor ${i + 1}/4 (${spec.anchorType}) for ${persona.name}: ${imagePath}`);
+          console.log(`[face-pack] Generated ${i + 1}/${anchorSpecs.length} (${spec.anchorType}) for ${persona.name}: ${imagePath}`);
         }
       }).catch(err => {
-        console.warn(`[anchor-pack] Failed to generate anchor ${i + 1} for ${persona.name}:`, err.message);
+        console.warn(`[face-pack] Failed slot ${i + 1} (${spec.anchorType}) for ${persona.name}:`, err.message);
       });
     }
   }
