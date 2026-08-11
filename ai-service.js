@@ -657,7 +657,9 @@ module.exports = {
       finalPrompt = `${finalPrompt} OUTFIT LOCK: wearing ${detectedOutfit}.`;
     } else if (/latex|látex|catsuit/i.test(finalPrompt)) {
       // Evita que un fondo erróneo (playa) arrastre bikini en vez del látex pedido.
-      finalPrompt += ' OUTFIT LOCK: keep the described latex/catsuit outfit; NOT bikini, NOT swimsuit, NOT beachwear.';
+      // PREPEND — URLs largas de Pollinations a veces pierden el final del prompt;
+      // el látex al final se convertía en bikini.
+      finalPrompt = `OUTFIT LOCK (critical, first): wearing a shiny black latex catsuit covering the full body, subtle realistic latex sheen, zipper, NOT bikini, NOT lingerie bra, NOT swimsuit. ${finalPrompt} OUTFIT LOCK: keep the described latex/catsuit outfit; NOT bikini, NOT swimsuit, NOT beachwear.`;
     }
 
     // Setting del vault al FINAL (después del clean) para que no lo borre el replace.

@@ -361,6 +361,14 @@ function registerPersonasRoutes(app, deps) {
           const f2 = enriched.facial_features || {};
           const h2 = enriched.hair || {};
           rebuilt += `. INSPIRATION FACE LOCK: same woman as reference photo, ${f2.skin_tone || 'fair skin'}, honey-blonde / Rubio dorado hair (NOT black, NOT brunette, NOT dark brown), ${f2.eye_color || 'light eyes'}, Caucasian fair features matching reference — NOT Latina with black hair. HAIR LOCK CRITICAL: voluminous honey-blonde curls like the reference.`;
+          // Outfit/setting LAST — Pollinations often ignores latex/lingerie buried mid-prompt
+          // under a long identity block (was substituting bikini for catsuit).
+          if (clothing) {
+            rebuilt += `. OUTFIT LOCK FINAL (critical): wearing ${clothing}. Keep this exact outfit; NOT bikini unless the outfit is bikini, NOT adhesive bra, NOT nude.`;
+          }
+          if (setting) {
+            rebuilt += `. SETTING LOCK FINAL: ${setting}.`;
+          }
           return rebuilt;
         };
 
