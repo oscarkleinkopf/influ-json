@@ -1,7 +1,7 @@
 {
   "name": "influ-json",
   "version": "1.0.0",
-  "description": "Estudio local de UGC con influencers virtuales — prompts + character_lock JSON para chatbots gratis",
+  "description": "Estudio local de UGC con influencers virtuales \u2014 prompts + character_lock JSON para chatbots gratis",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,7 +11,8 @@
     "test": "node scripts/run-tests.js",
     "test:raw": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 node --test --test-concurrency=1 test/*.test.js",
     "smoke": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 INFLU_SKIP_DB_MIGRATE=1 node scripts/run-smoke.js",
-    "layout-smoke": "node scripts/layout-smoke.js"
+    "layout-smoke": "node scripts/layout-smoke.js",
+    "walkthrough": "node scripts/happy-path-walkthrough.js"
   },
   "keywords": [
     "ugc",

@@ -39,7 +39,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - [#97](https://github.com/oscarkleinkopf/influ-json/pull/97) → `main`
 - Galería fuera del hub Producir; entrada desde ficha (`Ver galería`)
 - Empty gallery → CTA «Ir a Copiar JSON» (paso 2)
-- Walkthrough happy path (capturas)
+- Walkthrough happy path (capturas en `/opt/cursor/artifacts/screenshots/happy-path/`)
+- Script `npm run walkthrough` → Produce = UGC+Guiones ✅; Ver galería ✅; empty→Copiar JSON
 
 ### Sesión previa (Cursor, 2026-08-12) — Merge #96 + UGC Copiar JSON
 

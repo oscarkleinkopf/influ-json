@@ -73,6 +73,10 @@ test('UX-1a: hub-subnav cubre Portafolio/Ficha, UGC/Guiones, Campañas/Licensing
   assert.match(appJs, /btnEmptyGalleryCopyJson/);
 });
 
+test('UX-1a: hub-subnav-inner[hidden] fuerza display none (no mezclar hubs)', () => {
+  assert.match(css, /\.hub-subnav-inner\[hidden\]\s*\{[^}]*display:\s*none\s*!important/);
+});
+
 test('UX-1b: chip global Trabajando con + Copiar JSON de contexto', () => {
   assert.match(html, /id="activePersonaChip"/);
   assert.match(html, /id="btnActivePersonaMenu"/);
@@ -100,6 +104,6 @@ test('UX-1c: ≤3 botones con label exacto «Copiar JSON»', () => {
   assert.match(html, /id="btnCopyPackFullbodyPrimary"/);
   assert.match(html, /id="packVariantsMenu"/);
   assert.match(html, /Packs ▾/);
-  // UGC ya no duplica el copy: navega a la ficha
-  assert.match(appJs, /btnExportUgcChatbot[\s\S]{0,400}navigateToTab\('persona-engine'\)/);
+  // UGC CTA copia pack product (honesty #97)
+  assert.match(appJs, /btnExportUgcChatbot[\s\S]{0,500}copyFreeChatbotPack\(['"]product['"]\)/);
 });
