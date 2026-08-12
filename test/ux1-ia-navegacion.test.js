@@ -146,3 +146,22 @@ test('UX-1c: Persona Engine sin Sofia de placeholder', () => {
   assert.match(html, /id="pName"[^>]*placeholder="Nombre del influencer"/);
   assert.match(html, /id="activeInfluencerName"[^>]*>\s*Sin influencer\s*</);
 });
+
+test('UX-1d: Script Engine sin producto Glow Serum falso por defecto', () => {
+  assert.doesNotMatch(html, /id="prodName"[^>]*value="Glow Serum Organics"/);
+  assert.match(html, /id="prodName"[^>]*(value=""|placeholder=)/);
+  assert.doesNotMatch(html, /id="pitchClientName"[^>]*>\s*Propuesta para Glow Serum/);
+  assert.doesNotMatch(html, /id="mockupCaptionText"[^>]*>[\s\S]{0,80}Glow Serum/);
+  assert.match(appJs, /fromForm\.name \|\| 'tu producto'/);
+  assert.doesNotMatch(appJs, /name:\s*['"]Glow Serum/);
+});
+
+test('UX-1d: walkthrough cubre hub Negocio (Licensing + Campañas)', () => {
+  const walk = fs.readFileSync(path.join(root, 'scripts/happy-path-walkthrough.js'), 'utf8');
+  assert.match(walk, /navigateToTab\(['"]licensing['"]\)/);
+  assert.match(walk, /licenseActivePersonaName/);
+  assert.match(walk, /negocio-licensing-chip/);
+  assert.match(walk, /btnNewCampaign/);
+  assert.match(walk, /negocio-campaign-precheck/);
+  assert.match(walk, /personaCheck/);
+});

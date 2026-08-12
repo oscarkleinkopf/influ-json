@@ -27,12 +27,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/ux-active-persona-9b67` |
 | **Commit base** | `main` @ #100 |
-| **PR actual** | UX-1b Guiones + vocab import |
+| **PR actual** | [#101](https://github.com/oscarkleinkopf/influ-json/pull/101) — UX contexto activo + honesty producto |
 | **`main` remoto** | + free-path tests #100 |
 | **Prioridad inmediata** | Free path / UX operatividad |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-12) — UX contexto activo en Guiones + Licensing
+### Sesión reciente (Cursor, 2026-08-12) — Honesty Glow Serum + walkthrough Negocio
+
+**Pedido:** Continuar (#101).
+
+**Hecho (rama `cursor/ux-active-persona-9b67` / PR #101):**
+- Script Engine / Licensing / UGC mock: sin defaults falsos «Glow Serum Organics»; placeholders honestos
+- `generateMockScripts`: producto desde form/`selectedProduct` o «tu producto» (10 ángulos)
+- Walkthrough: paso Negocio — Licensing = chip; Nueva campaña pre-checkea influencer activo
+- Tests UX-1d + suite 362 pass
+- Comercial sigue aparcado
+
+### Sesión previa (Cursor, 2026-08-12) — UX contexto activo en Guiones + Licensing
 
 **Pedido:** Continuar el bloque de desarrollo (UX-1b).
 

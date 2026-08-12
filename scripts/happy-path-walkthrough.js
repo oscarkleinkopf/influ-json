@@ -273,6 +273,55 @@ async function main() {
       if (!ctaOk) report.ok = false;
     }
 
+    // Negocio hub — Licensing mirrors chip; Campañas pre-checks active persona
+    await page.evaluate(() => {
+      if (typeof navigateToTab === 'function') navigateToTab('licensing');
+      if (typeof populateActiveUgcData === 'function') populateActiveUgcData();
+    });
+    await new Promise((r) => setTimeout(r, 400));
+    const licensingSync = await page.evaluate(() => {
+      const chip = (document.getElementById('activePersonaChipName')?.textContent || '').trim();
+      const license = (document.getElementById('licenseActivePersonaName')?.textContent || '').trim();
+      return {
+        chip,
+        license,
+        match: !!chip && chip === license,
+        tab: window.state?.activeTab || null
+      };
+    });
+    await page.screenshot({ path: shot('06-licensing.png'), fullPage: false });
+    report.shots.push(shot('06-licensing.png'));
+    const licOk = licensingSync.match && /Walkthrough Luna/i.test(licensingSync.license);
+    report.steps.push({ step: 'negocio-licensing-chip', pass: licOk, licensingSync });
+    if (!licOk) report.ok = false;
+
+    await page.evaluate(() => {
+      if (typeof navigateToTab === 'function') navigateToTab('campaigns');
+    });
+    await new Promise((r) => setTimeout(r, 300));
+    const btnNew = await page.$('#btnNewCampaign');
+    if (btnNew) await btnNew.click();
+    await new Promise((r) => setTimeout(r, 400));
+    const campaignPrecheck = await page.evaluate(() => {
+      const checks = [...document.querySelectorAll('input[name="personaCheck"]')];
+      const checked = checks.filter((c) => c.checked);
+      const checkedNames = checked.map((c) => {
+        const label = c.closest('label');
+        return (label?.textContent || '').trim();
+      });
+      return {
+        total: checks.length,
+        checkedCount: checked.length,
+        checkedNames,
+        hasLuna: checkedNames.some((n) => /Walkthrough Luna/i.test(n))
+      };
+    });
+    await page.screenshot({ path: shot('07-campaigns-precheck.png'), fullPage: false });
+    report.shots.push(shot('07-campaigns-precheck.png'));
+    const campOk = campaignPrecheck.hasLuna && campaignPrecheck.checkedCount >= 1;
+    report.steps.push({ step: 'negocio-campaign-precheck', pass: campOk, campaignPrecheck });
+    if (!campOk) report.ok = false;
+
     const reportPath = path.join(shotDir, 'walkthrough-report.json');
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
     console.log('[happy-path-walk] report →', reportPath);

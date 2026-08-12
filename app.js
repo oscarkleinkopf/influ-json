@@ -5920,16 +5920,23 @@ async function generateScriptsAction() {
 }
 
 function generateMockScripts() {
+  const fromForm = {
+    name: document.getElementById('prodName')?.value?.trim() || '',
+    benefit: document.getElementById('prodBenefit')?.value?.trim() || '',
+    audience: document.getElementById('prodAudience')?.value?.trim() || '',
+    frustration: document.getElementById('prodFrustration')?.value?.trim() || ''
+  };
   const prod = state.selectedProduct || {
-    name: "Glow Serum Organics",
-    benefit: "Piel brillante y profundamente hidratada en 5 minutos",
-    audience: "Jóvenes ocupadas con piel seca y opaca",
-    frustration: "No tener tiempo para rutinas coreanas de 10 pasos"
+    name: fromForm.name || 'tu producto',
+    benefit: fromForm.benefit || 'beneficio clave',
+    audience: fromForm.audience || 'tu audiencia',
+    frustration: fromForm.frustration || 'una frustración real'
   };
   
   const creator = state.selectedPersona?.name || 'tu influencer';
   
   // 10 distinct marketing angles (local templates; Gemini opt-in when API connected)
+  // Nota: strings con ${prod.name} se interpolan abajo vía replaceAll.
   state.scripts = [
     {
       angle: "El Escéptico (Skeptic Hook)",
@@ -5969,7 +5976,7 @@ function generateMockScripts() {
       demoCue: "Muestra la botella de vidrio y el gotero premium de cerca.",
       turn: "Piel brillante, ingredientes orgánicos y sin arruinar mi cuenta de banco.",
       turnCue: "Aplica en la piel mostrando la absorción instantánea.",
-      cta: "Compra inteligente. Consigue tu Glow Serum tocando el botón."
+      cta: "Compra inteligente. Consigue ${prod.name} tocando el botón."
     },
     {
       angle: "El Hack Secreto (Secret Hack)",
@@ -6032,22 +6039,20 @@ function generateMockScripts() {
       cta: "La solución está a un clic. Consigue el tuyo hoy con envío gratis."
     }
   ];
-  
-  // Interpolate templates
-  state.scripts = state.scripts.map(s => {
-    return {
-      angle: s.angle,
-      hook: s.hook.replace(/\${prod.name}/g, prod.name).replace(/\${creator}/g, creator),
-      hookCue: s.hookCue,
-      demo: s.demo.replace(/\${prod.name}/g, prod.name).replace(/\${creator}/g, creator),
-      demoCue: s.demoCue,
-      turn: s.turn.replace(/\${prod.name}/g, prod.name).replace(/\${creator}/g, creator),
-      turnCue: s.turnCue,
-      cta: s.cta.replace(/\${prod.name}/g, prod.name).replace(/\${creator}/g, creator),
-      ctaCue: s.ctaCue || "Llamado a la acción claro frente a cámara."
-    };
+
+  // Interpolar placeholders ${prod.*} / ${creator} (templates en comillas dobles)
+  const fill = (s) => String(s || '')
+    .replace(/\$\{prod\.name\}/g, prod.name)
+    .replace(/\$\{prod\.benefit\}/g, prod.benefit)
+    .replace(/\$\{prod\.audience\}/g, prod.audience)
+    .replace(/\$\{prod\.frustration\}/g, prod.frustration)
+    .replace(/\$\{creator\}/g, creator);
+  state.scripts = state.scripts.map((sc) => {
+    const out = {};
+    for (const [k, v] of Object.entries(sc)) out[k] = fill(v);
+    return out;
   });
-  
+
   renderScriptsUI();
 }
 
