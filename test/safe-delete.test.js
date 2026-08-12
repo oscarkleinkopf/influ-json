@@ -18,7 +18,10 @@ test('deletePersonaAction archiva por defecto y ofrece Deshacer', () => {
 });
 
 test('showAppToast soporta actionLabel/onAction', () => {
-  const js = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
-  assert.match(js, /opts\.actionLabel/);
-  assert.match(js, /toast-action-btn/);
+  // UX-4: toast vive en studio-toast.js (app.js solo reexporta)
+  const toastJs = fs.readFileSync(path.join(__dirname, '..', 'studio-toast.js'), 'utf8');
+  assert.match(toastJs, /opts\.actionLabel/);
+  assert.match(toastJs, /toast-action-btn/);
+  const appJs = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  assert.match(appJs, /InfluStudioToast/);
 });

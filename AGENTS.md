@@ -49,7 +49,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por una feature de p
 
 | Archivo | Rol |
 |---------|-----|
-| `server.js` | API Express (producción) |
+| `server.js` | API Express (producción); `GET /` → `views/compose-index` |
+| `views/` | Parciales HTML (`_head`, `tabs/*`, `_foot`) — UX-4 |
 | `server-minimal.js` | Solo demo offline (`npm run start:minimal`) |
 | `db.js` | SQLite |
 | `app.js` | Front + `character_lock` + export chatbot |

@@ -25,32 +25,43 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux2-persona-pasos-9b67` |
-| **Commit base** | `main` @ #91 Pages + #90 PIN |
-| **PR actual** | [#89](https://github.com/oscarkleinkopf/influ-json/pull/89) UX-2 Persona Engine 3 pasos |
-| **`main` remoto** | #91 + #90 merged |
-| **Prioridad inmediata** | Merge UX-2 → **UX-4** (parciales HTML / trocear app.js) |
-| **PIN local** | `1234` · Pages = modal local (no Studio) |
-| **En pausa** | OAuth, SMTP, video · **#72** Ajustes tabs CONFLICTING |
+| **Rama de trabajo** | `cursor/ux4-html-partials-9b67` |
+| **Commit base** | `main` @ #91+#90+#89 |
+| **PR actual** | [#92](https://github.com/oscarkleinkopf/influ-json/pull/92) UX-4 parciales HTML |
+| **`main` remoto** | Pages #91 · PIN #90 · UX-2 #89 merged |
+| **Prioridad inmediata** | Seguir UX-4 en #92 (módulos JS + CSS); luego UX-5 |
+| **PIN local** | `1234` · Pages = modal (no Studio) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 
-### Sesión reciente (Cursor, 2026-08-11) — UX-2 Persona Engine 3 pasos
+### Sesión reciente (Cursor, 2026-08-12) — UX-4 continuación II
 
-**Pedido:** Merge Pages/PIN y continuar; siguiente = UX-2.
+**Pedido:** Continúa (UX-4).
 
-**Hecho:** stepper Identidad → Lock & Packs → Variaciones; Avanzado plegado; rebase sobre #91+#90.
+**Hecho:**
+- `variant-presets.js` (presets spicy/traditional fuera de `app.js`; ~1.1k líneas menos)
+- `applyAnalysisToFormFields` en `persona-form.js`
+- ~179 `style=` → utilidades CSS (`.u-hidden`, `.u-flex-between`, …); `.filter-btn-active`
+- Tests ampliados en `test/ux4-modules.test.js`
 
-### Sesión previa — Fix unlock PIN (#90 merged)
+### Sesión previa (Cursor, 2026-08-12) — UX-4 módulos
 
-Filtrar harness en login; credentials + 429; `.env` local.
+**Hecho:** toast / queue / form / card UMD + CSS btn-compact.
 
-### Sesión previa — GitHub Pages (#91 merged)
+### Sesión previa (Cursor, 2026-08-11) — Merge + UX-4 parciales
 
-Modal estático en github.io; Studio solo con `npm start`.
+**Pedido:** Merge y continuar siguiente paso.
 
-### Sesión previa — UX-1 / Free Path
+**Merges:** #91 Pages → #90 PIN → #89 UX-2 → `main`.
 
-Ver log.
+**UX-4 (parciales):**
+- `views/_head.html` + `views/tabs/*.html` + `views/_foot.html`
+- `views/compose-index.js` · `server.js` sirve `composeIndexHtml()`
+- `npm run build:index` regenera `index.html` (Pages)
+- Tests: `test/ux4-html-partials.test.js`
+
+### Sesión previa — UX-2 / Pages / PIN
+
+Ya en `main`.
 
 ### Sesión previa (Cursor, 2026-08-11) — Free Path consolidar
 

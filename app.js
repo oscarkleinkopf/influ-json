@@ -1923,16 +1923,16 @@ function updateDashboardStats() {
       });
     } else {
       personaGrid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 40px 20px; font-size: 14px;">
-          <div style="font-size: 28px; margin-bottom: 10px;">🔍</div>
-          <div style="margin-bottom: 8px; color: #fff; font-weight: 600;">0 influencers en esta vista</div>
-          <div style="margin-bottom: 16px; font-size: 13px;">
+        <div class="empty-filter-panel">
+          <div class="empty-filter-panel__icon">🔍</div>
+          <div class="empty-filter-panel__title">0 influencers en esta vista</div>
+          <div class="empty-filter-panel__lead">
             ${hasSearch || hasFilter
               ? 'No hay coincidencias con la búsqueda o el filtro actual.'
               : 'Aún no hay influencers en el roster.'}
           </div>
           ${hasSearch || hasFilter ? `
-            <button type="button" class="btn btn-secondary btn-sm" id="btnClearPortfolioFilters" style="margin: 0 4px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnClearPortfolioFilters">
               Limpiar búsqueda y ver todos
             </button>
           ` : ''}
@@ -1990,8 +1990,8 @@ function updateDashboardStats() {
         </div>
         <div class="portfolio-card-tag">${p.age} • ${p.ethnicity || p.ethnicity_appearance || 'Latina'}</div>
         <div class="portfolio-card-actions">
-          <button type="button" class="btn btn-quick-copy-pack" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copiar JSON (recomendado) — pack cuerpo entero">Copiar JSON (recomendado)</button>
-          <button type="button" class="btn btn-secondary btn-quick-select" style="font-size: 11px; padding: 6px 10px;">Seleccionar</button>
+          <button type="button" class="btn btn-quick-copy-pack btn-compact" data-offline-highlight="pack" title="Copiar JSON (recomendado) — pack cuerpo entero">Copiar JSON (recomendado)</button>
+          <button type="button" class="btn btn-secondary btn-quick-select btn-compact">Seleccionar</button>
           <div class="portfolio-pack-menu">
             <button type="button" class="btn btn-secondary btn-quick-packs" data-offline-highlight="pack" aria-haspopup="true" aria-expanded="false" title="Biblioteca de packs free para chatbot">Packs ▾</button>
             <div class="portfolio-pack-menu-list" hidden>
@@ -2001,9 +2001,9 @@ function updateDashboardStats() {
               <button type="button" data-portfolio-pack="product">Producto en mano</button>
             </div>
           </div>
-          <button type="button" class="btn btn-secondary btn-quick-session" data-offline-highlight="pack" style="font-size: 11px; padding: 6px 10px;" title="Copia sesión 3 prompts + abre checklist">Probar chatbot</button>
-          <button type="button" class="btn btn-secondary btn-quick-history" style="font-size: 11px; padding: 6px 10px;">Historial</button>
-          <button type="button" class="btn btn-quick-archive" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--glass-border);">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
+          <button type="button" class="btn btn-secondary btn-quick-session btn-compact" data-offline-highlight="pack" title="Copia sesión 3 prompts + abre checklist">Probar chatbot</button>
+          <button type="button" class="btn btn-secondary btn-quick-history btn-compact">Historial</button>
+          <button type="button" class="btn btn-quick-archive btn-archive-quiet">${isArchivedPersona(p) ? 'Desarchivar' : 'Archivar'}</button>
         </div>
         <div class="portfolio-last-pack"></div>
       </div>
@@ -3289,236 +3289,48 @@ function renderPersonaGrids() {
   const isArchivedMode = state.personaFilter === 'archived';
   const filtered = state.personas.filter(p => isArchivedMode ? isArchivedPersona(p) : !isArchivedPersona(p));
   
+  const cardApi = (typeof InfluPersonaCard !== 'undefined' ? InfluPersonaCard : window.InfluPersonaCard);
   filtered.forEach(p => {
-    const card = document.createElement('div');
-    card.className = `persona-card ${state.selectedPersona?.id === p.id ? 'selected' : ''}`;
-    card.innerHTML = `
-      <img src="${personaThumbSrc(p)}" alt="${p.name || 'Influencer'}" loading="lazy">
-      <div class="persona-card-info">
-        <div class="persona-card-name">${p.name || 'Sin nombre'}</div>
-        <div class="persona-card-tag">${p.age || ''} • ${p.ethnicity || p.ethnicity_appearance || ''}</div>
-      </div>
-    `;
-    bindPersonaThumbFallback(card.querySelector('img'));
-    card.addEventListener('click', () => selectPersona(p));
+    const card = cardApi.buildSelectPersonaCard(p, {
+      selected: state.selectedPersona?.id === p.id,
+      thumbSrc: personaThumbSrc(p),
+      bindThumbFallback: bindPersonaThumbFallback,
+      onClick: (persona) => selectPersona(persona)
+    });
     selectGrid.appendChild(card);
   });
 }
 
-// ─── Unified toast / feedback (ROADMAP 1.4) ─────────────────────────────
-// Every mutation should call showAppToast / toastSuccess / toastError.
-// Success & error stay visible at least MIN_TOAST_MS (3s).
-const MIN_TOAST_MS = 3000;
-const DEFAULT_TOAST_MS = 4000;
-let _toastHideTimer = null;
-let _toastShownAt = 0;
+// ─── Unified toast / QueuePoller (UX-4 → studio-toast.js / queue-poller.js) ─
+const _toastApi = (typeof InfluStudioToast !== 'undefined'
+  ? InfluStudioToast
+  : (typeof window !== 'undefined' ? window.InfluStudioToast : null)
+).createStudioToast({
+  getBanner: () => syncBanner || document.getElementById('syncBanner'),
+  getTextEl: () => syncBannerText || document.getElementById('syncBannerText'),
+  getIconEl: () => document.getElementById('syncBannerIcon'),
+  getGitIndicator: () => gitIndicator,
+  getGitStatusText: () => gitStatusText
+});
+const showAppToast = (...args) => _toastApi.showAppToast(...args);
+const toastSuccess = (...args) => _toastApi.toastSuccess(...args);
+const toastError = (...args) => _toastApi.toastError(...args);
+const toastInfo = (...args) => _toastApi.toastInfo(...args);
+const toastLoading = (...args) => _toastApi.toastLoading(...args);
 
-const TOAST_ICONS = {
-  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-  error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-  loading: '<span class="toast-spinner" aria-hidden="true"></span>'
-};
-
-/**
- * Unified app feedback toast.
- * @param {string} message
- * @param {{ type?: 'success'|'error'|'info'|'loading', duration?: number|null, gitOk?: boolean }} [opts]
- *   duration: ms to auto-hide; null = stay until next toast (loading). success/error forced ≥ MIN_TOAST_MS.
- *   gitOk: optional sidebar git indicator update (true=ok, false=error, omit=no change except loading)
- */
-function showAppToast(message, opts = {}) {
-  const type = opts.type || 'info';
-  const banner = syncBanner || document.getElementById('syncBanner');
-  const textEl = syncBannerText || document.getElementById('syncBannerText');
-  const iconEl = document.getElementById('syncBannerIcon');
-  if (!banner || !textEl) {
-    console.warn('[toast]', type, message);
-    return;
+const QueuePoller = (typeof InfluQueuePoller !== 'undefined'
+  ? InfluQueuePoller
+  : window.InfluQueuePoller
+).createQueuePoller({
+  authFetch: (...args) => authFetch(...args),
+  showAppToast: (...args) => showAppToast(...args),
+  setGenerationButtonsDisabled: (...args) => setGenerationButtonsDisabled(...args),
+  updateQueueStatusChip: (...args) => updateQueueStatusChip(...args),
+  getState: () => state,
+  loadVariantsForPersona: (id) => {
+    if (typeof loadVariantsForPersona === 'function') return loadVariantsForPersona(id);
   }
-
-  if (_toastHideTimer) {
-    clearTimeout(_toastHideTimer);
-    _toastHideTimer = null;
-  }
-
-  // W9 — acción opcional (p. ej. Deshacer archive)
-  let actionBtn = banner.querySelector('.toast-action-btn');
-  if (opts.actionLabel && typeof opts.onAction === 'function') {
-    if (!actionBtn) {
-      actionBtn = document.createElement('button');
-      actionBtn.type = 'button';
-      actionBtn.className = 'toast-action-btn btn btn-secondary btn-sm';
-      actionBtn.style.cssText = 'margin-left:12px;font-size:11px;padding:4px 10px;flex-shrink:0;';
-      banner.appendChild(actionBtn);
-    }
-    actionBtn.textContent = opts.actionLabel;
-    actionBtn.style.display = 'inline-block';
-    actionBtn.onclick = (e) => {
-      e.preventDefault();
-      opts.onAction();
-      banner.classList.remove('show');
-    };
-  } else if (actionBtn) {
-    actionBtn.style.display = 'none';
-    actionBtn.onclick = null;
-  }
-
-  textEl.textContent = message || '';
-  if (iconEl) iconEl.innerHTML = TOAST_ICONS[type] || TOAST_ICONS.info;
-
-  banner.className = `sync-banner app-toast show type-${type}` + (type === 'error' ? ' error' : '');
-  _toastShownAt = Date.now();
-
-  // Sidebar git chip
-  if (type === 'loading') {
-    if (gitIndicator) gitIndicator.className = 'git-indicator syncing';
-    if (gitStatusText) gitStatusText.textContent = 'Trabajando...';
-  } else if (opts.gitOk === true) {
-    if (gitIndicator) gitIndicator.className = 'git-indicator';
-    if (gitStatusText) gitStatusText.textContent = 'Repositorio sincronizado';
-  } else if (opts.gitOk === false) {
-    if (gitIndicator) gitIndicator.className = 'git-indicator';
-    if (gitStatusText) gitStatusText.textContent = 'Error de sincronización';
-  } else if (type === 'success' || type === 'error') {
-    if (gitIndicator) gitIndicator.className = 'git-indicator';
-    if (type === 'success' && gitStatusText) gitStatusText.textContent = 'Repositorio sincronizado';
-  }
-
-  // Auto-hide: loading stays; success/error at least MIN_TOAST_MS
-  if (type === 'loading' || opts.duration === null) return;
-
-  let ms = opts.duration != null ? opts.duration : DEFAULT_TOAST_MS;
-  if (type === 'success' || type === 'error' || opts.actionLabel) {
-    ms = Math.max(MIN_TOAST_MS, opts.actionLabel ? 8000 : ms);
-  }
-  _toastHideTimer = setTimeout(() => {
-    banner.classList.remove('show');
-    _toastHideTimer = null;
-  }, ms);
-}
-
-function toastSuccess(message, opts = {}) {
-  showAppToast(message, { ...opts, type: 'success', gitOk: opts.gitOk !== false ? (opts.gitOk ?? true) : false });
-}
-function toastError(message, opts = {}) {
-  showAppToast(message, { ...opts, type: 'error', gitOk: false });
-}
-function toastInfo(message, opts = {}) {
-  showAppToast(message, { ...opts, type: 'info' });
-}
-function toastLoading(message) {
-  showAppToast(message, { type: 'loading', duration: null });
-}
-
-/**
- * F3 Global Queue Poller Singleton
- * Polls GET /api/queue-status during image generation and updates UX banner/toasts.
- */
-const QueuePoller = {
-  intervalId: null,
-  isPolling: false,
-
-  start(intervalMs = 1500) {
-    if (this.isPolling) return;
-    this.isPolling = true;
-    this.check();
-    this.intervalId = setInterval(() => this.check(), intervalMs);
-  },
-
-  stop() {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-    this.isPolling = false;
-  },
-
-  lastCompletedCount: -1,
-
-  async check() {
-    try {
-      const res = await authFetch('/api/queue-status');
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data.success || !data.queue) return;
-
-      const q = data.queue;
-      this.updateUI(q);
-
-      // Refresh variants when queue progresses (Persona Engine vault, not a separate tab)
-      if (typeof state !== 'undefined' && state.selectedPersona && state.activeTab === 'persona-engine') {
-        const completed = q.completedCount || 0;
-        if (completed !== this.lastCompletedCount || q.active) {
-          this.lastCompletedCount = completed;
-          if (typeof loadVariantsForPersona === 'function') {
-            loadVariantsForPersona(state.selectedPersona.id);
-          }
-        }
-      }
-
-      const isCooling = q.isCoolingDown || q.rateLimitActive;
-      const pending = q.pendingCount ?? q.queueLength ?? 0;
-      if (!q.active && pending === 0 && !isCooling) {
-        setGenerationButtonsDisabled(false);
-        updateQueueStatusChip(q);
-        if (typeof state !== 'undefined' && state.selectedPersona && state.activeTab === 'persona-engine' && typeof loadVariantsForPersona === 'function') {
-          loadVariantsForPersona(state.selectedPersona.id);
-        }
-        this.stop();
-      }
-    } catch (e) {
-      // Ignore polling fetch errors silently
-    }
-  },
-
-  updateUI(q) {
-    const isCooling = q.isCoolingDown || q.rateLimitActive;
-    const cooldownSec = isCooling ? (Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30) : 0;
-    const pendingCount = q.pendingCount ?? q.queueLength ?? 0;
-    const totalInQueue = pendingCount + (q.active ? 1 : 0);
-    const locked = !!(q.active || pendingCount > 0 || isCooling);
-
-    // F3 — deshabilitar gens mientras hay cola / cooldown 429
-    setGenerationButtonsDisabled(locked);
-    updateQueueStatusChip(q);
-
-    let statusText = '';
-    let toastType = 'loading';
-
-    if (isCooling) {
-      statusText = `Rate limit 429 — reintentando en ${cooldownSec}s…`;
-      toastType = 'info';
-    } else if (q.active || pendingCount > 0) {
-      const pos = q.position;
-      const total = q.totalInWave || totalInQueue;
-      if (pos && total) {
-        statusText = `#${pos} de ${total}${q.currentLabel ? ` · ${q.currentLabel}` : ''}`;
-      } else if (pendingCount > 0) {
-        statusText = `Cola ocupada · posición ${totalInQueue} (1 gen a la vez)`;
-      } else {
-        statusText = q.currentLabel ? `Generando: ${q.currentLabel}` : 'Generando imagen…';
-      }
-      toastType = 'loading';
-    }
-
-    if (statusText) {
-      showAppToast(statusText, { type: toastType, duration: null });
-
-      const variantText = document.getElementById('variantGenStatusText');
-      if (variantText && variantText.offsetParent !== null) {
-        variantText.textContent = statusText;
-      }
-      const ugcText = document.getElementById('ugcGenStatusText');
-      if (ugcText && ugcText.offsetParent !== null) {
-        ugcText.textContent = statusText;
-      }
-    } else {
-      setGenerationButtonsDisabled(false);
-    }
-  }
-};
-
+});
 window.QueuePoller = QueuePoller;
 
 function setGitSyncingState(message) {
@@ -3583,19 +3395,21 @@ function getFullPersonaJSON() {
   if (!base.body) base.body = {};
   if (!base.clothing) base.clothing = {};
   
-  // 3. Overwrite with live form values
+  // 3. Overwrite with live form values (UX-4 readPersonaForm)
+  const formApi = (typeof InfluPersonaForm !== 'undefined' ? InfluPersonaForm : window.InfluPersonaForm);
+  const f = formApi.readPersonaForm();
   const p = state.selectedPersona || {};
-  const bodyType = document.getElementById('pBodyType')?.value || base.body.body_type || base.identity.body_type || p.body_type || 'Atlético y proporcionado';
-  const height = document.getElementById('pHeight')?.value || base.body.height_appearance || 'Estatura media (~1.65 m)';
-  const proportions = document.getElementById('pProportions')?.value || base.body.proportions || 'Hombros equilibrados, cintura definida, caderas suaves y proporcionales';
-  const posture = document.getElementById('pPosture')?.value || base.body.posture || 'Erguida y relajada';
-  const fitness = document.getElementById('pFitness')?.value || base.body.fitness_level || 'Tono natural ligero';
-  const bodySkin = document.getElementById('pBodySkin')?.value || base.body.skin_continuity || 'Mismo tono de piel en rostro, cuello, hombros y brazos';
+  const bodyType = f.bodyType || base.body.body_type || base.identity.body_type || p.body_type || 'Atlético y proporcionado';
+  const height = f.height || base.body.height_appearance || 'Estatura media (~1.65 m)';
+  const proportions = f.proportions || base.body.proportions || 'Hombros equilibrados, cintura definida, caderas suaves y proporcionales';
+  const posture = f.posture || base.body.posture || 'Erguida y relajada';
+  const fitness = f.fitness || base.body.fitness_level || 'Tono natural ligero';
+  const bodySkin = f.bodySkin || base.body.skin_continuity || 'Mismo tono de piel en rostro, cuello, hombros y brazos';
   
-  base.identity.name = document.getElementById('pName')?.value || base.identity.name || p.name || 'Influencer';
-  base.identity.gender = document.getElementById('pGender')?.value || base.identity.gender || p.gender || 'Female';
-  base.identity.apparent_age = document.getElementById('pAge')?.value || base.identity.apparent_age || p.age || '25 años';
-  base.identity.ethnicity_appearance = document.getElementById('pEthnicity')?.value || base.identity.ethnicity_appearance || p.ethnicity || 'Mixta';
+  base.identity.name = f.name || base.identity.name || p.name || 'Influencer';
+  base.identity.gender = f.gender || base.identity.gender || p.gender || 'Female';
+  base.identity.apparent_age = f.age || base.identity.apparent_age || p.age || '25 años';
+  base.identity.ethnicity_appearance = f.ethnicity || base.identity.ethnicity_appearance || p.ethnicity || 'Mixta';
   base.identity.body_type = bodyType;
   
   // Body block — first-class, not a single face-adjacent field
@@ -3615,11 +3429,11 @@ function getFullPersonaJSON() {
   };
   
   // Advanced physical traits with canonical key alignment
-  base.facial_features.face_shape = document.getElementById('pFaceShape')?.value || base.facial_features.face_shape || 'Ovalada';
-  base.facial_features.skin_tone = document.getElementById('pSkinTone')?.value || base.facial_features.skin_tone || 'Piel clara';
-  base.facial_features.skin_texture = document.getElementById('pSkinTexture')?.value || base.facial_features.skin_texture || 'Suave';
+  base.facial_features.face_shape = f.faceShape || base.facial_features.face_shape || 'Ovalada';
+  base.facial_features.skin_tone = f.skinTone || base.facial_features.skin_tone || 'Piel clara';
+  base.facial_features.skin_texture = f.skinTexture || base.facial_features.skin_texture || 'Suave';
   {
-    const hexInput = (document.getElementById('pSkinToneHex')?.value || '').trim();
+    const hexInput = (f.skinToneHex || '').trim();
     if (hexInput) {
       const normalized = hexInput.startsWith('#') ? hexInput : `#${hexInput}`;
       if (/^#[0-9a-fA-F]{6}$/.test(normalized)) {
@@ -3632,40 +3446,38 @@ function getFullPersonaJSON() {
       }
     }
   }
-  base.facial_features.eye_color = document.getElementById('pEyeColor')?.value || base.facial_features.eye_color || 'Marrón';
+  base.facial_features.eye_color = f.eyeColor || base.facial_features.eye_color || 'Marrón';
   
-  const eyebrowsVal = document.getElementById('pEyebrows')?.value || base.facial_features.eyebrow_style || base.facial_features.eyebrows || 'Cejas naturales';
+  const eyebrowsVal = f.eyebrows || base.facial_features.eyebrow_style || base.facial_features.eyebrows || 'Cejas naturales';
   base.facial_features.eyebrow_style = eyebrowsVal;
   base.facial_features.eyebrows = eyebrowsVal;
 
-  const lipsVal = document.getElementById('pLips')?.value || base.facial_features.lip_shape || base.facial_features.lips || 'Labios rosados';
+  const lipsVal = f.lips || base.facial_features.lip_shape || base.facial_features.lips || 'Labios rosados';
   base.facial_features.lip_shape = lipsVal;
   base.facial_features.lips = lipsVal;
 
-  base.facial_features.smile_type = document.getElementById('pSmileType')?.value || base.facial_features.smile_type || 'Natural';
-  const marks = document.getElementById('pDistinctiveMarks')?.value;
-  if (marks) base.facial_features.distinctive_marks = marks;
-  const asymmetry = document.getElementById('pFacialAsymmetry')?.value;
-  if (asymmetry) base.facial_features.facial_asymmetry = asymmetry;
+  base.facial_features.smile_type = f.smileType || base.facial_features.smile_type || 'Natural';
+  if (f.distinctiveMarks) base.facial_features.distinctive_marks = f.distinctiveMarks;
+  if (f.facialAsymmetry) base.facial_features.facial_asymmetry = f.facialAsymmetry;
   
-  base.hair.color = document.getElementById('pHairColor')?.value || base.hair.color || 'Castaño';
-  base.hair.texture = document.getElementById('pHairTexture')?.value || base.hair.texture || 'Ondulado';
-  base.hair.length = document.getElementById('pHairLength')?.value || base.hair.length || 'Largo';
+  base.hair.color = f.hairColor || base.hair.color || 'Castaño';
+  base.hair.texture = f.hairTexture || base.hair.texture || 'Ondulado';
+  base.hair.length = f.hairLength || base.hair.length || 'Largo';
 
-  const hairStyleVal = document.getElementById('pHair')?.value || base.hair.style || base.hair.details || p.hair || '';
+  const hairStyleVal = f.hair || base.hair.style || base.hair.details || p.hair || '';
   base.hair.style = hairStyleVal;
   base.hair.details = hairStyleVal;
   
-  base.aesthetic.overall_vibe = document.getElementById('pStyle')?.value || base.aesthetic.overall_vibe || p.style || 'Natural';
+  base.aesthetic.overall_vibe = f.style || base.aesthetic.overall_vibe || p.style || 'Natural';
 
-  const fashionVal = document.getElementById('pClothing')?.value || base.aesthetic.fashion_style || base.aesthetic.clothing_type || p.clothing || '';
+  const fashionVal = f.clothing || base.aesthetic.fashion_style || base.aesthetic.clothing_type || p.clothing || '';
   base.aesthetic.fashion_style = fashionVal;
   base.aesthetic.clothing_type = fashionVal;
   if (!base.clothing.type) base.clothing.type = fashionVal;
   
-  base.photography.camera_lens = document.getElementById('pCamera')?.value || base.photography.camera_lens || p.camera || 'iPhone';
-  base.photography.lighting_type = document.getElementById('pLighting')?.value || base.photography.lighting_type || p.lighting || 'Luz natural';
-  base.photography.background_setting = document.getElementById('pSetting')?.value || base.photography.background_setting || p.setting || 'Fondo neutro';
+  base.photography.camera_lens = f.camera || base.photography.camera_lens || p.camera || 'iPhone';
+  base.photography.lighting_type = f.lighting || base.photography.lighting_type || p.lighting || 'Luz natural';
+  base.photography.background_setting = f.setting || base.photography.background_setting || p.setting || 'Fondo neutro';
   // Prefer framing that shows body, not only face
   if (!base.photography.framing || /close|cara|face only|extreme close/i.test(base.photography.framing)) {
     base.photography.framing = base.photography.framing || 'Plano medio / medio cuerpo (hombros, torso y postura visibles)';
@@ -3674,10 +3486,10 @@ function getFullPersonaJSON() {
     base.photography.composition = 'Sujeto a medio cuerpo, identidad facial + silueta corporal consistentes';
   }
   if (!base.personality) base.personality = {};
-  base.personality.mbti = document.getElementById('pMbti')?.value || base.personality.mbti || 'ENFP - El Entusiasta Creativo';
-  base.personality.communication_style = document.getElementById('pCommunicationStyle')?.value || base.personality.communication_style || 'Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia';
+  base.personality.mbti = f.mbti || base.personality.mbti || 'ENFP - El Entusiasta Creativo';
+  base.personality.communication_style = f.communicationStyle || base.personality.communication_style || 'Cálido, cercano, usa emojis moderados y hace preguntas a la audiencia';
   
-  const taboosInput = document.getElementById('pTaboos')?.value || '';
+  const taboosInput = f.taboos || '';
   if (taboosInput) {
     base.personality.taboos = taboosInput.split(',').map(s => s.trim()).filter(Boolean);
   } else if (!base.personality.taboos) {
@@ -4972,34 +4784,36 @@ function setupCopyButton(btnId, targetId, label) {
 }
 
 function compilePromptAndJSON() {
-  const name = document.getElementById('pName').value;
-  const gender = document.getElementById('pGender').value;
-  const age = document.getElementById('pAge').value;
-  const ethnicity = document.getElementById('pEthnicity').value;
-  const style = document.getElementById('pStyle').value;
-  const hair = document.getElementById('pHair').value;
-  const lighting = document.getElementById('pLighting').value;
-  const camera = document.getElementById('pCamera').value;
-  const clothing = document.getElementById('pClothing').value;
-  const setting = document.getElementById('pSetting').value;
+  const formApi = (typeof InfluPersonaForm !== 'undefined' ? InfluPersonaForm : window.InfluPersonaForm);
+  const f = formApi.readPersonaForm();
+  const name = f.name;
+  const gender = f.gender;
+  const age = f.age;
+  const ethnicity = f.ethnicity;
+  const style = f.style;
+  const hair = f.hair;
+  const lighting = f.lighting;
+  const camera = f.camera;
+  const clothing = f.clothing;
+  const setting = f.setting;
   
   // High-fidelity facial & body details
-  const skinTone = document.getElementById('pSkinTone').value;
-  const skinTexture = document.getElementById('pSkinTexture').value;
-  const hairColor = document.getElementById('pHairColor').value;
-  const hairTexture = document.getElementById('pHairTexture').value;
-  const hairLength = document.getElementById('pHairLength').value;
-  const eyebrows = document.getElementById('pEyebrows').value;
-  const eyeColor = document.getElementById('pEyeColor').value;
-  const lips = document.getElementById('pLips').value;
-  const faceShape = document.getElementById('pFaceShape').value;
-  const smileType = document.getElementById('pSmileType').value;
-  const bodyType = document.getElementById('pBodyType')?.value || 'Atlético y proporcionado';
-  const height = document.getElementById('pHeight')?.value || 'Estatura media';
-  const proportions = document.getElementById('pProportions')?.value || '';
-  const posture = document.getElementById('pPosture')?.value || '';
-  const fitness = document.getElementById('pFitness')?.value || '';
-  const bodySkin = document.getElementById('pBodySkin')?.value || '';
+  const skinTone = f.skinTone;
+  const skinTexture = f.skinTexture;
+  const hairColor = f.hairColor;
+  const hairTexture = f.hairTexture;
+  const hairLength = f.hairLength;
+  const eyebrows = f.eyebrows;
+  const eyeColor = f.eyeColor;
+  const lips = f.lips;
+  const faceShape = f.faceShape;
+  const smileType = f.smileType;
+  const bodyType = f.bodyType || 'Atlético y proporcionado';
+  const height = f.height || 'Estatura media';
+  const proportions = f.proportions || '';
+  const posture = f.posture || '';
+  const fitness = f.fitness || '';
+  const bodySkin = f.bodySkin || '';
   
   // Get hex codes from detailedJSON for color precision
   let skinHex = '', hairHex = '', skinLock = '', skinAvoid = '';
@@ -5306,21 +5120,12 @@ function toastWithLockHealth(successMessage, personaJSON, toastOpts = {}) {
 
 async function savePersona(opts = {}) {
   const withPortrait = opts === true || opts?.withPortrait === true;
-  const name = (document.getElementById('pName').value || '').trim();
+  const formApi = (typeof InfluPersonaForm !== 'undefined' ? InfluPersonaForm : window.InfluPersonaForm);
+  const { name, gender, age, ethnicity, style, hair, lighting, camera, clothing, setting } = formApi.readPersonaRowFields();
   if (!name) {
     toastError('Indica un nombre para el influencer antes de guardar.');
     return;
   }
-
-  const gender = document.getElementById('pGender').value;
-  const age = document.getElementById('pAge').value;
-  const ethnicity = document.getElementById('pEthnicity').value;
-  const style = document.getElementById('pStyle').value;
-  const hair = document.getElementById('pHair').value;
-  const lighting = document.getElementById('pLighting').value;
-  const camera = document.getElementById('pCamera').value;
-  const clothing = document.getElementById('pClothing').value;
-  const setting = document.getElementById('pSetting').value;
 
   // Create mode is sticky until selectPersona / successful create selects the new one
   const creatingNew = state.isCreatingNewPersona === true || !state.selectedPersona?.id;
@@ -5826,19 +5631,12 @@ function selectCampaign(c) {
   const personasGrid = document.getElementById('cdPersonaGrid');
   personasGrid.innerHTML = '';
   if (c.personas && c.personas.length > 0) {
+    const cardApi = (typeof InfluPersonaCard !== 'undefined' ? InfluPersonaCard : window.InfluPersonaCard);
     c.personas.forEach(p => {
-      const item = document.createElement('div');
-      item.className = 'persona-card';
-      item.innerHTML = `
-        <img src="${p.image}" alt="${p.name}" style="height:90px;">
-        <div class="persona-card-info" style="padding:6px 8px;">
-          <div class="persona-card-name" style="font-size:12px;">${p.name}</div>
-        </div>
-      `;
-      personasGrid.appendChild(item);
+      personasGrid.appendChild(cardApi.buildCampaignPersonaCard(p));
     });
   } else {
-    personasGrid.innerHTML = '<p style="font-size:11px; color:var(--text-muted);">Sin influencers asignados.</p>';
+    personasGrid.innerHTML = '<p class="text-muted-sm">Sin influencers asignados.</p>';
   }
 
   // Setup ZIP Export link
@@ -7614,44 +7412,9 @@ function buildPromptFromAnalysis(data) {
 
 function applyAnalysisToForm() {
   if (!analysisResult) return;
-
-  const i = analysisResult.identity || {};
-  const f = analysisResult.facial_features || {};
-  const h = analysisResult.hair || {};
-  const a = analysisResult.aesthetic || {};
-  const p = analysisResult.photography || {};
-  const c = analysisResult.clothing || {};
-
-  const genderVal = (i.gender || '').toLowerCase().includes('masc') ? 'Male' : 'Female';
-  document.getElementById('pName').value = i.name || 'Nuevo Influencer';
-  document.getElementById('pGender').value = genderVal;
-  document.getElementById('pAge').value = i.apparent_age || '25 años';
-  document.getElementById('pEthnicity').value = i.ethnicity_appearance || 'Mixta';
-  document.getElementById('pStyle').value = a.overall_vibe || 'Natural';
-  document.getElementById('pHair').value = `${h.texture || 'ondulado'} ${h.length || 'largo'}`;
-  updateClothingDropdown(`${c.type || ''} en ${c.color || ''}`);
-  document.getElementById('pSetting').value = p.background_setting || 'Fondo neutro';
-
-  // Populating advanced details
-  document.getElementById('pSkinTone').value = f.skin_tone || 'Piel clara';
-  document.getElementById('pSkinTexture').value = f.skin_texture || 'Piel suave con poros naturales';
-  document.getElementById('pEyebrows').value = f.eyebrow_style || 'Cejas naturales';
-  document.getElementById('pLips').value = f.lips || (f.lip_color ? `${f.lip_color} ${f.lip_shape || ''}` : '') || 'Labios rosados naturales';
-  document.getElementById('pHairColor').value = h.color || 'Castaño';
-  document.getElementById('pHairTexture').value = h.texture || 'Ondulado';
-  document.getElementById('pHairLength').value = h.length || 'Largo';
-  document.getElementById('pEyeColor').value = f.eye_color || 'Marrón';
-  document.getElementById('pFaceShape').value = f.face_shape || 'Ovalada';
-  document.getElementById('pSmileType').value = f.smile_type || 'Natural';
-  const b = analysisResult.body || {};
-  document.getElementById('pBodyType').value = b.body_type || i.body_type || 'Atlético y proporcionado';
-  const setIf = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
-  setIf('pHeight', b.height_appearance || 'Estatura media (~1.65 m)');
-  setIf('pProportions', b.proportions || 'Hombros equilibrados, cintura definida, caderas suaves');
-  setIf('pPosture', b.posture || 'Erguida y relajada');
-  setIf('pFitness', b.fitness_level || 'Tono natural ligero');
-  setIf('pBodySkin', b.skin_continuity || 'Mismo tono de piel en rostro, cuello y brazos');
-
+  const formApi = (typeof InfluPersonaForm !== 'undefined' ? InfluPersonaForm : window.InfluPersonaForm);
+  const { clothingHint } = formApi.applyAnalysisToFormFields(analysisResult);
+  updateClothingDropdown(clothingHint || '');
   compilePromptAndJSON();
   toastSuccess('Datos del análisis aplicados al formulario (incluye cuerpo)');
 }
@@ -7847,117 +7610,12 @@ async function deletePersonaAction() {
 
 // ─── Influencer Variants (Poses, Wardrobe, Attitude) Manager & Spicy Mode ───
 
-const VARIANT_PRESETS = {
-  traditional: {
-    poses: [
-      { label: "Selfie primer plano (rostro)", value: "Selfie de primer plano de rostro (selfie portrait close-up)" },
-      { label: "Plano medio-corto (selfie)", value: "Plano medio-corto de brazo extendido (candid hand-held selfie medium shot)" },
-      { label: "Selfie de espejo (cuerpo entero)", value: "full body mirror selfie head to toe holding phone, entire body visible feet to head (full-body mirror selfie)" },
-      { label: "Cuerpo entero (Modelando de pie)", value: "full body standing fashion model pose head to toe, camera far back, entire figure visible including feet and shoes (full-body standing pose)" },
-      { label: "Cuerpo entero (caminando hacia cámara)", value: "full body walking toward camera head to toe, wide vertical shot, feet and head in frame (full-body walking)" },
-      { label: "Plano medio americano (caminando)", value: "Plano medio americano caminando relajada (candid snapshot walking medium shot)" },
-      { label: "Sentada (perfil)", value: "Sentada de medio lado sonriendo a la cámara (sitting profile view)" },
-      { label: "Sentada en el suelo (casual)", value: "Sentada en el suelo de forma relajada y casual (candid floor seating pose)" },
-      { label: "Apoyada en pared (confiada)", value: "Apoyada sutilmente en una pared con postura confiada (leaning against wall pose)" },
-      { label: "Jugando con el cabello", value: "Jugando con el cabello de forma espontánea (playing with hair candid pose)" }
-    ],
-    attitudes: [
-      { label: "Sonriente y alegre", value: "sonriendo alegremente de forma muy natural (happy approachable smile)" },
-      { label: "Seria y elegante", value: "mirada fija seria y elegante de alta costura (serious high-fashion expression)" },
-      { label: "Guiñando un ojo", value: "guiñando un ojo de forma juguetona e ingeniosa (playful confident wink)" },
-      { label: "Pensativa / Distante", value: "pensativa mirando hacia el horizonte (thoughtful distant gaze)" },
-      { label: "Risa espontánea / Divertida", value: "risa espontánea y divertida (candid laughing moment)" }
-    ],
-    clothing: {
-      Female: [
-        { label: "Ropa deportiva: Calzas y top deportivo de licra negro", value: "Ropa deportiva: Calzas y top deportivo de licra negro entallado" },
-        { label: "Ropa de trabajo: Traje sastre gris con blazer entallado", value: "Ropa de trabajo: Traje sastre gris con blazer entallado y blusa blanca" },
-        { label: "Sport elegante: Camisa de lino blanca con vaqueros", value: "Sport elegante: Camisa de lino blanca holgada con vaqueros claros" },
-        { label: "Salida de noche: Vestido ajustado negro de satén", value: "Salida de noche: Vestido ajustado negro de satén con tirantes finos" },
-        { label: "Bikini (dos piezas)", value: "Traje de baño: Bikini de dos piezas clásico (classic two-piece bikini)" },
-        { label: "Trikini / cut-out", value: "Traje de baño: Trikini de una pieza con cut-outs laterales (one-piece trikini)" },
-        { label: "Traje de baño completo / entero", value: "Traje de baño: Traje de baño completo de una pieza (full one-piece swimsuit)" },
-        { label: "Casual cotidiano: Suéter de punto crema", value: "Casual cotidiano: Suéter de punto suave en tono crema cuello redondo" },
-        { label: "Estilo playero: Vestido veraniego de lino beige", value: "Estilo playero: Vestido veraniego suelto de lino color beige" },
-        { label: "Cozy / Casa: Sudadera minimalista gris oversized", value: "Cozy / Casa: Sudadera con capucha minimalista gris melange oversized" },
-        { label: "Cóctel / Fiesta: Mono largo de satén verde esmeralda", value: "Cóctel / Fiesta: Mono largo de satén verde esmeralda con cinturón" },
-        { label: "Estilo urbano / Streetwear: Chaqueta de cuero negra", value: "Estilo urbano / Streetwear: Chaqueta de cuero negra sobre camiseta básica blanca" },
-        { label: "Boho Chic: Blusa de encaje blanco con falda larga", value: "Boho Chic: Blusa de encaje blanco con falda larga bohemia de verano" }
-      ],
-      Male: [
-        { label: "Ropa deportiva: Sudadera de secado rápido y joggers", value: "Ropa deportiva: Sudadera con capucha de secado rápido y joggers negros" },
-        { label: "Ropa de trabajo: Traje clásico azul marino con camisa blanca", value: "Ropa de trabajo: Traje clásico azul marino con camisa blanca y corbata" },
-        { label: "Sport elegante: Camisa de lino blanca y chinos beige", value: "Sport elegante: Camisa de lino blanca y pantalones chinos beige" },
-        { label: "Salida de noche: Camisa de seda negra desabrochada", value: "Salida de noche: Camisa de seda negra desabrochada y pantalones oscuros" },
-        { label: "Short de baño / bañador", value: "Traje de baño: Short de baño clásico (classic swim trunks)" },
-        { label: "Slip de natación", value: "Traje de baño: Slip de natación deportivo (athletic swim brief)" },
-        { label: "Casual cotidiano: Jersey de punto fino gris", value: "Casual cotidiano: Jersey de punto fino gris con cuello redondo" },
-        { label: "Estilo playero: Camisa guayabera blanca y bermudas", value: "Estilo playero: Camisa guayabera blanca y bermudas de lino beige" },
-        { label: "Cozy / Casa: Sudadera minimalista azul marino", value: "Cozy / Casa: Sudadera con capucha minimalista azul marino oversized" },
-        { label: "Saco casual: Blazer beige sobre camiseta básica blanca", value: "Saco casual: Blazer beige sobre camiseta básica blanca" },
-        { label: "Estilo urbano / Streetwear: Chaqueta de cuero negra", value: "Estilo urbano / Streetwear: Chaqueta de cuero negra sobre camiseta negra con vaqueros" }
-      ]
-    },
-    settings: [
-      { label: "Cafetería (interior)", value: "Fondo de cafetería moderna iluminada de día (modern bright cafe interior)" },
-      { label: "Gimnasio (neón)", value: "Gimnasio moderno con luces de neón tenues (modern dark fitness studio)" },
-      { label: "Parque (naturaleza)", value: "Parque natural soleado con follaje verde desenfocado (sunny green park)" },
-      { label: "Calle urbana (noche)", value: "Calle de ciudad de noche con luces bokeh desenfocadas (urban neon street night)" },
-      { label: "Habitación lujosa", value: "Habitación de hotel lujosa y luminosa (luxury bright hotel room)" },
-      { label: "Playa (mediodía soleado)", value: "Playa de arena blanca al mediodía, mar azul al fondo (bright tropical beach midday)" },
-      { label: "Playa paradisíaca (atardecer)", value: "Playa paradisíaca de arena blanca al atardecer dorado (tropical beach sunset)" },
-      { label: "Piscina exterior soleada", value: "Piscina exterior soleada con agua turquesa (sunny outdoor pool)" },
-      { label: "Terraza costera (vista mar)", value: "Terraza costera con vista al mar (coastal terrace ocean view)" },
-      { label: "Terraza Penthouse (vista urbana)", value: "Terraza de penthouse de lujo con vista panorámica a la ciudad (penthouse rooftop skyline view)" },
-      { label: "Bosque nevado (invierno)", value: "Bosque de pinos nevado de invierno (snowy pine forest background)" }
-    ]
-  },
-  spicy: {
-    // Photoreal first: avoid “mirror CGI latex / dungeon fantasy” defaults that kill realism
-    poses: [
-      { label: "De pie confiada (cuerpo entero)", value: "standing full-body confident pose, natural weight on one leg, smartphone photo (realistic full body standing pose)" },
-      { label: "Mirada sobre el hombro", value: "looking over the shoulder toward camera, natural seductive pose (candid over-the-shoulder smartphone photo)" },
-      { label: "Recostada en cama (natural)", value: "reclining naturally on bed, relaxed body, real fabric folds (candid bedroom photo)" },
-      { label: "Sentada cruzando piernas", value: "sitting crossing legs on edge of bed or chair, natural posture (realistic seated pose)" },
-      { label: "Apoyada en pared (candid)", value: "leaning casually against a wall, natural body language (candid wall lean photo)" },
-      { label: "Primer plano beauty realista", value: "close-up beauty portrait with natural skin texture, real pores (photoreal close-up)" }
-    ],
-    attitudes: [
-      { label: "Seductora natural", value: "subtle seductive expression, soft confident gaze (natural alluring expression)" },
-      { label: "Confianza intensa", value: "intense confident gaze at camera, slight smile (confident intense look)" },
-      { label: "Coqueta / juguetona", value: "playful flirty expression, natural smile (playful flirty look)" },
-      { label: "Misteriosa suave", value: "soft mysterious gaze, relaxed face (soft mysterious expression)" }
-    ],
-    clothing: {
-      Female: [
-        { label: "Lencería roja de encaje (realista)", value: "real red lace lingerie set, sheer fabric with real textile weave, natural fit on body, not plastic (photoreal red lace lingerie)" },
-        { label: "Body de satén rojo", value: "fitted red satin bodysuit, soft fabric sheen (not mirror gloss), real cloth wrinkles (photoreal red satin bodysuit)" },
-        { label: "Vestido rojo corto ajustado", value: "short fitted red cocktail dress, real fabric texture, natural drape (photoreal red mini dress)" },
-        { label: "Catsuit negro de látex sutil", value: "black latex catsuit with subtle real latex sheen (matte-gloss mix, NOT chrome mirror, NOT CGI plastic), realistic material (photoreal black latex catsuit)" },
-        { label: "Catsuit rojo de látex sutil", value: "passion red latex catsuit with subtle realistic latex sheen (NOT mirror chrome, NOT 3D render), real folds and skin contact (photoreal red latex catsuit)" },
-        { label: "Corsé de cuero negro + medias", value: "black leather corset with garter belt and sheer stockings, real leather grain (photoreal leather corset set)" },
-        { label: "Conjunto de seda negra", value: "black silk slip lingerie, soft natural fabric, realistic sheen (photoreal black silk lingerie)" },
-        { label: "Bikini rojo clásico", value: "classic red two-piece bikini, real fabric, natural body (photoreal red bikini)" },
-        { label: "Robeseductor de satén", value: "open red satin robe over lingerie, soft fabric, candid boudoir photo (photoreal satin robe)" }
-      ],
-      Male: [
-        { label: "Torso descubierto + pantalón oscuro", value: "bare chest with realistic skin texture, dark fitted trousers, natural lighting (photoreal)" },
-        { label: "Bóxers premium negros", value: "black designer boxer briefs, real cotton/satin fabric (photoreal)" },
-        { label: "Cuero negro realista", value: "black leather jacket open on chest, real leather grain (photoreal)" },
-        { label: "Arnés sutil + pantalón", value: "subtle dark leather harness over bare chest, fitted trousers, not costume CGI (photoreal)" }
-      ]
-    },
-    settings: [
-      { label: "Dormitorio moderno (noche suave)", value: "modern bedroom at night, warm practical lamps, real interior photo (no fantasy dungeon)" },
-      { label: "Boudoir hotel (luz cálida)", value: "luxury hotel bedroom, warm practical lighting, real architecture (photoreal hotel boudoir)" },
-      { label: "Penthouse nocturno (ventana ciudad)", value: "penthouse bedroom at night with city lights through window, realistic interior" },
-      { label: "Sala low-key (lámpara lateral)", value: "dim modern living room with single warm side lamp, realistic shadows" },
-      { label: "Baño hotel (espejo, luz suave)", value: "hotel bathroom mirror selfie lighting, soft realistic bathroom interior" },
-      { label: "Terraza nocturna (ciudad bokeh)", value: "night rooftop terrace with soft city bokeh lights, real outdoor night photo" },
-      { label: "Studio foto low-key (realista)", value: "simple dark photography studio with soft key light, photoreal fashion set (not sci-fi)" }
-    ]
-  }
-};
+// ─── Influencer Variants presets (UX-4 → variant-presets.js) ───
+const _variantPresetsApi = (typeof InfluVariantPresets !== 'undefined'
+  ? InfluVariantPresets
+  : (typeof window !== 'undefined' ? window.InfluVariantPresets : null));
+if (!_variantPresetsApi) console.error('[variants] variant-presets.js no cargado');
+const VARIANT_PRESETS = _variantPresetsApi?.VARIANT_PRESETS || {};
 
 window.setVariantMode = function(mode) {
   state.variantMode = mode;
@@ -7985,54 +7643,23 @@ function populateVariantDropdowns() {
   const p = state.selectedPersona;
   const gender = p ? p.gender : (document.getElementById('pGender')?.value || 'Female');
 
-  // 1. Poses
-  const poseSelect = document.getElementById('vPose');
-  if (poseSelect) {
-    poseSelect.innerHTML = '';
-    preset.poses.forEach(item => {
+  const fill = _variantPresetsApi?.fillSelect || ((el, items) => {
+    if (!el) return;
+    el.innerHTML = '';
+    (items || []).forEach((item) => {
       const opt = document.createElement('option');
       opt.value = item.value;
       opt.textContent = item.label;
-      poseSelect.appendChild(opt);
+      el.appendChild(opt);
     });
-  }
-
-  // 2. Attitudes
-  const attSelect = document.getElementById('vAttitude');
-  if (attSelect) {
-    attSelect.innerHTML = '';
-    preset.attitudes.forEach(item => {
-      const opt = document.createElement('option');
-      opt.value = item.value;
-      opt.textContent = item.label;
-      attSelect.appendChild(opt);
-    });
-  }
-
-  // 3. Clothing
-  const clothSelect = document.getElementById('vClothing');
-  if (clothSelect) {
-    clothSelect.innerHTML = '';
-    const clothList = preset.clothing[gender] || preset.clothing.Female;
-    clothList.forEach(item => {
-      const opt = document.createElement('option');
-      opt.value = item.value;
-      opt.textContent = item.label;
-      clothSelect.appendChild(opt);
-    });
-  }
-
-  // 4. Settings
-  const setSelect = document.getElementById('vSetting');
-  if (setSelect) {
-    setSelect.innerHTML = '';
-    preset.settings.forEach(item => {
-      const opt = document.createElement('option');
-      opt.value = item.value;
-      opt.textContent = item.label;
-      setSelect.appendChild(opt);
-    });
-  }
+  });
+  const clothList = _variantPresetsApi?.clothingFor
+    ? _variantPresetsApi.clothingFor(preset, gender)
+    : ((preset.clothing && (preset.clothing[gender] || preset.clothing.Female)) || []);
+  fill(document.getElementById('vPose'), preset.poses);
+  fill(document.getElementById('vAttitude'), preset.attitudes);
+  fill(document.getElementById('vClothing'), clothList);
+  fill(document.getElementById('vSetting'), preset.settings);
 
   // G1/G2/G3 — refrescar chips del constructor de prompt tras poblar los selects
   renderVariantChips();
@@ -8043,16 +7670,8 @@ function populateVariantDropdowns() {
 // G1 — Constructor de prompt por chips (estilo studio): los chips escriben en los
 // selects ocultos (fuente de verdad de generateVariantAction). Accesorios se pliegan
 // en el vestuario al generar.
-const VARIANT_ACCESSORIES = [
-  { label: 'Collar', value: 'collar delicado' },
-  { label: 'Aretes', value: 'aretes dorados' },
-  { label: 'Aros grandes', value: 'pendientes de aro grandes' },
-  { label: 'Gargantilla', value: 'gargantilla (choker)' },
-  { label: 'Gafas', value: 'gafas de moda' },
-  { label: 'Gafas de sol', value: 'gafas de sol de diseño' },
-  { label: 'Sombrero', value: 'sombrero de ala ancha' },
-  { label: 'Reloj', value: 'reloj minimalista' }
-];
+const VARIANT_ACCESSORIES = _variantPresetsApi?.VARIANT_ACCESSORIES || [];
+
 
 function renderVariantChips() {
   const groups = [
@@ -8166,7 +7785,7 @@ function renderLookPresets() {
 }
 
 // G3 — Batch acotado (1 / 4) con aviso de pollen. Se encola 1 a la vez (gen-queue).
-const VARIANT_BATCH_OPTIONS = [1, 4];
+const VARIANT_BATCH_OPTIONS = _variantPresetsApi?.VARIANT_BATCH_OPTIONS || [1, 4];
 
 function updateBatchHint() {
   const el = document.getElementById('batchPollenHint');
@@ -8542,19 +8161,15 @@ function setupVariantManager() {
   
   btnActive.addEventListener('click', () => {
     state.personaFilter = 'active';
-    btnActive.style.background = 'var(--accent-primary)';
-    btnActive.style.color = '#fff';
-    btnArchived.style.background = 'transparent';
-    btnArchived.style.color = 'var(--text-secondary)';
+    btnActive.classList.add('filter-btn-active');
+    btnArchived.classList.remove('filter-btn-active');
     renderPersonaGrids();
   });
   
   btnArchived.addEventListener('click', () => {
     state.personaFilter = 'archived';
-    btnArchived.style.background = 'var(--accent-primary)';
-    btnArchived.style.color = '#fff';
-    btnActive.style.background = 'transparent';
-    btnActive.style.color = 'var(--text-secondary)';
+    btnArchived.classList.add('filter-btn-active');
+    btnActive.classList.remove('filter-btn-active');
     renderPersonaGrids();
   });
 

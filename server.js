@@ -214,9 +214,11 @@ app.use(
 );
 app.use('/assets', express.static(assetsRoot));
 
-// Serve main app pages
+const { composeIndexHtml } = require('./views/compose-index');
+
+// Serve main app pages (HTML composed from views/ partials — UX-4)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.type('html').send(composeIndexHtml(__dirname));
 });
 app.get('/app.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'app.js'));
@@ -244,6 +246,21 @@ app.get('/prompt-builder.js', (req, res) => {
 });
 app.get('/face-pack.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'face-pack.js'));
+});
+app.get('/studio-toast.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'studio-toast.js'));
+});
+app.get('/queue-poller.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'queue-poller.js'));
+});
+app.get('/persona-form.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'persona-form.js'));
+});
+app.get('/persona-card.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'persona-card.js'));
+});
+app.get('/variant-presets.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'variant-presets.js'));
 });
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));

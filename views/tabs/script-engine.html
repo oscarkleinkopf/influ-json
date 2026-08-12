@@ -1,0 +1,66 @@
+      <section id="script-engine" class="tab-panel">
+        <div class="content-header">
+          <div class="content-title">
+            <h1>Script Engine</h1>
+            <p>Genera 10 ángulos publicitarios UGC (15–25 s). Plantillas locales gratis; Gemini solo si hay clave en Ajustes.</p>
+          </div>
+        </div>
+        
+        <div class="glass-card" style="margin-bottom: 32px;">
+          <h2 class="u-card-title">Definición de Producto y Audiencia</h2>
+          <form id="scriptForm" class="editor-form-group">
+            <div class="form-row">
+              <div>
+                <label for="prodName">Nombre del Producto</label>
+                <input type="text" id="prodName" value="Glow Serum Organics">
+              </div>
+              <div>
+                <label for="prodBenefit">Beneficio Principal</label>
+                <input type="text" id="prodBenefit" value="Piel brillante y profundamente hidratada en 5 minutos">
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div>
+                <label for="prodAudience">Audiencia Objetivo</label>
+                <input type="text" id="prodAudience" value="Jóvenes ocupadas con piel seca y opaca">
+              </div>
+              <div>
+                <label for="prodFrustration">Frustración Clave de la Audiencia</label>
+                <input type="text" id="prodFrustration" value="No tener tiempo para rutinas coreanas de 10 pasos">
+              </div>
+            </div>
+            
+            <div class="u-mt-10">
+              <button type="button" class="btn" id="btnGenerateScripts" style="width: 100%;">
+                Generar 10 guiones (plantillas locales / Gemini opt-in)
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        <div class="glass-card">
+          <h2 class="u-card-title">Variaciones de Campaña</h2>
+          <div class="script-layout">
+            <div class="script-sidebar" id="scriptTabList">
+              <!-- JS will build buttons for 10 angles -->
+            </div>
+            
+            <div class="script-viewer">
+              <div class="script-header-info">
+                <div class="script-angle-title" id="activeScriptAngle">Ángulo Seleccionado</div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-secondary btn-sm" id="btnCopyScript">Copiar Guión</button>
+                  <button class="btn btn-sm" id="btnExportScriptChatbot" style="background: var(--accent-gradient); border: none;">📋 Exportar para Chatbot</button>
+                </div>
+              </div>
+              
+              <div class="script-content-box" id="activeScriptContent">
+                <!-- JS will inject script details -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- TAB: UGC STUDIO -->
