@@ -141,9 +141,14 @@ test('paths getReferencesUploadDir aisla tests en DATA_DIR', () => {
 
 test('layout-smoke script + CI workflow presentes', () => {
   assert.ok(fs.existsSync(path.join(root, 'scripts', 'layout-smoke.js')));
+  const smoke = fs.readFileSync(path.join(root, 'scripts', 'layout-smoke.js'), 'utf8');
+  assert.match(smoke, /licensing-chip/);
+  assert.match(smoke, /campaigns-empty-one-cta/);
+  assert.match(smoke, /setPersonaStep/);
   const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'test.yml'), 'utf8');
   assert.match(wf, /layout-smoke/);
   assert.match(wf, /setup-chrome|browser-actions\/setup-chrome/);
+  assert.match(wf, /layout-smoke-report\.json/);
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   assert.equal(pkg.scripts['layout-smoke'], 'node scripts/layout-smoke.js');
   assert.ok(pkg.devDependencies && pkg.devDependencies['puppeteer-core']);
