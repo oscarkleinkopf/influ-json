@@ -1,7 +1,7 @@
 # HANDOFF — continuidad Cursor ↔ Antigravity
 
 > **Leer esto primero** al retomar (Antigravity, Cursor, otro agente).
-> Plan activo: [PLAN-NEXT.md](./PLAN-NEXT.md) · Runbook W1–W10: [PLAN.md](./PLAN.md) · Roadmap: [ROADMAP.md](./ROADMAP.md) · Agentes: [AGENTS.md](./AGENTS.md) · README: [README.md](./README.md)
+> Plan activo: [PLAN-UX.md](./PLAN-UX.md) · [PLAN-NEXT.md](./PLAN-NEXT.md) · Runbook W1–W10: [PLAN.md](./PLAN.md) · Roadmap: [ROADMAP.md](./ROADMAP.md) · Agentes: [AGENTS.md](./AGENTS.md) · README: [README.md](./README.md)
 
 ---
 
