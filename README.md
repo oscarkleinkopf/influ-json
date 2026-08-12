@@ -32,9 +32,36 @@ Abrir `http://localhost:3000` (PIN por defecto: `1234`, configurable en `.env` c
 
 Despliegue actual: rama **`main`**, carpeta **`/`** → `https://oscarkleinkopf.github.io/influ-json/`.
 
-Esa URL **no es el Studio**. Pages solo sirve estáticos (sin Node, SQLite ni `/api/*`), así que el PIN no desbloquea nada ahí. Tras el fix de Pages, la home en `main` muestra cómo arrancar en local (`npm start` → `http://127.0.0.1:3000`).
+Esa URL **no es el Studio**. Pages solo sirve estáticos (sin Node, SQLite ni `/api/*`), así que el PIN / login Google no desbloquean nada ahí. La home en `main` muestra cómo arrancar en local (`npm start` → `http://127.0.0.1:3000`).
 
 Landing alternativa (opcional): [`docs/index.html`](./docs/index.html) — no hace falta cambiar Settings si ya publicas la raíz de `main`.
+
+### Login Google (opt-in) — local u online
+
+Cada cuenta Google → perfil `member` con roster aislado. **No corre en GitHub Pages** (sin API); sí en:
+
+1. **Local** — `npm start` + redirect `http://127.0.0.1:3000/api/auth/google/callback`
+2. **Online** — deploy Node (Render/Docker). Guía: [`docs/DEPLOY_ONLINE.md`](./docs/DEPLOY_ONLINE.md)
+
+```bash
+# .env (local o host)
+ENABLE_GOOGLE_AUTH=1
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+# Local:
+GOOGLE_REDIRECT_URI=http://127.0.0.1:3000/api/auth/google/callback
+# Online (además):
+# PUBLIC_BASE_URL=https://tu-servicio.onrender.com
+# GOOGLE_REDIRECT_URI=https://tu-servicio.onrender.com/api/auth/google/callback
+# TRUST_PROXY=1
+# COOKIE_SECURE=1
+# HOST=0.0.0.0
+# STUDIO_PIN=no-uses-1234
+```
+
+En [Google Cloud Console](https://console.cloud.google.com/apis/credentials) crea un cliente OAuth **Web** con ese redirect (puedes registrar local y producción en el mismo cliente).
+
+Para que Pages enlace al Studio online, edita [`studio-online.json`](./studio-online.json) con tu URL pública.
 
 | Comando | Qué arranca |
 |---------|-------------|

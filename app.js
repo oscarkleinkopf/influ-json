@@ -253,6 +253,20 @@ function showStaticHostScreen() {
       }
     });
   }
+  // CTA opcional hacia Studio hospedado (studio-online.json en el repo / Pages)
+  fetch('studio-online.json', { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((cfg) => {
+      const url = String(cfg?.studioUrl || '').trim();
+      if (!url || !/^https?:\/\//i.test(url)) return;
+      const wrap = document.getElementById('staticHostOnlineWrap');
+      const btn = document.getElementById('btnStaticHostOnline');
+      if (!wrap || !btn) return;
+      btn.href = url;
+      if (cfg.label) btn.textContent = String(cfg.label);
+      wrap.classList.remove('u-hidden');
+    })
+    .catch(() => { /* sin CTA online */ });
 }
 
 function checkAuthAndInit() {
@@ -260,6 +274,24 @@ function checkAuthAndInit() {
     showStaticHostScreen();
     return;
   }
+  // Feedback post-callback Google OAuth
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    if (params.get('google_auth') === '1') {
+      toastSuccess('Sesión Google iniciada — tu roster queda aislado en este perfil.');
+      params.delete('google_auth');
+      const next = params.toString();
+      window.history.replaceState({}, '', next ? `/?${next}` : '/');
+    }
+    const gErr = params.get('google_auth_error');
+    if (gErr) {
+      toastError(`Google login: ${decodeURIComponent(gErr)}`);
+      params.delete('google_auth_error');
+      const next = params.toString();
+      window.history.replaceState({}, '', next ? `/?${next}` : '/');
+    }
+  } catch (_) { /* ignore */ }
+
   probeStudioApiStatus()
     .then(status => {
       if (!status) {
@@ -268,6 +300,8 @@ function checkAuthAndInit() {
         return;
       }
       state.pinIsDefault = !!status.pinIsDefault;
+      state.googleAuthEnabled = !!status.googleAuthEnabled;
+      applyGoogleAuthLoginUi(!!status.googleAuthEnabled);
       if (status.profile) {
         state.currentProfile = status.profile;
         updateActiveProfileChip();
@@ -283,6 +317,11 @@ function checkAuthAndInit() {
         showLoginScreen();
       }
     });
+}
+
+function applyGoogleAuthLoginUi(enabled) {
+  const block = document.getElementById('googleAuthLoginBlock');
+  if (block) block.classList.toggle('u-hidden', !enabled);
 }
 
 function showLoginScreen() {

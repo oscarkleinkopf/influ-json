@@ -291,6 +291,19 @@ const MIGRATIONS = [
         CREATE INDEX IF NOT EXISTS idx_persona_loras_persona ON persona_loras(persona_id);
       `);
     }
+  },
+  {
+    id: 12,
+    name: 'studio_profiles_google_auth',
+    up(db) {
+      addColumnIfMissing(db, 'studio_profiles', 'google_sub', 'TEXT');
+      addColumnIfMissing(db, 'studio_profiles', 'google_email', 'TEXT');
+      addColumnIfMissing(db, 'studio_profiles', 'auth_provider', "TEXT DEFAULT 'pin'");
+      db.exec(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_studio_profiles_google_sub
+          ON studio_profiles(google_sub) WHERE google_sub IS NOT NULL;
+      `);
+    }
   }
 ];
 

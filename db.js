@@ -471,26 +471,89 @@ module.exports = {
     return hydratePersona(db.prepare('SELECT * FROM personas WHERE id = ?').get(id));
   },
 
+  /**
+   * Fail-closed: sin profileId → null (no filtrar existencia ajena ni abrir todo el roster).
+   * Usar siempre con el profileId de sesión en rutas API.
+   */
   assertPersonaOwnedBy(personaId, profileId) {
-    if (!profileId) return this.getPersonaById(personaId);
-    const row = hydratePersona(db.prepare('SELECT * FROM personas WHERE id = ? AND profile_id = ?').get(personaId, profileId));
+    if (!personaId || !profileId) return null;
+    const row = hydratePersona(
+      db.prepare('SELECT * FROM personas WHERE id = ? AND profile_id = ?').get(personaId, profileId)
+    );
     return row || null;
   },
 
   assertProductOwnedBy(productId, profileId) {
+    if (!productId || !profileId) return null;
     const row = this.getProductById(productId);
     if (!row) return null;
-    if (!profileId) return row;
     if (row.profile_id && row.profile_id !== profileId) return null;
+    // Legacy sin profile_id: solo el perfil default/admin puede tocarlos vía backfill; denegar members.
+    if (!row.profile_id) return null;
     return row;
   },
 
   assertCampaignOwnedBy(campaignId, profileId) {
+    if (!campaignId || !profileId) return null;
     const row = this.getCampaignById(campaignId);
     if (!row) return null;
-    if (!profileId) return row;
     if (row.profile_id && row.profile_id !== profileId) return null;
+    if (!row.profile_id) return null;
     return row;
+  },
+
+  /**
+   * ¿Puede este perfil leer un asset privado (references/generated)?
+   * Deny si la ruta está ligada a otro profile_id. Allow si es propia, huérfana o no indexada.
+   * @param {string} mountKind 'references' | 'generated'
+   * @param {string} urlPath path Express bajo el mount (p.ej. /gen_abc.png)
+   * @param {string} profileId
+   */
+  assertAssetReadableByProfile(mountKind, urlPath, profileId) {
+    if (!profileId) return false;
+    const kind = String(mountKind || '').replace(/[^a-z]/gi, '');
+    if (kind !== 'references' && kind !== 'generated') return false;
+    const base = String(urlPath || '').replace(/^\/+/, '').replace(/\\/g, '/');
+    if (!base || base.includes('..')) return false;
+    const candidates = [
+      `assets/${kind}/${base}`,
+      `${kind}/${base}`,
+      `./assets/${kind}/${base}`
+    ];
+
+    const otherOwns = db.prepare(`
+      SELECT 1 AS x WHERE EXISTS (
+        SELECT 1 FROM personas
+        WHERE profile_id IS NOT NULL AND profile_id != ?
+          AND (image IN (${candidates.map(() => '?').join(',')})
+            OR imageUGC IN (${candidates.map(() => '?').join(',')}))
+      ) OR EXISTS (
+        SELECT 1 FROM products
+        WHERE profile_id IS NOT NULL AND profile_id != ?
+          AND image IN (${candidates.map(() => '?').join(',')})
+      ) OR EXISTS (
+        SELECT 1 FROM prompt_gallery
+        WHERE profile_id IS NOT NULL AND profile_id != ?
+          AND image_path IN (${candidates.map(() => '?').join(',')})
+      ) OR EXISTS (
+        SELECT 1 FROM persona_variants v
+        JOIN personas p ON p.id = v.persona_id
+        WHERE p.profile_id IS NOT NULL AND p.profile_id != ?
+          AND v.image_path IN (${candidates.map(() => '?').join(',')})
+      ) OR EXISTS (
+        SELECT 1 FROM generation_history g
+        JOIN personas p ON p.id = g.persona_id
+        WHERE p.profile_id IS NOT NULL AND p.profile_id != ?
+          AND g.image_path IN (${candidates.map(() => '?').join(',')})
+      )
+    `).get(
+      profileId, ...candidates, ...candidates,
+      profileId, ...candidates,
+      profileId, ...candidates,
+      profileId, ...candidates,
+      profileId, ...candidates
+    );
+    return !otherOwns;
   },
 
   getPersonaByName(name) {
@@ -515,6 +578,12 @@ module.exports = {
     }
 
     if (existing) {
+      // Defensa en profundidad: no reescribir / reasignar personas de otro perfil
+      if (existing.profile_id && existing.profile_id !== profileId) {
+        const err = new Error('Influencer no encontrado.');
+        err.code = 'PROFILE_FORBIDDEN';
+        throw err;
+      }
       // Save version history before update
       const versionId = uuidv4();
       db.prepare(`
@@ -824,6 +893,11 @@ module.exports = {
       ? db.prepare('SELECT * FROM products WHERE id = ?').get(p.id)
       : db.prepare('SELECT * FROM products WHERE LOWER(name) = LOWER(?) AND profile_id = ?').get(p.name, profileId);
     if (existing) {
+      if (existing.profile_id && existing.profile_id !== profileId) {
+        const err = new Error('Producto no encontrado.');
+        err.code = 'PROFILE_FORBIDDEN';
+        throw err;
+      }
       const keepProfile = existing.profile_id || profileId;
       db.prepare(`
         UPDATE products
@@ -914,6 +988,24 @@ module.exports = {
     const profileId = c.profile_id || c.profileId || existing?.profile_id || ensureDefaultStudioProfile();
 
     if (existing) {
+      if (existing.profile_id && existing.profile_id !== profileId) {
+        const err = new Error('Campaña no encontrada.');
+        err.code = 'PROFILE_FORBIDDEN';
+        throw err;
+      }
+    }
+
+    const keepProfile = existing?.profile_id || profileId;
+    if (c.product_id) {
+      const prod = this.assertProductOwnedBy(c.product_id, keepProfile);
+      if (!prod) {
+        const err = new Error('Producto no encontrado.');
+        err.code = 'PROFILE_FORBIDDEN';
+        throw err;
+      }
+    }
+
+    if (existing) {
       db.prepare(`
         UPDATE campaigns
         SET name = ?, product_id = ?, status = ?, budget = ?, client_name = ?, profile_id = ?
@@ -924,7 +1016,7 @@ module.exports = {
         c.status || 'draft',
         c.budget || 0,
         c.client_name,
-        profileId,
+        keepProfile,
         id
       );
     } else {
@@ -938,16 +1030,18 @@ module.exports = {
         c.status || 'draft',
         c.budget || 0,
         c.client_name,
-        profileId
+        keepProfile
       );
     }
 
-    // Update campaign personas
+    // Update campaign personas — solo personas del mismo perfil
     db.prepare('DELETE FROM campaign_personas WHERE campaign_id = ?').run(id);
     const insertCP = db.prepare('INSERT INTO campaign_personas (campaign_id, persona_id) VALUES (?, ?)');
     db.transaction(() => {
-      personaIds.forEach(pId => {
-        insertCP.run(id, pId);
+      (personaIds || []).forEach((pId) => {
+        if (!pId) return;
+        const owned = this.assertPersonaOwnedBy(pId, keepProfile);
+        if (owned) insertCP.run(id, pId);
       });
     })();
 
@@ -1398,13 +1492,19 @@ module.exports = {
   // ─── Studio profiles (local multi-user, free) ─────────────────
   listStudioProfilesPublic({ forLogin = false } = {}) {
     const rows = db.prepare(`
-      SELECT id, name, role, active, created_at, last_login_at
+      SELECT id, name, role, active, created_at, last_login_at,
+             google_sub, google_email, auth_provider, pin_salt
       FROM studio_profiles
       WHERE active = 1
       ORDER BY created_at ASC
     `).all();
     if (!forLogin) return rows;
-    return rows.filter((p) => !isHarnessStudioProfileName(p.name));
+    return rows.filter((p) => {
+      if (isHarnessStudioProfileName(p.name)) return false;
+      // Login PIN: ocultar perfiles solo-Google (no tienen PIN usable)
+      if (p.pin_salt === 'google-oauth-only' || (p.auth_provider === 'google' && !p.pin_salt)) return false;
+      return true;
+    });
   },
 
   listStudioProfilesAdmin() {
@@ -1420,9 +1520,57 @@ module.exports = {
   findStudioProfileByPin(pin) {
     const rows = db.prepare('SELECT * FROM studio_profiles WHERE active = 1').all();
     for (const row of rows) {
+      if (row.pin_salt === 'google-oauth-only') continue;
       if (authCrypto.verifyPinHash(pin, row.pin_salt, row.pin_hash)) return row;
     }
     return null;
+  },
+
+  findStudioProfileByGoogleSub(sub) {
+    if (!sub) return null;
+    return db.prepare(
+      'SELECT * FROM studio_profiles WHERE google_sub = ? AND active = 1'
+    ).get(String(sub));
+  },
+
+  /**
+   * Crea o reutiliza perfil member aislado para una cuenta Google.
+   * PIN sentinel no usable — el login es solo vía OAuth.
+   */
+  findOrCreateStudioProfileFromGoogle({ sub, email, name }) {
+    const { v4: uuidv4 } = require('uuid');
+    const cleanSub = String(sub || '').trim();
+    if (!cleanSub) throw new Error('google_sub requerido');
+    const existing = this.findStudioProfileByGoogleSub(cleanSub);
+    if (existing) return existing;
+
+    let baseName = String(name || '').trim() || (email ? String(email).split('@')[0] : '') || 'Usuario Google';
+    baseName = baseName.slice(0, 80);
+    let cleanName = baseName;
+    let n = 2;
+    while (db.prepare('SELECT id FROM studio_profiles WHERE LOWER(name) = LOWER(?)').get(cleanName)) {
+      cleanName = `${baseName} (${n})`;
+      n += 1;
+      if (n > 50) throw new Error('No se pudo asignar nombre de perfil único.');
+    }
+
+    const id = uuidv4();
+    const salt = 'google-oauth-only';
+    const hash = authCrypto.hashPin(require('crypto').randomBytes(24).toString('hex')).hash;
+    db.prepare(`
+      INSERT INTO studio_profiles
+        (id, name, pin_hash, pin_salt, role, active, google_sub, google_email, auth_provider)
+      VALUES (?, ?, ?, ?, 'member', 1, ?, ?, 'google')
+    `).run(
+      id,
+      cleanName,
+      hash,
+      salt,
+      cleanSub,
+      email ? String(email).trim().toLowerCase() : null
+    );
+    syncDbToWorkspace();
+    return this.getStudioProfileById(id);
   },
 
   touchStudioProfileLogin(id) {

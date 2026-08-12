@@ -51,6 +51,9 @@ function registerPersonasRoutes(app, deps) {
   // Personas endpoints
   app.get('/api/personas', (req, res) => {
     const profileId = req.session.profileId || resolveSessionProfile(req);
+    if (!profileId) {
+      return res.status(401).json({ success: false, message: 'Sesión sin perfil.' });
+    }
     res.json(dbService.getAllPersonas(profileId));
   });
 
@@ -59,6 +62,9 @@ function registerPersonasRoutes(app, deps) {
     const forceCreate = body.forceCreate === true || body.forceCreate === 1 || body.forceCreate === 'true';
     const isNew = forceCreate || !body.id;
     const profileId = req.session.profileId || resolveSessionProfile(req);
+    if (!profileId) {
+      return res.status(401).json({ success: false, message: 'Sesión sin perfil.' });
+    }
 
     // Update: no permitir reescribir personas de otro perfil
     if (!isNew && body.id) {
@@ -68,7 +74,15 @@ function registerPersonasRoutes(app, deps) {
       }
     }
 
-    const persona = dbService.savePersona({ ...body, profile_id: profileId });
+    let persona;
+    try {
+      persona = dbService.savePersona({ ...body, profile_id: profileId });
+    } catch (err) {
+      if (err.code === 'PROFILE_FORBIDDEN') {
+        return res.status(404).json({ success: false, message: err.message });
+      }
+      throw err;
+    }
     const lockRevision = persona?.lockRevision || null;
     if (persona && persona.lockRevision) delete persona.lockRevision;
     if (isNew && persona && persona.id) {

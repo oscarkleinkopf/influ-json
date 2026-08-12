@@ -25,13 +25,34 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/produce-gallery-declutter-9b67` |
-| **Commit base** | `main` @ #97 |
-| **PR actual** | Produce declutter + walkthrough happy path |
-| **`main` remoto** | + UGC Copiar JSON #97 |
-| **Prioridad inmediata** | Merge declutter → uso real |
+| **Rama de trabajo** | `cursor/google-auth-profiles-9b67` |
+| **Commit base** | `main` @ #98 |
+| **PR actual** | [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) Google auth + tenancy SaaS |
+| **`main` remoto** | + Produce declutter #98 |
+| **Prioridad inmediata** | Merge #99 → deploy Render + Google redirect HTTPS |
 
-### Sesión reciente (Cursor, 2026-08-12) — Merge #97 + Galería declutter
+### Sesión reciente (Cursor, 2026-08-12) — Endurecer tenancy + doc SaaS
+
+**Pedido:** Endurecer aislamiento por usuario y documentar (comercialización: login → entorno → pago).
+
+**Hecho:**
+- Asserts fail-closed (`assert*OwnedBy` sin profileId → null)
+- Defensa en `savePersona` / `saveProduct` / `saveCampaign` (no reescribir otro tenant)
+- Assets `references`/`generated`: deny si la ruta está indexada por otro `profile_id`
+- Ads batch scoped; workspaces solo admin; `/api/profiles` member = solo yo
+- Doc norte: [`docs/SAAS_TENANCY.md`](./docs/SAAS_TENANCY.md) (auth → tenant → billing)
+
+### Sesión previa (Cursor, 2026-08-12) — GitHub + Pages + Google auth
+
+**Pedido:** Respaldar en GitHub, revisar Pages, login Google para aislar creaciones.
+
+**Hecho:**
+- [#98](https://github.com/oscarkleinkopf/influ-json/pull/98) → `main`
+- Pages (`https://oscarkleinkopf.github.io/influ-json/`): 200 + `staticHostModal` (Studio local; sin API). Google **no** en Pages.
+- Google OAuth opt-in: `ENABLE_GOOGLE_AUTH=1` + `auth-google.js` → perfil member aislado por `google_sub` (schema v12)
+- **Online:** `PUBLIC_BASE_URL` + Dockerfile/`render.yaml` + `docs/DEPLOY_ONLINE.md`; Pages CTA vía `studio-online.json`
+
+### Sesión previa (Cursor, 2026-08-12) — Merge #97 + Galería declutter
 
 **Pedido:** Mergea #97 y sigamos con Galería / Produce declutter y walkthrough happy path.
 
