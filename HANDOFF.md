@@ -32,14 +32,15 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **Prioridad inmediata** | Free path / UX operatividad |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-12) — UX contexto activo en Guiones
+### Sesión reciente (Cursor, 2026-08-12) — UX contexto activo en Guiones + Licensing
 
-**Pedido:** Seguir con el bloque de desarrollo.
+**Pedido:** Continuar el bloque de desarrollo (UX-1b).
 
-**Hecho:**
-- [#100](https://github.com/oscarkleinkopf/influ-json/pull/100) ya en `main`
-- Script Engine: readout `#scriptActivePersonaName` sincronizado con chip/UGC (`populateActiveUgcData`)
-- Import: `#btnCopyImportJSON` → «Copiar estructura» (vocab UX-1c)
+**Hecho (rama `cursor/ux-active-persona-9b67` / PR #101):**
+- Script Engine: readout sincronizado con chip/UGC
+- Import: «Copiar estructura»
+- Licensing: card `#licenseActive*` + pitch sin Sofia falsa; copiar/descargar exige influencer
+- Campañas: pre-check del influencer del chip + hint si roster vacío
 - Comercial sigue aparcado
 
 ### Sesión previa (Cursor, 2026-08-12) — Free path tests; comercial pending

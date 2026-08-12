@@ -5575,15 +5575,23 @@ function setupCampaigns() {
   btnNew.addEventListener('click', () => {
     // Populate select lists
     const prodSelect = document.getElementById('cProductSelect');
-    prodSelect.innerHTML = state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    prodSelect.innerHTML = (state.products || []).length
+      ? state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')
+      : '<option value="">Sin productos — creá uno en Script Engine</option>';
     
     const personaList = document.getElementById('cPersonaChecklist');
-    personaList.innerHTML = state.personas.map(p => `
+    const roster = (state.personas || []).filter((p) => !isArchivedPersona(p));
+    const activeId = state.selectedPersona?.id;
+    if (!roster.length) {
+      personaList.innerHTML = '<p class="u-fs-11-sec u-mb-0">Sin influencers — elegí o creá uno en el chip del header.</p>';
+    } else {
+      personaList.innerHTML = roster.map(p => `
       <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer;">
-        <input type="checkbox" name="personaCheck" value="${p.id}">
+        <input type="checkbox" name="personaCheck" value="${p.id}"${String(p.id) === String(activeId) ? ' checked' : ''}>
         <span>${p.name}</span>
       </label>
     `).join('');
+    }
     
     modal.style.display = 'flex';
   });
@@ -5919,7 +5927,7 @@ function generateMockScripts() {
     frustration: "No tener tiempo para rutinas coreanas de 10 pasos"
   };
   
-  const creator = state.selectedPersona?.name || "Sofia";
+  const creator = state.selectedPersona?.name || 'tu influencer';
   
   // 10 distinct marketing angles (local templates; Gemini opt-in when API connected)
   state.scripts = [
@@ -6540,6 +6548,9 @@ function populateActiveUgcData() {
     setSrc('scriptActiveAvatar', 'assets/influencer_female.png');
     setText('scriptActivePersonaName', 'Sin influencer');
     setText('scriptActivePersonaMeta', 'Elegí uno en el chip del header o en Influencers');
+    setSrc('licenseActiveAvatar', 'assets/influencer_female.png');
+    setText('licenseActivePersonaName', 'Sin influencer');
+    setText('licenseActivePersonaMeta', 'Elegí uno en el chip del header o en Influencers');
   } else {
     setSrc('ugcActiveAvatar', creator.image || 'assets/influencer_female.png');
     setText('ugcActiveName', creator.name || 'Influencer');
@@ -6548,6 +6559,12 @@ function populateActiveUgcData() {
     setText('scriptActivePersonaName', creator.name || 'Influencer');
     setText(
       'scriptActivePersonaMeta',
+      `${creator.age || ''} • ${creator.ethnicity || creator.ethnicity_appearance || ''}`.replace(/^\s•\s*$/, '').trim() || 'Contexto del chip del header'
+    );
+    setSrc('licenseActiveAvatar', creator.image || 'assets/influencer_female.png');
+    setText('licenseActivePersonaName', creator.name || 'Influencer');
+    setText(
+      'licenseActivePersonaMeta',
       `${creator.age || ''} • ${creator.ethnicity || creator.ethnicity_appearance || ''}`.replace(/^\s•\s*$/, '').trim() || 'Contexto del chip del header'
     );
   }
@@ -6631,12 +6648,16 @@ function updateLicensingCalculator() {
   document.getElementById('priceYear').textContent = `+ $${addYear.toFixed(2)}`;
   document.getElementById('pricePerpetual').textContent = `+ $${addPerpetual.toFixed(2)}`;
   
-  // Update invoice panel
-  const creator = state.selectedPersona || { name: "Sofia" };
-  const prod = state.selectedProduct || { name: "Glow Serum Organics" };
+  // Update invoice panel — sin Sofia falsa; sin influencer = mensaje honesto
+  const creator = state.selectedPersona;
+  const prod = state.selectedProduct;
+  const creatorLabel = creator?.name
+    ? `${creator.name} — Modelo Virtual AI`
+    : 'Sin influencer — elegí uno en el chip';
+  const clientLabel = prod?.name || 'Sin producto — elegí uno o usá Script Engine';
   
-  document.getElementById('pitchClientName').textContent = `Propuesta para ${prod.name}`;
-  document.getElementById('pitchInfluName').textContent = `${creator.name} - Modelo Virtual AI`;
+  document.getElementById('pitchClientName').textContent = `Propuesta para ${clientLabel}`;
+  document.getElementById('pitchInfluName').textContent = creatorLabel;
   document.getElementById('pitchBaseFeeVal').textContent = `$${base.toFixed(2)}`;
   
   let addSelected = 0;
@@ -6655,8 +6676,10 @@ function updateLicensingCalculator() {
 }
 
 function buildLicensingProposalText() {
-  const creator = state.selectedPersona || { name: "Sofia" };
-  const prod = state.selectedProduct || { name: "Glow Serum Organics" };
+  const creator = state.selectedPersona;
+  const prod = state.selectedProduct;
+  const creatorName = creator?.name || null;
+  const prodName = prod?.name || null;
   const base = state.baseFee;
   
   const licenceSelect = document.getElementById('pitchLicenceSelect');
@@ -6668,8 +6691,8 @@ function buildLicensingProposalText() {
   return `================================================
 PROPUESTA COMERCIAL - AI UGC CAMPAIGN
 ================================================
-Cliente: ${prod.name}
-Creador Virtual: ${creator.name}
+Cliente: ${prodName || '(sin producto seleccionado)'}
+Creador Virtual: ${creatorName || '(sin influencer — elegí uno en el chip)'}
 Ángulo del Anuncio: ${activeScript.angle}
 
 DESGLOSE DE SERVICIOS:
@@ -6690,12 +6713,20 @@ INVERSIÓN TOTAL: ${totalText} USD
 }
 
 function copyLicensingProposal() {
+  if (!state.selectedPersona) {
+    toastInfo('Elegí un influencer en el chip del header antes de copiar la propuesta.');
+    return;
+  }
   navigator.clipboard.writeText(buildLicensingProposalText());
   toastSuccess('Propuesta formateada copiada al portapapeles');
 }
 
 /** UX-3b — descarga .txt en lugar del alert stub «Enviar Propuesta». */
 function downloadLicensingProposal() {
+  if (!state.selectedPersona) {
+    toastInfo('Elegí un influencer en el chip del header antes de descargar la propuesta.');
+    return;
+  }
   const text = buildLicensingProposalText();
   const creator = state.selectedPersona?.name || 'influencer';
   const safe = String(creator).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'propuesta';

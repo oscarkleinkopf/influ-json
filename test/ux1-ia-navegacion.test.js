@@ -99,6 +99,21 @@ test('UX-1b: Guiones muestra el mismo influencer activo que UGC', () => {
   assert.match(css, /\.active-context-row/);
 });
 
+test('UX-1b: Licensing muestra influencer activo y no usa Sofia falsa', () => {
+  assert.match(html, /id="licenseActivePersonaName"/);
+  assert.match(html, /id="licenseActiveAvatar"/);
+  assert.match(html, /id="pitchInfluName"[^>]*>\s*Sin influencer/);
+  assert.doesNotMatch(html, /id="pitchInfluName"[^>]*>\s*Sofia/);
+  assert.match(appJs, /populateActiveUgcData[\s\S]{0,2000}licenseActivePersonaName/);
+  assert.doesNotMatch(appJs, /selectedPersona \|\| \{\s*name:\s*["']Sofia["']/);
+  assert.match(appJs, /copyLicensingProposal[\s\S]{0,250}selectedPersona/);
+});
+
+test('UX-1b: Nueva campaña pre-marca el influencer del chip', () => {
+  assert.match(appJs, /selectedPersona\?\.id[\s\S]{0,500}personaCheck/);
+  assert.match(appJs, /Sin influencers — elegí/);
+});
+
 test('UX-1c: ≤3 botones con label exacto «Copiar JSON»', () => {
   // Botones interactivos cuyo texto visible es exactamente "Copiar JSON"
   const buttonRe = /<button\b[^>]*>([\s\S]*?)<\/button>/gi;
