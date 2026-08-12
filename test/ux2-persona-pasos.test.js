@@ -45,9 +45,14 @@ test('UX-2: identidad pliega escena y marca; avanzado pliega A/B y LoRA', () => 
   const pe = personaEngineSlice();
   assert.match(pe, /id="personaIdentitySceneDetails"/);
   assert.match(pe, /id="personaIdentityBrandDetails"/);
+  assert.match(pe, /id="personaIdentityExtraTraits"/);
   assert.match(pe, /id="personaAdvancedTools"/);
   assert.match(pe, /id="loraAdvancedPanel"[^>]*data-persona-step="advanced"/);
   assert.match(pe, /id="abComparatorContainer"[^>]*data-persona-step="advanced"/);
+  // Details de identidad no nacen abiertos
+  assert.doesNotMatch(pe, /id="personaIdentityExtraTraits"[^>]*\sopen[\s>]/);
+  assert.doesNotMatch(pe, /id="personaAdvancedTools"[^>]*\sopen[\s>]/);
+  assert.doesNotMatch(pe, /id="loraAdvancedPanel"[^>]*\sopen[\s>]/);
 });
 
 test('UX-2: CSS oculta pasos inactivos; crear → paso 1, select → paso 2', () => {
@@ -56,6 +61,8 @@ test('UX-2: CSS oculta pasos inactivos; crear → paso 1, select → paso 2', ()
   assert.match(appJs, /startCreateScratchFlow[\s\S]{0,800}setPersonaStep\(1/);
   assert.match(appJs, /selectPersona\(persona\)[\s\S]{0,2200}setPersonaStep\(2/);
   assert.match(appJs, /action === 'packs'[\s\S]{0,350}setPersonaStep\(2/);
+  // Al cambiar paso se pliegan avanzados
+  assert.match(appJs, /#personaAdvancedTools[\s\S]{0,280}d\.open\s*=\s*false/);
 });
 
 test('UX-2: campaigns editor-layout no lleva id personaEditorLayout', () => {

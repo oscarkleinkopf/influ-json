@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-12 | **Merge #101** + empty/UX-2 | campañas/historial 1 CTA; Identidad must_match + Avanzado plegado |
 | 2026-08-12 | **UX honesty + Negocio walk** (#101) | sin Glow Serum default; Licensing=chip; campaña pre-check; 362 tests |
 | 2026-08-12 | **Produce declutter** Galería off hub | subnav UGC+Guiones; Ver galería en ficha; empty→Copiar JSON |
 | 2026-08-12 | **UGC Copiar JSON** honesty | `#btnExportUgcChatbot` → `copyFreeChatbotPack('product')`; sin Sofia fake; vídeo en details |

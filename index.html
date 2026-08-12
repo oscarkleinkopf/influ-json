@@ -914,10 +914,10 @@
                 </div>
               </details>
 
-              <!-- Detalles Físicos Detallados Accordion/Row -->
+              <!-- Detalles Físicos: must_match visible; extras plegados (UX-2) -->
               <div class="glass-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); margin-top: 14px; padding: 14px; border-radius: var(--border-radius-md);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                  <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin: 0; font-family: var(--font-display);">✨ Identidad Física Detallada (Rasgos)</h4>
+                  <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin: 0; font-family: var(--font-display);">✨ Identidad (must_match)</h4>
                   <button type="button" id="btnGenerateTraits" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; cursor: pointer;">🎲 Generar Rasgos Únicos</button>
                 </div>
                 <div class="form-row">
@@ -935,15 +935,31 @@
                 </div>
                 <div class="form-row u-mt-10">
                   <div>
-                    <label for="pSkinTexture">Textura de la Piel</label>
-                    <input type="text" id="pSkinTexture" value="Piel suave con poros y pecas muy sutiles">
+                    <label for="pHairColor">Color de Pelo</label>
+                    <input type="text" id="pHairColor" list="dlHairColor" placeholder="Selecciona o escribe..." value="Castaño oscuro natural">
                   </div>
-                  <div></div>
+                  <div>
+                    <label for="pEyeColor">Color de Ojos</label>
+                    <input type="text" id="pEyeColor" list="dlEyeColor" placeholder="Selecciona o escribe..." value="Marrón cálido con destellos miel">
+                  </div>
                 </div>
                 <div class="form-row u-mt-10">
                   <div>
-                    <label for="pHairColor">Color de Pelo</label>
-                    <input type="text" id="pHairColor" list="dlHairColor" placeholder="Selecciona o escribe..." value="Castaño oscuro natural">
+                    <label for="pBodyType">Complexión / silueta</label>
+                    <input type="text" id="pBodyType" value="Atlético y proporcionado" placeholder="Ej: Curvilíneo, esbelto, fit...">
+                  </div>
+                  <div>
+                    <label for="pHeight">Estatura aparente</label>
+                    <input type="text" id="pHeight" value="Estatura media (~1.65 m)" placeholder="Ej: Alta, media, petite">
+                  </div>
+                </div>
+
+                <details id="personaIdentityExtraTraits" class="persona-identity-details" style="margin-top:12px;">
+                  <summary>Más rasgos (textura, labios, proporciones) — opcional</summary>
+                <div class="form-row" style="margin-top:10px;">
+                  <div>
+                    <label for="pSkinTexture">Textura de la Piel</label>
+                    <input type="text" id="pSkinTexture" value="Piel suave con poros y pecas muy sutiles">
                   </div>
                   <div>
                     <label for="pHairTexture">Textura de Cabello</label>
@@ -962,37 +978,24 @@
                 </div>
                 <div class="form-row u-mt-10">
                   <div>
-                    <label for="pEyeColor">Color de Ojos</label>
-                    <input type="text" id="pEyeColor" list="dlEyeColor" placeholder="Selecciona o escribe..." value="Marrón cálido con destellos miel">
-                  </div>
-                  <div>
                     <label for="pLips">Labios (Color y Forma)</label>
                     <input type="text" id="pLips" value="Labios rosados naturales carnosos">
                   </div>
-                </div>
-                <div class="form-row u-mt-10">
                   <div>
                     <label for="pFaceShape">Forma del Rostro</label>
                     <input type="text" id="pFaceShape" value="Ovalada con mandíbula definida">
                   </div>
+                </div>
+                <div class="form-row u-mt-10">
                   <div>
                     <label for="pSmileType">Tipo de Sonrisa</label>
                     <input type="text" id="pSmileType" value="Sonrisa cálida, accesible y natural">
                   </div>
+                  <div></div>
                 </div>
                 <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
-                  <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 10px; font-family: var(--font-display);">🧍 Cuerpo completo (no solo rostro)</h4>
+                  <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 10px; font-family: var(--font-display);">🧍 Cuerpo (detalle)</h4>
                   <div class="form-row">
-                    <div>
-                      <label for="pBodyType">Complexión / silueta</label>
-                      <input type="text" id="pBodyType" value="Atlético y proporcionado" placeholder="Ej: Curvilíneo, esbelto, fit...">
-                    </div>
-                    <div>
-                      <label for="pHeight">Estatura aparente</label>
-                      <input type="text" id="pHeight" value="Estatura media (~1.65 m)" placeholder="Ej: Alta, media, petite">
-                    </div>
-                  </div>
-                  <div class="form-row u-mt-10">
                     <div>
                       <label for="pProportions">Proporciones (hombros / cintura / cadera)</label>
                       <input type="text" id="pProportions" value="Hombros equilibrados, cintura definida, caderas suaves y proporcionales">
@@ -1013,6 +1016,7 @@
                     </div>
                   </div>
                 </div>
+                </details>
               </div>
 
               <!-- Personalidad y Reglas de Marca -->
@@ -1576,9 +1580,14 @@
           <div class="history-grid" id="generationHistoryGrid">
             <!-- Dynamic history cards -->
           </div>
-          <p id="historyEmptyMsg" style="display: none; color: var(--text-secondary); text-align: center; padding: 40px 0; font-size: 14px;">
-            Sin gens — igual puedes exportar packs. Copia el JSON a un chatbot free; Pollinations es opcional.
-          </p>
+          <div id="historyEmptyMsg" class="empty-roster-panel" style="display: none; padding: 24px 0; text-align: center;">
+            <p class="empty-roster-lead u-mb-12">
+              Sin gens — igual puedes exportar packs. Pollinations es opcional.
+            </p>
+            <div class="empty-roster-actions" style="justify-content: center;">
+              <button type="button" class="btn btn-sm" id="btnEmptyHistoryCopyJson">Ir a Copiar JSON</button>
+            </div>
+          </div>
         </div>
       
         <div class="persona-step-footer" id="personaStepFooter" data-persona-step="all">

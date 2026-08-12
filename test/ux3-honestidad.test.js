@@ -75,9 +75,20 @@ test('UX-3a: Regenerar Scripts cableado a generateCampaignScriptsAction', () => 
 
 test('UX-3f: empty states de campañas y galería tienen CTA', () => {
   const appJs = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
-  assert.match(appJs, /btnEmptyCampaignCreate/);
+  assert.match(appJs, /btnEmptyCampaignCreate|btnEmptyCampaignCreatePersona/);
   assert.match(appJs, /btnEmptyGalleryCopyJson|btnEmptyGalleryClear/);
   assert.match(appJs, /btnEmptyGalleryCopyJson[\s\S]{0,400}setPersonaStep\(2/);
+  // Un solo CTA en vacío: header Nueva Campaña se oculta
+  assert.match(appJs, /btnNewCampaign[\s\S]{0,200}hidden\s*=\s*true/);
+  assert.match(appJs, /btnEmptyCampaignCreatePersona[\s\S]{0,400}setPersonaStep\(1/);
+});
+
+test('UX-3f: historial vacío apunta a Copiar JSON', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const appJs = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+  assert.match(html, /id="btnEmptyHistoryCopyJson"/);
+  assert.match(html, /id="historyEmptyMsg"/);
+  assert.match(appJs, /btnEmptyHistoryCopyJson[\s\S]{0,300}setPersonaStep\(2/);
 });
 
 test('UX-3d/e: /api/data expone scriptsCount y gens scoped por perfil', async () => {

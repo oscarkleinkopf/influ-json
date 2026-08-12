@@ -1746,6 +1746,25 @@ function setPersonaStep(step, { scroll = true } = {}) {
     }
   }
 
+  // UX-2: Avanzado / detalles opcionales siempre plegados al cambiar de paso
+  document.querySelectorAll(
+    '#persona-engine details.persona-identity-details, #personaAdvancedTools, #loraAdvancedPanel, #personaIdentityExtraTraits'
+  ).forEach((d) => {
+    try { d.open = false; } catch (_) {}
+  });
+  const ab = document.getElementById('abComparatorContainer');
+  const hist = document.getElementById('historyTimelineContainer');
+  if (ab) {
+    ab.style.display = 'none';
+    ab.classList.add('u-hidden-mb-28');
+  }
+  if (hist) {
+    hist.style.display = 'none';
+    hist.classList.add('u-hidden-mb-28');
+  }
+  document.getElementById('btnToggleAB')?.classList.remove('active');
+  document.getElementById('btnToggleHistory')?.classList.remove('active');
+
   if (scroll) {
     document.getElementById('personaStepper')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -1760,6 +1779,11 @@ function setupPersonaSteps() {
   });
   document.getElementById('btnPersonaStepNext')?.addEventListener('click', () => {
     setPersonaStep(Math.min(3, getPersonaStep() + 1));
+  });
+  document.getElementById('btnEmptyHistoryCopyJson')?.addEventListener('click', () => {
+    if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: true });
+    const copy = document.getElementById('btnCopyPackFullbodyPrimary') || document.getElementById('btnContextCopyJson');
+    copy?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
   setPersonaStep(state.personaStep || 1, { scroll: false });
 }
@@ -5754,19 +5778,41 @@ async function renderCampaigns() {
     state.campaigns = campaigns;
     
     listGrid.innerHTML = '';
+    const btnNewCampaign = document.getElementById('btnNewCampaign');
     if (campaigns.length === 0) {
+      // UX-3f: un solo CTA (ocultar el del header); happy path si no hay roster
+      if (btnNewCampaign) btnNewCampaign.hidden = true;
+      const roster = (state.personas || []).filter((p) => !isArchivedPersona(p));
+      const hasRoster = roster.length > 0;
       listGrid.innerHTML = `
         <div class="empty-roster-panel" style="padding: 8px 0;">
-          <p class="empty-roster-lead u-mb-12" >Aún no hay campañas. Agrupa influencers + producto y exporta un ZIP comercial.</p>
+          <p class="empty-roster-lead u-mb-12">${
+            hasRoster
+              ? 'Aún no hay campañas. Agrupa influencers + producto y exporta un ZIP comercial.'
+              : 'Sin influencers todavía. Creá uno, copiá el JSON, y después armá campañas.'
+          }</p>
           <div class="empty-roster-actions">
-            <button type="button" class="btn btn-sm" id="btnEmptyCampaignCreate">+ Nueva Campaña</button>
+            ${hasRoster
+              ? '<button type="button" class="btn btn-sm" id="btnEmptyCampaignCreate">+ Nueva Campaña</button>'
+              : '<button type="button" class="btn btn-sm" id="btnEmptyCampaignCreatePersona">Crear influencer</button>'}
           </div>
         </div>`;
       document.getElementById('btnEmptyCampaignCreate')?.addEventListener('click', () => {
-        document.getElementById('btnNewCampaign')?.click();
+        if (btnNewCampaign) {
+          btnNewCampaign.hidden = false;
+          btnNewCampaign.click();
+        }
+      });
+      document.getElementById('btnEmptyCampaignCreatePersona')?.addEventListener('click', () => {
+        if (typeof navigateToTab === 'function') navigateToTab('persona-engine');
+        if (typeof setPersonaStep === 'function') setPersonaStep(1, { scroll: true });
+        if (typeof startCreateScratchFlow === 'function') {
+          try { startCreateScratchFlow(); } catch (_) {}
+        }
       });
       return;
     }
+    if (btnNewCampaign) btnNewCampaign.hidden = false;
     
     campaigns.forEach(c => {
       const card = document.createElement('div');
