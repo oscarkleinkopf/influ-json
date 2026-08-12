@@ -114,18 +114,21 @@ test('UX-1b: Nueva campaña pre-marca el influencer del chip', () => {
   assert.match(appJs, /Sin influencers — elegí/);
 });
 
-test('UX-1c: ≤3 botones con label exacto «Copiar JSON»', () => {
-  // Botones interactivos cuyo texto visible es exactamente "Copiar JSON"
+test('UX-1c: vocab unificado — sin «Copiar JSON (recomendado)» en botones', () => {
+  // Botones: cero chrome «(recomendado)»; CTA = «Copiar JSON»
   const buttonRe = /<button\b[^>]*>([\s\S]*?)<\/button>/gi;
-  const labels = [];
+  const copyJson = [];
+  const copyRec = [];
   let m;
   while ((m = buttonRe.exec(html))) {
     const text = m[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    if (text === 'Copiar JSON') labels.push(text);
+    if (text === 'Copiar JSON') copyJson.push(text);
+    if (text === 'Copiar JSON (recomendado)') copyRec.push(text);
   }
-  assert.ok(labels.length <= 3, `esperaba ≤3 botones «Copiar JSON», hay ${labels.length}`);
-  assert.ok(labels.length >= 2, 'debe quedar al menos el canónico + contexto');
+  assert.equal(copyRec.length, 0, 'no debe quedar botón exacto «Copiar JSON (recomendado)»');
+  assert.ok(copyJson.length >= 2, 'debe haber al menos chip/guía/CTA con «Copiar JSON»');
   assert.match(html, /id="btnCopyPackFullbodyPrimary"/);
+  assert.match(html, /id="btnContextCopyJson"/);
   assert.match(html, /id="packVariantsMenu"/);
   assert.match(html, /Packs ▾/);
   // UGC CTA copia pack product (honesty #97)
@@ -133,4 +136,13 @@ test('UX-1c: ≤3 botones con label exacto «Copiar JSON»', () => {
   // Import copia estructura cruda — no debe decir «Copiar JSON»
   assert.match(html, /id="btnCopyImportJSON"[^>]*>\s*Copiar estructura\s*</);
   assert.doesNotMatch(html, /id="btnCopyImportJSON"[^>]*>\s*Copiar JSON\s*</);
+});
+
+test('UX-1c: Persona Engine sin Sofia de placeholder', () => {
+  assert.doesNotMatch(html, /id="sheetName"[^>]*>\s*Sofia\s*</);
+  assert.doesNotMatch(html, /id="pName"[^>]*value="Sofia"/);
+  assert.doesNotMatch(html, /id="activeInfluencerName"[^>]*>\s*Sofia\s*</);
+  assert.match(html, /id="sheetName"[^>]*>\s*Sin influencer\s*</);
+  assert.match(html, /id="pName"[^>]*placeholder="Nombre del influencer"/);
+  assert.match(html, /id="activeInfluencerName"[^>]*>\s*Sin influencer\s*</);
 });

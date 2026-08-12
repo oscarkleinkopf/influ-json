@@ -113,7 +113,7 @@
         </div>
         <div class="portfolio-card-tag">${escapeHtml(tag)}</div>
         <div class="portfolio-card-actions">
-          <button type="button" class="btn btn-quick-copy-pack btn-compact" data-offline-highlight="pack" title="Copiar JSON (recomendado) — pack cuerpo entero">Copiar JSON (recomendado)</button>
+          <button type="button" class="btn btn-quick-copy-pack btn-compact" data-offline-highlight="pack" title="Copiar JSON — pack cuerpo entero (recomendado)">Copiar JSON</button>
           <button type="button" class="btn btn-secondary btn-quick-select btn-compact">Seleccionar</button>
           <div class="portfolio-pack-menu">
             <button type="button" class="btn btn-secondary btn-quick-packs" data-offline-highlight="pack" aria-haspopup="true" aria-expanded="false" title="Biblioteca de packs free para chatbot">Packs ▾</button>

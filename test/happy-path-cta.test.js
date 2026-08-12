@@ -33,9 +33,9 @@ test('W14: post-save CTA pack + gen demoted a boceto opcional', () => {
   const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
-  assert.match(app, /Copiar JSON \(recomendado\)|Copiar pack fullbody/);
+  assert.match(app, /Copiar JSON|Copiar pack fullbody/);
   assert.match(app, /creatingNew[\s\S]{0,200}toastSuccess/);
-  assert.match(app, /actionLabel:\s*'Copiar JSON \(recomendado\)'|actionLabel:\s*'Copiar pack fullbody'/);
+  assert.match(app, /actionLabel:\s*'Copiar JSON'|actionLabel:\s*'Copiar pack fullbody'/);
   assert.match(app, /data-happy-action="copy-pack"|data-happy-next="copy-pack"|copy-pack/);
 
   assert.match(html, /Generar boceto \(opt-in · puede pedir token\)|Boceto local opcional|Generar boceto \(gratis, inestable\)/);
@@ -60,7 +60,7 @@ test('UX: pollen/401 CTA + LoRA demoted fuera del pack card verde', () => {
   assert.match(app, /function notifyGenerationFailure/);
   assert.match(app, /function setPollenBanner/);
   assert.match(app, /function openPollinationsSettings/);
-  assert.match(app, /actionLabel:\s*'Copiar JSON \(recomendado\)'/);
+  assert.match(app, /actionLabel:\s*'Copiar JSON'/);
   // authFetch no debe cerrar sesión ante pollen authRequired
   assert.match(app, /peek\?\.authRequired|authRequired[\s\S]{0,80}pollenish/);
   assert.match(html, /id="pollenBanner"/);

@@ -21,7 +21,8 @@ test('Free Path: UGC pone Copiar JSON antes del boceto', () => {
   assert.ok(copyIdx >= 0 && bocetoIdx > copyIdx, 'Copiar JSON debe ir antes del boceto');
   assert.match(ugc, /Free path: pack de la ficha|Free path: Copiar JSON/);
   assert.match(ugc, /id="btnExportUgcChatbot"/);
-  assert.match(ugc, /Copiar JSON \(recomendado\)/);
+  assert.match(ugc, /Copiar JSON/);
+  assert.doesNotMatch(ugc, /id="btnExportUgcChatbot"[\s\S]{0,120}Copiar JSON \(recomendado\)/);
   assert.match(ugc, /ugcAdvancedAdsDetails/);
   assert.match(ugc, /ugcDownloadsDetails/);
   assert.match(ugc, /ugcVideoDemoDetails/);

@@ -148,7 +148,7 @@ function setupOfflineBanner() {
   // W15 — 429 banner CTA → modo offline
   document.getElementById('btnRateLimitGoOffline')?.addEventListener('click', () => {
     syncToggles(true);
-    toastInfo('Modo offline activo — usa Copiar JSON (recomendado). La cola no cambió.');
+    toastInfo('Modo offline activo — usa Copiar JSON. La cola no cambió.');
   });
   document.getElementById('btnPollenCopyJson')?.addEventListener('click', () => {
     setPollenBanner(false);
@@ -1217,8 +1217,8 @@ async function logoutSession() {
 /** Abre Ajustes y enfoca el campo POLLINATIONS_TOKEN (path boceto). Solo admin. */
 function openPollinationsSettings() {
   if (!isCurrentUserAdmin()) {
-    toastInfo('El token de Pollinations lo configura Administración en Ajustes. Mientras tanto: Copiar JSON (recomendado) — cero costo.', {
-      actionLabel: 'Copiar JSON (recomendado)',
+    toastInfo('El token de Pollinations lo configura Administración en Ajustes. Mientras tanto: Copiar JSON — cero costo.', {
+      actionLabel: 'Copiar JSON',
       onAction: () => {
         if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
       }
@@ -2290,7 +2290,7 @@ function renderHappyPathNextCta() {
       <p class="happy-path-next-title">Copia el JSON fullbody de «${String(name).replace(/[<>&"]/g, '')}»</p>
       <p class="happy-path-next-hint">Pégalo en ChatGPT / Gemini / Claude free. Gen local no hace falta.</p>
       <div class="empty-roster-actions">
-        <button type="button" class="btn btn-sm" data-happy-next="copy-pack" data-offline-highlight="pack">Copiar JSON (recomendado)</button>
+        <button type="button" class="btn btn-sm" data-happy-next="copy-pack" data-offline-highlight="pack">Copiar JSON</button>
       </div>
     `;
   } else {
@@ -2338,7 +2338,7 @@ async function runHappyPathAction(action) {
         selectPersona(state.personas[0]);
       }
       if (!state.selectedPersona && !document.getElementById('pName')?.value) {
-        toastInfo('Guarda un influencer primero; luego Copiar JSON (recomendado).');
+        toastInfo('Guarda un influencer primero; luego Copiar JSON.');
         runHappyPathAction('create');
         return;
       }
@@ -2744,9 +2744,9 @@ function setGenerationButtonsDisabled(disabled) {
     if (!el) return;
     el.disabled = locked;
     el.classList.toggle('is-queue-locked', locked);
-    if (offline) el.setAttribute('title', 'Modo offline: usa Copiar JSON (recomendado)');
+    if (offline) el.setAttribute('title', 'Modo offline: usa Copiar JSON');
     else if (disabled) el.setAttribute('title', 'Espera a que termine la cola de generación');
-    else if (rateLimited) el.setAttribute('title', '429 reciente — mejor Copiar JSON (recomendado) o activa Modo offline');
+    else if (rateLimited) el.setAttribute('title', '429 reciente — mejor Copiar JSON o activa Modo offline');
     else el.setAttribute('title', 'Generar boceto (opt-in · puede pedir token) — Pollinations opcional');
   });
   const highlightPacks = offline || rateLimited;
@@ -2789,7 +2789,7 @@ function applyOfflineModeUi() {
   if (toggleBar) toggleBar.checked = on;
   const banner = document.getElementById('offlineBanner');
   if (on) {
-    setOfflineBanner(true, 'Modo offline activo — generación pausada. Usa Copiar JSON (recomendado) en chatbots gratis.');
+    setOfflineBanner(true, 'Modo offline activo — generación pausada. Usa Copiar JSON en chatbots gratis.');
     if (banner) banner.dataset.source = 'mode';
   } else if (!navigator.onLine) {
     setOfflineBanner(true, 'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.');
@@ -2822,7 +2822,7 @@ function updateRateLimitBanner(q) {
   setPollenBanner(false);
   const cooldownSec = Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30;
   if (text) {
-    text.textContent = `Pollinations 429 — cola en pausa (~${cooldownSec}s). Sugerencia: Modo offline + Copiar JSON (recomendado).`;
+    text.textContent = `Pollinations 429 — cola en pausa (~${cooldownSec}s). Sugerencia: Modo offline + Copiar JSON.`;
   }
   banner.style.display = 'flex';
   // W15 — enfatizar packs durante 429 (sin cambiar defaults de cola)
@@ -2869,7 +2869,7 @@ function notifyGenerationFailure(data, err) {
   if (isPollenAuthError(data, err)) {
     setPollenBanner(true, msg);
     toastError('Boceto necesita token (pollen). El producto gratis es Copiar JSON — o pega el token en Ajustes.', {
-      actionLabel: 'Copiar JSON (recomendado)',
+      actionLabel: 'Copiar JSON',
       onAction: () => {
         if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
       }
@@ -5407,8 +5407,8 @@ async function savePersona(opts = {}) {
       // W14 — tras primer save: CTA único = copiar pack (no generar imagen)
       if (creatingNew) {
         if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: false });
-        toastSuccess(`«${name}» guardado. Siguiente: Copiar JSON (recomendado) — pack fullbody, sin gen.`, {
-          actionLabel: 'Copiar JSON (recomendado)',
+        toastSuccess(`«${name}» guardado. Siguiente: Copiar JSON — pack fullbody, sin gen.`, {
+          actionLabel: 'Copiar JSON',
           onAction: () => {
             copyFreeChatbotPack('fullbody');
           },

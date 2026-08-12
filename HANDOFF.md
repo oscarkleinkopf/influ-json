@@ -41,6 +41,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - Import: «Copiar estructura»
 - Licensing: card `#licenseActive*` + pitch sin Sofia falsa; copiar/descargar exige influencer
 - Campañas: pre-check del influencer del chip + hint si roster vacío
+- UX-1c: CTAs unificados a «Copiar JSON» (sin chrome «(recomendado)»); Persona Engine sin Sofia placeholder
 - Comercial sigue aparcado
 
 ### Sesión previa (Cursor, 2026-08-12) — Free path tests; comercial pending

@@ -333,7 +333,7 @@
           Copia JSON / packs a un chatbot free. «Generar boceto» es opcional e inestable (Pollinations).
         </p>
         <div class="vault-empty-offline__actions">
-          <button type="button" class="btn btn-sm" data-offline-highlight="pack" id="btnVaultEmptyCopyPack">Copiar JSON (recomendado)</button>
+          <button type="button" class="btn btn-sm" data-offline-highlight="pack" id="btnVaultEmptyCopyPack">Copiar JSON</button>
           <button type="button" class="btn btn-secondary btn-sm" id="btnVaultEmptyGenBoceto">Generar boceto (opt-in · puede pedir token)</button>
         </div>
       </div>
