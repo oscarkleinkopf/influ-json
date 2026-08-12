@@ -25,13 +25,21 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux5-db-harness-9b67` |
-| **Commit base** | `main` @ #92 UX-4 |
-| **PR actual** | UX-5 harness DB aislada |
-| **`main` remoto** | UX-4 (#92) + PLAN-UX (#84); #93 UX-4 restos pendiente |
-| **Prioridad inmediata** | Merge UX-5 → luego merge #93 si aplica |
+| **Rama de trabajo** | `cursor/ux4-restos-9b67` (rebase sobre main + #94) |
+| **Commit base** | `main` @ #94 UX-5 |
+| **PR actual** | #93 UX-4 restos (fix CI) |
+| **`main` remoto** | UX-5 (#94) merged; #93 pendiente |
+| **Prioridad inmediata** | Verde #93 → merge a main |
 
-### Sesión reciente (Cursor, 2026-08-12) — UX-5 harness
+### Sesión reciente (Cursor, 2026-08-12) — Merges UX-5 + fix UX-4 restos
+
+**Pedido:** Continua con eso (merge #94 + #93).
+
+**Hecho:**
+- [#94](https://github.com/oscarkleinkopf/influ-json/pull/94) UX-5 → `main`
+- Rebase #93 sobre main; tests ajustados a `persona-card.js` / `id="btnGenerateVariant"`
+
+### Sesión previa (Cursor, 2026-08-12) — UX-5 harness
 
 **Pedido:** Sigamos con UX-5.
 
@@ -42,6 +50,18 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - Tests `test/ux5-data-dir-isolation.test.js` (334 pass; `data/influ.sqlite` del workspace intacto)
 - PLAN-NEXT DoD: captura de pestaña afectada + nota DB aislada
 - Cerrados drafts stale #72, #76–#80 (comentarios UX-5)
+
+### Sesión previa (Cursor, 2026-08-12) — UX-4 restos
+
+**Pedido:** Terminemos esos restos de UX-4.
+
+**Hecho:**
+- `photo-analysis.js` — motor de colores + `generateDetailedJSON` + `ANALYSIS_FIELD_OPTIONS` fuera de `app.js`
+- `buildPortfolioCard` en `persona-card.js` (tercer constructor unificado)
+- `LOOK_PRESETS` / `findOptionByRegex` → `variant-presets.js`
+- Vault variantes: clases `.variant-card*`, `.vault-empty-offline*` (sin hover JS)
+- ~144 `style=` → utilidades (`.u-option-card`, `.u-header-row`, …) en views
+- Tests ampliados en `test/ux4-modules.test.js`
 
 ### Sesión previa (Cursor, 2026-08-12) — Merges a main
 

@@ -23,6 +23,7 @@ test('UX-4 modules export expected APIs', () => {
   assert.equal(typeof form.readPersonaRowFields, 'function');
   assert.equal(typeof card.buildSelectPersonaCard, 'function');
   assert.equal(typeof card.buildCampaignPersonaCard, 'function');
+  assert.equal(typeof card.buildPortfolioCard, 'function');
   assert.equal(typeof queue.createQueuePoller, 'function');
 });
 
@@ -143,8 +144,10 @@ test('CSS UX-4: btn-compact y persona-card--compact', () => {
   assert.match(css, /\.persona-card--compact/);
   assert.match(css, /\.settings-field-input/);
   assert.match(css, /\.empty-filter-panel/);
-  assert.match(appJs, /btn-compact/);
+  const cardSrc = fs.readFileSync(path.join(root, 'persona-card.js'), 'utf8');
+  assert.match(cardSrc, /btn-compact/);
   assert.match(appJs, /empty-filter-panel/);
+  assert.match(appJs, /buildPortfolioCard/);
 });
 
 test('variant-presets UMD + app wiring', () => {
@@ -193,6 +196,42 @@ test('CSS utilities UX-4 presentes', () => {
   assert.match(css, /\.u-flex-between/);
   assert.match(css, /\.u-section-title/);
   assert.match(css, /\.filter-btn-active/);
+  assert.match(css, /\.variant-card__img/);
+  assert.match(css, /\.vault-empty-offline__title/);
+  assert.match(css, /\.u-option-card/);
   const pe = fs.readFileSync(path.join(root, 'views', 'tabs', 'persona-engine.html'), 'utf8');
   assert.match(pe, /u-hidden|u-flex-between|u-mt-10/);
+  assert.match(pe, /u-option-card|u-step-title|u-header-row/);
+});
+
+test('photo-analysis UMD + app wiring', async () => {
+  const photo = require('../photo-analysis.js');
+  assert.equal(typeof photo.extractDominantColors, 'function');
+  assert.equal(typeof photo.generateDetailedJSON, 'function');
+  assert.ok(photo.ANALYSIS_FIELD_OPTIONS.identity);
+  assert.equal(photo.classifySkinToneColor({ r: 240, g: 230, b: 220 }), 'Tez muy clara / porcelana');
+  const detailed = await photo.generateDetailedJSON(
+    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==',
+    [{ r: 180, g: 140, b: 100, hex: '#b48c64' }],
+    { anchorReference: 'assets/ref.jpg' }
+  );
+  assert.equal(detailed.anchor_reference, 'assets/ref.jpg');
+  assert.ok(detailed.facial_features.skin_tone);
+  assert.match(appJs, /InfluPhotoAnalysis/);
+  assert.match(appJs, /_photoAnalysisApi/);
+  assert.doesNotMatch(appJs, /function extractDominantColors/);
+  assert.doesNotMatch(appJs, /function classifySkinToneColor/);
+  assert.match(foot, /photo-analysis\.js/);
+  assert.match(serverJs, /photo-analysis\.js/);
+});
+
+test('buildPortfolioCard + LOOK_PRESETS en módulos', () => {
+  assert.equal(typeof card.buildPortfolioCard, 'function');
+  assert.match(appJs, /buildPortfolioCard/);
+  const vp = require('../variant-presets.js');
+  assert.ok(Array.isArray(vp.LOOK_PRESETS));
+  assert.ok(vp.LOOK_PRESETS.length >= 4);
+  assert.equal(typeof vp.findOptionByRegex, 'function');
+  assert.match(appJs, /LOOK_PRESETS = _variantPresetsApi/);
+  assert.doesNotMatch(appJs, /id: 'beach', label: '🏖️ Playa'/);
 });

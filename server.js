@@ -262,6 +262,9 @@ app.get('/persona-card.js', (req, res) => {
 app.get('/variant-presets.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'variant-presets.js'));
 });
+app.get('/photo-analysis.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'photo-analysis.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });

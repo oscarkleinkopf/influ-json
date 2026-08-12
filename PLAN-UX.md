@@ -151,11 +151,13 @@ Lo avanzado —LoRA (L2/L5), face-lock de pago, comparador A/B, historial de ver
 
 ## 8. Bloque UX-4 — Mantenibilidad mínima (sin React)
 
-1. **Partir `index.html` en parciales** por pestaña (`views/dashboard.html`, `views/persona-engine.html`, …) ensamblados al servir, igual que ya se hizo extrayendo `routes/`. Beneficio inmediato: un `</div>` mal cerrado sólo puede romper su propio parcial.
-2. **Extraer los 708 `style=` inline** a clases, empezando por los repetidos (tarjetas, chips, filas de botones). Es también lo que permitiría quitar `'unsafe-inline'` de la CSP en el futuro.
-3. **Seguir troceando `app.js`** por las costuras que ya existen: toasts + `QueuePoller` (~200 líneas, autocontenidos), análisis de foto (~1 040 líneas), gestor de variantes (~720). El patrón de inyección de dependencias de `import-flow.js` ya está probado y es el molde a copiar.
-4. **Un único constructor de tarjeta de persona.** Hoy hay tres renderizadores casi idénticos (`updateDashboardStats`, `renderPersonaGrids`, y el bucle de `selectCampaign`).
-5. **Un solo lector/escritor del formulario.** `getFullPersonaJSON`, `compilePromptAndJSON` y `savePersona` leen los mismos campos por separado; conviene un único `readPersonaForm()`.
+**Estado (2026-08-12):** cerrado en lo esencial (#92 + restos). Quedan `style=` residuales (~400 en views) y DOM de upload/variantes aún en `app.js`; no bloquean UX-5.
+
+1. **Partir `index.html` en parciales** ✅ `views/` + `compose-index.js`
+2. **Extraer `style=` inline** ✅ parcial (utilidades `.u-*`, vault, option cards); resto opcional
+3. **Trocear `app.js`** ✅ toast, queue, form, card, variant-presets, **photo-analysis**, LOOK_PRESETS
+4. **Un único constructor de tarjeta** ✅ `buildSelectPersonaCard` / `buildCampaignPersonaCard` / `buildPortfolioCard`
+5. **Un solo lector del formulario** ✅ `readPersonaForm` / `applyAnalysisToFormFields`
 
 ---
 

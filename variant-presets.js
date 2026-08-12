@@ -155,12 +155,29 @@ const VARIANT_BATCH_OPTIONS = [1, 4];
     return (preset.clothing && (preset.clothing[g] || preset.clothing.Female)) || [];
   }
 
+  // G2 — Looks rápidos (regex sobre opciones del modo actual)
+  const LOOK_PRESETS = [
+    { id: 'beach', label: '🏖️ Playa', pose: /cuerpo entero|caminando|espejo/i, attitude: /sonr|alegre|risa|natural/i, clothing: /bikini|verano|deportiv|playa|traje de baño|satén/i, setting: /playa|beach/i, accessories: ['gafas de sol de diseño'] },
+    { id: 'cafe', label: '☕ Café / Oficina', pose: /sentada|medio|selfie|perfil/i, attitude: /seria|elegante|sonr|pensativa/i, clothing: /traje|oficina|blazer|casual|camisa|abrigo|seda/i, setting: /cafeter|oficina|interior|hotel/i, accessories: ['gafas de moda'] },
+    { id: 'gym', label: '🏋️ Gym', pose: /cuerpo entero|espejo|caminando|de pie/i, attitude: /desafiante|empoderada|intensa|confiada|natural/i, clothing: /deportiv|leggins|gym|fitness|top|body/i, setting: /gimnasio|gym|studio/i, accessories: [] },
+    { id: 'night', label: '🌃 Noche glam', pose: /apoyada|hombro|estilizada|de pie|recostada/i, attitude: /seductora|confiada|misteriosa|intensa/i, clothing: /vestido|satén|elegante|noche|corto|encaje|catsuit|corsé/i, setting: /noche|penthouse|club|calle urbana|terraza|boudoir|dormitorio/i, accessories: ['collar delicado'] },
+    { id: 'studio', label: '📸 Estudio', pose: /macro|primer plano|selfie portrait|retrato|rostro/i, attitude: /seria|elegante|intensa|coquette/i, clothing: /casual|top|básic|camisa|lencería/i, setting: /estudio|studio|neón|low-key/i, accessories: [] }
+  ];
+
+  function findOptionByRegex(sel, rx) {
+    if (!sel || !rx) return null;
+    const opt = Array.from(sel.options).find((o) => rx.test(o.value) || rx.test(o.textContent));
+    return opt ? opt.value : null;
+  }
+
   return {
     VARIANT_PRESETS,
     VARIANT_ACCESSORIES,
     VARIANT_BATCH_OPTIONS,
+    LOOK_PRESETS,
     getPreset,
     fillSelect,
-    clothingFor
+    clothingFor,
+    findOptionByRegex
   };
 });
