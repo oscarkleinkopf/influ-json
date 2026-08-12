@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-12 | **Produce declutter** Galería off hub | subnav UGC+Guiones; Ver galería en ficha; empty→Copiar JSON |
 | 2026-08-12 | **UGC Copiar JSON** honesty | `#btnExportUgcChatbot` → `copyFreeChatbotPack('product')`; sin Sofia fake; vídeo en details |
 | 2026-08-12 | **Merge #96** Ajustes tabs → main | redo #72 Claves/Perfiles/Invites/Studio/Cuenta |
 | 2026-08-12 | **Ajustes tabs** redo #72 | Claves/Perfiles/Invites/Studio/Cuenta; filtro+prune; `settings-tabs.test.js` |

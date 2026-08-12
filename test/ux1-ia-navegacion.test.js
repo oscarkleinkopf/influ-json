@@ -53,14 +53,28 @@ test('UX-1a: móvil usa los mismos nombres de hub (+ ?)', () => {
   assert.doesNotMatch(nav, />\s*Cómo usar\s*</);
 });
 
-test('UX-1a: hub-subnav cubre Portafolio/Ficha, UGC/Guiones/Galería, Campañas/Licensing', () => {
+test('UX-1a: hub-subnav cubre Portafolio/Ficha, UGC/Guiones, Campañas/Licensing (sin Galería)', () => {
   assert.match(html, /id="hubSubnav"/);
   assert.match(html, /data-hub="influencers"[\s\S]*data-tab="dashboard"[\s\S]*data-tab="persona-engine"/);
-  assert.match(html, /data-hub="produce"[\s\S]*data-tab="ugc-studio"[\s\S]*data-tab="script-engine"[\s\S]*data-tab="gallery"/);
+  assert.match(html, /data-hub="produce"[\s\S]*data-tab="ugc-studio"[\s\S]*data-tab="script-engine"/);
+  // Galería demoted: scrapbook vía ficha, no peer de Producir
+  const produceStart = html.indexOf('data-hub="produce"');
+  const produceEnd = html.indexOf('data-hub="business"', produceStart);
+  assert.ok(produceStart >= 0 && produceEnd > produceStart);
+  const produceBlock = html.slice(produceStart, produceEnd);
+  assert.doesNotMatch(produceBlock, /data-tab="gallery"/);
   assert.match(html, /data-hub="business"[\s\S]*data-tab="campaigns"[\s\S]*data-tab="licensing"/);
+  assert.match(html, /id="btnOpenGalleryFromFicha"/);
+  assert.match(html, /id="gallery"/);
   assert.match(appJs, /function switchStudioTab\b/);
   assert.match(appJs, /function updateHubSubnav\b/);
   assert.match(appJs, /TAB_TO_HUB/);
+  assert.match(appJs, /btnOpenGalleryFromFicha/);
+  assert.match(appJs, /btnEmptyGalleryCopyJson/);
+});
+
+test('UX-1a: hub-subnav-inner[hidden] fuerza display none (no mezclar hubs)', () => {
+  assert.match(css, /\.hub-subnav-inner\[hidden\]\s*\{[^}]*display:\s*none\s*!important/);
 });
 
 test('UX-1b: chip global Trabajando con + Copiar JSON de contexto', () => {
@@ -90,6 +104,6 @@ test('UX-1c: ≤3 botones con label exacto «Copiar JSON»', () => {
   assert.match(html, /id="btnCopyPackFullbodyPrimary"/);
   assert.match(html, /id="packVariantsMenu"/);
   assert.match(html, /Packs ▾/);
-  // UGC ya no duplica el copy: navega a la ficha
-  assert.match(appJs, /btnExportUgcChatbot[\s\S]{0,400}navigateToTab\('persona-engine'\)/);
+  // UGC CTA copia pack product (honesty #97)
+  assert.match(appJs, /btnExportUgcChatbot[\s\S]{0,500}copyFreeChatbotPack\(['"]product['"]\)/);
 });

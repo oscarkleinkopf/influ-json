@@ -352,6 +352,10 @@ body {
   gap: 4px;
 }
 
+.hub-subnav-inner[hidden] {
+  display: none !important;
+}
+
 .hub-subnav-btn {
   appearance: none;
   border: none;

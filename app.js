@@ -4865,12 +4865,19 @@ function setupPersonaEngine() {
       });
       const data = await res.json();
       if (data.success) {
-        toastSuccess('⭐ Prompt y miniatura guardados en la Galería');
+        toastSuccess('⭐ Prompt y miniatura guardados en la Galería', {
+          actionLabel: 'Ver galería',
+          onAction: () => navigateToTab('gallery')
+        });
         if (state.activeTab === 'gallery') renderGallery();
       }
     } catch (err) {
       toastError('Error al guardar en la galería.');
     }
+  });
+
+  document.getElementById('btnOpenGalleryFromFicha')?.addEventListener('click', () => {
+    navigateToTab('gallery');
   });
 
   // Tab Switcher for right column panel
@@ -6728,19 +6735,29 @@ function renderGalleryGrid(items) {
         <p class="empty-roster-lead u-mb-12" >
           ${q
             ? 'Ningún prompt coincide con la búsqueda.'
-            : 'La galería está vacía. Guarda un prompt exitoso desde Persona Engine (botón «Guardar en galería»).'}
+            : 'La galería es un scrapbook opcional. El happy path es Copiar JSON (paso Lock &amp; Packs) y pegarlo en un chatbot free.'}
         </p>
         <div class="empty-roster-actions">
           ${q
             ? '<button type="button" class="btn btn-secondary btn-sm" id="btnEmptyGalleryClear">Limpiar búsqueda</button>'
-            : '<button type="button" class="btn btn-sm" id="btnEmptyGalleryPersona">Ir a Persona Engine</button>'}
+            : '<button type="button" class="btn btn-sm" id="btnEmptyGalleryCopyJson">Ir a Copiar JSON</button>'}
         </div>
       </div>`;
     document.getElementById('btnEmptyGalleryClear')?.addEventListener('click', () => {
       const input = document.getElementById('gallerySearchInput');
       if (input) { input.value = ''; input.dispatchEvent(new Event('input')); }
     });
-    document.getElementById('btnEmptyGalleryPersona')?.addEventListener('click', () => navigateToTab('persona-engine'));
+    document.getElementById('btnEmptyGalleryCopyJson')?.addEventListener('click', () => {
+      navigateToTab('persona-engine');
+      setTimeout(() => {
+        if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: true });
+        const target = document.getElementById('btnCopyPackFullbodyPrimary');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          target.focus?.();
+        }
+      }, 80);
+    });
     return;
   }
   

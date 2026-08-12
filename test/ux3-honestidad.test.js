@@ -76,7 +76,8 @@ test('UX-3a: Regenerar Scripts cableado a generateCampaignScriptsAction', () => 
 test('UX-3f: empty states de campañas y galería tienen CTA', () => {
   const appJs = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
   assert.match(appJs, /btnEmptyCampaignCreate/);
-  assert.match(appJs, /btnEmptyGalleryPersona|btnEmptyGalleryClear/);
+  assert.match(appJs, /btnEmptyGalleryCopyJson|btnEmptyGalleryClear/);
+  assert.match(appJs, /btnEmptyGalleryCopyJson[\s\S]{0,400}setPersonaStep\(2/);
 });
 
 test('UX-3d/e: /api/data expone scriptsCount y gens scoped por perfil', async () => {
