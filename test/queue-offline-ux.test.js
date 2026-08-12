@@ -47,6 +47,7 @@ test('UI: modo offline + chip posición en app/index', () => {
 
 test('W15: offline-first labels + 429 sugiere offline + empty vault', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  const vault = fs.readFileSync(path.join(__dirname, '..', 'variant-vault-ui.js'), 'utf8');
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   const readme = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
 
@@ -59,8 +60,9 @@ test('W15: offline-first labels + 429 sugiere offline + empty vault', () => {
   assert.match(app, /btnRateLimitGoOffline/);
   assert.match(app, /isRateLimitActiveUi|_rateLimitUiActive/);
   assert.match(app, /offlineModeStorageKey/);
-  assert.match(app, /Sin gens — igual puedes exportar packs/);
-  assert.match(app, /Copiar JSON \(recomendado\)/);
+  // Empty vault copy vive en variant-vault-ui.js
+  assert.match(vault, /Sin gens — igual puedes exportar packs/);
+  assert.match(vault, /Copiar JSON \(recomendado\)/);
   // Toggle sigue en localStorage (W8)
   assert.match(app, /localStorage\.setItem\(offlineModeStorageKey\(\)/);
   assert.match(app, /localStorage\.getItem\(offlineModeStorageKey\(\)/);

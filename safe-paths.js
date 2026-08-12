@@ -4,6 +4,7 @@
  * - URLs remotas sin SSRF a redes privadas / link-local
  */
 const path = require('path');
+const fs = require('fs');
 const { URL } = require('url');
 const { PROJECT_ROOT, DATA_DIR } = require('./paths');
 
@@ -46,9 +47,31 @@ function resolveSafeAssetPath(inputPath, opts = {}) {
   const dataDir = path.resolve(opts.dataDir || DATA_DIR);
 
   // Paths absolutos solo si ya están bajo una raíz permitida
-  const candidate = path.isAbsolute(inputPath)
+  let candidate = path.isAbsolute(inputPath)
     ? path.resolve(inputPath)
     : path.resolve(projectRoot, inputPath);
+
+  // UX detalles / harness: refs y generated pueden vivir solo en DATA_DIR
+  // (multer escribe ahí con INFLU_TEST_UPLOADS / INFLU_SKIP_DB_MIGRATE).
+  if (!path.isAbsolute(inputPath)) {
+    const remap = (prefix, sub) => {
+      if (!inputPath.startsWith(prefix)) return;
+      const name = inputPath.slice(prefix.length);
+      if (!name || name.includes('..')) return;
+      const underData = path.resolve(dataDir, sub, name);
+      const isolate =
+        process.env.INFLU_TEST_UPLOADS === '1' ||
+        process.env.INFLU_SKIP_DB_MIGRATE === '1';
+      if (fs.existsSync(underData)) {
+        candidate = underData;
+      } else if (isolate && !fs.existsSync(candidate)) {
+        // New uploads land in DATA_DIR during tests
+        candidate = underData;
+      }
+    };
+    remap('assets/references/', 'references');
+    remap('assets/generated/', 'generated');
+  }
 
   const allowedRoots = [
     path.join(projectRoot, 'assets', 'references'),

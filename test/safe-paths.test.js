@@ -33,8 +33,19 @@ test('isGitBackupEnabled es opt-in (ENABLE_GIT_BACKUP=1)', () => {
 });
 
 test('resolveSafeAssetPath acepta assets/references y rechaza traversal', () => {
-  const ok = resolveSafeAssetPath('assets/references/demo.jpg');
-  assert.equal(ok, path.join(PROJECT_ROOT, 'assets', 'references', 'demo.jpg'));
+  const prevSkip = process.env.INFLU_SKIP_DB_MIGRATE;
+  const prevUploads = process.env.INFLU_TEST_UPLOADS;
+  try {
+    delete process.env.INFLU_SKIP_DB_MIGRATE;
+    delete process.env.INFLU_TEST_UPLOADS;
+    const ok = resolveSafeAssetPath('assets/references/demo.jpg');
+    assert.equal(ok, path.join(PROJECT_ROOT, 'assets', 'references', 'demo.jpg'));
+  } finally {
+    if (prevSkip === undefined) delete process.env.INFLU_SKIP_DB_MIGRATE;
+    else process.env.INFLU_SKIP_DB_MIGRATE = prevSkip;
+    if (prevUploads === undefined) delete process.env.INFLU_TEST_UPLOADS;
+    else process.env.INFLU_TEST_UPLOADS = prevUploads;
+  }
 
   assert.throws(
     () => resolveSafeAssetPath('../../../etc/passwd'),

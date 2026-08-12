@@ -47,6 +47,38 @@ function ensureDataLayout() {
 }
 
 /**
+ * Where multer / import writes reference photos.
+ * Tests (INFLU_SKIP_DB_MIGRATE / INFLU_TEST_UPLOADS) → DATA_DIR/references
+ * so workspace assets/references stays clean.
+ */
+function getReferencesUploadDir() {
+  ensureDataLayout();
+  const isolate =
+    process.env.INFLU_TEST_UPLOADS === '1' ||
+    process.env.INFLU_SKIP_DB_MIGRATE === '1';
+  if (isolate) {
+    return ensureDir(path.join(DATA_DIR, 'references'));
+  }
+  return ensureDir(path.join(PROJECT_ROOT, 'assets', 'references'));
+}
+
+/**
+ * Absolute path for a relative assets/references/... URL (workspace or DATA_DIR).
+ */
+function resolveReferencesFile(relativeOrName) {
+  const name = String(relativeOrName || '')
+    .replace(/^assets\/references\//, '')
+    .replace(/^\/+/, '');
+  if (!name || name.includes('..')) return null;
+  const underData = path.join(DATA_DIR, 'references', name);
+  if (fs.existsSync(underData)) return underData;
+  const underAssets = path.join(PROJECT_ROOT, 'assets', 'references', name);
+  if (fs.existsSync(underAssets)) return underAssets;
+  // Prefer write target for new files
+  return path.join(getReferencesUploadDir(), name);
+}
+
+/**
  * Pick best existing DB among candidates (prefer larger size, then newer mtime).
  */
 function pickBestDbFile(candidates) {
@@ -111,5 +143,7 @@ module.exports = {
   LEGACY_BRAIN_SCRATCH,
   ensureDir,
   ensureDataLayout,
+  getReferencesUploadDir,
+  resolveReferencesFile,
   resolveDatabasePath
 };

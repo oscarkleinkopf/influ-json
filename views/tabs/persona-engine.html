@@ -109,7 +109,7 @@
                 </div>
                 <div class="prompt-console u-mt-16" >
                   <span class="analysis-field-label">Prompt A Compilado</span>
-                  <div class="prompt-text" id="promptPreviewA" style="font-size: 11px; max-height: 80px; overflow-y: auto;">Generando...</div>
+                  <div class="prompt-text u-scroll-80" id="promptPreviewA" >Generando...</div>
                 </div>
               </div>
 
@@ -136,7 +136,7 @@
                 </div>
                 <div class="prompt-console u-mt-16" >
                   <span class="analysis-field-label">Prompt B Compilado</span>
-                  <div class="prompt-text" id="promptPreviewB" style="font-size: 11px; max-height: 80px; overflow-y: auto;">Generando...</div>
+                  <div class="prompt-text u-scroll-80" id="promptPreviewB" >Generando...</div>
                 </div>
               </div>
             </div>
@@ -193,7 +193,7 @@
                 <h3 style="font-family: var(--font-display); font-size: 12px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 12px; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">✨ Identidad Visual & Look</h3>
                 
                 <div style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">Rostro & estilo</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 11px; color: var(--text-secondary);">
+                <div class="u-grid-2-11">
                   <div><strong>Piel / Tez:</strong> <span id="sheetSkinTone" class="u-color-white">Cargando...</span></div>
                   <div><strong>Textura:</strong> <span id="sheetSkinTexture" class="u-color-white">Cargando...</span></div>
                   <div><strong>Ojos / Cejas:</strong> <span id="sheetEyes" class="u-color-white">Cargando...</span></div>
@@ -205,7 +205,7 @@
                 </div>
 
                 <div style="font-size: 10px; text-transform: uppercase; color: #34d399; margin: 16px 0 8px; font-weight: 700; letter-spacing: 0.4px;">🧍 Cuerpo completo</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 11px; color: var(--text-secondary);">
+                <div class="u-grid-2-11">
                   <div><strong>Complexión / silueta:</strong> <span id="sheetBodyType" class="u-color-white">—</span></div>
                   <div><strong>Estatura aparente:</strong> <span id="sheetHeight" class="u-color-white">—</span></div>
                   <div class="u-span-full"><strong>Proporciones:</strong> <span id="sheetProportions" class="u-color-white">—</span></div>
@@ -219,7 +219,7 @@
               <!-- Versión de Ficha Compilada -->
               <div class="prompt-console" style="margin-top: 0; margin-bottom: 0;">
                 <div class="u-flex-between">
-                  <h4 style="font-size: 10px; text-transform: uppercase; color: #fbbf24; margin: 0; letter-spacing: 0.5px;">📋 Prompt de Generación Compilado</h4>
+                  <h4 class="u-amber-eyebrow">📋 Prompt de Generación Compilado</h4>
                   <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopySheetPrompt">Copiar</button>
                 </div>
                 <div class="prompt-text" id="sheetPromptPreview" style="font-size: 11px; max-height: 80px; overflow-y: auto; line-height: 1.5; color: #ccc;">Cargando...</div>
@@ -240,7 +240,7 @@
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-camera="overhead">Overhead</button>
                   </div>
                 </div>
-                <div id="ugcShotTypeChips" style="margin-bottom: 12px;">
+                <div id="ugcShotTypeChips" class="u-mb-12">
                   <p style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 6px; font-weight: 700; letter-spacing: 0.4px;">Formato UGC</p>
                   <div style="display: flex; flex-wrap: wrap; gap: 6px;" data-ugc-shot-chips>
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-shot="testimonial">Testimonial</button>
@@ -776,9 +776,9 @@
             </form>
             
             <div class="prompt-console">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div class="u-flex-between-mb8">
                 <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin: 0;">Prompt de Generación Compilado</h4>
-                <div style="display: flex; gap: 8px;">
+                <div class="u-flex-gap-8">
                   <button class="btn btn-sm" id="btnCopyChatbotPrompt" data-offline-highlight="pack" style="padding: 4px 10px; font-size: 10px; height: auto;" title="Copia el prompt compilado + character_lock de la consola. Para el pack free completo usa «Copiar JSON» en la ficha (izquierda).">Copiar prompt + JSON</button>
                   <button class="btn btn-secondary btn-sm" id="btnSaveToGallery" style="padding: 4px 10px; font-size: 10px; height: auto;">⭐ Guardar en Galería</button>
                 </div>
@@ -822,7 +822,7 @@
                 </div>
 
                 <label for="bibleCrefUrlInput" style="font-size: 11px; text-transform: uppercase; color: #a78bfa; display: block; margin-bottom: 8px; font-weight: 700;">🔗 URL de Imagen de Referencia (Opcional --cref)</label>
-                <div style="display: flex; gap: 10px;">
+                <div class="u-flex-gap-10">
                   <input type="text" id="bibleCrefUrlInput" placeholder="Pega el enlace público de la imagen (ej: imgur, discord, etc.)" 
                     style="flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none; transition: border 0.2s;">
                   <button type="button" class="btn" id="btnRegenerateBible" style="white-space: nowrap; padding: 10px 18px; font-size: 13px;">Generar Biblia</button>
@@ -837,7 +837,7 @@
               <!-- Character Lock Section -->
               <div class="prompt-console" style="margin-top: 0; margin-bottom: 16px;">
                 <div class="u-flex-between">
-                  <h4 style="font-size: 10px; text-transform: uppercase; color: #fbbf24; margin: 0; letter-spacing: 0.5px;">🔒 Rasgos Físicos Bloqueados (Fijos)</h4>
+                  <h4 class="u-amber-eyebrow">🔒 Rasgos Físicos Bloqueados (Fijos)</h4>
                   <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyLockPrompt">Copiar</button>
                 </div>
                 <div class="prompt-text" id="bibleLockPrompt" style="font-size: 11px; max-height: 70px; overflow-y: auto; color: #fef08a; background: rgba(251, 191, 36, 0.03); border-color: rgba(251, 191, 36, 0.15);">Carga un personaje para ver los rasgos bloqueados...</div>

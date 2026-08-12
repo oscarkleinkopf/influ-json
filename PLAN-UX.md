@@ -151,13 +151,13 @@ Lo avanzado —LoRA (L2/L5), face-lock de pago, comparador A/B, historial de ver
 
 ## 8. Bloque UX-4 — Mantenibilidad mínima (sin React)
 
-**Estado (2026-08-12):** cerrado en lo esencial (#92 + restos). Quedan `style=` residuales (~400 en views) y DOM de upload/variantes aún en `app.js`; no bloquean UX-5.
+**Estado (2026-08-12):** cerrado en lo esencial (#92 + restos #93). Detalles de cierre en rama `ux-detalles-cierre`: más CSS, photo/vault UI modules, uploads aislados, layout-smoke Chrome.
 
 1. **Partir `index.html` en parciales** ✅ `views/` + `compose-index.js`
-2. **Extraer `style=` inline** ✅ parcial (utilidades `.u-*`, vault, option cards); resto opcional
-3. **Trocear `app.js`** ✅ toast, queue, form, card, variant-presets, **photo-analysis**, LOOK_PRESETS
-4. **Un único constructor de tarjeta** ✅ `buildSelectPersonaCard` / `buildCampaignPersonaCard` / `buildPortfolioCard`
-5. **Un solo lector del formulario** ✅ `readPersonaForm` / `applyAnalysisToFormFields`
+2. **Extraer `style=` inline** ✅ utilidades `.u-*` (sigue habiendo oneshots; no bloquea)
+3. **Trocear `app.js`** ✅ + `photo-upload-ui.js` + `variant-vault-ui.js`
+4. **Un único constructor de tarjeta** ✅
+5. **Un solo lector del formulario** ✅
 
 ---
 
@@ -165,9 +165,9 @@ Lo avanzado —LoRA (L2/L5), face-lock de pago, comparador A/B, historial de ver
 
 **Estado (2026-08-12):** en curso — aislamiento DB + DoD.
 
-- **Aislar la DB en tests.** ✅ `npm test` → `scripts/run-tests.js` con `DATA_DIR` temporal + `INFLU_SKIP_DB_MIGRATE=1`. Escape hatch: `npm run test:raw` (usa `./data`).
-- **Cerrar los 6 PRs draft abiertos.** ✅ Cerrados #72 + #76–#80 (2026-08-12) con comentario UX-5; reabrir solo con repro en `main`.
-- **Definition of done** en `PLAN-NEXT.md`: ✅ línea de captura de pestaña afectada en navegador.
+- **Aislar la DB en tests.** ✅ + uploads a `DATA_DIR/references` (`INFLU_TEST_UPLOADS`).
+- **Cerrar los 6 PRs draft abiertos.** ✅ Cerrados #72 + #76–#80. **Backlog:** no reintegrar en masa; #72 (Ajustes tabs) y fixes gen solo si el owner pide repro en `main`.
+- **Definition of done** ✅ + automatizado: `npm run layout-smoke` (Chrome width + screenshot en CI).
 
 ---
 

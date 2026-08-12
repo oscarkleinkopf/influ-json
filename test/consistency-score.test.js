@@ -170,6 +170,8 @@ test('UI: chip dHash y botón rescore en markup', () => {
   assert.match(html, /id="qaMatrixDhash"/);
   assert.match(html, /id="btnRescoreConsistency"/);
   const js = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  const vault = fs.readFileSync(path.join(__dirname, '..', 'variant-vault-ui.js'), 'utf8');
   assert.match(js, /function consistencyChipHtml/);
-  assert.match(js, /\/api\/personas\/\$\{personaId\}\/consistency\/rescore/);
+  assert.match(vault, /function consistencyChipHtml/);
+  assert.match(vault, /\/api\/personas\/\$\{personaId\}\/consistency\/rescore/);
 });

@@ -262,19 +262,28 @@ app.get('/persona-card.js', (req, res) => {
 app.get('/variant-presets.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'variant-presets.js'));
 });
+app.get('/variant-vault-ui.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'variant-vault-ui.js'));
+});
 app.get('/photo-analysis.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'photo-analysis.js'));
+});
+app.get('/photo-upload-ui.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'photo-upload-ui.js'));
 });
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });
 
-// Multer storage config — saves uploaded reference photos to assets/
+// Multer storage — references go to DATA_DIR in tests (UX detalles / harness)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = path.join(__dirname, 'assets', 'references');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
+    try {
+      const { getReferencesUploadDir } = require('./paths');
+      cb(null, getReferencesUploadDir());
+    } catch (err) {
+      cb(err);
+    }
   },
   filename: (req, file, cb) => {
     const safeName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');

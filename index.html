@@ -63,13 +63,13 @@
           <span class="queue-status-dot"></span>
           <span id="queueStatusChipText">Cola libre</span>
         </div>
-        <button type="button" class="btn btn-secondary btn-sm" id="btnOpenComoUsar" title="Ayuda / Cómo usar" style="width: 100%; margin-bottom: 8px;">
+        <button type="button" class="btn btn-secondary btn-sm u-sidebar-full" id="btnOpenComoUsar" title="Ayuda / Cómo usar" >
           ? Cómo usar
         </button>
         <button class="btn btn-secondary btn-sm" id="btnOpenSettings" style="width: 100%; margin-bottom: 8px; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--accent-primary); color: #fff;">
           ⚙️ Ajustes & Claves API
         </button>
-        <button class="btn btn-secondary btn-sm" id="btnSyncNow" style="width: 100%;">
+        <button class="btn btn-secondary btn-sm u-w-full" id="btnSyncNow" >
           Sincronizar Git
         </button>
       </div>
@@ -355,7 +355,7 @@
                 <label for="cName">Nombre de la Campaña</label>
                 <input type="text" id="cName" placeholder="ej. Campaña Glow Serum Verano 2026" required>
               </div>
-              <div class="form-row" style="margin-top: 12px;">
+              <div class="form-row u-mt-12" >
                 <div>
                   <label for="cClient">Nombre del Cliente / Marca</label>
                   <input type="text" id="cClient" placeholder="ej. Organics Labs Co." required>
@@ -365,7 +365,7 @@
                   <input type="number" id="cBudget" value="300" required>
                 </div>
               </div>
-              <div class="form-row" style="margin-top: 12px;">
+              <div class="form-row u-mt-12" >
                 <div>
                   <label for="cProductSelect">Producto Vinculado</label>
                   <select id="cProductSelect" required></select>
@@ -560,7 +560,7 @@
                 </div>
                 <div class="prompt-console u-mt-16" >
                   <span class="analysis-field-label">Prompt A Compilado</span>
-                  <div class="prompt-text" id="promptPreviewA" style="font-size: 11px; max-height: 80px; overflow-y: auto;">Generando...</div>
+                  <div class="prompt-text u-scroll-80" id="promptPreviewA" >Generando...</div>
                 </div>
               </div>
 
@@ -587,7 +587,7 @@
                 </div>
                 <div class="prompt-console u-mt-16" >
                   <span class="analysis-field-label">Prompt B Compilado</span>
-                  <div class="prompt-text" id="promptPreviewB" style="font-size: 11px; max-height: 80px; overflow-y: auto;">Generando...</div>
+                  <div class="prompt-text u-scroll-80" id="promptPreviewB" >Generando...</div>
                 </div>
               </div>
             </div>
@@ -644,7 +644,7 @@
                 <h3 style="font-family: var(--font-display); font-size: 12px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 12px; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">✨ Identidad Visual & Look</h3>
                 
                 <div style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">Rostro & estilo</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 11px; color: var(--text-secondary);">
+                <div class="u-grid-2-11">
                   <div><strong>Piel / Tez:</strong> <span id="sheetSkinTone" class="u-color-white">Cargando...</span></div>
                   <div><strong>Textura:</strong> <span id="sheetSkinTexture" class="u-color-white">Cargando...</span></div>
                   <div><strong>Ojos / Cejas:</strong> <span id="sheetEyes" class="u-color-white">Cargando...</span></div>
@@ -656,7 +656,7 @@
                 </div>
 
                 <div style="font-size: 10px; text-transform: uppercase; color: #34d399; margin: 16px 0 8px; font-weight: 700; letter-spacing: 0.4px;">🧍 Cuerpo completo</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 11px; color: var(--text-secondary);">
+                <div class="u-grid-2-11">
                   <div><strong>Complexión / silueta:</strong> <span id="sheetBodyType" class="u-color-white">—</span></div>
                   <div><strong>Estatura aparente:</strong> <span id="sheetHeight" class="u-color-white">—</span></div>
                   <div class="u-span-full"><strong>Proporciones:</strong> <span id="sheetProportions" class="u-color-white">—</span></div>
@@ -670,7 +670,7 @@
               <!-- Versión de Ficha Compilada -->
               <div class="prompt-console" style="margin-top: 0; margin-bottom: 0;">
                 <div class="u-flex-between">
-                  <h4 style="font-size: 10px; text-transform: uppercase; color: #fbbf24; margin: 0; letter-spacing: 0.5px;">📋 Prompt de Generación Compilado</h4>
+                  <h4 class="u-amber-eyebrow">📋 Prompt de Generación Compilado</h4>
                   <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopySheetPrompt">Copiar</button>
                 </div>
                 <div class="prompt-text" id="sheetPromptPreview" style="font-size: 11px; max-height: 80px; overflow-y: auto; line-height: 1.5; color: #ccc;">Cargando...</div>
@@ -691,7 +691,7 @@
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-camera="overhead">Overhead</button>
                   </div>
                 </div>
-                <div id="ugcShotTypeChips" style="margin-bottom: 12px;">
+                <div id="ugcShotTypeChips" class="u-mb-12">
                   <p style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 6px; font-weight: 700; letter-spacing: 0.4px;">Formato UGC</p>
                   <div style="display: flex; flex-wrap: wrap; gap: 6px;" data-ugc-shot-chips>
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-shot="testimonial">Testimonial</button>
@@ -1227,9 +1227,9 @@
             </form>
             
             <div class="prompt-console">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div class="u-flex-between-mb8">
                 <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin: 0;">Prompt de Generación Compilado</h4>
-                <div style="display: flex; gap: 8px;">
+                <div class="u-flex-gap-8">
                   <button class="btn btn-sm" id="btnCopyChatbotPrompt" data-offline-highlight="pack" style="padding: 4px 10px; font-size: 10px; height: auto;" title="Copia el prompt compilado + character_lock de la consola. Para el pack free completo usa «Copiar JSON» en la ficha (izquierda).">Copiar prompt + JSON</button>
                   <button class="btn btn-secondary btn-sm" id="btnSaveToGallery" style="padding: 4px 10px; font-size: 10px; height: auto;">⭐ Guardar en Galería</button>
                 </div>
@@ -1273,7 +1273,7 @@
                 </div>
 
                 <label for="bibleCrefUrlInput" style="font-size: 11px; text-transform: uppercase; color: #a78bfa; display: block; margin-bottom: 8px; font-weight: 700;">🔗 URL de Imagen de Referencia (Opcional --cref)</label>
-                <div style="display: flex; gap: 10px;">
+                <div class="u-flex-gap-10">
                   <input type="text" id="bibleCrefUrlInput" placeholder="Pega el enlace público de la imagen (ej: imgur, discord, etc.)" 
                     style="flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none; transition: border 0.2s;">
                   <button type="button" class="btn" id="btnRegenerateBible" style="white-space: nowrap; padding: 10px 18px; font-size: 13px;">Generar Biblia</button>
@@ -1288,7 +1288,7 @@
               <!-- Character Lock Section -->
               <div class="prompt-console" style="margin-top: 0; margin-bottom: 16px;">
                 <div class="u-flex-between">
-                  <h4 style="font-size: 10px; text-transform: uppercase; color: #fbbf24; margin: 0; letter-spacing: 0.5px;">🔒 Rasgos Físicos Bloqueados (Fijos)</h4>
+                  <h4 class="u-amber-eyebrow">🔒 Rasgos Físicos Bloqueados (Fijos)</h4>
                   <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyLockPrompt">Copiar</button>
                 </div>
                 <div class="prompt-text" id="bibleLockPrompt" style="font-size: 11px; max-height: 70px; overflow-y: auto; color: #fef08a; background: rgba(251, 191, 36, 0.03); border-color: rgba(251, 191, 36, 0.15);">Carga un personaje para ver los rasgos bloqueados...</div>
@@ -1624,7 +1624,7 @@
             </div>
             
             <div class="u-mt-10">
-              <button type="button" class="btn" id="btnGenerateScripts" style="width: 100%;">
+              <button type="button" class="btn u-w-full" id="btnGenerateScripts" >
                 Generar 10 guiones (plantillas locales / Gemini opt-in)
               </button>
             </div>
@@ -1641,7 +1641,7 @@
             <div class="script-viewer">
               <div class="script-header-info">
                 <div class="script-angle-title" id="activeScriptAngle">Ángulo Seleccionado</div>
-                <div style="display: flex; gap: 8px;">
+                <div class="u-flex-gap-8">
                   <button class="btn btn-secondary btn-sm" id="btnCopyScript">Copiar Guión</button>
                   <button class="btn btn-sm" id="btnExportScriptChatbot" style="background: var(--accent-gradient); border: none;">📋 Exportar para Chatbot</button>
                 </div>
@@ -1674,8 +1674,8 @@
                 <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <img id="ugcActiveAvatar" src="assets/influencer_female.png" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
                   <div>
-                    <h4 id="ugcActiveName" style="font-family: var(--font-display); font-weight: 600;">Sofia</h4>
-                    <p id="ugcActiveMeta" style="font-size: 11px; color: var(--text-secondary);">Latina, 25 años</p>
+                    <h4 id="ugcActiveName" class="u-font-display-600">Sofia</h4>
+                    <p id="ugcActiveMeta" class="u-fs-11-sec">Latina, 25 años</p>
                   </div>
                 </div>
               </div>
@@ -1685,8 +1685,8 @@
                 <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <img id="ugcActiveProductImg" src="assets/product_serum.png" alt="Producto" style="width: 44px; height: 44px; border-radius: var(--border-radius-sm); object-fit: cover;">
                   <div>
-                    <h4 id="ugcActiveProduct" style="font-family: var(--font-display); font-weight: 600;">Glow Serum Organics</h4>
-                    <p id="ugcActiveProductMeta" style="font-size: 11px; color: var(--text-secondary);">Piel brillante en 5 minutos</p>
+                    <h4 id="ugcActiveProduct" class="u-font-display-600">Glow Serum Organics</h4>
+                    <p id="ugcActiveProductMeta" class="u-fs-11-sec">Piel brillante en 5 minutos</p>
                   </div>
                 </div>
               </div>
@@ -1752,39 +1752,39 @@
                 <summary style="cursor: pointer; font-family: var(--font-display); font-size: 15px; color: var(--text-secondary); padding: 8px 0;">Anuncios estáticos (boceto opt-in) — avanzado</summary>
                 <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">🎯 Anuncio estático (formato + gancho · boceto Pollinations opt-in)</h3>
+                <h3 class="u-title-14-sec">🎯 Anuncio estático (formato + gancho · boceto Pollinations opt-in)</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <label style="font-size: 12px;">Formato del Anuncio</label>
-                  <select id="adFormatSelect" style="font-size: 12px; padding: 8px;">
+                  <select id="adFormatSelect" class="u-fs-12-pad8">
                     <option value="9:16">📱 Vertical 9:16 (TikTok / Reels / Stories)</option>
                     <option value="1:1" selected>Square 1:1 (Meta Feed / Instagram)</option>
                   </select>
                   
                   <label style="font-size: 12px; margin-top: 6px;">Gancho Comercial (Overlay Text Hook)</label>
-                  <select id="adHookSelect" style="font-size: 12px; padding: 8px;">
+                  <select id="adHookSelect" class="u-fs-12-pad8">
                     <option value="Probé esto por 7 días y los resultados me sorprendieron 😱">🎯 "Probé esto por 7 días y..."</option>
                     <option value="La razón por la que todos en TikTok están obsesionados con esto 🔥">🔥 "La razón por la que todos están obsesionados..."</option>
                     <option value="⚡ 50% OFF — Solo por hoy con envío gratis">⚡ "50% OFF — Solo por hoy"</option>
                     <option value="🛑 STOP SCROLLING: La solución definitiva que buscabas">🛑 "STOP SCROLLING — La solución definitiva"</option>
                   </select>
                   
-                  <button class="btn btn-secondary" id="btnRenderAdCreative" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
+                  <button class="btn btn-secondary u-full-center-mt" id="btnRenderAdCreative" >
                     🎨 Crear boceto de anuncio (opt-in · puede pedir token)
                   </button>
                 </div>
               </div>
 
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">🚀 Lote de bocetos (opt-in · cola Pollinations)</h3>
+                <h3 class="u-title-14-sec">🚀 Lote de bocetos (opt-in · cola Pollinations)</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">
                     Selecciona productos para encolar bocetos (5 ganchos × 2 formatos por producto). No publica en Meta/TikTok — solo genera imágenes locales si hay token.
                   </p>
                   <div id="bulkProductSelectorContainer" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 6px;">
-                    <span style="font-size: 11px; color: var(--text-muted);">Cargando catálogo...</span>
+                    <span class="u-fs-11-muted">Cargando catálogo...</span>
                   </div>
                   
-                  <button class="btn btn-secondary" id="btnStartBulkAdGeneration" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
+                  <button class="btn btn-secondary u-full-center-mt" id="btnStartBulkAdGeneration" >
                     ⚡ Encolar lote de bocetos (10 por producto · opt-in)
                   </button>
 
@@ -1794,7 +1794,7 @@
                       <span id="bulkBatchProgressText">0 / 0 (0%)</span>
                     </div>
                     <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
-                      <div id="bulkBatchProgressBar" style="width: 0%; height: 100%; background: var(--accent-gradient); transition: width 0.3s ease;"></div>
+                      <div id="bulkBatchProgressBar" class="u-progress-fill"></div>
                     </div>
                     <button class="btn btn-secondary" id="btnDownloadBulkBatchZip" style="width: 100%; display: none; align-items: center; justify-content: center; gap: 8px;">
                       📥 Descargar Todo el Lote de Anuncios (.ZIP / PNGs)
@@ -1809,7 +1809,7 @@
               </details>
 
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🎬 Video UGC Pipeline <span style="font-size:11px; font-weight:600; color:#f59e0b; letter-spacing:0.04em;">(DEMO — sin pipeline real)</span></h3>
+                <h3 class="u-title-16-sec">🎬 Video UGC Pipeline <span style="font-size:11px; font-weight:600; color:#f59e0b; letter-spacing:0.04em;">(DEMO — sin pipeline real)</span></h3>
                 <p style="font-size:12px; color:var(--text-muted); margin:0 0 10px; line-height:1.4;">Simulación de timeline local. Veo/Runway no están conectados; el path gratis sigue siendo Copiar JSON / packs UGC.</p>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <button class="btn btn-secondary u-w-full" id="btnGenerateUgcVideo" >
@@ -1821,7 +1821,7 @@
                       <span id="videoTimelineProgress">0%</span>
                     </div>
                     <div class="progress-bar-container" style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; position: relative;">
-                      <div id="videoProgressBar" style="width: 0%; height: 100%; background: var(--accent-gradient); transition: width 0.3s ease;"></div>
+                      <div id="videoProgressBar" class="u-progress-fill"></div>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 8px; font-size: 9px; color: var(--text-muted);">
                       <div class="timeline-step u-text-center-flex1" id="vtStep1" >Gancho</div>
@@ -1834,7 +1834,7 @@
               </div>
               
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">Configuración Legal & Cumplimiento (June 2026)</h3>
+                <h3 class="u-title-16-sec">Configuración Legal & Cumplimiento (June 2026)</h3>
                 
                 <div class="compliance-controls">
                   <div class="toggle-switch-wrapper">
@@ -1992,9 +1992,9 @@
                 <tr>
                   <td>
                     <strong>Creación de Activo UGC Sintético</strong><br>
-                    <span style="font-size: 12px; color: var(--text-secondary);" id="pitchInfluName">Sofia - Modelo Virtual</span>
+                    <span class="u-fs-12-sec" id="pitchInfluName">Sofia - Modelo Virtual</span>
                   </td>
-                  <td style="text-align: right; font-family: var(--font-mono);" id="pitchBaseFeeVal">$150.00</td>
+                  <td class="u-mono-right" id="pitchBaseFeeVal">$150.00</td>
                 </tr>
                 <tr>
                   <td>
@@ -2011,9 +2011,9 @@
                 <tr>
                   <td>
                     <strong>Paquete de Redacción (10 Scripts)</strong><br>
-                    <span style="font-size: 12px; color: var(--text-secondary);">Ángulos UGC (plantillas locales / Gemini opt-in)</span>
+                    <span class="u-fs-12-sec">Ángulos UGC (plantillas locales / Gemini opt-in)</span>
                   </td>
-                  <td style="text-align: right; font-family: var(--font-mono);">$0.00 (Incluido)</td>
+                  <td class="u-mono-right">$0.00 (Incluido)</td>
                 </tr>
               </tbody>
             </table>
@@ -2079,7 +2079,7 @@
       <div id="importStep1">
         <div class="editor-form-group">
           <div class="u-mb-18">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="u-flex-between-mb8">
               <label style="font-weight: 600; font-size: 12px; margin: 0;">📷 Fotos de Referencia (Máximo 4)</label>
               <span class="import-counter-badge" id="importCounterBadge">0/4 cargadas</span>
             </div>
@@ -2116,7 +2116,7 @@
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
-          <button type="button" class="btn btn-secondary" id="btnCancelImportStep1" style="padding: 10px 24px;">Cancelar</button>
+          <button type="button" class="btn btn-secondary u-pad-10-24" id="btnCancelImportStep1" >Cancelar</button>
           <button type="button" class="btn" id="btnAnalyzeInfluencer" style="padding: 10px 24px; background: var(--accent-primary);">Analizar Influencer</button>
         </div>
       </div>
@@ -2167,7 +2167,7 @@
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
-          <button type="button" class="btn btn-secondary" id="btnCancelImportPreview" style="padding: 10px 24px;">Descartar</button>
+          <button type="button" class="btn btn-secondary u-pad-10-24" id="btnCancelImportPreview" >Descartar</button>
           <button type="button" class="btn" id="btnConfirmImport" style="padding: 10px 24px; background: #10b981;">Crear Persona y Guardar</button>
         </div>
       </div>
@@ -2315,10 +2315,10 @@ npm start</pre>
       <button type="button" id="btnCloseMemberWelcome" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;" aria-label="Cerrar">✕</button>
       <p class="u-eyebrow">Tu espacio aislado</p>
       <h2 id="memberWelcomeTitle" class="u-title-display">Bienvenido a influ-JSON</h2>
-      <p id="memberWelcomeLead" style="font-size:13px; color:var(--text-secondary); margin:0 0 18px; line-height:1.45;">
+      <p id="memberWelcomeLead" class="u-lead-13">
         Este perfil es solo tuyo. No verás ni mezclarás creaciones de Administración u otros testers.
       </p>
-      <ol style="margin:0 0 20px; padding-left:18px; font-size:13px; color:var(--text-secondary); line-height:1.55;">
+      <ol class="u-list-soft">
         <li class="u-mb-8"><strong class="u-color-white">Crear o importar</strong> un influencer</li>
         <li class="u-mb-8"><strong class="u-color-white">Guardar</strong> — aparece en tu portafolio (solo JSON)</li>
         <li class="u-mb-8"><strong class="u-color-white">Copiar JSON (recomendado)</strong> a ChatGPT / Gemini / Claude free</li>
@@ -2327,7 +2327,7 @@ npm start</pre>
         <button type="button" class="btn u-input-pad-12" id="btnMemberWelcomeCreate" >Crear</button>
         <button type="button" class="btn btn-secondary u-input-pad-10" id="btnMemberWelcomeImport" >Importar</button>
         <button type="button" class="btn btn-secondary u-input-pad-10" id="btnMemberWelcomeDashboard" >Cómo usar</button>
-        <button type="button" id="btnMemberWelcomeSkip" style="background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">Ahora no</button>
+        <button type="button" id="btnMemberWelcomeSkip" class="u-link-quiet">Ahora no</button>
       </div>
     </div>
   </div>
@@ -2338,10 +2338,10 @@ npm start</pre>
       <button type="button" id="btnCloseFounderWelcome" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;" aria-label="Cerrar">✕</button>
       <p class="u-eyebrow">Cero costo primero</p>
       <h2 id="founderWelcomeTitle" class="u-title-display">Tu estudio de influencers</h2>
-      <p id="founderWelcomeLead" style="font-size:13px; color:var(--text-secondary); margin:0 0 18px; line-height:1.45;">
+      <p id="founderWelcomeLead" class="u-lead-13">
         Crea prompts + JSON (<code>character_lock</code>) y pégalos en chatbots gratis. Pollinations es opcional.
       </p>
-      <ol style="margin:0 0 20px; padding-left:18px; font-size:13px; color:var(--text-secondary); line-height:1.55;">
+      <ol class="u-list-soft">
         <li class="u-mb-8"><strong class="u-color-white">Crear o importar</strong> un personaje</li>
         <li class="u-mb-8"><strong class="u-color-white">Guardar</strong> (solo JSON — sin esperar imagen)</li>
         <li class="u-mb-8"><strong class="u-color-white">Copiar JSON</strong> → ChatGPT / Gemini / Claude free</li>
@@ -2350,7 +2350,7 @@ npm start</pre>
         <button type="button" class="btn u-input-pad-12" id="btnFounderWelcomeCreate" >Crear</button>
         <button type="button" class="btn btn-secondary u-input-pad-10" id="btnFounderWelcomeImport" >Importar</button>
         <button type="button" class="btn btn-secondary u-input-pad-10" id="btnFounderWelcomeGuide" >Cómo usar</button>
-        <button type="button" id="btnFounderWelcomeSkip" style="background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">Ahora no</button>
+        <button type="button" id="btnFounderWelcomeSkip" class="u-link-quiet">Ahora no</button>
       </div>
     </div>
   </div>
@@ -2419,7 +2419,7 @@ npm start</pre>
             <small class="u-hint-muted">Opcional. Face-lock (Fase R) / L3 LoRA no son el path free — ver docs/FACELOCK_R.md y docs/lora/L3_PAID.md. Activá ENABLE_PAID_FACE_LOCK=1 en .env.</small>
           </div>
 
-          <div style="display: flex; gap: 10px;">
+          <div class="u-flex-gap-10">
             <button type="submit" class="btn" style="flex: 2; padding: 10px;">💾 Guardar Claves en .env</button>
             <button type="button" id="btnDisableKeys" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 11px;">Restablecer a 100% Gratis</button>
           </div>
@@ -2544,8 +2544,8 @@ npm start</pre>
       </div>
       <p id="chatbotSessionStatus" style="font-size:12px; color:var(--text-muted); margin:14px 0 0; line-height:1.4;"></p>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
-        <button type="button" id="btnSaveChatbotSession" class="btn btn-sm" style="flex:1; min-width:120px; padding:10px 12px;">Guardar checklist</button>
-        <button type="button" id="btnRecopyChatbotSession" class="btn btn-secondary btn-sm" data-offline-highlight="pack" style="flex:1; min-width:120px; padding:10px 12px;">Volver a copiar bloque</button>
+        <button type="button" id="btnSaveChatbotSession" class="btn btn-sm u-flex-min-input" >Guardar checklist</button>
+        <button type="button" id="btnRecopyChatbotSession" class="btn btn-secondary btn-sm u-flex-min-input" data-offline-highlight="pack" >Volver a copiar bloque</button>
       </div>
     </div>
   </div>
@@ -2563,7 +2563,9 @@ npm start</pre>
   <script src="persona-form.js?v=1.0.0"></script>
   <script src="persona-card.js?v=1.0.0"></script>
   <script src="variant-presets.js?v=1.0.0"></script>
+  <script src="variant-vault-ui.js?v=1.0.0"></script>
   <script src="photo-analysis.js?v=1.0.0"></script>
+  <script src="photo-upload-ui.js?v=1.0.0"></script>
   <script src="app.js?v=1.14.1"></script>
 </body>
 </html>
