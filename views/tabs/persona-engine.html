@@ -1,10 +1,10 @@
       <section id="persona-engine" class="tab-panel" data-active-step="1">
-        <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div class="content-header u-header-row" >
           <div class="content-title">
             <h1>Influencers · Ficha</h1>
             <p>3 pasos: Identidad → Lock &amp; Packs → Variaciones. Free path = copiar el JSON en el paso 2.</p>
           </div>
-          <button type="button" class="btn" id="btnOpenImportModal" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 20px;">
+          <button type="button" class="btn u-btn-import" id="btnOpenImportModal" >
             📥 Importar referencia
           </button>
         </div>
@@ -28,63 +28,63 @@
         
         <!-- Photo Upload & AI Analysis -->
         <!-- Action Dashboard: Añadir Nuevo Influencer -->
-        <div class="glass-card" data-persona-step="1" style="margin-bottom: 28px; padding: 24px;">
-          <h2 style="font-family: var(--font-display); margin-bottom: 6px; font-size: 18px; color: #fff;">✨ Añadir Nuevo Influencer</h2>
-          <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">Elige cómo deseas crear el perfil de tu influencer virtual para iniciar la producción de contenido UGC.</p>
+        <div class="glass-card u-card-pad-24" data-persona-step="1" >
+          <h2 class="u-step-title">✨ Añadir Nuevo Influencer</h2>
+          <p class="u-lead-secondary">Elige cómo deseas crear el perfil de tu influencer virtual para iniciar la producción de contenido UGC.</p>
           
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="u-grid-2-lg">
             <!-- Opción 1: Crear desde Cero -->
-            <div class="glass-card option-card" id="cardCreateScratch" style="padding: 20px; cursor: pointer; border: 1px solid var(--glass-border); transition: all 0.3s ease; background: rgba(255,255,255,0.01);">
-              <div style="display: flex; align-items: flex-start; gap: 16px;">
-                <div style="font-size: 28px; padding: 10px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; color: var(--accent-primary); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">✍️</div>
+            <div class="glass-card option-card u-option-card" id="cardCreateScratch" >
+              <div class="u-flex-start-gap">
+                <div class="u-option-icon u-option-icon--primary">✍️</div>
                 <div>
-                  <h3 style="font-family: var(--font-display); font-size: 15px; color: #fff; margin-bottom: 6px;">Crear desde Cero</h3>
-                  <p style="color: var(--text-secondary); font-size: 11px; line-height: 1.5;">Configura manualmente la identidad, rasgos físicos, cabello y estilo fotográfico del personaje.</p>
+                  <h3 class="u-option-title">Crear desde Cero</h3>
+                  <p class="u-option-lead">Configura manualmente la identidad, rasgos físicos, cabello y estilo fotográfico del personaje.</p>
                 </div>
               </div>
             </div>
             
             <!-- Opción 2: Tomar Inspiración (URL / Foto) -->
-            <div class="glass-card option-card" id="cardCreateInspiration" style="padding: 20px; cursor: pointer; border: 1px solid var(--glass-border); transition: all 0.3s ease; background: rgba(255,255,255,0.01);">
-              <div style="display: flex; align-items: flex-start; gap: 16px;">
-                <div style="font-size: 28px; padding: 10px; background: rgba(251, 191, 36, 0.1); border-radius: 12px; color: #fbbf24; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">🌐</div>
+            <div class="glass-card option-card u-option-card" id="cardCreateInspiration" >
+              <div class="u-flex-start-gap">
+                <div class="u-option-icon u-option-icon--amber">🌐</div>
                 <div>
-                  <h3 style="font-family: var(--font-display); font-size: 15px; color: #fff; margin-bottom: 6px;">Tomar Inspiración (URL / Foto)</h3>
-                  <p style="color: var(--text-secondary); font-size: 11px; line-height: 1.5;">Sube fotos de referencia o pega un enlace de perfil (Instagram, TikTok) para autodetectar rasgos con IA y generar guiones.</p>
+                  <h3 class="u-option-title">Tomar Inspiración (URL / Foto)</h3>
+                  <p class="u-option-lead">Sube fotos de referencia o pega un enlace de perfil (Instagram, TikTok) para autodetectar rasgos con IA y generar guiones.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div id="nichePresetsBar" style="margin-top: 18px;">
-            <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.04em;">Atajo: preset de nicho (character_lock listo)</p>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn" data-niche="beauty" style="font-size: 11px; padding: 8px 12px;">Beauty / skincare</button>
-              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn" data-niche="fitness" style="font-size: 11px; padding: 8px 12px;">Fitness / wellness</button>
-              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn" data-niche="moda" style="font-size: 11px; padding: 8px 12px;">Moda / lifestyle</button>
+          <div id="nichePresetsBar" class="u-niche-bar">
+            <p class="u-niche-label">Atajo: preset de nicho (character_lock listo)</p>
+            <div class="u-flex-wrap-gap">
+              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn u-btn-sm-pad" data-niche="beauty" >Beauty / skincare</button>
+              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn u-btn-sm-pad" data-niche="fitness" >Fitness / wellness</button>
+              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn u-btn-sm-pad" data-niche="moda" >Moda / lifestyle</button>
             </div>
-            <p id="nichePresetHint" style="display:none; margin: 10px 0 0; font-size: 12px; color: #a7f3d0;"></p>
+            <p id="nichePresetHint" class="u-niche-ok"></p>
           </div>
         </div>
         
         <!-- UX-2 Avanzado: A/B + versiones (plegado) -->
         <details id="personaAdvancedTools" data-persona-step="advanced" class="persona-advanced-block u-mb-20">
-          <summary style="cursor:pointer; font-size:13px; color:var(--text-secondary); font-weight:600; padding:8px 0;">Avanzado · Comparador A/B y versiones del personaje</summary>
-          <div style="display: flex; gap: 12px; margin: 12px 0 0; justify-content: flex-start; flex-wrap:wrap;">
-          <button type="button" class="btn btn-secondary btn-sm" id="btnToggleAB" style="display: flex; align-items: center; gap: 6px;">
+          <summary class="u-details-summary">Avanzado · Comparador A/B y versiones del personaje</summary>
+          <div class="u-flex-gap-12">
+          <button type="button" class="btn btn-secondary btn-sm u-btn-icon-sm" id="btnToggleAB" >
             ⚖️ Comparador A/B Split
           </button>
-          <button type="button" class="btn btn-secondary btn-sm" id="btnToggleHistory" style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" class="btn btn-secondary btn-sm u-btn-icon-sm" id="btnToggleHistory" >
             ⏳ Historial de Versiones
           </button>
           </div>
         </details>
 
         <!-- Hidden A/B Split-View Comparator -->
-        <div id="abComparatorContainer" data-persona-step="advanced" style="display: none; margin-bottom: 28px;">
+        <div id="abComparatorContainer" data-persona-step="advanced" class="u-hidden-mb-28">
           <div class="glass-card">
-            <h2 style="font-family: var(--font-display); margin-bottom: 16px;">⚖️ Comparador A/B de Personas</h2>
-            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px;">Configura y compara dos variaciones de prompt en paralelo para evaluar la consistencia de identidad.</p>
+            <h2 class="u-title-ab">⚖️ Comparador A/B de Personas</h2>
+            <p class="u-lead-ab">Configura y compara dos variaciones de prompt en paralelo para evaluar la consistencia de identidad.</p>
             <div class="ab-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
               <!-- Left Side A -->
               <div class="ab-column" style="border-right: 1px solid var(--glass-border); padding-right: 24px;">
@@ -107,7 +107,7 @@
                     </select>
                   </div>
                 </div>
-                <div class="prompt-console" style="margin-top: 16px;">
+                <div class="prompt-console u-mt-16" >
                   <span class="analysis-field-label">Prompt A Compilado</span>
                   <div class="prompt-text" id="promptPreviewA" style="font-size: 11px; max-height: 80px; overflow-y: auto;">Generando...</div>
                 </div>
@@ -134,7 +134,7 @@
                     </select>
                   </div>
                 </div>
-                <div class="prompt-console" style="margin-top: 16px;">
+                <div class="prompt-console u-mt-16" >
                   <span class="analysis-field-label">Prompt B Compilado</span>
                   <div class="prompt-text" id="promptPreviewB" style="font-size: 11px; max-height: 80px; overflow-y: auto;">Generando...</div>
                 </div>
@@ -144,8 +144,8 @@
         </div>
 
         <!-- Hidden Version History Timeline Container -->
-        <div id="historyTimelineContainer" data-persona-step="advanced" style="display: none; margin-bottom: 28px;" class="glass-card">
-          <h2 style="font-family: var(--font-display); margin-bottom: 16px;">⏳ Historial de Versiones</h2>
+        <div id="historyTimelineContainer" data-persona-step="advanced"  class="glass-card u-hidden-mb-28">
+          <h2 class="u-title-ab">⏳ Historial de Versiones</h2>
           <div class="version-timeline-list" id="versionTimelineList" style="display: flex; flex-direction: column; gap: 12px;">
             <!-- Dynamically populated timeline -->
           </div>
@@ -173,9 +173,9 @@
                   <div id="sheetHandle" style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-primary); margin-bottom: 12px;">@sofia_ugc</div>
                   
                   <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
-                    <span id="sheetGenderBadge" class="badge" style="background: rgba(255,255,255,0.05); font-size: 11px; color: #fff;">Female</span>
-                    <span id="sheetAgeBadge" class="badge" style="background: rgba(255,255,255,0.05); font-size: 11px; color: #fff;">25 años</span>
-                    <span id="sheetEthnicityBadge" class="badge" style="background: rgba(255,255,255,0.05); font-size: 11px; color: #fff;">Latina</span>
+                    <span id="sheetGenderBadge" class="badge u-bg-soft" >Female</span>
+                    <span id="sheetAgeBadge" class="badge u-bg-soft" >25 años</span>
+                    <span id="sheetEthnicityBadge" class="badge u-bg-soft" >Latina</span>
                   </div>
 
                   <!-- Quick Action Buttons -->
@@ -208,11 +208,11 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 11px; color: var(--text-secondary);">
                   <div><strong>Complexión / silueta:</strong> <span id="sheetBodyType" class="u-color-white">—</span></div>
                   <div><strong>Estatura aparente:</strong> <span id="sheetHeight" class="u-color-white">—</span></div>
-                  <div style="grid-column: 1 / -1;"><strong>Proporciones:</strong> <span id="sheetProportions" class="u-color-white">—</span></div>
+                  <div class="u-span-full"><strong>Proporciones:</strong> <span id="sheetProportions" class="u-color-white">—</span></div>
                   <div><strong>Postura:</strong> <span id="sheetPosture" class="u-color-white">—</span></div>
                   <div><strong>Tono / fitness:</strong> <span id="sheetFitness" class="u-color-white">—</span></div>
-                  <div style="grid-column: 1 / -1;"><strong>Piel corporal:</strong> <span id="sheetBodySkin" class="u-color-white">—</span></div>
-                  <div style="grid-column: 1 / -1;"><strong>Encuadre corporal:</strong> <span id="sheetBodyFraming" class="u-color-white">—</span></div>
+                  <div class="u-span-full"><strong>Piel corporal:</strong> <span id="sheetBodySkin" class="u-color-white">—</span></div>
+                  <div class="u-span-full"><strong>Encuadre corporal:</strong> <span id="sheetBodyFraming" class="u-color-white">—</span></div>
                 </div>
               </div>
 
@@ -251,7 +251,7 @@
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-shot="haul">Haul</button>
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-shot="day_in_life">Day in life</button>
                   </div>
-                  <p id="ugcShotComposerHint" style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;">Elige cámara y/o formato; se inyectan al copiar el pack (sin renegociar la cara).</p>
+                  <p id="ugcShotComposerHint" class="u-hint-muted-block">Elige cámara y/o formato; se inyectan al copiar el pack (sin renegociar la cara).</p>
                 </div>
                 <button type="button" class="btn btn-sm" data-free-pack="fullbody" id="btnCopyPackFullbodyPrimary" style="width: 100%; font-size: 12px; padding: 10px 12px; margin-bottom: 8px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff; text-align: left;">
                   Copiar JSON
@@ -259,31 +259,31 @@
                 <details id="packVariantsMenu" style="margin: 0 0 8px;">
                   <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 6px 0;">Packs ▾ (bikini · spicy · producto · semana)</summary>
                   <div class="pack-library-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
-                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 11px; padding: 8px 10px; text-align: left;">Cuerpo entero</button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 11px; padding: 8px 10px; text-align: left;">Bikini / playa</button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px; text-align: left;">Spicy (realista)</button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px; text-align: left;">Producto en mano</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="fullbody" >Cuerpo entero</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="bikini" >Bikini / playa</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="spicy" >Spicy (realista)</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="product" >Producto en mano</button>
                     <button type="button" class="btn btn-secondary btn-sm" id="btnCopyUgcWeek" style="font-size: 11px; padding: 8px 10px; text-align: left; grid-column: 1 / -1;" title="7 one-liners con el mismo character_lock">📅 Semana UGC (7 tomas)</button>
                   </div>
                 </details>
                 <p class="pack-last-status" data-last-pack-status style="font-size: 10px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.4;"></p>
-                <button type="button" class="btn btn-secondary btn-sm" id="btnRecopyLastPack" data-offline-highlight="pack" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;" disabled>
+                <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnRecopyLastPack" data-offline-highlight="pack"  disabled>
                   Volver a copiar último pack
                 </button>
                 <button type="button" class="btn btn-sm" id="btnChatbotSessionCheck" data-offline-highlight="pack" style="width: 100%; margin-top: 10px; font-size: 11px; padding: 10px 12px; background: rgba(52, 211, 153, 0.2); border: 1px solid rgba(52, 211, 153, 0.45); color: #fff;">
                   Probar en chatbot (3 prompts)
                 </button>
-                <button type="button" class="btn btn-secondary btn-sm" id="btnOpenChatbotChecklist" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;">
+                <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnOpenChatbotChecklist" >
                   Abrir checklist de sesión
                 </button>
-                <p id="chatbotSessionSheetStatus" style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;"></p>
+                <p id="chatbotSessionSheetStatus" class="u-hint-muted-block"></p>
                 <p class="u-hint-10">
                   Copia un bloque con lock + retrato + cuerpo + producto. Valida identidad en ChatGPT free sin pagar face-lock.
                 </p>
                 <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
                   <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px;">Descargas (opcional, no sustituyen el pack free)</p>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
-                  <button type="button" class="btn btn-secondary btn-sm" id="btnExportBrandKitSheet" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;">🎁 Descargar kit marca (packs + guión)</button>
+                  <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnExportBrandKitSheet" >🎁 Descargar kit marca (packs + guión)</button>
                 </div>
               </div>
 
@@ -302,8 +302,8 @@
                 </p>
                 <div id="loraInferencePanel" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
                   <div id="localGpuStatusPanel" style="margin-bottom: 12px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);">
-                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">GPU local (L4)</p>
-                    <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
+                    <p class="u-field-title">GPU local (L4)</p>
+                    <p class="u-hint-muted-sm">
                       Opt-in · equipo con NVIDIA/self-host. El path free sigue siendo <strong>Copiar JSON</strong>.
                     </p>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
@@ -316,40 +316,40 @@
                       Guía: <code class="u-fs-10">docs/lora/L4_LOCAL_GPU.md</code>
                     </p>
                   </div>
-                  <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L2 · Registrar LoRA (ComfyUI / A1111)</p>
-                  <p id="loraInferenceStatus" style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">Estado: —</p>
+                  <p class="u-field-title">L2 · Registrar LoRA (ComfyUI / A1111)</p>
+                  <p id="loraInferenceStatus" class="u-hint-muted-sm">Estado: —</p>
                   <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px;">Subir .safetensors (tras Colab)</label>
                   <input type="file" id="loraWeightsFile" accept=".safetensors,.pt,.ckpt" style="font-size: 10px; width: 100%; margin-bottom: 6px;" />
                   <input type="text" id="loraTriggerInput" placeholder="trigger (ohwx_…)" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-bottom: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
-                  <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <div class="u-gap-wrap">
                     <button type="button" class="btn btn-secondary btn-sm" id="btnRegisterLora" style="flex: 1; font-size: 11px; padding: 8px 10px;">Registrar LoRA</button>
-                    <button type="button" class="btn btn-sm" id="btnClearLora" style="font-size: 11px; padding: 8px 10px;">Quitar</button>
+                    <button type="button" class="btn btn-sm u-btn-sm-pad-tight" id="btnClearLora" >Quitar</button>
                   </div>
                   <p class="u-hint-10">
                     Guías: <code class="u-fs-10">docs/lora/L2_COMFYUI.md</code>
                     · <code class="u-fs-10">docs/lora/L4_LOCAL_GPU.md</code>
                   </p>
                   <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
-                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L5 · Train local (GPU propia, opt-in)</p>
-                    <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
+                    <p class="u-field-title">L5 · Train local (GPU propia, opt-in)</p>
+                    <p class="u-hint-muted-sm">
                       Requiere <code class="u-fs-10">ENABLE_LOCAL_LORA_TRAIN=1</code>. Materializa el pack L0; con
                       <code class="u-fs-10">AI_TOOLKIT_DIR</code> / <code class="u-fs-10">LOCAL_LORA_TRAIN_CMD</code> lanza el trainer.
                       Sin GPU: usá <strong>Colab L1</strong>. Guía: <code class="u-fs-10">docs/lora/L5_LOCAL_TRAIN.md</code>.
                     </p>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <div class="u-gap-wrap">
                       <button type="button" class="btn btn-sm" id="btnTrainLoraLocal" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4);">Preparar / entrenar local</button>
-                      <button type="button" class="btn btn-secondary btn-sm" id="btnSyncLoraLocal" style="font-size: 11px; padding: 8px 10px;">Sincronizar train local</button>
+                      <button type="button" class="btn btn-secondary btn-sm u-btn-sm-pad-tight" id="btnSyncLoraLocal" >Sincronizar train local</button>
                     </div>
                   </div>
                   <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
-                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L3 · Replicate (pago, opt-in)</p>
-                    <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
+                    <p class="u-field-title">L3 · Replicate (pago, opt-in)</p>
+                    <p class="u-hint-muted-sm">
                       Requiere <code class="u-fs-10">ENABLE_PAID_LORA=1</code>. Preferí Colab (L1) si puedes.
                       Guía: <code class="u-fs-10">docs/lora/L3_PAID.md</code>.
                     </p>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <div class="u-gap-wrap">
                       <button type="button" class="btn btn-sm" id="btnTrainLoraPaid" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(251, 146, 60, 0.25); border: 1px solid rgba(251, 146, 60, 0.45);">Entrenar en Replicate (pago)</button>
-                      <button type="button" class="btn btn-secondary btn-sm" id="btnSyncLoraPaid" style="font-size: 11px; padding: 8px 10px;">Sincronizar estado</button>
+                      <button type="button" class="btn btn-secondary btn-sm u-btn-sm-pad-tight" id="btnSyncLoraPaid" >Sincronizar estado</button>
                     </div>
                     <input type="text" id="loraReplicateModelInput" placeholder="o pega owner/model:version ya entrenado" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-top: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
                     <button type="button" class="btn btn-secondary btn-sm" id="btnLinkLoraPaid" style="width: 100%; margin-top: 6px; font-size: 11px; padding: 8px 10px;">Vincular modelo Replicate</button>
@@ -386,7 +386,7 @@
                   Path free = copiar texto. Bocetos Pollinations = opt-in.
                 </p>
                 <div id="facePackSlots" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px;"></div>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <div class="u-flex-wrap-gap">
                   <button type="button" class="btn btn-sm" id="btnCopyFacePackText" style="flex: 2; min-width: 140px; font-size: 11px; padding: 8px 10px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff;">
                     Copiar face pack (JSON)
                   </button>
@@ -397,7 +397,7 @@
                     Generar bocetos (opt-in)
                   </button>
                 </div>
-                <p id="facePackHint" style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;">
+                <p id="facePackHint" class="u-hint-muted-block">
                   Si cambias asimetría/marcas/tez del lock, vuelve a copiar el texto (y regenera bocetos si los usas).
                 </p>
               </div>
@@ -605,7 +605,7 @@
                 </div>
 
                 <div class="form-row u-mt-10">
-                  <div style="flex: 1;">
+                  <div class="u-flex-1">
                     <label for="pTaboos">Tabúes y Restricciones de Marca (Separados por coma)</label>
                     <input type="text" id="pTaboos" value="No promociona fast fashion, No usa lenguaje agresivo, No habla de política" placeholder="Ej: No fast fashion, No lenguaje agresivo, No política">
                   </div>
@@ -799,7 +799,7 @@
                   Free path: usa <strong>Copiar JSON</strong> en la ficha (columna izquierda) — packs cuerpo / bikini / spicy / producto.
                   Aquí solo previsualizas el prompt.
                 </p>
-                <p class="pack-last-status" data-last-pack-status style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;"></p>
+                <p class="pack-last-status u-hint-muted-block" data-last-pack-status ></p>
               </div>
             </div>
           </div>
@@ -844,7 +844,7 @@
               </div>
 
               <!-- Positive Prompt -->
-              <div class="prompt-console" style="margin-bottom: 16px;">
+              <div class="prompt-console u-mb-16" >
                 <div class="u-flex-between">
                   <h4 style="font-size: 10px; text-transform: uppercase; color: var(--accent-primary); margin: 0; letter-spacing: 0.5px;">✨ Prompt Positivo Unificado (Escena + Rostro)</h4>
                   <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyPositivePrompt">Copiar</button>
@@ -876,38 +876,38 @@
                 </div>
 
                 <!-- Leonardo & Ideogram (Horizontal Split) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="u-grid-2">
                   <div class="prompt-console u-m-0">
                     <div class="u-flex-between">
                       <span style="font-size: 11px; font-weight: 700; color: #f472b6;">🎨 Leonardo</span>
                       <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyLeonardoPrompt">Copiar</button>
                     </div>
-                    <div class="prompt-text" id="bibleLeonardoPrompt" style="font-size: 11px; color: #ccc; max-height: 70px; overflow-y: auto;">Cargando...</div>
+                    <div class="prompt-text u-scroll-ccc" id="bibleLeonardoPrompt" >Cargando...</div>
                   </div>
                   <div class="prompt-console u-m-0">
                     <div class="u-flex-between">
                       <span style="font-size: 11px; font-weight: 700; color: #2dd4bf;">📐 Ideogram</span>
                       <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyIdeogramPrompt">Copiar</button>
                     </div>
-                    <div class="prompt-text" id="bibleIdeogramPrompt" style="font-size: 11px; color: #ccc; max-height: 70px; overflow-y: auto;">Cargando...</div>
+                    <div class="prompt-text u-scroll-ccc" id="bibleIdeogramPrompt" >Cargando...</div>
                   </div>
                 </div>
 
                 <!-- Grok & ChatGPT (Horizontal Split) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="u-grid-2">
                   <div class="prompt-console u-m-0">
                     <div class="u-flex-between">
                       <span style="font-size: 11px; font-weight: 700; color: #10b981;">👁️ Grok Imagine</span>
                       <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyGrokPrompt">Copiar</button>
                     </div>
-                    <div class="prompt-text" id="bibleGrokPrompt" style="font-size: 11px; color: #ccc; max-height: 70px; overflow-y: auto;">Cargando...</div>
+                    <div class="prompt-text u-scroll-ccc" id="bibleGrokPrompt" >Cargando...</div>
                   </div>
                   <div class="prompt-console u-m-0">
                     <div class="u-flex-between">
                       <span style="font-size: 11px; font-weight: 700; color: #f59e0b;">💬 ChatGPT (GPT-4o)</span>
                       <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyChatGptPrompt">Copiar</button>
                     </div>
-                    <div class="prompt-text" id="bibleChatGptPrompt" style="font-size: 11px; color: #ccc; max-height: 70px; overflow-y: auto;">Cargando...</div>
+                    <div class="prompt-text u-scroll-ccc" id="bibleChatGptPrompt" >Cargando...</div>
                   </div>
                 </div>
 
@@ -939,9 +939,9 @@
           </div>
         </div>
         
-        <div class="glass-card" style="margin-top: 28px;">
+        <div class="glass-card u-mt-28" >
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-            <h2 style="font-family: var(--font-display); margin: 0;">Seleccionar Influencer Guardado</h2>
+            <h2 class="u-title-card">Seleccionar Influencer Guardado</h2>
             <div style="display: flex; gap: 8px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; border: 1px solid var(--glass-border);">
               <button class="btn btn-secondary btn-sm" id="btnFilterActive" style="background: var(--accent-primary); color: #fff; padding: 4px 12px; font-size: 11px; height: auto;">Activos</button>
               <button class="btn btn-secondary btn-sm" id="btnFilterArchived" style="background: transparent; color: var(--text-secondary); padding: 4px 12px; font-size: 11px; height: auto; border: none;">Archivados</button>
@@ -953,9 +953,9 @@
         </div>
 
         <!-- Influencer Variant Vault & Pose Manager -->
-        <div class="glass-card" style="margin-top: 28px;" id="variantManagerSection" data-persona-step="3">
+        <div class="glass-card u-mt-28"  id="variantManagerSection" data-persona-step="3">
           <h2 style="font-family: var(--font-display); margin-bottom: 8px;">🎬 Repositorio de Poses y Variaciones</h2>
-          <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px;">Genera y administra variaciones visuales consistentes (poses, vestuario, actitud) para <strong id="activeInfluencerName">Sofia</strong>.</p>
+          <p class="u-lead-ab">Genera y administra variaciones visuales consistentes (poses, vestuario, actitud) para <strong id="activeInfluencerName">Sofia</strong>.</p>
           
           <div class="variant-vault-layout" style="display: grid; grid-template-columns: 320px 1fr; gap: 28px;">
             <!-- Variant controls -->
@@ -978,7 +978,7 @@
                 <div class="pb-group">
                   <label for="vPose">Encuadre / Pose</label>
                   <div class="pb-chip-row" id="chipsPose"></div>
-                  <select id="vPose" style="display:none">
+                  <select id="vPose" class="u-hidden">
                     <option value="Selfie de primer plano de rostro (selfie portrait)">Selfie primer plano (rostro)</option>
                     <option value="Plano medio-corto de brazo extendido (candid hand-held selfie)">Plano medio-corto (selfie)</option>
                     <option value="Espejo de cuerpo entero sosteniendo el celular (full body mirror selfie)">Selfie de espejo (cuerpo entero)</option>
@@ -997,7 +997,7 @@
                 <div class="pb-group">
                   <label for="vAttitude">Actitud / Expresión</label>
                   <div class="pb-chip-row" id="chipsAttitude"></div>
-                  <select id="vAttitude" style="display:none">
+                  <select id="vAttitude" class="u-hidden">
                     <option value="sonriendo alegremente de forma muy natural (happy approachable smile)">Sonriente y alegre</option>
                     <option value="mirada fija seria y elegante de alta costura (serious high-fashion expression)">Seria y elegante</option>
                     <option value="guiñando un ojo de forma juguetona e ingeniosa (playful confident wink)">Guiñando un ojo</option>
@@ -1012,7 +1012,7 @@
                 <div class="pb-group">
                   <label for="vClothing">Vestuario de Variación</label>
                   <div class="pb-chip-row" id="chipsClothing"></div>
-                  <select id="vClothing" style="display:none">
+                  <select id="vClothing" class="u-hidden">
                     <!-- Loaded dynamically via JS matching the gender of the active influencer -->
                   </select>
                 </div>
@@ -1020,7 +1020,7 @@
                 <div class="pb-group">
                   <label for="vSetting">Ubicación / Fondo</label>
                   <div class="pb-chip-row" id="chipsSetting"></div>
-                  <select id="vSetting" style="display:none">
+                  <select id="vSetting" class="u-hidden">
                     <option value="Fondo de cafetería moderna iluminada de día (modern bright cafe interior)">Cafetería (interior)</option>
                     <option value="Gimnasio moderno con luces de neón tenues (modern dark fitness studio)">Gimnasio (neón)</option>
                     <option value="Parque natural soleado con follaje verde desenfocado (sunny green park)">Parque (naturaleza)</option>
@@ -1063,7 +1063,7 @@
 
                 <div style="display: flex; gap: 8px; margin-top: 6px;">
                   <button type="button" class="btn btn-secondary" id="btnRandomizeVariant" style="flex: 0 0 auto;" title="Elige pose, vestuario, actitud y escena al azar">🎲 Sorpréndeme</button>
-                  <button type="button" class="btn btn-secondary" id="btnGenerateVariant" style="flex: 1;" title="Pollinations opt-in (token/pollen) — preferí Copiar JSON">
+                  <button type="button" class="btn btn-secondary u-flex-1" id="btnGenerateVariant"  title="Pollinations opt-in (token/pollen) — preferí Copiar JSON">
                     Generar boceto (opt-in · puede pedir token)
                   </button>
                 </div>
@@ -1085,7 +1085,7 @@
                     Juzga a ojo — gratis
                   </span>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="u-grid-2">
                   <div style="text-align: center;">
                     <span style="display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Foto ancla oficial</span>
                     <img id="sbsAnchorImg" src="" alt="Ancla" style="width: 100%; height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid var(--glass-border); background: #111;" />
@@ -1114,7 +1114,7 @@
         <!-- Generation History Section -->
         <div class="glass-card" id="generationHistorySection" data-persona-step="3" style="margin-top: 28px; display: none;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-            <h2 style="font-family: var(--font-display); margin: 0;">📜 Historial de Generaciones — <span id="historyInfluencerName" style="color: var(--accent-primary);"></span></h2>
+            <h2 class="u-title-card">📜 Historial de Generaciones — <span id="historyInfluencerName" style="color: var(--accent-primary);"></span></h2>
             <div style="display: flex; gap: 8px; align-items: center;">
               <button class="btn-filter active" id="btnHistAll" onclick="setHistoryFilter('all')">Todas</button>
               <button class="btn-filter" id="btnHistPortrait" onclick="setHistoryFilter('portrait')">Retratos</button>

@@ -10,7 +10,7 @@
           <div class="glass-card">
             <h2 class="u-card-title">Configuración de Producción</h2>
             
-            <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="u-flex-col-gap">
               <div>
                 <label>Influencer Activo</label>
                 <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
@@ -36,16 +36,16 @@
               <div>
                 <label style="font-family: var(--font-display); font-weight: 600; margin-bottom: 8px; display: block;">Plantillas Comerciales UGC (1-Clic)</label>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
-                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="skincare" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button type="button" class="btn btn-secondary ugc-preset-btn u-btn-icon-row" data-preset="skincare" >
                     🧴 Skincare & Suero
                   </button>
-                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="fitness" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button type="button" class="btn btn-secondary ugc-preset-btn u-btn-icon-row" data-preset="fitness" >
                     👗 Fit & Athleisure
                   </button>
-                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="tech" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button type="button" class="btn btn-secondary ugc-preset-btn u-btn-icon-row" data-preset="tech" >
                     📱 Tech & Gadgets
                   </button>
-                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="wellness" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button type="button" class="btn btn-secondary ugc-preset-btn u-btn-icon-row" data-preset="wellness" >
                     🍹 Wellness & Smoothie
                   </button>
                 </div>
@@ -154,7 +154,7 @@
                 <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🎬 Video UGC Pipeline <span style="font-size:11px; font-weight:600; color:#f59e0b; letter-spacing:0.04em;">(DEMO — sin pipeline real)</span></h3>
                 <p style="font-size:12px; color:var(--text-muted); margin:0 0 10px; line-height:1.4;">Simulación de timeline local. Veo/Runway no están conectados; el path gratis sigue siendo Copiar JSON / packs UGC.</p>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
-                  <button class="btn btn-secondary" id="btnGenerateUgcVideo" style="width: 100%;">
+                  <button class="btn btn-secondary u-w-full" id="btnGenerateUgcVideo" >
                     🎥 Probar timeline demo (15s · sin render real)
                   </button>
                   <div class="video-timeline-preview" id="videoTimelinePreview" style="display: none; margin-top: 10px;">
@@ -166,10 +166,10 @@
                       <div id="videoProgressBar" style="width: 0%; height: 100%; background: var(--accent-gradient); transition: width 0.3s ease;"></div>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 8px; font-size: 9px; color: var(--text-muted);">
-                      <div class="timeline-step" id="vtStep1" style="flex: 1; text-align: center;">Gancho</div>
-                      <div class="timeline-step" id="vtStep2" style="flex: 1; text-align: center;">Demo</div>
-                      <div class="timeline-step" id="vtStep3" style="flex: 1; text-align: center;">Giro</div>
-                      <div class="timeline-step" id="vtStep4" style="flex: 1; text-align: center;">CTA</div>
+                      <div class="timeline-step u-text-center-flex1" id="vtStep1" >Gancho</div>
+                      <div class="timeline-step u-text-center-flex1" id="vtStep2" >Demo</div>
+                      <div class="timeline-step u-text-center-flex1" id="vtStep3" >Giro</div>
+                      <div class="timeline-step u-text-center-flex1" id="vtStep4" >CTA</div>
                     </div>
                   </div>
                 </div>

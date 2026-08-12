@@ -16,12 +16,14 @@ test('founder welcome modal y CTAs están en index.html', () => {
 
 test('app.js tiene onboarding founder y biblioteca Packs en portafolio', () => {
   const js = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+  const card = fs.readFileSync(path.join(root, 'persona-card.js'), 'utf8');
   assert.match(js, /function maybeShowFounderOnboarding/);
   assert.match(js, /founderOnboardDismissKey/);
   assert.match(js, /btn-quick-packs/);
-  assert.match(js, /data-portfolio-pack="fullbody"/);
-  assert.match(js, /data-portfolio-pack="bikini"/);
-  assert.match(js, /btn-quick-copy-pack/);
+  // Pack menu markup vive en buildPortfolioCard (UX-4)
+  assert.match(card, /data-portfolio-pack="fullbody"/);
+  assert.match(card, /data-portfolio-pack="bikini"/);
+  assert.match(card, /btn-quick-copy-pack/);
   assert.match(js, /copyFreeChatbotPack\('fullbody'\)/);
   assert.match(js, /copyFreeChatbotPack\(packId\)/);
   assert.match(js, /runHappyPathAction|action === 'import'|data-happy-next="import"/);

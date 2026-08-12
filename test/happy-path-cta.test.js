@@ -41,7 +41,7 @@ test('W14: post-save CTA pack + gen demoted a boceto opcional', () => {
   assert.match(html, /Generar boceto \(opt-in · puede pedir token\)|Boceto local opcional|Generar boceto \(gratis, inestable\)/);
   assert.match(html, /id="btnSavePersonaWithPortrait"/);
   assert.match(html, /btnSavePersonaWithPortrait[\s\S]{0,500}Generar boceto \(opt-in · puede pedir token\)|btnSavePersonaWithPortrait[\s\S]{0,500}Boceto local opcional|btnSavePersonaWithPortrait[\s\S]{0,500}Generar boceto \(gratis, inestable\)/);
-  assert.match(html, /class="btn btn-secondary" id="btnGenerateVariant"/);
+  assert.match(html, /id="btnGenerateVariant"/);
   assert.match(html, /id="happyPathNextCta"/);
 
   // No exige Gemini ni Replicate para el flujo

@@ -225,7 +225,7 @@
         <div class="glass-card" style="margin-top: 24px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
             <div>
-              <h2 style="font-family: var(--font-display); margin: 0;">🎭 Portafolio de Influencers</h2>
+              <h2 class="u-title-card">🎭 Portafolio de Influencers</h2>
               <p id="portfolioResultMeta" style="margin: 6px 0 0; font-size: 12px; color: var(--text-secondary);">0 visibles</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -246,7 +246,7 @@
           </div>
         </div>
         
-        <div class="guide-teaser" style="margin-top: 28px;">
+        <div class="guide-teaser u-mt-28" >
           <div class="guide-teaser-copy">
             <h2>¿Primera vez aquí?</h2>
             <p>Guía visual del flujo gratis: crear → anclar con JSON → copiar a chatbot o descargar kit marca.</p>
@@ -379,7 +379,7 @@
                   </select>
                 </div>
               </div>
-              <div style="margin-top: 16px;">
+              <div class="u-mt-16">
                 <label>Asignar Influencer(s)</label>
                 <div class="campaign-persona-checklist" id="cPersonaChecklist" style="max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: var(--border-radius-sm); border: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 8px;">
                   <!-- Dynamically populated -->
@@ -412,7 +412,7 @@
               <button class="btn btn-sm btn-secondary" id="btnDeleteCampaign" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171;">Eliminar</button>
             </div>
             
-            <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="u-flex-col-gap">
               <div class="form-row">
                 <div class="analysis-field">
                   <span class="analysis-field-label">Cliente / Marca</span>
@@ -440,7 +440,7 @@
                 <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 8px;">Acciones de Entrega</h4>
                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                   <a href="" id="btnExportZip" class="btn" style="flex: 1; text-align: center; text-decoration: none; padding: 12px 16px;">📦 Exportar Campaña (ZIP)</a>
-                  <button class="btn btn-secondary" id="btnGenerateCampaignScripts" style="flex: 1;">✍️ Regenerar Scripts</button>
+                  <button class="btn btn-secondary u-flex-1" id="btnGenerateCampaignScripts" >✍️ Regenerar Scripts</button>
                 </div>
               </div>
             </div>
@@ -450,12 +450,12 @@
       
       <!-- TAB: PERSONA ENGINE -->
       <section id="persona-engine" class="tab-panel" data-active-step="1">
-        <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div class="content-header u-header-row" >
           <div class="content-title">
             <h1>Influencers · Ficha</h1>
             <p>3 pasos: Identidad → Lock &amp; Packs → Variaciones. Free path = copiar el JSON en el paso 2.</p>
           </div>
-          <button type="button" class="btn" id="btnOpenImportModal" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 20px;">
+          <button type="button" class="btn u-btn-import" id="btnOpenImportModal" >
             📥 Importar referencia
           </button>
         </div>
@@ -479,63 +479,63 @@
         
         <!-- Photo Upload & AI Analysis -->
         <!-- Action Dashboard: Añadir Nuevo Influencer -->
-        <div class="glass-card" data-persona-step="1" style="margin-bottom: 28px; padding: 24px;">
-          <h2 style="font-family: var(--font-display); margin-bottom: 6px; font-size: 18px; color: #fff;">✨ Añadir Nuevo Influencer</h2>
-          <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">Elige cómo deseas crear el perfil de tu influencer virtual para iniciar la producción de contenido UGC.</p>
+        <div class="glass-card u-card-pad-24" data-persona-step="1" >
+          <h2 class="u-step-title">✨ Añadir Nuevo Influencer</h2>
+          <p class="u-lead-secondary">Elige cómo deseas crear el perfil de tu influencer virtual para iniciar la producción de contenido UGC.</p>
           
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="u-grid-2-lg">
             <!-- Opción 1: Crear desde Cero -->
-            <div class="glass-card option-card" id="cardCreateScratch" style="padding: 20px; cursor: pointer; border: 1px solid var(--glass-border); transition: all 0.3s ease; background: rgba(255,255,255,0.01);">
-              <div style="display: flex; align-items: flex-start; gap: 16px;">
-                <div style="font-size: 28px; padding: 10px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; color: var(--accent-primary); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">✍️</div>
+            <div class="glass-card option-card u-option-card" id="cardCreateScratch" >
+              <div class="u-flex-start-gap">
+                <div class="u-option-icon u-option-icon--primary">✍️</div>
                 <div>
-                  <h3 style="font-family: var(--font-display); font-size: 15px; color: #fff; margin-bottom: 6px;">Crear desde Cero</h3>
-                  <p style="color: var(--text-secondary); font-size: 11px; line-height: 1.5;">Configura manualmente la identidad, rasgos físicos, cabello y estilo fotográfico del personaje.</p>
+                  <h3 class="u-option-title">Crear desde Cero</h3>
+                  <p class="u-option-lead">Configura manualmente la identidad, rasgos físicos, cabello y estilo fotográfico del personaje.</p>
                 </div>
               </div>
             </div>
             
             <!-- Opción 2: Tomar Inspiración (URL / Foto) -->
-            <div class="glass-card option-card" id="cardCreateInspiration" style="padding: 20px; cursor: pointer; border: 1px solid var(--glass-border); transition: all 0.3s ease; background: rgba(255,255,255,0.01);">
-              <div style="display: flex; align-items: flex-start; gap: 16px;">
-                <div style="font-size: 28px; padding: 10px; background: rgba(251, 191, 36, 0.1); border-radius: 12px; color: #fbbf24; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">🌐</div>
+            <div class="glass-card option-card u-option-card" id="cardCreateInspiration" >
+              <div class="u-flex-start-gap">
+                <div class="u-option-icon u-option-icon--amber">🌐</div>
                 <div>
-                  <h3 style="font-family: var(--font-display); font-size: 15px; color: #fff; margin-bottom: 6px;">Tomar Inspiración (URL / Foto)</h3>
-                  <p style="color: var(--text-secondary); font-size: 11px; line-height: 1.5;">Sube fotos de referencia o pega un enlace de perfil (Instagram, TikTok) para autodetectar rasgos con IA y generar guiones.</p>
+                  <h3 class="u-option-title">Tomar Inspiración (URL / Foto)</h3>
+                  <p class="u-option-lead">Sube fotos de referencia o pega un enlace de perfil (Instagram, TikTok) para autodetectar rasgos con IA y generar guiones.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div id="nichePresetsBar" style="margin-top: 18px;">
-            <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.04em;">Atajo: preset de nicho (character_lock listo)</p>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn" data-niche="beauty" style="font-size: 11px; padding: 8px 12px;">Beauty / skincare</button>
-              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn" data-niche="fitness" style="font-size: 11px; padding: 8px 12px;">Fitness / wellness</button>
-              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn" data-niche="moda" style="font-size: 11px; padding: 8px 12px;">Moda / lifestyle</button>
+          <div id="nichePresetsBar" class="u-niche-bar">
+            <p class="u-niche-label">Atajo: preset de nicho (character_lock listo)</p>
+            <div class="u-flex-wrap-gap">
+              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn u-btn-sm-pad" data-niche="beauty" >Beauty / skincare</button>
+              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn u-btn-sm-pad" data-niche="fitness" >Fitness / wellness</button>
+              <button type="button" class="btn btn-secondary btn-sm niche-preset-btn u-btn-sm-pad" data-niche="moda" >Moda / lifestyle</button>
             </div>
-            <p id="nichePresetHint" style="display:none; margin: 10px 0 0; font-size: 12px; color: #a7f3d0;"></p>
+            <p id="nichePresetHint" class="u-niche-ok"></p>
           </div>
         </div>
         
         <!-- UX-2 Avanzado: A/B + versiones (plegado) -->
         <details id="personaAdvancedTools" data-persona-step="advanced" class="persona-advanced-block u-mb-20">
-          <summary style="cursor:pointer; font-size:13px; color:var(--text-secondary); font-weight:600; padding:8px 0;">Avanzado · Comparador A/B y versiones del personaje</summary>
-          <div style="display: flex; gap: 12px; margin: 12px 0 0; justify-content: flex-start; flex-wrap:wrap;">
-          <button type="button" class="btn btn-secondary btn-sm" id="btnToggleAB" style="display: flex; align-items: center; gap: 6px;">
+          <summary class="u-details-summary">Avanzado · Comparador A/B y versiones del personaje</summary>
+          <div class="u-flex-gap-12">
+          <button type="button" class="btn btn-secondary btn-sm u-btn-icon-sm" id="btnToggleAB" >
             ⚖️ Comparador A/B Split
           </button>
-          <button type="button" class="btn btn-secondary btn-sm" id="btnToggleHistory" style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" class="btn btn-secondary btn-sm u-btn-icon-sm" id="btnToggleHistory" >
             ⏳ Historial de Versiones
           </button>
           </div>
         </details>
 
         <!-- Hidden A/B Split-View Comparator -->
-        <div id="abComparatorContainer" data-persona-step="advanced" style="display: none; margin-bottom: 28px;">
+        <div id="abComparatorContainer" data-persona-step="advanced" class="u-hidden-mb-28">
           <div class="glass-card">
-            <h2 style="font-family: var(--font-display); margin-bottom: 16px;">⚖️ Comparador A/B de Personas</h2>
-            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px;">Configura y compara dos variaciones de prompt en paralelo para evaluar la consistencia de identidad.</p>
+            <h2 class="u-title-ab">⚖️ Comparador A/B de Personas</h2>
+            <p class="u-lead-ab">Configura y compara dos variaciones de prompt en paralelo para evaluar la consistencia de identidad.</p>
             <div class="ab-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
               <!-- Left Side A -->
               <div class="ab-column" style="border-right: 1px solid var(--glass-border); padding-right: 24px;">
@@ -558,7 +558,7 @@
                     </select>
                   </div>
                 </div>
-                <div class="prompt-console" style="margin-top: 16px;">
+                <div class="prompt-console u-mt-16" >
                   <span class="analysis-field-label">Prompt A Compilado</span>
                   <div class="prompt-text" id="promptPreviewA" style="font-size: 11px; max-height: 80px; overflow-y: auto;">Generando...</div>
                 </div>
@@ -585,7 +585,7 @@
                     </select>
                   </div>
                 </div>
-                <div class="prompt-console" style="margin-top: 16px;">
+                <div class="prompt-console u-mt-16" >
                   <span class="analysis-field-label">Prompt B Compilado</span>
                   <div class="prompt-text" id="promptPreviewB" style="font-size: 11px; max-height: 80px; overflow-y: auto;">Generando...</div>
                 </div>
@@ -595,8 +595,8 @@
         </div>
 
         <!-- Hidden Version History Timeline Container -->
-        <div id="historyTimelineContainer" data-persona-step="advanced" style="display: none; margin-bottom: 28px;" class="glass-card">
-          <h2 style="font-family: var(--font-display); margin-bottom: 16px;">⏳ Historial de Versiones</h2>
+        <div id="historyTimelineContainer" data-persona-step="advanced"  class="glass-card u-hidden-mb-28">
+          <h2 class="u-title-ab">⏳ Historial de Versiones</h2>
           <div class="version-timeline-list" id="versionTimelineList" style="display: flex; flex-direction: column; gap: 12px;">
             <!-- Dynamically populated timeline -->
           </div>
@@ -624,9 +624,9 @@
                   <div id="sheetHandle" style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-primary); margin-bottom: 12px;">@sofia_ugc</div>
                   
                   <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
-                    <span id="sheetGenderBadge" class="badge" style="background: rgba(255,255,255,0.05); font-size: 11px; color: #fff;">Female</span>
-                    <span id="sheetAgeBadge" class="badge" style="background: rgba(255,255,255,0.05); font-size: 11px; color: #fff;">25 años</span>
-                    <span id="sheetEthnicityBadge" class="badge" style="background: rgba(255,255,255,0.05); font-size: 11px; color: #fff;">Latina</span>
+                    <span id="sheetGenderBadge" class="badge u-bg-soft" >Female</span>
+                    <span id="sheetAgeBadge" class="badge u-bg-soft" >25 años</span>
+                    <span id="sheetEthnicityBadge" class="badge u-bg-soft" >Latina</span>
                   </div>
 
                   <!-- Quick Action Buttons -->
@@ -659,11 +659,11 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 11px; color: var(--text-secondary);">
                   <div><strong>Complexión / silueta:</strong> <span id="sheetBodyType" class="u-color-white">—</span></div>
                   <div><strong>Estatura aparente:</strong> <span id="sheetHeight" class="u-color-white">—</span></div>
-                  <div style="grid-column: 1 / -1;"><strong>Proporciones:</strong> <span id="sheetProportions" class="u-color-white">—</span></div>
+                  <div class="u-span-full"><strong>Proporciones:</strong> <span id="sheetProportions" class="u-color-white">—</span></div>
                   <div><strong>Postura:</strong> <span id="sheetPosture" class="u-color-white">—</span></div>
                   <div><strong>Tono / fitness:</strong> <span id="sheetFitness" class="u-color-white">—</span></div>
-                  <div style="grid-column: 1 / -1;"><strong>Piel corporal:</strong> <span id="sheetBodySkin" class="u-color-white">—</span></div>
-                  <div style="grid-column: 1 / -1;"><strong>Encuadre corporal:</strong> <span id="sheetBodyFraming" class="u-color-white">—</span></div>
+                  <div class="u-span-full"><strong>Piel corporal:</strong> <span id="sheetBodySkin" class="u-color-white">—</span></div>
+                  <div class="u-span-full"><strong>Encuadre corporal:</strong> <span id="sheetBodyFraming" class="u-color-white">—</span></div>
                 </div>
               </div>
 
@@ -702,7 +702,7 @@
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-shot="haul">Haul</button>
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-shot="day_in_life">Day in life</button>
                   </div>
-                  <p id="ugcShotComposerHint" style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;">Elige cámara y/o formato; se inyectan al copiar el pack (sin renegociar la cara).</p>
+                  <p id="ugcShotComposerHint" class="u-hint-muted-block">Elige cámara y/o formato; se inyectan al copiar el pack (sin renegociar la cara).</p>
                 </div>
                 <button type="button" class="btn btn-sm" data-free-pack="fullbody" id="btnCopyPackFullbodyPrimary" style="width: 100%; font-size: 12px; padding: 10px 12px; margin-bottom: 8px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff; text-align: left;">
                   Copiar JSON
@@ -710,31 +710,31 @@
                 <details id="packVariantsMenu" style="margin: 0 0 8px;">
                   <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 6px 0;">Packs ▾ (bikini · spicy · producto · semana)</summary>
                   <div class="pack-library-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
-                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="fullbody" style="font-size: 11px; padding: 8px 10px; text-align: left;">Cuerpo entero</button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="bikini" style="font-size: 11px; padding: 8px 10px; text-align: left;">Bikini / playa</button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="spicy" style="font-size: 11px; padding: 8px 10px; text-align: left;">Spicy (realista)</button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-free-pack="product" style="font-size: 11px; padding: 8px 10px; text-align: left;">Producto en mano</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="fullbody" >Cuerpo entero</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="bikini" >Bikini / playa</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="spicy" >Spicy (realista)</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="product" >Producto en mano</button>
                     <button type="button" class="btn btn-secondary btn-sm" id="btnCopyUgcWeek" style="font-size: 11px; padding: 8px 10px; text-align: left; grid-column: 1 / -1;" title="7 one-liners con el mismo character_lock">📅 Semana UGC (7 tomas)</button>
                   </div>
                 </details>
                 <p class="pack-last-status" data-last-pack-status style="font-size: 10px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.4;"></p>
-                <button type="button" class="btn btn-secondary btn-sm" id="btnRecopyLastPack" data-offline-highlight="pack" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;" disabled>
+                <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnRecopyLastPack" data-offline-highlight="pack"  disabled>
                   Volver a copiar último pack
                 </button>
                 <button type="button" class="btn btn-sm" id="btnChatbotSessionCheck" data-offline-highlight="pack" style="width: 100%; margin-top: 10px; font-size: 11px; padding: 10px 12px; background: rgba(52, 211, 153, 0.2); border: 1px solid rgba(52, 211, 153, 0.45); color: #fff;">
                   Probar en chatbot (3 prompts)
                 </button>
-                <button type="button" class="btn btn-secondary btn-sm" id="btnOpenChatbotChecklist" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;">
+                <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnOpenChatbotChecklist" >
                   Abrir checklist de sesión
                 </button>
-                <p id="chatbotSessionSheetStatus" style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;"></p>
+                <p id="chatbotSessionSheetStatus" class="u-hint-muted-block"></p>
                 <p class="u-hint-10">
                   Copia un bloque con lock + retrato + cuerpo + producto. Valida identidad en ChatGPT free sin pagar face-lock.
                 </p>
                 <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
                   <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px;">Descargas (opcional, no sustituyen el pack free)</p>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
-                  <button type="button" class="btn btn-secondary btn-sm" id="btnExportBrandKitSheet" style="width: 100%; margin-top: 8px; font-size: 11px; padding: 8px 10px;">🎁 Descargar kit marca (packs + guión)</button>
+                  <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnExportBrandKitSheet" >🎁 Descargar kit marca (packs + guión)</button>
                 </div>
               </div>
 
@@ -753,8 +753,8 @@
                 </p>
                 <div id="loraInferencePanel" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
                   <div id="localGpuStatusPanel" style="margin-bottom: 12px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);">
-                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">GPU local (L4)</p>
-                    <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
+                    <p class="u-field-title">GPU local (L4)</p>
+                    <p class="u-hint-muted-sm">
                       Opt-in · equipo con NVIDIA/self-host. El path free sigue siendo <strong>Copiar JSON</strong>.
                     </p>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
@@ -767,40 +767,40 @@
                       Guía: <code class="u-fs-10">docs/lora/L4_LOCAL_GPU.md</code>
                     </p>
                   </div>
-                  <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L2 · Registrar LoRA (ComfyUI / A1111)</p>
-                  <p id="loraInferenceStatus" style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">Estado: —</p>
+                  <p class="u-field-title">L2 · Registrar LoRA (ComfyUI / A1111)</p>
+                  <p id="loraInferenceStatus" class="u-hint-muted-sm">Estado: —</p>
                   <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px;">Subir .safetensors (tras Colab)</label>
                   <input type="file" id="loraWeightsFile" accept=".safetensors,.pt,.ckpt" style="font-size: 10px; width: 100%; margin-bottom: 6px;" />
                   <input type="text" id="loraTriggerInput" placeholder="trigger (ohwx_…)" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-bottom: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
-                  <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <div class="u-gap-wrap">
                     <button type="button" class="btn btn-secondary btn-sm" id="btnRegisterLora" style="flex: 1; font-size: 11px; padding: 8px 10px;">Registrar LoRA</button>
-                    <button type="button" class="btn btn-sm" id="btnClearLora" style="font-size: 11px; padding: 8px 10px;">Quitar</button>
+                    <button type="button" class="btn btn-sm u-btn-sm-pad-tight" id="btnClearLora" >Quitar</button>
                   </div>
                   <p class="u-hint-10">
                     Guías: <code class="u-fs-10">docs/lora/L2_COMFYUI.md</code>
                     · <code class="u-fs-10">docs/lora/L4_LOCAL_GPU.md</code>
                   </p>
                   <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
-                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L5 · Train local (GPU propia, opt-in)</p>
-                    <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
+                    <p class="u-field-title">L5 · Train local (GPU propia, opt-in)</p>
+                    <p class="u-hint-muted-sm">
                       Requiere <code class="u-fs-10">ENABLE_LOCAL_LORA_TRAIN=1</code>. Materializa el pack L0; con
                       <code class="u-fs-10">AI_TOOLKIT_DIR</code> / <code class="u-fs-10">LOCAL_LORA_TRAIN_CMD</code> lanza el trainer.
                       Sin GPU: usá <strong>Colab L1</strong>. Guía: <code class="u-fs-10">docs/lora/L5_LOCAL_TRAIN.md</code>.
                     </p>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <div class="u-gap-wrap">
                       <button type="button" class="btn btn-sm" id="btnTrainLoraLocal" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4);">Preparar / entrenar local</button>
-                      <button type="button" class="btn btn-secondary btn-sm" id="btnSyncLoraLocal" style="font-size: 11px; padding: 8px 10px;">Sincronizar train local</button>
+                      <button type="button" class="btn btn-secondary btn-sm u-btn-sm-pad-tight" id="btnSyncLoraLocal" >Sincronizar train local</button>
                     </div>
                   </div>
                   <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
-                    <p style="font-size: 11px; font-weight: 600; margin: 0 0 6px;">L3 · Replicate (pago, opt-in)</p>
-                    <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4;">
+                    <p class="u-field-title">L3 · Replicate (pago, opt-in)</p>
+                    <p class="u-hint-muted-sm">
                       Requiere <code class="u-fs-10">ENABLE_PAID_LORA=1</code>. Preferí Colab (L1) si puedes.
                       Guía: <code class="u-fs-10">docs/lora/L3_PAID.md</code>.
                     </p>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <div class="u-gap-wrap">
                       <button type="button" class="btn btn-sm" id="btnTrainLoraPaid" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(251, 146, 60, 0.25); border: 1px solid rgba(251, 146, 60, 0.45);">Entrenar en Replicate (pago)</button>
-                      <button type="button" class="btn btn-secondary btn-sm" id="btnSyncLoraPaid" style="font-size: 11px; padding: 8px 10px;">Sincronizar estado</button>
+                      <button type="button" class="btn btn-secondary btn-sm u-btn-sm-pad-tight" id="btnSyncLoraPaid" >Sincronizar estado</button>
                     </div>
                     <input type="text" id="loraReplicateModelInput" placeholder="o pega owner/model:version ya entrenado" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-top: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
                     <button type="button" class="btn btn-secondary btn-sm" id="btnLinkLoraPaid" style="width: 100%; margin-top: 6px; font-size: 11px; padding: 8px 10px;">Vincular modelo Replicate</button>
@@ -837,7 +837,7 @@
                   Path free = copiar texto. Bocetos Pollinations = opt-in.
                 </p>
                 <div id="facePackSlots" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px;"></div>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <div class="u-flex-wrap-gap">
                   <button type="button" class="btn btn-sm" id="btnCopyFacePackText" style="flex: 2; min-width: 140px; font-size: 11px; padding: 8px 10px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff;">
                     Copiar face pack (JSON)
                   </button>
@@ -848,7 +848,7 @@
                     Generar bocetos (opt-in)
                   </button>
                 </div>
-                <p id="facePackHint" style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;">
+                <p id="facePackHint" class="u-hint-muted-block">
                   Si cambias asimetría/marcas/tez del lock, vuelve a copiar el texto (y regenera bocetos si los usas).
                 </p>
               </div>
@@ -1056,7 +1056,7 @@
                 </div>
 
                 <div class="form-row u-mt-10">
-                  <div style="flex: 1;">
+                  <div class="u-flex-1">
                     <label for="pTaboos">Tabúes y Restricciones de Marca (Separados por coma)</label>
                     <input type="text" id="pTaboos" value="No promociona fast fashion, No usa lenguaje agresivo, No habla de política" placeholder="Ej: No fast fashion, No lenguaje agresivo, No política">
                   </div>
@@ -1250,7 +1250,7 @@
                   Free path: usa <strong>Copiar JSON</strong> en la ficha (columna izquierda) — packs cuerpo / bikini / spicy / producto.
                   Aquí solo previsualizas el prompt.
                 </p>
-                <p class="pack-last-status" data-last-pack-status style="font-size: 10px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4;"></p>
+                <p class="pack-last-status u-hint-muted-block" data-last-pack-status ></p>
               </div>
             </div>
           </div>
@@ -1295,7 +1295,7 @@
               </div>
 
               <!-- Positive Prompt -->
-              <div class="prompt-console" style="margin-bottom: 16px;">
+              <div class="prompt-console u-mb-16" >
                 <div class="u-flex-between">
                   <h4 style="font-size: 10px; text-transform: uppercase; color: var(--accent-primary); margin: 0; letter-spacing: 0.5px;">✨ Prompt Positivo Unificado (Escena + Rostro)</h4>
                   <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyPositivePrompt">Copiar</button>
@@ -1327,38 +1327,38 @@
                 </div>
 
                 <!-- Leonardo & Ideogram (Horizontal Split) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="u-grid-2">
                   <div class="prompt-console u-m-0">
                     <div class="u-flex-between">
                       <span style="font-size: 11px; font-weight: 700; color: #f472b6;">🎨 Leonardo</span>
                       <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyLeonardoPrompt">Copiar</button>
                     </div>
-                    <div class="prompt-text" id="bibleLeonardoPrompt" style="font-size: 11px; color: #ccc; max-height: 70px; overflow-y: auto;">Cargando...</div>
+                    <div class="prompt-text u-scroll-ccc" id="bibleLeonardoPrompt" >Cargando...</div>
                   </div>
                   <div class="prompt-console u-m-0">
                     <div class="u-flex-between">
                       <span style="font-size: 11px; font-weight: 700; color: #2dd4bf;">📐 Ideogram</span>
                       <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyIdeogramPrompt">Copiar</button>
                     </div>
-                    <div class="prompt-text" id="bibleIdeogramPrompt" style="font-size: 11px; color: #ccc; max-height: 70px; overflow-y: auto;">Cargando...</div>
+                    <div class="prompt-text u-scroll-ccc" id="bibleIdeogramPrompt" >Cargando...</div>
                   </div>
                 </div>
 
                 <!-- Grok & ChatGPT (Horizontal Split) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="u-grid-2">
                   <div class="prompt-console u-m-0">
                     <div class="u-flex-between">
                       <span style="font-size: 11px; font-weight: 700; color: #10b981;">👁️ Grok Imagine</span>
                       <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyGrokPrompt">Copiar</button>
                     </div>
-                    <div class="prompt-text" id="bibleGrokPrompt" style="font-size: 11px; color: #ccc; max-height: 70px; overflow-y: auto;">Cargando...</div>
+                    <div class="prompt-text u-scroll-ccc" id="bibleGrokPrompt" >Cargando...</div>
                   </div>
                   <div class="prompt-console u-m-0">
                     <div class="u-flex-between">
                       <span style="font-size: 11px; font-weight: 700; color: #f59e0b;">💬 ChatGPT (GPT-4o)</span>
                       <button class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyChatGptPrompt">Copiar</button>
                     </div>
-                    <div class="prompt-text" id="bibleChatGptPrompt" style="font-size: 11px; color: #ccc; max-height: 70px; overflow-y: auto;">Cargando...</div>
+                    <div class="prompt-text u-scroll-ccc" id="bibleChatGptPrompt" >Cargando...</div>
                   </div>
                 </div>
 
@@ -1390,9 +1390,9 @@
           </div>
         </div>
         
-        <div class="glass-card" style="margin-top: 28px;">
+        <div class="glass-card u-mt-28" >
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-            <h2 style="font-family: var(--font-display); margin: 0;">Seleccionar Influencer Guardado</h2>
+            <h2 class="u-title-card">Seleccionar Influencer Guardado</h2>
             <div style="display: flex; gap: 8px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; border: 1px solid var(--glass-border);">
               <button class="btn btn-secondary btn-sm" id="btnFilterActive" style="background: var(--accent-primary); color: #fff; padding: 4px 12px; font-size: 11px; height: auto;">Activos</button>
               <button class="btn btn-secondary btn-sm" id="btnFilterArchived" style="background: transparent; color: var(--text-secondary); padding: 4px 12px; font-size: 11px; height: auto; border: none;">Archivados</button>
@@ -1404,9 +1404,9 @@
         </div>
 
         <!-- Influencer Variant Vault & Pose Manager -->
-        <div class="glass-card" style="margin-top: 28px;" id="variantManagerSection" data-persona-step="3">
+        <div class="glass-card u-mt-28"  id="variantManagerSection" data-persona-step="3">
           <h2 style="font-family: var(--font-display); margin-bottom: 8px;">🎬 Repositorio de Poses y Variaciones</h2>
-          <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 24px;">Genera y administra variaciones visuales consistentes (poses, vestuario, actitud) para <strong id="activeInfluencerName">Sofia</strong>.</p>
+          <p class="u-lead-ab">Genera y administra variaciones visuales consistentes (poses, vestuario, actitud) para <strong id="activeInfluencerName">Sofia</strong>.</p>
           
           <div class="variant-vault-layout" style="display: grid; grid-template-columns: 320px 1fr; gap: 28px;">
             <!-- Variant controls -->
@@ -1429,7 +1429,7 @@
                 <div class="pb-group">
                   <label for="vPose">Encuadre / Pose</label>
                   <div class="pb-chip-row" id="chipsPose"></div>
-                  <select id="vPose" style="display:none">
+                  <select id="vPose" class="u-hidden">
                     <option value="Selfie de primer plano de rostro (selfie portrait)">Selfie primer plano (rostro)</option>
                     <option value="Plano medio-corto de brazo extendido (candid hand-held selfie)">Plano medio-corto (selfie)</option>
                     <option value="Espejo de cuerpo entero sosteniendo el celular (full body mirror selfie)">Selfie de espejo (cuerpo entero)</option>
@@ -1448,7 +1448,7 @@
                 <div class="pb-group">
                   <label for="vAttitude">Actitud / Expresión</label>
                   <div class="pb-chip-row" id="chipsAttitude"></div>
-                  <select id="vAttitude" style="display:none">
+                  <select id="vAttitude" class="u-hidden">
                     <option value="sonriendo alegremente de forma muy natural (happy approachable smile)">Sonriente y alegre</option>
                     <option value="mirada fija seria y elegante de alta costura (serious high-fashion expression)">Seria y elegante</option>
                     <option value="guiñando un ojo de forma juguetona e ingeniosa (playful confident wink)">Guiñando un ojo</option>
@@ -1463,7 +1463,7 @@
                 <div class="pb-group">
                   <label for="vClothing">Vestuario de Variación</label>
                   <div class="pb-chip-row" id="chipsClothing"></div>
-                  <select id="vClothing" style="display:none">
+                  <select id="vClothing" class="u-hidden">
                     <!-- Loaded dynamically via JS matching the gender of the active influencer -->
                   </select>
                 </div>
@@ -1471,7 +1471,7 @@
                 <div class="pb-group">
                   <label for="vSetting">Ubicación / Fondo</label>
                   <div class="pb-chip-row" id="chipsSetting"></div>
-                  <select id="vSetting" style="display:none">
+                  <select id="vSetting" class="u-hidden">
                     <option value="Fondo de cafetería moderna iluminada de día (modern bright cafe interior)">Cafetería (interior)</option>
                     <option value="Gimnasio moderno con luces de neón tenues (modern dark fitness studio)">Gimnasio (neón)</option>
                     <option value="Parque natural soleado con follaje verde desenfocado (sunny green park)">Parque (naturaleza)</option>
@@ -1514,7 +1514,7 @@
 
                 <div style="display: flex; gap: 8px; margin-top: 6px;">
                   <button type="button" class="btn btn-secondary" id="btnRandomizeVariant" style="flex: 0 0 auto;" title="Elige pose, vestuario, actitud y escena al azar">🎲 Sorpréndeme</button>
-                  <button type="button" class="btn btn-secondary" id="btnGenerateVariant" style="flex: 1;" title="Pollinations opt-in (token/pollen) — preferí Copiar JSON">
+                  <button type="button" class="btn btn-secondary u-flex-1" id="btnGenerateVariant"  title="Pollinations opt-in (token/pollen) — preferí Copiar JSON">
                     Generar boceto (opt-in · puede pedir token)
                   </button>
                 </div>
@@ -1536,7 +1536,7 @@
                     Juzga a ojo — gratis
                   </span>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="u-grid-2">
                   <div style="text-align: center;">
                     <span style="display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Foto ancla oficial</span>
                     <img id="sbsAnchorImg" src="" alt="Ancla" style="width: 100%; height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid var(--glass-border); background: #111;" />
@@ -1565,7 +1565,7 @@
         <!-- Generation History Section -->
         <div class="glass-card" id="generationHistorySection" data-persona-step="3" style="margin-top: 28px; display: none;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-            <h2 style="font-family: var(--font-display); margin: 0;">📜 Historial de Generaciones — <span id="historyInfluencerName" style="color: var(--accent-primary);"></span></h2>
+            <h2 class="u-title-card">📜 Historial de Generaciones — <span id="historyInfluencerName" style="color: var(--accent-primary);"></span></h2>
             <div style="display: flex; gap: 8px; align-items: center;">
               <button class="btn-filter active" id="btnHistAll" onclick="setHistoryFilter('all')">Todas</button>
               <button class="btn-filter" id="btnHistPortrait" onclick="setHistoryFilter('portrait')">Retratos</button>
@@ -1668,7 +1668,7 @@
           <div class="glass-card">
             <h2 class="u-card-title">Configuración de Producción</h2>
             
-            <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="u-flex-col-gap">
               <div>
                 <label>Influencer Activo</label>
                 <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
@@ -1694,16 +1694,16 @@
               <div>
                 <label style="font-family: var(--font-display); font-weight: 600; margin-bottom: 8px; display: block;">Plantillas Comerciales UGC (1-Clic)</label>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
-                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="skincare" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button type="button" class="btn btn-secondary ugc-preset-btn u-btn-icon-row" data-preset="skincare" >
                     🧴 Skincare & Suero
                   </button>
-                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="fitness" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button type="button" class="btn btn-secondary ugc-preset-btn u-btn-icon-row" data-preset="fitness" >
                     👗 Fit & Athleisure
                   </button>
-                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="tech" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button type="button" class="btn btn-secondary ugc-preset-btn u-btn-icon-row" data-preset="tech" >
                     📱 Tech & Gadgets
                   </button>
-                  <button type="button" class="btn btn-secondary ugc-preset-btn" data-preset="wellness" style="font-size: 11px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <button type="button" class="btn btn-secondary ugc-preset-btn u-btn-icon-row" data-preset="wellness" >
                     🍹 Wellness & Smoothie
                   </button>
                 </div>
@@ -1812,7 +1812,7 @@
                 <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🎬 Video UGC Pipeline <span style="font-size:11px; font-weight:600; color:#f59e0b; letter-spacing:0.04em;">(DEMO — sin pipeline real)</span></h3>
                 <p style="font-size:12px; color:var(--text-muted); margin:0 0 10px; line-height:1.4;">Simulación de timeline local. Veo/Runway no están conectados; el path gratis sigue siendo Copiar JSON / packs UGC.</p>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
-                  <button class="btn btn-secondary" id="btnGenerateUgcVideo" style="width: 100%;">
+                  <button class="btn btn-secondary u-w-full" id="btnGenerateUgcVideo" >
                     🎥 Probar timeline demo (15s · sin render real)
                   </button>
                   <div class="video-timeline-preview" id="videoTimelinePreview" style="display: none; margin-top: 10px;">
@@ -1824,10 +1824,10 @@
                       <div id="videoProgressBar" style="width: 0%; height: 100%; background: var(--accent-gradient); transition: width 0.3s ease;"></div>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 8px; font-size: 9px; color: var(--text-muted);">
-                      <div class="timeline-step" id="vtStep1" style="flex: 1; text-align: center;">Gancho</div>
-                      <div class="timeline-step" id="vtStep2" style="flex: 1; text-align: center;">Demo</div>
-                      <div class="timeline-step" id="vtStep3" style="flex: 1; text-align: center;">Giro</div>
-                      <div class="timeline-step" id="vtStep4" style="flex: 1; text-align: center;">CTA</div>
+                      <div class="timeline-step u-text-center-flex1" id="vtStep1" >Gancho</div>
+                      <div class="timeline-step u-text-center-flex1" id="vtStep2" >Demo</div>
+                      <div class="timeline-step u-text-center-flex1" id="vtStep3" >Giro</div>
+                      <div class="timeline-step u-text-center-flex1" id="vtStep4" >CTA</div>
                     </div>
                   </div>
                 </div>
@@ -1916,7 +1916,7 @@
           <div class="glass-card">
             <h2 class="u-card-title">Calculadora de Derechos Comerciales</h2>
             
-            <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="u-flex-col-gap">
               <div>
                 <label for="baseFeeInput">Tarifa Base por Video ($ USD)</label>
                 <input type="text" id="baseFeeInput" value="150">
@@ -2024,8 +2024,8 @@
             </div>
             
             <div style="display: flex; gap: 12px;">
-              <button class="btn btn-secondary" style="flex: 1;" id="btnCopyProposal">Copiar Propuesta</button>
-              <button type="button" class="btn" style="flex: 1;" id="btnDownloadProposal">Descargar propuesta (.txt)</button>
+              <button class="btn btn-secondary u-flex-1"  id="btnCopyProposal">Copiar Propuesta</button>
+              <button type="button" class="btn u-flex-1"  id="btnDownloadProposal">Descargar propuesta (.txt)</button>
             </div>
           </div>
         </div>
@@ -2078,7 +2078,7 @@
       <!-- Paso 1: Formulario de Carga -->
       <div id="importStep1">
         <div class="editor-form-group">
-          <div style="margin-bottom: 18px;">
+          <div class="u-mb-18">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <label style="font-weight: 600; font-size: 12px; margin: 0;">📷 Fotos de Referencia (Máximo 4)</label>
               <span class="import-counter-badge" id="importCounterBadge">0/4 cargadas</span>
@@ -2096,20 +2096,20 @@
             <div id="importFilesFeedback" style="display: none; margin-top: 6px; font-size: 11px; color: var(--accent-primary); font-weight: 500;"></div>
           </div>
 
-          <div style="margin-bottom: 18px;">
-            <label for="importUrl" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px;">🔗 URL del Perfil o Foto (Opcional)</label>
+          <div class="u-mb-18">
+            <label for="importUrl" class="u-label-block">🔗 URL del Perfil o Foto (Opcional)</label>
             <input type="text" id="importUrl" placeholder="Ej: https://instagram.com/p/..." 
               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
           </div>
 
-          <div style="margin-bottom: 18px;">
-            <label for="importName" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px;">🏷️ Nombre Personalizado (Opcional)</label>
+          <div class="u-mb-18">
+            <label for="importName" class="u-label-block">🏷️ Nombre Personalizado (Opcional)</label>
             <input type="text" id="importName" placeholder="Ej: Clara Gómez (Si se omite, se autogenera)" 
               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
           </div>
 
           <div class="u-mb-20">
-            <label for="importScriptTopic" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px;">📦 Producto / Nicho para Guiones UGC (Opcional)</label>
+            <label for="importScriptTopic" class="u-label-block">📦 Producto / Nicho para Guiones UGC (Opcional)</label>
             <input type="text" id="importScriptTopic" placeholder="Ej: Crema hidratante antiedad Glow Serum" 
               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
           </div>
@@ -2213,7 +2213,7 @@ npm start</pre>
     <div class="glass-card login-card" style="width: 100%; max-width: 400px; text-align: center; padding: 40px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
       <div class="logo-icon" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center;">I</div>
       <h2 style="font-family: var(--font-display); font-size: 22px; margin-bottom: 6px; color: #fff;">influ-JSON Studio</h2>
-      <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">Elige tu perfil e introduce el PIN.</p>
+      <p class="u-lead-secondary">Elige tu perfil e introduce el PIN.</p>
       
       <form id="loginForm">
         <label for="loginProfileSelect" style="display:block; text-align:left; font-size:11px; color:var(--text-muted); margin-bottom:6px;">Perfil</label>
@@ -2221,7 +2221,7 @@ npm start</pre>
           <option value="">Detectar por PIN…</option>
         </select>
         <input type="password" id="loginPinInput" placeholder="••••" required autocomplete="current-password" style="text-align: center; font-size: 24px; letter-spacing: 8px; padding: 12px; margin-bottom: 12px; width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: var(--border-radius-sm); color: #fff; outline: none;">
-        <p id="loginErrorText" style="display:none; color:var(--danger); font-size:12px; margin:0 0 12px;"></p>
+        <p id="loginErrorText" class="u-err-inline"></p>
         <button type="submit" class="btn" style="width: 100%; padding: 12px;">Desbloquear Studio</button>
       </form>
       <button type="button" id="btnShowInviteRedeem" style="margin-top:14px; background:transparent; border:none; color:var(--text-secondary); font-size:12px; text-decoration:underline; cursor:pointer;">Tengo una invitación</button>
@@ -2235,8 +2235,8 @@ npm start</pre>
         <input type="text" id="inviteNameInput" placeholder="Ej. Marca Beauty" style="width:100%; padding:10px; margin-bottom:10px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:13px;">
         <label for="invitePinInput" class="u-label-sm">Elige un PIN (mín. 4)</label>
         <input type="password" id="invitePinInput" placeholder="••••" minlength="4" style="width:100%; padding:10px; margin-bottom:12px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:16px; letter-spacing:4px; text-align:center;">
-        <p id="inviteRedeemError" style="display:none; color:var(--danger); font-size:12px; margin:0 0 12px;"></p>
-        <button type="submit" class="btn" style="width:100%; padding:12px;">Activar invitación</button>
+        <p id="inviteRedeemError" class="u-err-inline"></p>
+        <button type="submit" class="btn u-input-pad-12" >Activar invitación</button>
         <button type="button" id="btnBackToLogin" style="margin-top:10px; width:100%; background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer;">← Volver al login</button>
       </form>
     </div>
@@ -2253,7 +2253,7 @@ npm start</pre>
   <div id="setupPinModal" class="login-modal-overlay u-hidden" role="dialog" aria-modal="true" aria-labelledby="setupPinTitle">
     <div class="glass-card login-card" style="width:100%; max-width:420px; text-align:left; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.8); position:relative;">
       <p class="u-eyebrow">Primer arranque</p>
-      <h2 id="setupPinTitle" style="font-family:var(--font-display); font-size:22px; margin:0 0 8px; color:#fff;">Protege tu Studio</h2>
+      <h2 id="setupPinTitle" class="u-title-display">Protege tu Studio</h2>
       <p style="font-size:13px; color:var(--text-secondary); margin:0 0 16px; line-height:1.45;">
         El PIN por defecto (<code>1234</code>) no es seguro. Elige uno nuevo (mín. 6 caracteres) antes de crear influencers.
         El Studio escucha solo en localhost por defecto; si expones la red, este paso es obligatorio.
@@ -2263,8 +2263,8 @@ npm start</pre>
         <input type="password" id="setupPinInput" required minlength="6" autocomplete="new-password" placeholder="••••••" style="width:100%; padding:12px; margin-bottom:12px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:18px; letter-spacing:6px; text-align:center;">
         <label for="setupPinConfirmInput" class="u-label-sm">Confirmar PIN</label>
         <input type="password" id="setupPinConfirmInput" required minlength="6" autocomplete="new-password" placeholder="••••••" style="width:100%; padding:12px; margin-bottom:12px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:18px; letter-spacing:6px; text-align:center;">
-        <p id="setupPinError" style="display:none; color:var(--danger); font-size:12px; margin:0 0 12px;"></p>
-        <button type="submit" class="btn" id="btnSetupPinSubmit" style="width:100%; padding:12px;">Guardar PIN y continuar</button>
+        <p id="setupPinError" class="u-err-inline"></p>
+        <button type="submit" class="btn u-input-pad-12" id="btnSetupPinSubmit" >Guardar PIN y continuar</button>
         <button type="button" id="btnSetupPinLater" style="width:100%; margin-top:10px; background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">
           Más tarde — solo localhost (banner de aviso)
         </button>
@@ -2314,7 +2314,7 @@ npm start</pre>
     <div class="glass-card login-card" style="width:100%; max-width:440px; text-align:left; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.8); position:relative;">
       <button type="button" id="btnCloseMemberWelcome" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;" aria-label="Cerrar">✕</button>
       <p class="u-eyebrow">Tu espacio aislado</p>
-      <h2 id="memberWelcomeTitle" style="font-family:var(--font-display); font-size:22px; margin:0 0 8px; color:#fff;">Bienvenido a influ-JSON</h2>
+      <h2 id="memberWelcomeTitle" class="u-title-display">Bienvenido a influ-JSON</h2>
       <p id="memberWelcomeLead" style="font-size:13px; color:var(--text-secondary); margin:0 0 18px; line-height:1.45;">
         Este perfil es solo tuyo. No verás ni mezclarás creaciones de Administración u otros testers.
       </p>
@@ -2324,9 +2324,9 @@ npm start</pre>
         <li class="u-mb-8"><strong class="u-color-white">Copiar JSON (recomendado)</strong> a ChatGPT / Gemini / Claude free</li>
       </ol>
       <div class="flex-col-gap-8">
-        <button type="button" class="btn" id="btnMemberWelcomeCreate" style="width:100%; padding:12px;">Crear</button>
-        <button type="button" class="btn btn-secondary" id="btnMemberWelcomeImport" style="width:100%; padding:10px; font-size:12px;">Importar</button>
-        <button type="button" class="btn btn-secondary" id="btnMemberWelcomeDashboard" style="width:100%; padding:10px; font-size:12px;">Cómo usar</button>
+        <button type="button" class="btn u-input-pad-12" id="btnMemberWelcomeCreate" >Crear</button>
+        <button type="button" class="btn btn-secondary u-input-pad-10" id="btnMemberWelcomeImport" >Importar</button>
+        <button type="button" class="btn btn-secondary u-input-pad-10" id="btnMemberWelcomeDashboard" >Cómo usar</button>
         <button type="button" id="btnMemberWelcomeSkip" style="background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">Ahora no</button>
       </div>
     </div>
@@ -2337,7 +2337,7 @@ npm start</pre>
     <div class="glass-card login-card" style="width:100%; max-width:460px; text-align:left; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.8); position:relative;">
       <button type="button" id="btnCloseFounderWelcome" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;" aria-label="Cerrar">✕</button>
       <p class="u-eyebrow">Cero costo primero</p>
-      <h2 id="founderWelcomeTitle" style="font-family:var(--font-display); font-size:22px; margin:0 0 8px; color:#fff;">Tu estudio de influencers</h2>
+      <h2 id="founderWelcomeTitle" class="u-title-display">Tu estudio de influencers</h2>
       <p id="founderWelcomeLead" style="font-size:13px; color:var(--text-secondary); margin:0 0 18px; line-height:1.45;">
         Crea prompts + JSON (<code>character_lock</code>) y pégalos en chatbots gratis. Pollinations es opcional.
       </p>
@@ -2347,9 +2347,9 @@ npm start</pre>
         <li class="u-mb-8"><strong class="u-color-white">Copiar JSON</strong> → ChatGPT / Gemini / Claude free</li>
       </ol>
       <div class="flex-col-gap-8">
-        <button type="button" class="btn" id="btnFounderWelcomeCreate" style="width:100%; padding:12px;">Crear</button>
-        <button type="button" class="btn btn-secondary" id="btnFounderWelcomeImport" style="width:100%; padding:10px; font-size:12px;">Importar</button>
-        <button type="button" class="btn btn-secondary" id="btnFounderWelcomeGuide" style="width:100%; padding:10px; font-size:12px;">Cómo usar</button>
+        <button type="button" class="btn u-input-pad-12" id="btnFounderWelcomeCreate" >Crear</button>
+        <button type="button" class="btn btn-secondary u-input-pad-10" id="btnFounderWelcomeImport" >Importar</button>
+        <button type="button" class="btn btn-secondary u-input-pad-10" id="btnFounderWelcomeGuide" >Cómo usar</button>
         <button type="button" id="btnFounderWelcomeSkip" style="background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">Ahora no</button>
       </div>
     </div>
@@ -2388,35 +2388,35 @@ npm start</pre>
       <div id="adminKeysSettingsSection">
         <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; color: #a7f3d0;">
           🟢 <strong>Gratis sin claves de pago:</strong> el producto es <em>Copiar JSON</em> a chatbots free + modo offline.
-          Pollinations (boceto local) es <em>opt-in</em>: pega tu token abajo (enter.pollinations.ai/keys, permiso <code style="font-size:10px;">account:usage</code>).
+          Pollinations (boceto local) es <em>opt-in</em>: pega tu token abajo (enter.pollinations.ai/keys, permiso <code class="u-fs-10-only">account:usage</code>).
           Replicate / LoRA L3 nunca son obligatorios.
         </div>
 
         <form id="settingsForm">
-          <div style="margin-bottom: 16px;">
-            <label for="pollinationsTokenInput" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-secondary);">
+          <div class="u-mb-16">
+            <label for="pollinationsTokenInput" class="u-label-field">
               Token Pollinations (bocetos locales, cero costo con grants)
             </label>
             <input type="password" id="pollinationsTokenInput" placeholder="sk_… o pk_… (enter.pollinations.ai/keys)" autocomplete="off" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
-            <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">
-              Sin token los bocetos fallan (401/402). El path free sigue siendo <strong>Copiar JSON</strong>. Se guarda como <code style="font-size:10px;">POLLINATIONS_TOKEN</code> en <code style="font-size:10px;">.env</code>.
+            <small class="u-hint-muted">
+              Sin token los bocetos fallan (401/402). El path free sigue siendo <strong>Copiar JSON</strong>. Se guarda como <code class="u-fs-10-only">POLLINATIONS_TOKEN</code> en <code class="u-fs-10-only">.env</code>.
             </small>
           </div>
 
-          <div style="margin-bottom: 16px;">
-            <label for="geminiKeyInput" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-secondary);">
+          <div class="u-mb-16">
+            <label for="geminiKeyInput" class="u-label-field">
               Clave API de Google Gemini (Gratis)
             </label>
             <input type="password" id="geminiKeyInput" placeholder="AIzaSy... (Dejar en blanco para modo 100% gratis)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
-            <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Activa la redacción en vivo de guiones y la IA de productos en Node.js.</small>
+            <small class="u-hint-muted">Activa la redacción en vivo de guiones y la IA de productos en Node.js.</small>
           </div>
 
           <div style="margin-bottom: 24px;">
-            <label for="replicateTokenInput" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-secondary);">
+            <label for="replicateTokenInput" class="u-label-field">
               Token API de Replicate (Opt-in Face-Lock de Pago)
             </label>
             <input type="password" id="replicateTokenInput" placeholder="r8_... (vacío = sin face-lock ni L3)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
-            <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Opcional. Face-lock (Fase R) / L3 LoRA no son el path free — ver docs/FACELOCK_R.md y docs/lora/L3_PAID.md. Activá ENABLE_PAID_FACE_LOCK=1 en .env.</small>
+            <small class="u-hint-muted">Opcional. Face-lock (Fase R) / L3 LoRA no son el path free — ver docs/FACELOCK_R.md y docs/lora/L3_PAID.md. Activá ENABLE_PAID_FACE_LOCK=1 en .env.</small>
           </div>
 
           <div style="display: flex; gap: 10px;">
@@ -2435,7 +2435,7 @@ npm start</pre>
         </p>
         <p id="genMetricsLine" style="font-size:13px; color:#a7f3d0; margin:0 0 8px; line-height:1.5;"></p>
         <div id="genMetricsByProfile" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;"></div>
-        <button type="button" id="btnRefreshGenMetrics" class="btn btn-secondary btn-sm" style="font-size:11px;">Actualizar métricas</button>
+        <button type="button" id="btnRefreshGenMetrics" class="btn btn-secondary btn-sm u-fs-11" >Actualizar métricas</button>
         <hr class="u-hr-soft">
       </div>
 
@@ -2445,7 +2445,7 @@ npm start</pre>
           Últimas 50 acciones sensibles: archivar, borrar, exportar, backup. Solo lectura — solo Administración.
         </p>
         <div id="auditLogList" class="audit-log-list" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; margin-bottom:12px;"></div>
-        <button type="button" id="btnRefreshAuditLog" class="btn btn-secondary btn-sm" style="font-size:11px;">Actualizar log</button>
+        <button type="button" id="btnRefreshAuditLog" class="btn btn-secondary btn-sm u-fs-11" >Actualizar log</button>
         <hr class="u-hr-soft">
       </div>
 
@@ -2469,10 +2469,10 @@ npm start</pre>
             <label for="newProfilePin" class="u-fs-10-muted">PIN (mín. 4)</label>
             <input id="newProfilePin" type="password" placeholder="••••" required minlength="4" class="settings-field-input">
           </div>
-          <button type="submit" class="btn btn-secondary btn-sm" style="padding:10px 12px;">Crear</button>
+          <button type="submit" class="btn btn-secondary btn-sm u-pad-y-10" >Crear</button>
         </form>
         <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" id="btnLogoutSession" class="btn btn-secondary btn-sm" style="font-size:11px;">Cerrar sesión</button>
+          <button type="button" id="btnLogoutSession" class="btn btn-secondary btn-sm u-fs-11" >Cerrar sesión</button>
         </div>
       </div>
 
@@ -2491,7 +2491,7 @@ npm start</pre>
             <label for="inviteDaysInput" class="u-fs-10-muted">Caduca en (días)</label>
             <input id="inviteDaysInput" type="number" min="1" max="365" value="14" class="settings-field-input">
           </div>
-          <button type="submit" class="btn btn-sm" style="padding:10px 12px;">Crear código</button>
+          <button type="submit" class="btn btn-sm u-pad-y-10" >Crear código</button>
         </form>
         <div id="lastInviteCodeBanner" style="display:none; margin-bottom:12px; padding:10px 12px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); border-radius:8px; font-size:13px; color:#a7f3d0;">
           Código: <code id="lastInviteCodeValue" style="font-size:15px; letter-spacing:1px; color:#fff;"></code>
@@ -2511,7 +2511,7 @@ npm start</pre>
             <label for="backupLabelInput" class="u-fs-10-muted">Etiqueta (opcional)</label>
             <input id="backupLabelInput" type="text" placeholder="antes_demo" maxlength="40" class="settings-field-input">
           </div>
-          <button type="button" id="btnCreateBackup" class="btn btn-sm" style="padding:10px 12px;">Crear backup</button>
+          <button type="button" id="btnCreateBackup" class="btn btn-sm u-pad-y-10" >Crear backup</button>
           <a id="btnExportStudioZip" class="btn btn-secondary btn-sm" href="/api/export/studio" style="padding:10px 12px; text-decoration:none;">Export studio ZIP</a>
         </div>
         <p id="backupMetaLine" style="font-size:11px; color:var(--text-muted); margin:0 0 10px;"></p>
@@ -2532,13 +2532,13 @@ npm start</pre>
       </div>
       <p id="chatbotSessionPersonaName" style="font-size:13px; color:#34d399; margin:0 0 14px;"></p>
       <div class="chatbot-session-checks" style="display:flex; flex-direction:column; gap:10px;">
-        <label class="chatbot-session-row" style="display:flex; align-items:center; gap:10px; font-size:13px; color:#fff;">
+        <label class="chatbot-session-row u-flex-center-gap" >
           <input type="checkbox" id="chkSessionFace" data-session-check="face"> ¿Misma cara en A, B y C?
         </label>
-        <label class="chatbot-session-row" style="display:flex; align-items:center; gap:10px; font-size:13px; color:#fff;">
+        <label class="chatbot-session-row u-flex-center-gap" >
           <input type="checkbox" id="chkSessionSkin" data-session-check="skin"> ¿Misma tez (no se oscureció / blanqueó)?
         </label>
-        <label class="chatbot-session-row" style="display:flex; align-items:center; gap:10px; font-size:13px; color:#fff;">
+        <label class="chatbot-session-row u-flex-center-gap" >
           <input type="checkbox" id="chkSessionHair" data-session-check="hair"> ¿Mismo pelo (color / largo / textura)?
         </label>
       </div>
@@ -2563,6 +2563,7 @@ npm start</pre>
   <script src="persona-form.js?v=1.0.0"></script>
   <script src="persona-card.js?v=1.0.0"></script>
   <script src="variant-presets.js?v=1.0.0"></script>
+  <script src="photo-analysis.js?v=1.0.0"></script>
   <script src="app.js?v=1.14.1"></script>
 </body>
 </html>
