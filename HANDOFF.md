@@ -25,13 +25,21 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux4-html-partials-9b67` |
-| **Commit base** | `main` @ #91+#90+#89 |
-| **PR actual** | [#92](https://github.com/oscarkleinkopf/influ-json/pull/92) UX-4 parciales HTML |
-| **`main` remoto** | Pages #91 · PIN #90 · UX-2 #89 merged |
-| **Prioridad inmediata** | Seguir UX-4 en #92 (módulos JS + CSS); luego UX-5 |
-| **PIN local** | `1234` · Pages = modal (no Studio) |
-| **Servidor correcto** | `npm start` → `node server.js` |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ #92 UX-4 + #84 PLAN-UX |
+| **PR actual** | — (merges hechos) |
+| **`main` remoto** | UX-4 (#92) + PLAN-UX (#84) merged |
+| **Prioridad inmediata** | **UX-5** (DB tests aislada) o más CSS/`app.js` |
+
+### Sesión reciente (Cursor, 2026-08-12) — Merges a main
+
+**Pedido:** Anda haciendo merge a GitHub.
+
+**Merges:**
+- [#92](https://github.com/oscarkleinkopf/influ-json/pull/92) UX-4 → `main` (CI verde tras fix safe-delete toast test)
+- [#84](https://github.com/oscarkleinkopf/influ-json/pull/84) PLAN-UX docs → `main`
+
+**Siguiente:** UX-5 (aislar `DATA_DIR` en tests) o seguir quitando `style=` / trocear upload UI.
 
 ### Sesión reciente (Cursor, 2026-08-12) — UX-4 continuación II
 
