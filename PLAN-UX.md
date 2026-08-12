@@ -144,7 +144,7 @@ Lo avanzado —LoRA (L2/L5), face-lock de pago, comparador A/B, historial de ver
 | UX-3d | Stat «Scripts» = `campañas × 10` | Contar scripts reales o quitar la tarjeta |
 | UX-3e | Productos: el dashboard muestra 0 con productos en otro perfil | Revisar el scope por perfil en el contador |
 | UX-3f | Estados vacíos (`gallery`, `campaigns`, historial) | Uno y solo un CTA por estado vacío, apuntando al happy path |
-| UX-3g | Modal de Ajustes = scroll largo (claves → métricas → audit → perfiles → invitaciones → backup) | **Ya resuelto en el PR #72** («Ajustes con pestañas»); revisar y mergear |
+| UX-3g | Modal de Ajustes = scroll largo (claves → métricas → audit → perfiles → invitaciones → backup) | **Redo en curso** (`cursor/settings-tabs-ux-9b67`) — draft #72 cerrado; reimplementado sobre `views/_foot.html` |
 | UX-3h | Toast `showSyncToast` marcado `@deprecated` con 24 usos | Migrar a `showAppToast` y borrar |
 
 ---

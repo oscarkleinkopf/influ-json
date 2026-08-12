@@ -2375,147 +2375,181 @@ npm start</pre>
     </button>
   </nav>
 
-  <!-- Settings & API Key Modal Overlay -->
-  <div id="settingsModal" class="login-modal-overlay u-hidden">
-    <div class="glass-card login-card" style="width: 100%; max-width: 480px; text-align: left; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); position: relative;">
-      <button type="button" id="btnCloseSettings" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;">✕</button>
+  <!-- Settings & API Key Modal Overlay (tabs — UX #72) -->
+  <div id="settingsModal" class="login-modal-overlay settings-modal-overlay u-hidden">
+    <div class="glass-card login-card settings-card" role="dialog" aria-labelledby="settingsModalTitle">
+      <button type="button" id="btnCloseSettings" class="settings-close-btn" aria-label="Cerrar ajustes">✕</button>
 
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+      <div class="settings-header">
         <div class="logo-icon" style="width: 36px; height: 36px; font-size: 16px;">⚙️</div>
         <h2 id="settingsModalTitle" style="font-family: var(--font-display); font-size: 20px; margin: 0; color: #fff;">Ajustes</h2>
       </div>
 
-      <div id="adminKeysSettingsSection">
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; color: #a7f3d0;">
-          🟢 <strong>Gratis sin claves de pago:</strong> el producto es <em>Copiar JSON</em> a chatbots free + modo offline.
-          Pollinations (boceto local) es <em>opt-in</em>: pega tu token abajo (enter.pollinations.ai/keys, permiso <code class="u-fs-10-only">account:usage</code>).
-          Replicate / LoRA L3 nunca son obligatorios.
+      <nav id="settingsTabNav" class="settings-tab-nav" role="tablist" aria-label="Secciones de ajustes">
+        <button type="button" class="settings-tab is-active" role="tab" aria-selected="true" data-settings-tab="claves" id="settingsTabClaves">Claves</button>
+        <button type="button" class="settings-tab" role="tab" aria-selected="false" data-settings-tab="perfiles" id="settingsTabPerfiles">Perfiles</button>
+        <button type="button" class="settings-tab" role="tab" aria-selected="false" data-settings-tab="invites" id="settingsTabInvites">Invitaciones</button>
+        <button type="button" class="settings-tab" role="tab" aria-selected="false" data-settings-tab="studio" id="settingsTabStudio">Studio</button>
+        <button type="button" class="settings-tab" role="tab" aria-selected="false" data-settings-tab="cuenta" id="settingsTabCuenta">Cuenta</button>
+      </nav>
+
+      <div class="settings-panels">
+        <div id="settingsPanelClaves" class="settings-panel is-active" role="tabpanel" data-settings-panel="claves">
+          <div id="adminKeysSettingsSection">
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; color: #a7f3d0;">
+              🟢 <strong>Gratis sin claves de pago:</strong> el producto es <em>Copiar JSON</em> a chatbots free + modo offline.
+              Pollinations (boceto local) es <em>opt-in</em>: pega tu token abajo (enter.pollinations.ai/keys, permiso <code class="u-fs-10-only">account:usage</code>).
+              Replicate / LoRA L3 nunca son obligatorios.
+            </div>
+
+            <form id="settingsForm">
+              <div class="u-mb-16">
+                <label for="pollinationsTokenInput" class="u-label-field">
+                  Token Pollinations (bocetos locales, cero costo con grants)
+                </label>
+                <input type="password" id="pollinationsTokenInput" placeholder="sk_… o pk_… (enter.pollinations.ai/keys)" autocomplete="off" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
+                <small class="u-hint-muted">
+                  Sin token los bocetos fallan (401/402). El path free sigue siendo <strong>Copiar JSON</strong>. Se guarda como <code class="u-fs-10-only">POLLINATIONS_TOKEN</code> en <code class="u-fs-10-only">.env</code>.
+                </small>
+              </div>
+
+              <div class="u-mb-16">
+                <label for="geminiKeyInput" class="u-label-field">
+                  Clave API de Google Gemini (Gratis)
+                </label>
+                <input type="password" id="geminiKeyInput" placeholder="AIzaSy... (Dejar en blanco para modo 100% gratis)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
+                <small class="u-hint-muted">Activa la redacción en vivo de guiones y la IA de productos en Node.js.</small>
+              </div>
+
+              <div style="margin-bottom: 24px;">
+                <label for="replicateTokenInput" class="u-label-field">
+                  Token API de Replicate (Opt-in Face-Lock de Pago)
+                </label>
+                <input type="password" id="replicateTokenInput" placeholder="r8_... (vacío = sin face-lock ni L3)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
+                <small class="u-hint-muted">Opcional. Face-lock (Fase R) / L3 LoRA no son el path free — ver docs/FACELOCK_R.md y docs/lora/L3_PAID.md. Activá ENABLE_PAID_FACE_LOCK=1 en .env.</small>
+              </div>
+
+              <div class="u-flex-gap-10">
+                <button type="submit" class="btn" style="flex: 2; padding: 10px;">💾 Guardar Claves en .env</button>
+                <button type="button" id="btnDisableKeys" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 11px;">Restablecer a 100% Gratis</button>
+              </div>
+            </form>
+          </div>
         </div>
 
-        <form id="settingsForm">
-          <div class="u-mb-16">
-            <label for="pollinationsTokenInput" class="u-label-field">
-              Token Pollinations (bocetos locales, cero costo con grants)
-            </label>
-            <input type="password" id="pollinationsTokenInput" placeholder="sk_… o pk_… (enter.pollinations.ai/keys)" autocomplete="off" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
-            <small class="u-hint-muted">
-              Sin token los bocetos fallan (401/402). El path free sigue siendo <strong>Copiar JSON</strong>. Se guarda como <code class="u-fs-10-only">POLLINATIONS_TOKEN</code> en <code class="u-fs-10-only">.env</code>.
-            </small>
+        <div id="settingsPanelPerfiles" class="settings-panel" role="tabpanel" data-settings-panel="perfiles" hidden>
+          <div id="profilesSettingsSection">
+            <h3 id="profilesSettingsHeading" class="u-section-title">Perfiles de usuario (local)</h3>
+            <p id="profilesSettingsLead" class="u-section-lead">
+              Varios emprendedores en el mismo Studio, cada uno con su PIN y su roster. Sin nube ni OAuth. Las filas no abren otra pantalla: renombrar, cambiar PIN o eliminar.
+            </p>
+            <div class="profiles-list-toolbar">
+              <input type="search" id="profilesListFilter" placeholder="Buscar perfil…" autocomplete="off" aria-label="Filtrar perfiles">
+              <span id="profilesListCount" class="profiles-list-count"></span>
+            </div>
+            <div id="profilesList" class="profiles-list-scroll"></div>
+            <div id="profilesPruneBar" style="display:none; margin-top:10px;">
+              <button type="button" id="btnPruneEmptyTestProfiles" class="btn btn-secondary btn-sm u-fs-11">
+                Limpiar perfiles de prueba vacíos
+              </button>
+              <p class="u-fs-10-muted" style="margin:6px 0 0; line-height:1.4;">
+                Solo miembros sin influencers cuyo nombre parece de harness (Member Sec*, MetricsMem_*, Onboard_*, Smoke*). No toca Administración ni perfiles con roster.
+              </p>
+            </div>
+            <form id="createProfileForm" style="display:none; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-top:12px;">
+              <div>
+                <label for="newProfileName" class="u-fs-10-muted">Nombre</label>
+                <input id="newProfileName" type="text" placeholder="Ej. Marca Beauty" required class="settings-field-input">
+              </div>
+              <div>
+                <label for="newProfilePin" class="u-fs-10-muted">PIN (mín. 4)</label>
+                <input id="newProfilePin" type="password" placeholder="••••" required minlength="4" class="settings-field-input">
+              </div>
+              <button type="submit" class="btn btn-secondary btn-sm u-pad-y-10">Crear</button>
+            </form>
           </div>
-
-          <div class="u-mb-16">
-            <label for="geminiKeyInput" class="u-label-field">
-              Clave API de Google Gemini (Gratis)
-            </label>
-            <input type="password" id="geminiKeyInput" placeholder="AIzaSy... (Dejar en blanco para modo 100% gratis)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
-            <small class="u-hint-muted">Activa la redacción en vivo de guiones y la IA de productos en Node.js.</small>
-          </div>
-
-          <div style="margin-bottom: 24px;">
-            <label for="replicateTokenInput" class="u-label-field">
-              Token API de Replicate (Opt-in Face-Lock de Pago)
-            </label>
-            <input type="password" id="replicateTokenInput" placeholder="r8_... (vacío = sin face-lock ni L3)" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; color: #fff; outline: none; font-size: 13px;">
-            <small class="u-hint-muted">Opcional. Face-lock (Fase R) / L3 LoRA no son el path free — ver docs/FACELOCK_R.md y docs/lora/L3_PAID.md. Activá ENABLE_PAID_FACE_LOCK=1 en .env.</small>
-          </div>
-
-          <div class="u-flex-gap-10">
-            <button type="submit" class="btn" style="flex: 2; padding: 10px;">💾 Guardar Claves en .env</button>
-            <button type="button" id="btnDisableKeys" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 11px;">Restablecer a 100% Gratis</button>
-          </div>
-        </form>
-
-        <hr class="u-hr-soft">
-      </div>
-
-      <div id="genMetricsSettingsSection" class="u-hidden">
-        <h3 class="u-section-title">Métricas de generación (local)</h3>
-        <p class="u-section-lead">
-          Contadores gratis en SQLite: cuántos retratos / variantes / fallos 429 por perfil. Prepara la decisión de Replicate sin pagarlo.
-        </p>
-        <p id="genMetricsLine" style="font-size:13px; color:#a7f3d0; margin:0 0 8px; line-height:1.5;"></p>
-        <div id="genMetricsByProfile" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;"></div>
-        <button type="button" id="btnRefreshGenMetrics" class="btn btn-secondary btn-sm u-fs-11" >Actualizar métricas</button>
-        <hr class="u-hr-soft">
-      </div>
-
-      <div id="auditLogSettingsSection" class="u-hidden">
-        <h3 class="u-section-title">Audit log (local)</h3>
-        <p class="u-section-lead">
-          Últimas 50 acciones sensibles: archivar, borrar, exportar, backup. Solo lectura — solo Administración.
-        </p>
-        <div id="auditLogList" class="audit-log-list" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; margin-bottom:12px;"></div>
-        <button type="button" id="btnRefreshAuditLog" class="btn btn-secondary btn-sm u-fs-11" >Actualizar log</button>
-        <hr class="u-hr-soft">
-      </div>
-
-      <div id="memberSettingsHint" style="display:none; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
-        Tu cuenta es de <strong class="u-color-white">tester invitado</strong>. El Studio ya funciona gratis con <strong class="u-color-white">Copiar JSON</strong>.
-        El token de Pollinations (bocetos) lo configura solo Administración en Ajustes — aquí gestionas tu PIN y cierras sesión.
-      </div>
-
-      <div id="profilesSettingsSection">
-        <h3 id="profilesSettingsHeading" class="u-section-title">Perfiles de usuario (local)</h3>
-        <p id="profilesSettingsLead" class="u-section-lead">
-          Varios emprendedores en el mismo Studio, cada uno con su PIN y su roster. Sin nube ni OAuth.
-        </p>
-        <div id="profilesList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;"></div>
-        <form id="createProfileForm" style="display:none; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end;">
-          <div>
-            <label for="newProfileName" class="u-fs-10-muted">Nombre</label>
-            <input id="newProfileName" type="text" placeholder="Ej. Marca Beauty" required class="settings-field-input">
-          </div>
-          <div>
-            <label for="newProfilePin" class="u-fs-10-muted">PIN (mín. 4)</label>
-            <input id="newProfilePin" type="password" placeholder="••••" required minlength="4" class="settings-field-input">
-          </div>
-          <button type="submit" class="btn btn-secondary btn-sm u-pad-y-10" >Crear</button>
-        </form>
-        <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" id="btnLogoutSession" class="btn btn-secondary btn-sm u-fs-11" >Cerrar sesión</button>
         </div>
-      </div>
 
-      <div id="invitesSettingsSection" class="u-hidden">
-        <hr class="u-hr-soft">
-        <h3 class="u-section-title">Invitaciones (Administración)</h3>
-        <p class="u-section-lead">
-          Genera códigos para que otros prueben el Studio. Cada invitado obtiene un perfil <strong>aislado</strong> — sus creaciones no se mezclan con las tuyas.
-        </p>
-        <form id="createInviteForm" style="display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-bottom:12px;">
-          <div>
-            <label for="inviteNoteInput" class="u-fs-10-muted">Nota (opcional)</label>
-            <input id="inviteNoteInput" type="text" placeholder="Ej. tester beauty" maxlength="200" class="settings-field-input">
+        <div id="settingsPanelInvites" class="settings-panel" role="tabpanel" data-settings-panel="invites" hidden>
+          <div id="invitesSettingsSection">
+            <h3 class="u-section-title">Invitaciones (Administración)</h3>
+            <p class="u-section-lead">
+              Genera códigos para que otros prueben el Studio. Cada invitado obtiene un perfil <strong>aislado</strong> — sus creaciones no se mezclan con las tuyas.
+            </p>
+            <form id="createInviteForm" style="display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-bottom:12px;">
+              <div>
+                <label for="inviteNoteInput" class="u-fs-10-muted">Nota (opcional)</label>
+                <input id="inviteNoteInput" type="text" placeholder="Ej. tester beauty" maxlength="200" class="settings-field-input">
+              </div>
+              <div>
+                <label for="inviteDaysInput" class="u-fs-10-muted">Caduca en (días)</label>
+                <input id="inviteDaysInput" type="number" min="1" max="365" value="14" class="settings-field-input">
+              </div>
+              <button type="submit" class="btn btn-sm u-pad-y-10">Crear código</button>
+            </form>
+            <div id="lastInviteCodeBanner" style="display:none; margin-bottom:12px; padding:10px 12px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); border-radius:8px; font-size:13px; color:#a7f3d0;">
+              Código: <code id="lastInviteCodeValue" style="font-size:15px; letter-spacing:1px; color:#fff;"></code>
+              <button type="button" id="btnCopyLastInvite" class="btn btn-secondary btn-sm" style="margin-left:8px; font-size:11px;">Copiar</button>
+            </div>
+            <div id="invitesList" class="settings-scroll-list"></div>
           </div>
-          <div>
-            <label for="inviteDaysInput" class="u-fs-10-muted">Caduca en (días)</label>
-            <input id="inviteDaysInput" type="number" min="1" max="365" value="14" class="settings-field-input">
-          </div>
-          <button type="submit" class="btn btn-sm u-pad-y-10" >Crear código</button>
-        </form>
-        <div id="lastInviteCodeBanner" style="display:none; margin-bottom:12px; padding:10px 12px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); border-radius:8px; font-size:13px; color:#a7f3d0;">
-          Código: <code id="lastInviteCodeValue" style="font-size:15px; letter-spacing:1px; color:#fff;"></code>
-          <button type="button" id="btnCopyLastInvite" class="btn btn-secondary btn-sm" style="margin-left:8px; font-size:11px;">Copiar</button>
         </div>
-        <div id="invitesList" class="flex-col-gap-8"></div>
-      </div>
 
-      <div id="backupsSettingsSection" class="u-hidden">
-        <hr class="u-hr-soft">
-        <h3 class="u-section-title">Backup SQLite (Administración)</h3>
-        <p class="u-section-lead">
-          Copia local de la base en <code>data/backups/</code>. Gratis, sin nube. Se conservan los últimos <strong id="backupKeepHint">10</strong> (env <code>BACKUP_KEEP</code>). Restaurar pide reiniciar el servidor.
-        </p>
-        <div class="flex-row-gap-8" style="margin-bottom:12px;">
-          <div style="flex:1; min-width:140px;">
-            <label for="backupLabelInput" class="u-fs-10-muted">Etiqueta (opcional)</label>
-            <input id="backupLabelInput" type="text" placeholder="antes_demo" maxlength="40" class="settings-field-input">
+        <div id="settingsPanelStudio" class="settings-panel" role="tabpanel" data-settings-panel="studio" hidden>
+          <div id="genMetricsSettingsSection">
+            <h3 class="u-section-title">Métricas de generación (local)</h3>
+            <p class="u-section-lead">
+              Contadores gratis en SQLite: cuántos retratos / variantes / fallos 429 por perfil. Prepara la decisión de Replicate sin pagarlo.
+            </p>
+            <p id="genMetricsLine" style="font-size:13px; color:#a7f3d0; margin:0 0 8px; line-height:1.5;"></p>
+            <div id="genMetricsByProfile" class="settings-scroll-list" style="margin-bottom:12px;"></div>
+            <button type="button" id="btnRefreshGenMetrics" class="btn btn-secondary btn-sm u-fs-11">Actualizar métricas</button>
           </div>
-          <button type="button" id="btnCreateBackup" class="btn btn-sm u-pad-y-10" >Crear backup</button>
-          <a id="btnExportStudioZip" class="btn btn-secondary btn-sm" href="/api/export/studio" style="padding:10px 12px; text-decoration:none;">Export studio ZIP</a>
+
+          <hr class="settings-panel-divider">
+
+          <div id="auditLogSettingsSection">
+            <h3 class="u-section-title">Audit log (local)</h3>
+            <p class="u-section-lead">
+              Últimas 50 acciones sensibles: archivar, borrar, exportar, backup. Solo lectura — solo Administración.
+            </p>
+            <div id="auditLogList" class="audit-log-list settings-scroll-list" style="margin-bottom:12px;"></div>
+            <button type="button" id="btnRefreshAuditLog" class="btn btn-secondary btn-sm u-fs-11">Actualizar log</button>
+          </div>
+
+          <hr class="settings-panel-divider">
+
+          <div id="backupsSettingsSection">
+            <h3 class="u-section-title">Backup SQLite (Administración)</h3>
+            <p class="u-section-lead">
+              Copia local de la base en <code>data/backups/</code>. Gratis, sin nube. Se conservan los últimos <strong id="backupKeepHint">10</strong> (env <code>BACKUP_KEEP</code>). Restaurar pide reiniciar el servidor.
+            </p>
+            <div class="flex-row-gap-8" style="margin-bottom:12px;">
+              <div style="flex:1; min-width:140px;">
+                <label for="backupLabelInput" class="u-fs-10-muted">Etiqueta (opcional)</label>
+                <input id="backupLabelInput" type="text" placeholder="antes_demo" maxlength="40" class="settings-field-input">
+              </div>
+              <button type="button" id="btnCreateBackup" class="btn btn-sm u-pad-y-10">Crear backup</button>
+              <a id="btnExportStudioZip" class="btn btn-secondary btn-sm" href="/api/export/studio" style="padding:10px 12px; text-decoration:none;">Export studio ZIP</a>
+            </div>
+            <p id="backupMetaLine" style="font-size:11px; color:var(--text-muted); margin:0 0 10px;"></p>
+            <div id="backupsList" class="settings-scroll-list"></div>
+          </div>
         </div>
-        <p id="backupMetaLine" style="font-size:11px; color:var(--text-muted); margin:0 0 10px;"></p>
-        <div id="backupsList" class="flex-col-gap-8"></div>
+
+        <div id="settingsPanelCuenta" class="settings-panel" role="tabpanel" data-settings-panel="cuenta" hidden>
+          <div id="memberSettingsHint" style="display:none; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+            Tu cuenta es de <strong class="u-color-white">tester invitado</strong>. El Studio ya funciona gratis con <strong class="u-color-white">Copiar JSON</strong>.
+            El token de Pollinations (bocetos) lo configura solo Administración en Ajustes — aquí gestionas tu PIN y cierras sesión.
+          </div>
+          <p class="u-section-lead">
+            Sesión actual del Studio. Para gestionar otros perfiles usa la pestaña <strong class="u-color-white">Perfiles</strong>.
+          </p>
+          <div id="cuentaActiveProfileSummary" class="profile-row is-current" style="margin-bottom:16px;"></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" id="btnLogoutSession" class="btn btn-secondary btn-sm u-fs-11">Cerrar sesión</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
