@@ -60,7 +60,7 @@
 
           <div class="u-mb-20">
             <label for="importScriptTopic" class="u-label-block">📦 Producto / Nicho para Guiones UGC (Opcional)</label>
-            <input type="text" id="importScriptTopic" placeholder="Ej: Crema hidratante antiedad Glow Serum" 
+            <input type="text" id="importScriptTopic" placeholder="Ej: Crema hidratante antiedad" 
               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
           </div>
         </div>
@@ -105,7 +105,7 @@
         <div class="prompt-console" style="margin-top: 0; margin-bottom: 20px; background: rgba(0,0,0,0.3);">
           <div class="u-flex-between">
             <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase;">Estructura influ-JSON Detectada</span>
-            <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyImportJSON">Copiar JSON</button>
+            <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyImportJSON">Copiar estructura</button>
           </div>
           <textarea id="importJsonOutput" readonly style="width: 100%; height: 110px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; padding: 8px; color: #a7f3d0; font-family: var(--font-mono); font-size: 10px; resize: none; outline: none;"></textarea>
         </div>
@@ -236,7 +236,7 @@ npm start</pre>
     <span class="rate-limit-dot" aria-hidden="true" style="background:#fb923c;"></span>
     <span id="pollenBannerText">Boceto Pollinations necesita token (pollen). Path free = Copiar JSON. Opcional: Ajustes → token.</span>
     <button type="button" class="btn btn-sm" id="btnPollenCopyJson" style="margin-left:auto; font-size:11px; padding:4px 10px; flex-shrink:0; background: rgba(52, 211, 153, 0.25); border: 1px solid rgba(52, 211, 153, 0.45);">
-      Copiar JSON (recomendado)
+      Copiar JSON
     </button>
     <button type="button" class="btn btn-secondary btn-sm" id="btnPollenOpenSettings" style="font-size:11px; padding:4px 10px; flex-shrink:0;">
       Ajustes · token
@@ -255,7 +255,7 @@ npm start</pre>
   <div id="offlineModeBar" class="offline-mode-bar" style="display:flex; align-items:center; gap:10px; padding:6px 14px; background:rgba(0,0,0,0.35); border-bottom:1px solid var(--glass-border); font-size:12px; color:var(--text-secondary);">
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
       <input type="checkbox" id="offlineModeToggleBar" />
-      <span><strong class="u-color-white">Modo offline</strong> — Studio útil sin gen: prioriza <em>Copiar JSON (recomendado)</em></span>
+      <span><strong class="u-color-white">Modo offline</strong> — Studio útil sin gen: prioriza <em>Copiar JSON</em></span>
     </label>
   </div>
 
@@ -271,7 +271,7 @@ npm start</pre>
       <ol class="u-list-soft">
         <li class="u-mb-8"><strong class="u-color-white">Crear o importar</strong> un influencer</li>
         <li class="u-mb-8"><strong class="u-color-white">Guardar</strong> — aparece en tu portafolio (solo JSON)</li>
-        <li class="u-mb-8"><strong class="u-color-white">Copiar JSON (recomendado)</strong> a ChatGPT / Gemini / Claude free</li>
+        <li class="u-mb-8"><strong class="u-color-white">Copiar JSON</strong> a ChatGPT / Gemini / Claude free</li>
       </ol>
       <div class="flex-col-gap-8">
         <button type="button" class="btn u-input-pad-12" id="btnMemberWelcomeCreate" >Crear</button>

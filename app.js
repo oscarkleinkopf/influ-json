@@ -148,7 +148,7 @@ function setupOfflineBanner() {
   // W15 — 429 banner CTA → modo offline
   document.getElementById('btnRateLimitGoOffline')?.addEventListener('click', () => {
     syncToggles(true);
-    toastInfo('Modo offline activo — usa Copiar JSON (recomendado). La cola no cambió.');
+    toastInfo('Modo offline activo — usa Copiar JSON. La cola no cambió.');
   });
   document.getElementById('btnPollenCopyJson')?.addEventListener('click', () => {
     setPollenBanner(false);
@@ -1217,8 +1217,8 @@ async function logoutSession() {
 /** Abre Ajustes y enfoca el campo POLLINATIONS_TOKEN (path boceto). Solo admin. */
 function openPollinationsSettings() {
   if (!isCurrentUserAdmin()) {
-    toastInfo('El token de Pollinations lo configura Administración en Ajustes. Mientras tanto: Copiar JSON (recomendado) — cero costo.', {
-      actionLabel: 'Copiar JSON (recomendado)',
+    toastInfo('El token de Pollinations lo configura Administración en Ajustes. Mientras tanto: Copiar JSON — cero costo.', {
+      actionLabel: 'Copiar JSON',
       onAction: () => {
         if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
       }
@@ -1615,6 +1615,8 @@ function updateActivePersonaChip() {
   const p = state.selectedPersona;
   if (nameEl) nameEl.textContent = p?.name || 'Sin influencer';
   if (copyBtn) copyBtn.disabled = !p;
+  // Mantener paneles Producir (UGC + Guiones) alineados con el chip
+  try { populateActiveUgcData(); } catch (_) {}
 }
 
 function closeActivePersonaMenu() {
@@ -2288,7 +2290,7 @@ function renderHappyPathNextCta() {
       <p class="happy-path-next-title">Copia el JSON fullbody de «${String(name).replace(/[<>&"]/g, '')}»</p>
       <p class="happy-path-next-hint">Pégalo en ChatGPT / Gemini / Claude free. Gen local no hace falta.</p>
       <div class="empty-roster-actions">
-        <button type="button" class="btn btn-sm" data-happy-next="copy-pack" data-offline-highlight="pack">Copiar JSON (recomendado)</button>
+        <button type="button" class="btn btn-sm" data-happy-next="copy-pack" data-offline-highlight="pack">Copiar JSON</button>
       </div>
     `;
   } else {
@@ -2336,7 +2338,7 @@ async function runHappyPathAction(action) {
         selectPersona(state.personas[0]);
       }
       if (!state.selectedPersona && !document.getElementById('pName')?.value) {
-        toastInfo('Guarda un influencer primero; luego Copiar JSON (recomendado).');
+        toastInfo('Guarda un influencer primero; luego Copiar JSON.');
         runHappyPathAction('create');
         return;
       }
@@ -2742,9 +2744,9 @@ function setGenerationButtonsDisabled(disabled) {
     if (!el) return;
     el.disabled = locked;
     el.classList.toggle('is-queue-locked', locked);
-    if (offline) el.setAttribute('title', 'Modo offline: usa Copiar JSON (recomendado)');
+    if (offline) el.setAttribute('title', 'Modo offline: usa Copiar JSON');
     else if (disabled) el.setAttribute('title', 'Espera a que termine la cola de generación');
-    else if (rateLimited) el.setAttribute('title', '429 reciente — mejor Copiar JSON (recomendado) o activa Modo offline');
+    else if (rateLimited) el.setAttribute('title', '429 reciente — mejor Copiar JSON o activa Modo offline');
     else el.setAttribute('title', 'Generar boceto (opt-in · puede pedir token) — Pollinations opcional');
   });
   const highlightPacks = offline || rateLimited;
@@ -2787,7 +2789,7 @@ function applyOfflineModeUi() {
   if (toggleBar) toggleBar.checked = on;
   const banner = document.getElementById('offlineBanner');
   if (on) {
-    setOfflineBanner(true, 'Modo offline activo — generación pausada. Usa Copiar JSON (recomendado) en chatbots gratis.');
+    setOfflineBanner(true, 'Modo offline activo — generación pausada. Usa Copiar JSON en chatbots gratis.');
     if (banner) banner.dataset.source = 'mode';
   } else if (!navigator.onLine) {
     setOfflineBanner(true, 'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.');
@@ -2820,7 +2822,7 @@ function updateRateLimitBanner(q) {
   setPollenBanner(false);
   const cooldownSec = Math.ceil((q.cooldownRemainingMs || 0) / 1000) || q.retryAfterSeconds || 30;
   if (text) {
-    text.textContent = `Pollinations 429 — cola en pausa (~${cooldownSec}s). Sugerencia: Modo offline + Copiar JSON (recomendado).`;
+    text.textContent = `Pollinations 429 — cola en pausa (~${cooldownSec}s). Sugerencia: Modo offline + Copiar JSON.`;
   }
   banner.style.display = 'flex';
   // W15 — enfatizar packs durante 429 (sin cambiar defaults de cola)
@@ -2867,7 +2869,7 @@ function notifyGenerationFailure(data, err) {
   if (isPollenAuthError(data, err)) {
     setPollenBanner(true, msg);
     toastError('Boceto necesita token (pollen). El producto gratis es Copiar JSON — o pega el token en Ajustes.', {
-      actionLabel: 'Copiar JSON (recomendado)',
+      actionLabel: 'Copiar JSON',
       onAction: () => {
         if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
       }
@@ -5405,8 +5407,8 @@ async function savePersona(opts = {}) {
       // W14 — tras primer save: CTA único = copiar pack (no generar imagen)
       if (creatingNew) {
         if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: false });
-        toastSuccess(`«${name}» guardado. Siguiente: Copiar JSON (recomendado) — pack fullbody, sin gen.`, {
-          actionLabel: 'Copiar JSON (recomendado)',
+        toastSuccess(`«${name}» guardado. Siguiente: Copiar JSON — pack fullbody, sin gen.`, {
+          actionLabel: 'Copiar JSON',
           onAction: () => {
             copyFreeChatbotPack('fullbody');
           },
@@ -5573,15 +5575,23 @@ function setupCampaigns() {
   btnNew.addEventListener('click', () => {
     // Populate select lists
     const prodSelect = document.getElementById('cProductSelect');
-    prodSelect.innerHTML = state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    prodSelect.innerHTML = (state.products || []).length
+      ? state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')
+      : '<option value="">Sin productos — creá uno en Script Engine</option>';
     
     const personaList = document.getElementById('cPersonaChecklist');
-    personaList.innerHTML = state.personas.map(p => `
+    const roster = (state.personas || []).filter((p) => !isArchivedPersona(p));
+    const activeId = state.selectedPersona?.id;
+    if (!roster.length) {
+      personaList.innerHTML = '<p class="u-fs-11-sec u-mb-0">Sin influencers — elegí o creá uno en el chip del header.</p>';
+    } else {
+      personaList.innerHTML = roster.map(p => `
       <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer;">
-        <input type="checkbox" name="personaCheck" value="${p.id}">
+        <input type="checkbox" name="personaCheck" value="${p.id}"${String(p.id) === String(activeId) ? ' checked' : ''}>
         <span>${p.name}</span>
       </label>
     `).join('');
+    }
     
     modal.style.display = 'flex';
   });
@@ -5910,16 +5920,23 @@ async function generateScriptsAction() {
 }
 
 function generateMockScripts() {
+  const fromForm = {
+    name: document.getElementById('prodName')?.value?.trim() || '',
+    benefit: document.getElementById('prodBenefit')?.value?.trim() || '',
+    audience: document.getElementById('prodAudience')?.value?.trim() || '',
+    frustration: document.getElementById('prodFrustration')?.value?.trim() || ''
+  };
   const prod = state.selectedProduct || {
-    name: "Glow Serum Organics",
-    benefit: "Piel brillante y profundamente hidratada en 5 minutos",
-    audience: "Jóvenes ocupadas con piel seca y opaca",
-    frustration: "No tener tiempo para rutinas coreanas de 10 pasos"
+    name: fromForm.name || 'tu producto',
+    benefit: fromForm.benefit || 'beneficio clave',
+    audience: fromForm.audience || 'tu audiencia',
+    frustration: fromForm.frustration || 'una frustración real'
   };
   
-  const creator = state.selectedPersona?.name || "Sofia";
+  const creator = state.selectedPersona?.name || 'tu influencer';
   
   // 10 distinct marketing angles (local templates; Gemini opt-in when API connected)
+  // Nota: strings con ${prod.name} se interpolan abajo vía replaceAll.
   state.scripts = [
     {
       angle: "El Escéptico (Skeptic Hook)",
@@ -5959,7 +5976,7 @@ function generateMockScripts() {
       demoCue: "Muestra la botella de vidrio y el gotero premium de cerca.",
       turn: "Piel brillante, ingredientes orgánicos y sin arruinar mi cuenta de banco.",
       turnCue: "Aplica en la piel mostrando la absorción instantánea.",
-      cta: "Compra inteligente. Consigue tu Glow Serum tocando el botón."
+      cta: "Compra inteligente. Consigue ${prod.name} tocando el botón."
     },
     {
       angle: "El Hack Secreto (Secret Hack)",
@@ -6022,22 +6039,20 @@ function generateMockScripts() {
       cta: "La solución está a un clic. Consigue el tuyo hoy con envío gratis."
     }
   ];
-  
-  // Interpolate templates
-  state.scripts = state.scripts.map(s => {
-    return {
-      angle: s.angle,
-      hook: s.hook.replace(/\${prod.name}/g, prod.name).replace(/\${creator}/g, creator),
-      hookCue: s.hookCue,
-      demo: s.demo.replace(/\${prod.name}/g, prod.name).replace(/\${creator}/g, creator),
-      demoCue: s.demoCue,
-      turn: s.turn.replace(/\${prod.name}/g, prod.name).replace(/\${creator}/g, creator),
-      turnCue: s.turnCue,
-      cta: s.cta.replace(/\${prod.name}/g, prod.name).replace(/\${creator}/g, creator),
-      ctaCue: s.ctaCue || "Llamado a la acción claro frente a cámara."
-    };
+
+  // Interpolar placeholders ${prod.*} / ${creator} (templates en comillas dobles)
+  const fill = (s) => String(s || '')
+    .replace(/\$\{prod\.name\}/g, prod.name)
+    .replace(/\$\{prod\.benefit\}/g, prod.benefit)
+    .replace(/\$\{prod\.audience\}/g, prod.audience)
+    .replace(/\$\{prod\.frustration\}/g, prod.frustration)
+    .replace(/\$\{creator\}/g, creator);
+  state.scripts = state.scripts.map((sc) => {
+    const out = {};
+    for (const [k, v] of Object.entries(sc)) out[k] = fill(v);
+    return out;
   });
-  
+
   renderScriptsUI();
 }
 
@@ -6535,10 +6550,28 @@ function populateActiveUgcData() {
     setSrc('ugcActiveAvatar', 'assets/influencer_female.png');
     setText('ugcActiveName', 'Sin influencer');
     setText('ugcActiveMeta', 'Elegí uno en el chip del header o en Influencers');
+    setSrc('scriptActiveAvatar', 'assets/influencer_female.png');
+    setText('scriptActivePersonaName', 'Sin influencer');
+    setText('scriptActivePersonaMeta', 'Elegí uno en el chip del header o en Influencers');
+    setSrc('licenseActiveAvatar', 'assets/influencer_female.png');
+    setText('licenseActivePersonaName', 'Sin influencer');
+    setText('licenseActivePersonaMeta', 'Elegí uno en el chip del header o en Influencers');
   } else {
     setSrc('ugcActiveAvatar', creator.image || 'assets/influencer_female.png');
     setText('ugcActiveName', creator.name || 'Influencer');
     setText('ugcActiveMeta', `${creator.age || ''} • ${creator.ethnicity || creator.ethnicity_appearance || ''}`);
+    setSrc('scriptActiveAvatar', creator.image || 'assets/influencer_female.png');
+    setText('scriptActivePersonaName', creator.name || 'Influencer');
+    setText(
+      'scriptActivePersonaMeta',
+      `${creator.age || ''} • ${creator.ethnicity || creator.ethnicity_appearance || ''}`.replace(/^\s•\s*$/, '').trim() || 'Contexto del chip del header'
+    );
+    setSrc('licenseActiveAvatar', creator.image || 'assets/influencer_female.png');
+    setText('licenseActivePersonaName', creator.name || 'Influencer');
+    setText(
+      'licenseActivePersonaMeta',
+      `${creator.age || ''} • ${creator.ethnicity || creator.ethnicity_appearance || ''}`.replace(/^\s•\s*$/, '').trim() || 'Contexto del chip del header'
+    );
   }
 
   const prodImg = creator.gender === 'Male' ? 'assets/product_bottle.png' : 'assets/product_serum.png';
@@ -6620,12 +6653,16 @@ function updateLicensingCalculator() {
   document.getElementById('priceYear').textContent = `+ $${addYear.toFixed(2)}`;
   document.getElementById('pricePerpetual').textContent = `+ $${addPerpetual.toFixed(2)}`;
   
-  // Update invoice panel
-  const creator = state.selectedPersona || { name: "Sofia" };
-  const prod = state.selectedProduct || { name: "Glow Serum Organics" };
+  // Update invoice panel — sin Sofia falsa; sin influencer = mensaje honesto
+  const creator = state.selectedPersona;
+  const prod = state.selectedProduct;
+  const creatorLabel = creator?.name
+    ? `${creator.name} — Modelo Virtual AI`
+    : 'Sin influencer — elegí uno en el chip';
+  const clientLabel = prod?.name || 'Sin producto — elegí uno o usá Script Engine';
   
-  document.getElementById('pitchClientName').textContent = `Propuesta para ${prod.name}`;
-  document.getElementById('pitchInfluName').textContent = `${creator.name} - Modelo Virtual AI`;
+  document.getElementById('pitchClientName').textContent = `Propuesta para ${clientLabel}`;
+  document.getElementById('pitchInfluName').textContent = creatorLabel;
   document.getElementById('pitchBaseFeeVal').textContent = `$${base.toFixed(2)}`;
   
   let addSelected = 0;
@@ -6644,8 +6681,10 @@ function updateLicensingCalculator() {
 }
 
 function buildLicensingProposalText() {
-  const creator = state.selectedPersona || { name: "Sofia" };
-  const prod = state.selectedProduct || { name: "Glow Serum Organics" };
+  const creator = state.selectedPersona;
+  const prod = state.selectedProduct;
+  const creatorName = creator?.name || null;
+  const prodName = prod?.name || null;
   const base = state.baseFee;
   
   const licenceSelect = document.getElementById('pitchLicenceSelect');
@@ -6657,8 +6696,8 @@ function buildLicensingProposalText() {
   return `================================================
 PROPUESTA COMERCIAL - AI UGC CAMPAIGN
 ================================================
-Cliente: ${prod.name}
-Creador Virtual: ${creator.name}
+Cliente: ${prodName || '(sin producto seleccionado)'}
+Creador Virtual: ${creatorName || '(sin influencer — elegí uno en el chip)'}
 Ángulo del Anuncio: ${activeScript.angle}
 
 DESGLOSE DE SERVICIOS:
@@ -6679,12 +6718,20 @@ INVERSIÓN TOTAL: ${totalText} USD
 }
 
 function copyLicensingProposal() {
+  if (!state.selectedPersona) {
+    toastInfo('Elegí un influencer en el chip del header antes de copiar la propuesta.');
+    return;
+  }
   navigator.clipboard.writeText(buildLicensingProposalText());
   toastSuccess('Propuesta formateada copiada al portapapeles');
 }
 
 /** UX-3b — descarga .txt en lugar del alert stub «Enviar Propuesta». */
 function downloadLicensingProposal() {
+  if (!state.selectedPersona) {
+    toastInfo('Elegí un influencer en el chip del header antes de descargar la propuesta.');
+    return;
+  }
   const text = buildLicensingProposalText();
   const creator = state.selectedPersona?.name || 'influencer';
   const safe = String(creator).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'propuesta';

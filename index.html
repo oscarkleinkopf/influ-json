@@ -203,9 +203,9 @@
             <li class="happy-path-step" data-step="copy">
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
-                <strong>3. Copiar JSON (recomendado)</strong>
+                <strong>3. Copiar JSON</strong>
                 <p>El producto es el JSON: pégalo en ChatGPT / Gemini / Claude free.</p>
-                <button type="button" class="btn btn-sm" data-happy-action="copy-pack">Copiar JSON (recomendado)</button>
+                <button type="button" class="btn btn-sm" data-happy-action="copy-pack">Copiar JSON</button>
               </div>
             </li>
             <li class="happy-path-step" data-step="gen">
@@ -267,7 +267,7 @@
               <h1>Cómo usar el Studio</h1>
               <p class="como-usar-lead">Crea influencers consistentes sin pagar face-lock. El JSON es tu ancla; Pollinations es opcional e inestable. Los chatbots gratis hacen el resto.</p>
               <div class="como-usar-cta-row">
-                <button type="button" class="btn" data-guide-action="packs">Copiar JSON (recomendado)</button>
+                <button type="button" class="btn" data-guide-action="packs">Copiar JSON</button>
                 <button type="button" class="btn btn-secondary" data-guide-action="create">Empezar a crear</button>
               </div>
             </div>
@@ -299,7 +299,7 @@
                 <div class="como-usar-step-body">
                   <h3>Copia el JSON (recomendado)</h3>
                   <p>Pégalo en ChatGPT, Gemini o Claude free. Misma cara en retrato, cuerpo entero, bikini o producto. Sin red de imagen también sirve.</p>
-                  <button type="button" class="btn btn-sm" data-guide-action="packs" data-offline-highlight="pack">Copiar JSON (recomendado)</button>
+                  <button type="button" class="btn btn-sm" data-guide-action="packs" data-offline-highlight="pack">Copiar JSON</button>
                 </div>
               </li>
               <li class="como-usar-step" style="--step-accent: #a3e635;">
@@ -352,7 +352,7 @@
             <form id="campaignForm" class="editor-form-group">
               <div>
                 <label for="cName">Nombre de la Campaña</label>
-                <input type="text" id="cName" placeholder="ej. Campaña Glow Serum Verano 2026" required>
+                <input type="text" id="cName" placeholder="ej. Campaña verano 2026" required>
               </div>
               <div class="form-row u-mt-12" >
                 <div>
@@ -617,7 +617,7 @@
                 <!-- Main Info -->
                 <div style="flex: 1; min-width: 200px;">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                    <h2 id="sheetName" style="font-family: var(--font-display); font-size: 22px; color: #fff; margin: 0;">Sofia</h2>
+                    <h2 id="sheetName" style="font-family: var(--font-display); font-size: 22px; color: #fff; margin: 0;">Sin influencer</h2>
                     <span id="sheetArchivedBadge" class="badge" style="background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); font-size: 10px; display: none;">Archivado</span>
                   </div>
                   <div id="sheetHandle" style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-primary); margin-bottom: 12px;">@sofia_ugc</div>
@@ -857,7 +857,7 @@
               <div class="form-row">
                 <div>
                   <label for="pName">Nombre del Influencer</label>
-                  <input type="text" id="pName" value="Sofia">
+                  <input type="text" id="pName" value="" placeholder="Nombre del influencer">
                 </div>
                 <div>
                   <label for="pGender">Género / Estilo</label>
@@ -1406,7 +1406,7 @@
         <!-- Influencer Variant Vault & Pose Manager -->
         <div class="glass-card u-mt-28"  id="variantManagerSection" data-persona-step="3">
           <h2 style="font-family: var(--font-display); margin-bottom: 8px;">🎬 Repositorio de Poses y Variaciones</h2>
-          <p class="u-lead-ab">Genera y administra variaciones visuales consistentes (poses, vestuario, actitud) para <strong id="activeInfluencerName">Sofia</strong>.</p>
+          <p class="u-lead-ab">Genera y administra variaciones visuales consistentes (poses, vestuario, actitud) para <strong id="activeInfluencerName">Sin influencer</strong>.</p>
           
           <div class="variant-vault-layout" style="display: grid; grid-template-columns: 320px 1fr; gap: 28px;">
             <!-- Variant controls -->
@@ -1597,6 +1597,17 @@
             <p>Genera 10 ángulos publicitarios UGC (15–25 s). Plantillas locales gratis; Gemini solo si hay clave en Ajustes.</p>
           </div>
         </div>
+
+        <div class="glass-card u-mb-24" id="scriptActivePersonaCard">
+          <label class="u-mb-8 u-d-block">Influencer activo (contexto global)</label>
+          <div class="active-context-row">
+            <img id="scriptActiveAvatar" src="assets/influencer_female.png" alt="" width="44" height="44" class="active-context-avatar">
+            <div>
+              <h4 id="scriptActivePersonaName" class="u-font-display-600">Sin influencer</h4>
+              <p id="scriptActivePersonaMeta" class="u-fs-11-sec">Elegí uno en el chip del header o en Influencers</p>
+            </div>
+          </div>
+        </div>
         
         <div class="glass-card" style="margin-bottom: 32px;">
           <h2 class="u-card-title">Definición de Producto y Audiencia</h2>
@@ -1604,22 +1615,22 @@
             <div class="form-row">
               <div>
                 <label for="prodName">Nombre del Producto</label>
-                <input type="text" id="prodName" value="Glow Serum Organics">
+                <input type="text" id="prodName" value="" placeholder="ej. sérum hidratante">
               </div>
               <div>
                 <label for="prodBenefit">Beneficio Principal</label>
-                <input type="text" id="prodBenefit" value="Piel brillante y profundamente hidratada en 5 minutos">
+                <input type="text" id="prodBenefit" value="" placeholder="ej. piel hidratada en 5 minutos">
               </div>
             </div>
             
             <div class="form-row">
               <div>
                 <label for="prodAudience">Audiencia Objetivo</label>
-                <input type="text" id="prodAudience" value="Jóvenes ocupadas con piel seca y opaca">
+                <input type="text" id="prodAudience" value="" placeholder="ej. jóvenes con piel seca">
               </div>
               <div>
                 <label for="prodFrustration">Frustración Clave de la Audiencia</label>
-                <input type="text" id="prodFrustration" value="No tener tiempo para rutinas coreanas de 10 pasos">
+                <input type="text" id="prodFrustration" value="" placeholder="ej. rutinas largas sin tiempo">
               </div>
             </div>
             
@@ -1719,7 +1730,7 @@
                 <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.4;">Copia el pack <strong>producto en mano</strong> al portapapeles (chatbot free). Bocetos Pollinations y descargas son opcionales.</p>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                   <button class="btn" id="btnExportUgcChatbot" data-offline-highlight="pack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff;">
-                    Copiar JSON (recomendado)
+                    Copiar JSON
                   </button>
                   <button class="btn btn-secondary u-full-center-row" id="btnGenerateUgcImage" title="Pollinations opt-in (token/pollen)">
                     Generar boceto (opt-in · puede pedir token)
@@ -1880,7 +1891,7 @@
                     <span class="creator-handle" id="mockupHandle">@sofia_ai_ugc</span>
                   </div>
                   <div class="mockup-caption">
-                    <span id="mockupCaptionText">¡No tengo tiempo para rutinas de 10 pasos! Por eso amo Glow Serum Organics.</span>
+                    <span id="mockupCaptionText">Elegí influencer y producto — el caption se arma al copiar JSON o generar boceto.</span>
                     <div class="mockup-disclosure-tag" id="ftcTags">#Ad #AIEndorsement</div>
                   </div>
                 </div>
@@ -1911,6 +1922,17 @@
           <div class="content-title">
             <h1>Licensing & Pitch Builder</h1>
             <p>Calcula el valor comercial del uso de tus modelos AI e imágenes licenciadas y construye una cotización premium para marcas.</p>
+          </div>
+        </div>
+
+        <div class="glass-card u-mb-24" id="licenseActivePersonaCard">
+          <label class="u-mb-8 u-d-block">Influencer activo (contexto global)</label>
+          <div class="active-context-row">
+            <img id="licenseActiveAvatar" src="assets/influencer_female.png" alt="" width="44" height="44" class="active-context-avatar">
+            <div>
+              <h4 id="licenseActivePersonaName" class="u-font-display-600">Sin influencer</h4>
+              <p id="licenseActivePersonaMeta" class="u-fs-11-sec">Elegí uno en el chip del header o en Influencers</p>
+            </div>
           </div>
         </div>
         
@@ -1978,7 +2000,7 @@
             <div class="pitch-header">
               <div>
                 <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 4px;">Cotización de Campaña</h3>
-                <p id="pitchClientName" style="font-size: 13px; color: var(--text-secondary);">Propuesta para Glow Serum Organics</p>
+                <p id="pitchClientName" style="font-size: 13px; color: var(--text-secondary);">Propuesta para Sin producto — elegí uno o usá Script Engine</p>
               </div>
               <span class="pitch-badge">AI UGC Studio</span>
             </div>
@@ -1994,7 +2016,7 @@
                 <tr>
                   <td>
                     <strong>Creación de Activo UGC Sintético</strong><br>
-                    <span class="u-fs-12-sec" id="pitchInfluName">Sofia - Modelo Virtual</span>
+                    <span class="u-fs-12-sec" id="pitchInfluName">Sin influencer — elegí uno en el chip</span>
                   </td>
                   <td class="u-mono-right" id="pitchBaseFeeVal">$150.00</td>
                 </tr>
@@ -2112,7 +2134,7 @@
 
           <div class="u-mb-20">
             <label for="importScriptTopic" class="u-label-block">📦 Producto / Nicho para Guiones UGC (Opcional)</label>
-            <input type="text" id="importScriptTopic" placeholder="Ej: Crema hidratante antiedad Glow Serum" 
+            <input type="text" id="importScriptTopic" placeholder="Ej: Crema hidratante antiedad" 
               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
           </div>
         </div>
@@ -2157,7 +2179,7 @@
         <div class="prompt-console" style="margin-top: 0; margin-bottom: 20px; background: rgba(0,0,0,0.3);">
           <div class="u-flex-between">
             <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase;">Estructura influ-JSON Detectada</span>
-            <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyImportJSON">Copiar JSON</button>
+            <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyImportJSON">Copiar estructura</button>
           </div>
           <textarea id="importJsonOutput" readonly style="width: 100%; height: 110px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; padding: 8px; color: #a7f3d0; font-family: var(--font-mono); font-size: 10px; resize: none; outline: none;"></textarea>
         </div>
@@ -2288,7 +2310,7 @@ npm start</pre>
     <span class="rate-limit-dot" aria-hidden="true" style="background:#fb923c;"></span>
     <span id="pollenBannerText">Boceto Pollinations necesita token (pollen). Path free = Copiar JSON. Opcional: Ajustes → token.</span>
     <button type="button" class="btn btn-sm" id="btnPollenCopyJson" style="margin-left:auto; font-size:11px; padding:4px 10px; flex-shrink:0; background: rgba(52, 211, 153, 0.25); border: 1px solid rgba(52, 211, 153, 0.45);">
-      Copiar JSON (recomendado)
+      Copiar JSON
     </button>
     <button type="button" class="btn btn-secondary btn-sm" id="btnPollenOpenSettings" style="font-size:11px; padding:4px 10px; flex-shrink:0;">
       Ajustes · token
@@ -2307,7 +2329,7 @@ npm start</pre>
   <div id="offlineModeBar" class="offline-mode-bar" style="display:flex; align-items:center; gap:10px; padding:6px 14px; background:rgba(0,0,0,0.35); border-bottom:1px solid var(--glass-border); font-size:12px; color:var(--text-secondary);">
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
       <input type="checkbox" id="offlineModeToggleBar" />
-      <span><strong class="u-color-white">Modo offline</strong> — Studio útil sin gen: prioriza <em>Copiar JSON (recomendado)</em></span>
+      <span><strong class="u-color-white">Modo offline</strong> — Studio útil sin gen: prioriza <em>Copiar JSON</em></span>
     </label>
   </div>
 
@@ -2323,7 +2345,7 @@ npm start</pre>
       <ol class="u-list-soft">
         <li class="u-mb-8"><strong class="u-color-white">Crear o importar</strong> un influencer</li>
         <li class="u-mb-8"><strong class="u-color-white">Guardar</strong> — aparece en tu portafolio (solo JSON)</li>
-        <li class="u-mb-8"><strong class="u-color-white">Copiar JSON (recomendado)</strong> a ChatGPT / Gemini / Claude free</li>
+        <li class="u-mb-8"><strong class="u-color-white">Copiar JSON</strong> a ChatGPT / Gemini / Claude free</li>
       </ol>
       <div class="flex-col-gap-8">
         <button type="button" class="btn u-input-pad-12" id="btnMemberWelcomeCreate" >Crear</button>

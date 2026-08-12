@@ -25,14 +25,37 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/free-path-tests-9b67` |
-| **Commit base** | `main` @ #98 |
-| **PR actual** | Free-path regression tests |
-| **`main` remoto** | + Produce declutter #98 |
-| **Prioridad inmediata** | Free path + más pruebas |
-| **Aparcado** | Comercial / SaaS deploy / Windows · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) (Google auth) sin merge urgente |
+| **Rama de trabajo** | `cursor/ux-active-persona-9b67` |
+| **Commit base** | `main` @ #100 |
+| **PR actual** | [#101](https://github.com/oscarkleinkopf/influ-json/pull/101) — UX contexto activo + honesty producto |
+| **`main` remoto** | + free-path tests #100 |
+| **Prioridad inmediata** | Free path / UX operatividad |
+| **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-12) — Free path tests; comercial pending
+### Sesión reciente (Cursor, 2026-08-12) — Honesty Glow Serum + walkthrough Negocio
+
+**Pedido:** Continuar (#101).
+
+**Hecho (rama `cursor/ux-active-persona-9b67` / PR #101):**
+- Script Engine / Licensing / UGC mock: sin defaults falsos «Glow Serum Organics»; placeholders honestos
+- `generateMockScripts`: producto desde form/`selectedProduct` o «tu producto» (10 ángulos)
+- Walkthrough: paso Negocio — Licensing = chip; Nueva campaña pre-checkea influencer activo
+- Tests UX-1d + suite 362 pass
+- Comercial sigue aparcado
+
+### Sesión previa (Cursor, 2026-08-12) — UX contexto activo en Guiones + Licensing
+
+**Pedido:** Continuar el bloque de desarrollo (UX-1b).
+
+**Hecho (rama `cursor/ux-active-persona-9b67` / PR #101):**
+- Script Engine: readout sincronizado con chip/UGC
+- Import: «Copiar estructura»
+- Licensing: card `#licenseActive*` + pitch sin Sofia falsa; copiar/descargar exige influencer
+- Campañas: pre-check del influencer del chip + hint si roster vacío
+- UX-1c: CTAs unificados a «Copiar JSON» (sin chrome «(recomendado)»); Persona Engine sin Sofia placeholder
+- Comercial sigue aparcado
+
+### Sesión previa (Cursor, 2026-08-12) — Free path tests; comercial pending
 
 **Pedido:** Dejar lo comercial pendiente; seguir desarrollo + más pruebas.
 

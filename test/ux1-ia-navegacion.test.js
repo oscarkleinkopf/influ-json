@@ -90,20 +90,78 @@ test('UX-1b: chip global Trabajando con + Copiar JSON de contexto', () => {
   assert.match(css, /\.active-persona-chip/);
 });
 
-test('UX-1c: ≤3 botones con label exacto «Copiar JSON»', () => {
-  // Botones interactivos cuyo texto visible es exactamente "Copiar JSON"
+test('UX-1b: Guiones muestra el mismo influencer activo que UGC', () => {
+  assert.match(html, /id="scriptActivePersonaName"/);
+  assert.match(html, /id="scriptActiveAvatar"/);
+  assert.match(html, /id="ugcActiveName"/);
+  assert.match(appJs, /populateActiveUgcData[\s\S]{0,1200}scriptActivePersonaName/);
+  assert.match(appJs, /updateActivePersonaChip[\s\S]{0,400}populateActiveUgcData/);
+  assert.match(css, /\.active-context-row/);
+});
+
+test('UX-1b: Licensing muestra influencer activo y no usa Sofia falsa', () => {
+  assert.match(html, /id="licenseActivePersonaName"/);
+  assert.match(html, /id="licenseActiveAvatar"/);
+  assert.match(html, /id="pitchInfluName"[^>]*>\s*Sin influencer/);
+  assert.doesNotMatch(html, /id="pitchInfluName"[^>]*>\s*Sofia/);
+  assert.match(appJs, /populateActiveUgcData[\s\S]{0,2000}licenseActivePersonaName/);
+  assert.doesNotMatch(appJs, /selectedPersona \|\| \{\s*name:\s*["']Sofia["']/);
+  assert.match(appJs, /copyLicensingProposal[\s\S]{0,250}selectedPersona/);
+});
+
+test('UX-1b: Nueva campaña pre-marca el influencer del chip', () => {
+  assert.match(appJs, /selectedPersona\?\.id[\s\S]{0,500}personaCheck/);
+  assert.match(appJs, /Sin influencers — elegí/);
+});
+
+test('UX-1c: vocab unificado — sin «Copiar JSON (recomendado)» en botones', () => {
+  // Botones: cero chrome «(recomendado)»; CTA = «Copiar JSON»
   const buttonRe = /<button\b[^>]*>([\s\S]*?)<\/button>/gi;
-  const labels = [];
+  const copyJson = [];
+  const copyRec = [];
   let m;
   while ((m = buttonRe.exec(html))) {
     const text = m[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    if (text === 'Copiar JSON') labels.push(text);
+    if (text === 'Copiar JSON') copyJson.push(text);
+    if (text === 'Copiar JSON (recomendado)') copyRec.push(text);
   }
-  assert.ok(labels.length <= 3, `esperaba ≤3 botones «Copiar JSON», hay ${labels.length}`);
-  assert.ok(labels.length >= 2, 'debe quedar al menos el canónico + contexto');
+  assert.equal(copyRec.length, 0, 'no debe quedar botón exacto «Copiar JSON (recomendado)»');
+  assert.ok(copyJson.length >= 2, 'debe haber al menos chip/guía/CTA con «Copiar JSON»');
   assert.match(html, /id="btnCopyPackFullbodyPrimary"/);
+  assert.match(html, /id="btnContextCopyJson"/);
   assert.match(html, /id="packVariantsMenu"/);
   assert.match(html, /Packs ▾/);
   // UGC CTA copia pack product (honesty #97)
   assert.match(appJs, /btnExportUgcChatbot[\s\S]{0,500}copyFreeChatbotPack\(['"]product['"]\)/);
+  // Import copia estructura cruda — no debe decir «Copiar JSON»
+  assert.match(html, /id="btnCopyImportJSON"[^>]*>\s*Copiar estructura\s*</);
+  assert.doesNotMatch(html, /id="btnCopyImportJSON"[^>]*>\s*Copiar JSON\s*</);
+});
+
+test('UX-1c: Persona Engine sin Sofia de placeholder', () => {
+  assert.doesNotMatch(html, /id="sheetName"[^>]*>\s*Sofia\s*</);
+  assert.doesNotMatch(html, /id="pName"[^>]*value="Sofia"/);
+  assert.doesNotMatch(html, /id="activeInfluencerName"[^>]*>\s*Sofia\s*</);
+  assert.match(html, /id="sheetName"[^>]*>\s*Sin influencer\s*</);
+  assert.match(html, /id="pName"[^>]*placeholder="Nombre del influencer"/);
+  assert.match(html, /id="activeInfluencerName"[^>]*>\s*Sin influencer\s*</);
+});
+
+test('UX-1d: Script Engine sin producto Glow Serum falso por defecto', () => {
+  assert.doesNotMatch(html, /id="prodName"[^>]*value="Glow Serum Organics"/);
+  assert.match(html, /id="prodName"[^>]*(value=""|placeholder=)/);
+  assert.doesNotMatch(html, /id="pitchClientName"[^>]*>\s*Propuesta para Glow Serum/);
+  assert.doesNotMatch(html, /id="mockupCaptionText"[^>]*>[\s\S]{0,80}Glow Serum/);
+  assert.match(appJs, /fromForm\.name \|\| 'tu producto'/);
+  assert.doesNotMatch(appJs, /name:\s*['"]Glow Serum/);
+});
+
+test('UX-1d: walkthrough cubre hub Negocio (Licensing + Campañas)', () => {
+  const walk = fs.readFileSync(path.join(root, 'scripts/happy-path-walkthrough.js'), 'utf8');
+  assert.match(walk, /navigateToTab\(['"]licensing['"]\)/);
+  assert.match(walk, /licenseActivePersonaName/);
+  assert.match(walk, /negocio-licensing-chip/);
+  assert.match(walk, /btnNewCampaign/);
+  assert.match(walk, /negocio-campaign-precheck/);
+  assert.match(walk, /personaCheck/);
 });

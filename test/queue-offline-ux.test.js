@@ -52,7 +52,8 @@ test('W15: offline-first labels + 429 sugiere offline + empty vault', () => {
   const readme = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
 
   assert.match(html, /Generar boceto \(opt-in · puede pedir token\)|Generar boceto \(gratis, inestable\)/);
-  assert.match(html, /Copiar JSON \(recomendado\)/);
+  assert.match(html, /Copiar JSON/);
+  assert.doesNotMatch(html, /<button\b[^>]*>\s*Copiar JSON \(recomendado\)\s*</);
   assert.match(html, /id="btnRateLimitGoOffline"/);
   assert.match(html, /Sin gens — igual puedes exportar packs/);
   assert.match(html, /Modo offline/);
@@ -62,12 +63,13 @@ test('W15: offline-first labels + 429 sugiere offline + empty vault', () => {
   assert.match(app, /offlineModeStorageKey/);
   // Empty vault copy vive en variant-vault-ui.js
   assert.match(vault, /Sin gens — igual puedes exportar packs/);
-  assert.match(vault, /Copiar JSON \(recomendado\)/);
+  assert.match(vault, /Copiar JSON/);
+  assert.doesNotMatch(vault, /Copiar JSON \(recomendado\)/);
   // Toggle sigue en localStorage (W8)
   assert.match(app, /localStorage\.setItem\(offlineModeStorageKey\(\)/);
   assert.match(app, /localStorage\.getItem\(offlineModeStorageKey\(\)/);
 
-  assert.match(readme, /Copiar JSON \/ packs.*recomendado|Copiar JSON \(recomendado\)/i);
+  assert.match(readme, /Copiar JSON/);
   assert.match(readme, /Modo offline/);
   assert.match(readme, /opt-in · puede pedir token|gratis, inestable|Pollinations/);
 });
