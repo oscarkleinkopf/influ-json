@@ -61,3 +61,4 @@ La landing de Pages mostrará el botón hacia el Studio hospedado.
 - Nunca dejes `STUDIO_PIN=1234` con `HOST=0.0.0.0` (la API responde 503 hasta que lo cambies).
 - `SESSION_SECRET` y `GOOGLE_CLIENT_SECRET` solo en el panel del host (no en el repo).
 - Free tiers sin disco: el SQLite se pierde al redeploy — usa volumen/`DATA_DIR` persistente para demos serias.
+- Cada login Google = entorno aislado (`profile_id`). Reglas: [SAAS_TENANCY.md](./SAAS_TENANCY.md).

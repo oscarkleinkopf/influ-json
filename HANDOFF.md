@@ -27,11 +27,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/google-auth-profiles-9b67` |
 | **Commit base** | `main` @ #98 |
-| **PR actual** | Google login opt-in + Pages check |
+| **PR actual** | [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) Google auth + tenancy SaaS |
 | **`main` remoto** | + Produce declutter #98 |
-| **Prioridad inmediata** | Deploy online (Render) + Google redirect HTTPS |
+| **Prioridad inmediata** | Merge #99 → deploy Render + Google redirect HTTPS |
 
-### Sesión reciente (Cursor, 2026-08-12) — GitHub + Pages + Google auth
+### Sesión reciente (Cursor, 2026-08-12) — Endurecer tenancy + doc SaaS
+
+**Pedido:** Endurecer aislamiento por usuario y documentar (comercialización: login → entorno → pago).
+
+**Hecho:**
+- Asserts fail-closed (`assert*OwnedBy` sin profileId → null)
+- Defensa en `savePersona` / `saveProduct` / `saveCampaign` (no reescribir otro tenant)
+- Assets `references`/`generated`: deny si la ruta está indexada por otro `profile_id`
+- Ads batch scoped; workspaces solo admin; `/api/profiles` member = solo yo
+- Doc norte: [`docs/SAAS_TENANCY.md`](./docs/SAAS_TENANCY.md) (auth → tenant → billing)
+
+### Sesión previa (Cursor, 2026-08-12) — GitHub + Pages + Google auth
 
 **Pedido:** Respaldar en GitHub, revisar Pages, login Google para aislar creaciones.
 

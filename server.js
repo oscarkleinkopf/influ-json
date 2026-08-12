@@ -170,6 +170,9 @@ function requireAdmin(req, res, next) {
 /** 404 si la persona no existe o no pertenece al perfil de sesión (no filtrar existencia ajena). */
 function requireOwnedPersona(req, res, next) {
   const profileId = req.session.profileId || resolveSessionProfile(req);
+  if (!profileId) {
+    return res.status(401).json({ success: false, message: 'Sesión sin perfil.' });
+  }
   const persona = dbService.assertPersonaOwnedBy(req.params.id, profileId);
   if (!persona) {
     return res.status(404).json({ success: false, message: 'Influencer no encontrado.' });
@@ -177,6 +180,17 @@ function requireOwnedPersona(req, res, next) {
   req.persona = persona;
   req.profileId = profileId;
   next();
+}
+
+/** Perfil de sesión obligatorio en rutas de datos (fail-closed). */
+function requireSessionProfileId(req, res) {
+  const profileId = req.session?.profileId || resolveSessionProfile(req);
+  if (!profileId) {
+    res.status(401).json({ success: false, message: 'Sesión sin perfil.' });
+    return null;
+  }
+  req.profileId = profileId;
+  return profileId;
 }
 
 function publicProfileDTO(row) {
@@ -203,17 +217,36 @@ ensureDataLayout();
 
 function gatedPrivateAssets(req, res, next) {
   if (!authService.isAuthEnabled()) return next();
-  return requireAuth(req, res, next);
+  return requireAuth(req, res, () => {
+    const profileId = req.session?.profileId || resolveSessionProfile(req);
+    if (!profileId) {
+      return res.status(401).json({ success: false, message: 'Sesión sin perfil.' });
+    }
+    const mountKind = req.assetMountKind; // set by wrapper
+    if (mountKind && !dbService.assertAssetReadableByProfile(mountKind, req.path, profileId)) {
+      return res.status(404).end();
+    }
+    return next();
+  });
+}
+
+function withAssetMount(kind) {
+  return (req, _res, next) => {
+    req.assetMountKind = kind;
+    next();
+  };
 }
 
 app.use(
   '/assets/references',
+  withAssetMount('references'),
   gatedPrivateAssets,
   express.static(path.join(assetsRoot, 'references')),
   express.static(path.join(assetsDataDir, 'references'))
 );
 app.use(
   '/assets/generated',
+  withAssetMount('generated'),
   gatedPrivateAssets,
   express.static(path.join(assetsRoot, 'generated')),
   express.static(path.join(assetsDataDir, 'generated'))
@@ -664,7 +697,8 @@ registerAdminRoutes(app, {
 
 // Get All Data (legacy fallback endpoint)
 app.get('/api/data', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
   const { mapPersonasDisplayImages } = require('./persona-image');
   const personas = mapPersonasDisplayImages(dbService.getAllPersonas(profileId));
   const products = dbService.getAllProducts(profileId);
@@ -685,22 +719,39 @@ app.get('/api/data', (req, res) => {
 
 // Products endpoints
 app.get('/api/products', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
   res.json(dbService.getAllProducts(profileId));
 });
 
 app.post('/api/products', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
-  const product = dbService.saveProduct({ ...req.body, profile_id: profileId });
-  runGitBackup((gitSuccess, msg) => {
-    res.json({ success: true, products: dbService.getAllProducts(profileId), product, gitSynced: gitSuccess, gitMessage: msg });
-  });
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
+  const body = req.body || {};
+  if (body.id) {
+    const owned = dbService.assertProductOwnedBy(body.id, profileId);
+    if (!owned) {
+      return res.status(404).json({ success: false, message: 'Producto no encontrado.' });
+    }
+  }
+  try {
+    const product = dbService.saveProduct({ ...body, profile_id: profileId });
+    runGitBackup((gitSuccess, msg) => {
+      res.json({ success: true, products: dbService.getAllProducts(profileId), product, gitSynced: gitSuccess, gitMessage: msg });
+    });
+  } catch (err) {
+    if (err.code === 'PROFILE_FORBIDDEN') {
+      return res.status(404).json({ success: false, message: err.message });
+    }
+    throw err;
+  }
 });
 
 // Bulk Import Products (Shopify / AliExpress Dropshipping CSV / JSON)
 app.post('/api/products/import', (req, res) => {
   try {
-    const profileId = req.session.profileId || resolveSessionProfile(req);
+    const profileId = requireSessionProfileId(req, res);
+    if (!profileId) return;
     const { products } = req.body;
     if (!Array.isArray(products) || products.length === 0) {
       return res.status(400).json({ success: false, error: 'Formato inválido. Debe enviar un array de productos.' });
@@ -719,11 +770,13 @@ app.post('/api/products/import', (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-app.get('/api/workspaces', (req, res) => {
+
+// Workspaces: legacy global — solo admin (no multi-tenant aún)
+app.get('/api/workspaces', requireAdmin, (req, res) => {
   res.json(dbService.getAllWorkspaces());
 });
 
-app.post('/api/workspaces', (req, res) => {
+app.post('/api/workspaces', requireAdmin, (req, res) => {
   const workspaces = dbService.createWorkspace(req.body);
   runGitBackup((gitSuccess, msg) => {
     res.json({ success: true, workspaces, gitSynced: gitSuccess, gitMessage: msg });
@@ -745,7 +798,8 @@ const AD_FORMATS = ['9:16', '1:1'];
 
 app.post('/api/ads/bulk-generate', authService.apiRateLimit('heavy'), async (req, res) => {
   try {
-    const profileId = req.session.profileId || resolveSessionProfile(req);
+    const profileId = requireSessionProfileId(req, res);
+    if (!profileId) return;
     const { personaId, productIds } = req.body;
     if (!personaId) return res.status(400).json({ success: false, error: 'personaId es requerido.' });
     if (!Array.isArray(productIds) || productIds.length === 0) {
@@ -765,6 +819,7 @@ app.post('/api/ads/bulk-generate', authService.apiRateLimit('heavy'), async (req
 
     activeAdBatches[batchId] = {
       batchId,
+      profileId,
       personaName: persona.name,
       total: totalTasks,
       completed: 0,
@@ -838,46 +893,62 @@ app.post('/api/ads/bulk-generate', authService.apiRateLimit('heavy'), async (req
 });
 
 app.get('/api/ads/batch-status/:batchId', (req, res) => {
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
   const batch = activeAdBatches[req.params.batchId];
-  if (!batch) return res.status(404).json({ success: false, error: 'Lote no encontrado.' });
-  res.json({ success: true, batch });
+  if (!batch || batch.profileId !== profileId) {
+    return res.status(404).json({ success: false, error: 'Lote no encontrado.' });
+  }
+  const { profileId: _ownedBy, ...publicBatch } = batch;
+  res.json({ success: true, batch: publicBatch });
 });
 
 // Campaigns endpoints
 app.get('/api/campaigns', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
   res.json(dbService.getAllCampaigns(profileId));
 });
 
 app.get('/api/campaigns/:id', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
-  const c = dbService.getCampaignById(req.params.id);
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
+  const c = dbService.assertCampaignOwnedBy(req.params.id, profileId);
   if (!c) {
-    return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
-  }
-  if (profileId && c.profile_id && c.profile_id !== profileId) {
     return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
   }
   res.json(c);
 });
 
 app.post('/api/campaigns', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
-  const { campaign, personaIds } = req.body;
-  const c = dbService.saveCampaign({ ...campaign, profile_id: profileId }, personaIds);
-  runGitBackup((gitSuccess, msg) => {
-    res.json({ success: true, campaign: c, campaigns: dbService.getAllCampaigns(profileId), gitSynced: gitSuccess, gitMessage: msg });
-  });
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
+  const { campaign, personaIds } = req.body || {};
+  if (campaign?.id) {
+    const owned = dbService.assertCampaignOwnedBy(campaign.id, profileId);
+    if (!owned) {
+      return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
+    }
+  }
+  try {
+    const c = dbService.saveCampaign({ ...campaign, profile_id: profileId }, personaIds);
+    runGitBackup((gitSuccess, msg) => {
+      res.json({ success: true, campaign: c, campaigns: dbService.getAllCampaigns(profileId), gitSynced: gitSuccess, gitMessage: msg });
+    });
+  } catch (err) {
+    if (err.code === 'PROFILE_FORBIDDEN') {
+      return res.status(404).json({ success: false, message: err.message });
+    }
+    throw err;
+  }
 });
 
 app.delete('/api/campaigns/:id', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
-  const existing = dbService.getCampaignById(req.params.id);
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
+  const existing = dbService.assertCampaignOwnedBy(req.params.id, profileId);
   if (!existing) {
     return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
-  }
-  if (profileId && existing.profile_id && existing.profile_id !== profileId) {
-    return res.status(403).json({ success: false, message: 'No puedes eliminar campañas de otro perfil.' });
   }
   dbService.deleteCampaign(req.params.id);
   runGitBackup((gitSuccess, msg) => {
@@ -887,7 +958,8 @@ app.delete('/api/campaigns/:id', (req, res) => {
 
 // Scripts endpoints
 app.post('/api/campaigns/:id/scripts', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
   const owned = dbService.assertCampaignOwnedBy(req.params.id, profileId);
   if (!owned) {
     return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });
@@ -900,13 +972,15 @@ app.post('/api/campaigns/:id/scripts', (req, res) => {
 
 // Gallery endpoints
 app.get('/api/gallery', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
   res.json(dbService.getGalleryItems(profileId));
 });
 
 app.post('/api/gallery', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
-  const { prompt, imagePath } = req.body;
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
+  const { prompt, imagePath } = req.body || {};
   const item = dbService.saveToGallery(prompt, imagePath, profileId);
   runGitBackup((gitSuccess, msg) => {
     res.json({ success: true, item, gitSynced: gitSuccess, gitMessage: msg });
@@ -914,7 +988,8 @@ app.post('/api/gallery', (req, res) => {
 });
 
 app.get('/api/export/campaign/:id', (req, res) => {
-  const profileId = req.session.profileId || resolveSessionProfile(req);
+  const profileId = requireSessionProfileId(req, res);
+  if (!profileId) return;
   const c = dbService.assertCampaignOwnedBy(req.params.id, profileId);
   if (!c) {
     return res.status(404).json({ success: false, message: 'Campaña no encontrada.' });

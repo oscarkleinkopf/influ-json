@@ -172,6 +172,7 @@
 | 2026-08-11 | **Free Path consolidar** (#87) | Copiar JSON primero; sin GPT-5.6/Meta Ads live; dedupe packs; toasts honestos |
 | 2026-08-11 | **UX-3** honestidad UI | Scripts campaña cableados; stats reales; vídeo DEMO; sin alert/showSyncToast |
 | 2026-08-11 | **UX-0** layout: nesting HTML + móvil + offline bar + test estructura | `</div>` sobrante; `test/html-structure.test.js` |
+| 2026-08-12 | **SaaS tenancy harden** + doc auth→tenant→billing | asserts fail-closed; assets por perfil; `docs/SAAS_TENANCY.md` |
 | 2026-08-11 | **ugc face pack** 6 ángulos + texto free | `face-pack.js`; regenerate opt-in Pollinations |
 | 2026-08-11 | **ugc camera/shots** chips + 7 formatos + semana | `ugc-shot-composer.js`; packs Layer 4 |
 | 2026-08-11 | **ugc-creator anchors** asimetría + realism/negative packs | `facial_asymmetry`; Layer 5 + negative en free packs |
@@ -261,10 +262,16 @@
 
 ## Parking lot (no ahora)
 
-- Multi-tenant / OAuth / billing obligatorio  
+- Billing Stripe obligatorio / planes de pago en UI  
 - Face-lock de pago como default  
 - Video pipeline completo  
 - Refactor React solo por moda  
+- Migrar auth a Supabase (Dropdeep/Ulpan) — opcional si SQLite no escala; ver [docs/SAAS_TENANCY.md](./docs/SAAS_TENANCY.md)
+
+### Norte SaaS (cuando comercialices)
+
+Orden fijo: **auth (Google/PIN) → tenant (`profile_id`) → cuotas → billing**.  
+Local PIN free no requiere tarjeta. Detalle: [docs/SAAS_TENANCY.md](./docs/SAAS_TENANCY.md).
 
 ---
 
@@ -274,3 +281,4 @@
 2. Cualquier integración Replicate/Fal debe ser **opt-in** + fallback Pollinations.  
 3. Mejorar siempre primero: JSON lock, prompts Pollinations, UX rate-limit, export chatbot.  
 4. Leer este archivo al retomar.  
+5. Multi-usuario online: no romper aislamiento `profile_id` (regresión P0 SaaS).  

@@ -74,17 +74,24 @@ function registerAdminRoutes(app, deps) {
     createZipArchive = null
   } = deps;
 
-  // Profiles CRUD (local multi-user) — crear/borrar perfiles: solo Administración
+  // Profiles CRUD (local multi-user) — listado completo solo Administración;
+  // member/Google solo ve su propio perfil (aislar emails y cuentas ajenas).
   app.get('/api/profiles', (req, res) => {
-    const profiles = dbService.listStudioProfilesAdmin().map((p) => ({
+    const isAdmin = dbService.isAdminRole(req.session.profileRole);
+    const currentId = req.session.profileId || null;
+    let rows = dbService.listStudioProfilesAdmin();
+    if (!isAdmin) {
+      rows = rows.filter((p) => p.id === currentId);
+    }
+    const profiles = rows.map((p) => ({
       ...publicProfileDTO(p),
       personaCount: dbService.countPersonasForProfile(p.id)
     }));
     res.json({
       success: true,
       profiles,
-      currentProfileId: req.session.profileId || null,
-      isAdmin: dbService.isAdminRole(req.session.profileRole)
+      currentProfileId: currentId,
+      isAdmin
     });
   });
 
