@@ -144,7 +144,7 @@ Lo avanzado —LoRA (L2/L5), face-lock de pago, comparador A/B, historial de ver
 | UX-3d | Stat «Scripts» = `campañas × 10` | Contar scripts reales o quitar la tarjeta |
 | UX-3e | Productos: el dashboard muestra 0 con productos en otro perfil | Revisar el scope por perfil en el contador |
 | UX-3f | Estados vacíos (`gallery`, `campaigns`, historial) | Uno y solo un CTA por estado vacío, apuntando al happy path |
-| UX-3g | Modal de Ajustes = scroll largo (claves → métricas → audit → perfiles → invitaciones → backup) | **Redo en curso** (`cursor/settings-tabs-ux-9b67`) — draft #72 cerrado; reimplementado sobre `views/_foot.html` |
+| UX-3g | Modal de Ajustes = scroll largo (claves → métricas → audit → perfiles → invitaciones → backup) | ✅ **#96** — tabs en `views/_foot.html` |
 | UX-3h | Toast `showSyncToast` marcado `@deprecated` con 24 usos | Migrar a `showAppToast` y borrar |
 
 ---
@@ -166,7 +166,7 @@ Lo avanzado —LoRA (L2/L5), face-lock de pago, comparador A/B, historial de ver
 **Estado (2026-08-12):** en curso — aislamiento DB + DoD.
 
 - **Aislar la DB en tests.** ✅ + uploads a `DATA_DIR/references` (`INFLU_TEST_UPLOADS`).
-- **Cerrar los 6 PRs draft abiertos.** ✅ Cerrados #72 + #76–#80. **Backlog:** no reintegrar en masa; #72 (Ajustes tabs) y fixes gen solo si el owner pide repro en `main`.
+- **Cerrar los 6 PRs draft abiertos.** ✅ Cerrados #72 + #76–#80. **#72 redo:** ✅ #96. Resto (#76–#80): no reintegrar en masa.
 - **Definition of done** ✅ + automatizado: `npm run layout-smoke` (Chrome width + screenshot en CI).
 
 ---

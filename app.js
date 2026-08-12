@@ -6101,17 +6101,21 @@ function setupUgcStudio() {
   // Generate Image AI Action
   document.getElementById('btnGenerateUgcImage').addEventListener('click', generateAIImageAction);
 
-  // Export → UX-1c: no duplicar destino; ir a la ficha canónica
-  document.getElementById('btnExportUgcChatbot').addEventListener('click', () => {
-    navigateToTab('persona-engine');
-    setTimeout(() => {
-      const target = document.getElementById('btnCopyPackFullbodyPrimary');
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        target.focus?.();
-      }
-    }, 80);
-    toastInfo('Pack free está en la ficha — usa «Copiar JSON» (verde).');
+  // Free path: el CTA verde debe COPIAR el pack (no solo navegar a la ficha).
+  document.getElementById('btnExportUgcChatbot').addEventListener('click', async () => {
+    if (!state.selectedPersona && !document.getElementById('pName')?.value) {
+      toastInfo('Elegí un influencer (chip del header o Influencers) antes de copiar el pack UGC.', {
+        actionLabel: 'Ir a Influencers',
+        onAction: () => navigateToTab('persona-engine')
+      });
+      return;
+    }
+    try {
+      await copyFreeChatbotPack('product');
+    } catch (err) {
+      console.warn('UGC Copiar JSON:', err);
+      toastError('No se pudo copiar el pack.');
+    }
   });
 
   // Download Master JSON Pack
@@ -6514,26 +6518,39 @@ function startVideoPipelineSimulation() {
 }
 
 function populateActiveUgcData() {
-  const creator = state.selectedPersona || { name: "Sofia", image: "assets/influencer_female.png", imageUGC: "assets/influencer_female_serum.png", handle: "@sofia_ai_ugc" };
-  const prod = state.selectedProduct || { name: "Glow Serum Organics" };
+  const hasPersona = !!state.selectedPersona;
+  const creator = state.selectedPersona || {};
+  const prod = state.selectedProduct || null;
   const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
   const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
-  
-  setSrc('ugcActiveAvatar', creator.image || 'assets/influencer_female.png');
-  setText('ugcActiveName', creator.name || 'Influencer');
-  setText('ugcActiveMeta', `${creator.age || ''} • ${creator.ethnicity || creator.ethnicity_appearance || ''}`);
-  
+
+  if (!hasPersona) {
+    setSrc('ugcActiveAvatar', 'assets/influencer_female.png');
+    setText('ugcActiveName', 'Sin influencer');
+    setText('ugcActiveMeta', 'Elegí uno en el chip del header o en Influencers');
+  } else {
+    setSrc('ugcActiveAvatar', creator.image || 'assets/influencer_female.png');
+    setText('ugcActiveName', creator.name || 'Influencer');
+    setText('ugcActiveMeta', `${creator.age || ''} • ${creator.ethnicity || creator.ethnicity_appearance || ''}`);
+  }
+
   const prodImg = creator.gender === 'Male' ? 'assets/product_bottle.png' : 'assets/product_serum.png';
   setSrc('ugcActiveProductImg', prodImg);
-  setText('ugcActiveProduct', prod.name);
-  setText('cdProduct', prod.name);
-  setText('ugcActiveProductMeta', prod.benefit || "Piel brillante en 5 minutos");
-  
-  // Mockup elements
-  setSrc('mockupImage', creator.imageUGC || "assets/influencer_female_serum.png");
-  setSrc('mockupAvatar', creator.image || 'assets/influencer_female.png');
-  setText('mockupHandle', creator.handle || `@${(creator.name || 'influencer').toLowerCase()}_ai_ugc`);
-  
+  setText('ugcActiveProduct', prod?.name || 'Sin producto');
+  setText('cdProduct', prod?.name || '—');
+  setText('ugcActiveProductMeta', prod?.benefit || (prod ? 'Producto activo' : 'Añadí un producto en Script Engine o elegí plantilla'));
+
+  // Mockup: sin persona no fingimos un UGC demo
+  if (!hasPersona) {
+    setSrc('mockupImage', 'assets/influencer_female.png');
+    setSrc('mockupAvatar', 'assets/influencer_female.png');
+    setText('mockupHandle', '@elige_influencer');
+  } else {
+    setSrc('mockupImage', creator.imageUGC || creator.image || 'assets/influencer_female_serum.png');
+    setSrc('mockupAvatar', creator.image || 'assets/influencer_female.png');
+    setText('mockupHandle', creator.handle || `@${(creator.name || 'influencer').toLowerCase().replace(/\s+/g, '_')}_ai_ugc`);
+  }
+
   try { updateActiveScriptView(); } catch (e) { console.warn(e); }
 }
 

@@ -16,8 +16,8 @@
                 <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <img id="ugcActiveAvatar" src="assets/influencer_female.png" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
                   <div>
-                    <h4 id="ugcActiveName" class="u-font-display-600">Sofia</h4>
-                    <p id="ugcActiveMeta" class="u-fs-11-sec">Latina, 25 años</p>
+                    <h4 id="ugcActiveName" class="u-font-display-600">Sin influencer</h4>
+                    <p id="ugcActiveMeta" class="u-fs-11-sec">Elegí uno en el chip del header o en Influencers</p>
                   </div>
                 </div>
               </div>
@@ -27,8 +27,8 @@
                 <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <img id="ugcActiveProductImg" src="assets/product_serum.png" alt="Producto" style="width: 44px; height: 44px; border-radius: var(--border-radius-sm); object-fit: cover;">
                   <div>
-                    <h4 id="ugcActiveProduct" class="u-font-display-600">Glow Serum Organics</h4>
-                    <p id="ugcActiveProductMeta" class="u-fs-11-sec">Piel brillante en 5 minutos</p>
+                    <h4 id="ugcActiveProduct" class="u-font-display-600">Sin producto</h4>
+                    <p id="ugcActiveProductMeta" class="u-fs-11-sec">Plantilla UGC o Script Engine</p>
                   </div>
                 </div>
               </div>
@@ -58,7 +58,7 @@
               
               <div>
                 <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 8px; color: var(--text-secondary);">Free path: Copiar JSON</h3>
-                <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.4;">Primero el pack gratis para chatbot. Bocetos Pollinations y descargas son opcionales.</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.4;">Copia el pack <strong>producto en mano</strong> al portapapeles (chatbot free). Bocetos Pollinations y descargas son opcionales.</p>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                   <button class="btn" id="btnExportUgcChatbot" data-offline-highlight="pack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff;">
                     Copiar JSON (recomendado)
@@ -150,10 +150,12 @@
                 </div>
               </details>
 
-              <div>
-                <h3 class="u-title-16-sec">🎬 Video UGC Pipeline <span style="font-size:11px; font-weight:600; color:#f59e0b; letter-spacing:0.04em;">(DEMO — sin pipeline real)</span></h3>
-                <p style="font-size:12px; color:var(--text-muted); margin:0 0 10px; line-height:1.4;">Simulación de timeline local. Veo/Runway no están conectados; el path gratis sigue siendo Copiar JSON / packs UGC.</p>
-                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
+              <details id="ugcVideoDemoDetails" class="u-m-0">
+                <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 8px 0;">
+                  🎬 Video UGC Pipeline <span style="font-size:11px; font-weight:600; color:#f59e0b; letter-spacing:0.04em;">(DEMO — sin pipeline real)</span>
+                </summary>
+                <p style="font-size:12px; color:var(--text-muted); margin:8px 0 10px; line-height:1.4;">Simulación de timeline local. Veo/Runway no están conectados; el path gratis sigue siendo Copiar JSON / packs UGC.</p>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <button class="btn btn-secondary u-w-full" id="btnGenerateUgcVideo" >
                     🎥 Probar timeline demo (15s · sin render real)
                   </button>
@@ -173,7 +175,7 @@
                     </div>
                   </div>
                 </div>
-              </div>
+              </details>
               
               <div>
                 <h3 class="u-title-16-sec">Configuración Legal & Cumplimiento (June 2026)</h3>

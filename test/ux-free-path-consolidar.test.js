@@ -21,11 +21,25 @@ test('Free Path: UGC pone Copiar JSON antes del boceto', () => {
   assert.ok(copyIdx >= 0 && bocetoIdx > copyIdx, 'Copiar JSON debe ir antes del boceto');
   assert.match(ugc, /Free path: pack de la ficha|Free path: Copiar JSON/);
   assert.match(ugc, /id="btnExportUgcChatbot"/);
-  assert.match(ugc, /Ir a la ficha|Copiar JSON \(recomendado\)/);
+  assert.match(ugc, /Copiar JSON \(recomendado\)/);
   assert.match(ugc, /ugcAdvancedAdsDetails/);
   assert.match(ugc, /ugcDownloadsDetails/);
+  assert.match(ugc, /ugcVideoDemoDetails/);
+  assert.match(ugc, /Sin influencer/);
 });
 
+test('Free Path: UGC Copiar JSON llama copyFreeChatbotPack (no solo navega)', () => {
+  assert.match(
+    appJs,
+    /btnExportUgcChatbot[\s\S]{0,500}copyFreeChatbotPack\(['"]product['"]\)/
+  );
+  assert.doesNotMatch(
+    appJs,
+    /btnExportUgcChatbot[\s\S]{0,400}navigateToTab\(['"]persona-engine['"]\)[\s\S]{0,200}toastInfo\(['"]Pack free está en la ficha/
+  );
+  assert.match(appJs, /Sin influencer/);
+  assert.match(appJs, /Elegí uno en el chip del header/);
+});
 test('Free Path: sin claims falsos GPT-5.6 / Meta Ads live / Producción AI', () => {
   assert.doesNotMatch(html, /GPT-5\.6/);
   assert.doesNotMatch(appJs, /GPT-5\.6/);
