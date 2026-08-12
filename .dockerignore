@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+.env
+data
+influ.sqlite
+personas.json
+.git
+.cursor
+artifacts
+tmp
+*.md
+!README.md

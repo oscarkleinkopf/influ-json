@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-12 | **Google online** deploy | PUBLIC_BASE_URL; Dockerfile; render.yaml; studio-online.json CTA |
 | 2026-08-12 | **Google auth** opt-in perfiles | `ENABLE_GOOGLE_AUTH`; schema v12 `google_sub`; Pages sigue landing |
 | 2026-08-12 | **Produce declutter** Galería off hub | subnav UGC+Guiones; Ver galería en ficha; empty→Copiar JSON |
 | 2026-08-12 | **UGC Copiar JSON** honesty | `#btnExportUgcChatbot` → `copyFreeChatbotPack('product')`; sin Sofia fake; vídeo en details |

@@ -1,0 +1,35 @@
+# Render Blueprint — Studio online con Google login
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: influ-json
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/status
+    envVars:
+      - key: HOST
+        value: "0.0.0.0"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: DATA_DIR
+        value: /data
+      - key: ENABLE_GOOGLE_AUTH
+        value: "1"
+      - key: STUDIO_PIN
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+    disk:
+      name: influ-data
+      mountPath: /data
+      sizeGB: 1

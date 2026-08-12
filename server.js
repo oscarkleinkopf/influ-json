@@ -27,6 +27,7 @@ firstRun.ensureSessionSecret();
 const dbService = require('./db');
 const authService = require('./auth');
 const googleAuth = require('./auth-google');
+const publicUrl = require('./public-url');
 const aiService = require('./ai-service');
 const genQueue = require('./gen-queue');
 const {
@@ -276,6 +277,11 @@ app.get('/photo-analysis.js', (req, res) => {
 app.get('/photo-upload-ui.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'photo-upload-ui.js'));
 });
+app.get('/studio-online.json', (req, res) => {
+  res.type('application/json');
+  res.sendFile(path.join(__dirname, 'studio-online.json'));
+});
+
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });
@@ -502,6 +508,7 @@ app.get('/api/status', (req, res) => {
     publicBindBlockReason,
     authEnabled,
     googleAuthEnabled: googleAuth.isGoogleAuthEnabled(),
+    publicBaseUrl: publicUrl.getPublicBaseUrl(req) || null,
     authenticated: !!(req.session && req.session.authenticated),
     profile: req.session?.profileId
       ? { id: req.session.profileId, name: req.session.profileName, role: req.session.profileRole }

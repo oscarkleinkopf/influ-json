@@ -29,7 +29,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **Commit base** | `main` @ #98 |
 | **PR actual** | Google login opt-in + Pages check |
 | **`main` remoto** | + Produce declutter #98 |
-| **Prioridad inmediata** | Configurar GOOGLE_CLIENT_* y probar login |
+| **Prioridad inmediata** | Deploy online (Render) + Google redirect HTTPS |
 
 ### Sesión reciente (Cursor, 2026-08-12) — GitHub + Pages + Google auth
 
@@ -39,6 +39,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - [#98](https://github.com/oscarkleinkopf/influ-json/pull/98) → `main`
 - Pages (`https://oscarkleinkopf.github.io/influ-json/`): 200 + `staticHostModal` (Studio local; sin API). Google **no** en Pages.
 - Google OAuth opt-in: `ENABLE_GOOGLE_AUTH=1` + `auth-google.js` → perfil member aislado por `google_sub` (schema v12)
+- **Online:** `PUBLIC_BASE_URL` + Dockerfile/`render.yaml` + `docs/DEPLOY_ONLINE.md`; Pages CTA vía `studio-online.json`
 
 ### Sesión previa (Cursor, 2026-08-12) — Merge #97 + Galería declutter
 

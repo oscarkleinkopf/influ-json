@@ -253,6 +253,20 @@ function showStaticHostScreen() {
       }
     });
   }
+  // CTA opcional hacia Studio hospedado (studio-online.json en el repo / Pages)
+  fetch('studio-online.json', { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((cfg) => {
+      const url = String(cfg?.studioUrl || '').trim();
+      if (!url || !/^https?:\/\//i.test(url)) return;
+      const wrap = document.getElementById('staticHostOnlineWrap');
+      const btn = document.getElementById('btnStaticHostOnline');
+      if (!wrap || !btn) return;
+      btn.href = url;
+      if (cfg.label) btn.textContent = String(cfg.label);
+      wrap.classList.remove('u-hidden');
+    })
+    .catch(() => { /* sin CTA online */ });
 }
 
 function checkAuthAndInit() {

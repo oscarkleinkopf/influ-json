@@ -2190,21 +2190,29 @@
     <div class="glass-card login-card" style="width: 100%; max-width: 460px; text-align: left; padding: 36px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
       <div class="logo-icon" style="margin: 0 0 16px; width: 56px; height: 56px; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center;">I</div>
       <p class="u-eyebrow">GitHub Pages · main</p>
-      <h2 id="staticHostTitle" style="font-family: var(--font-display); font-size: 22px; margin: 0 0 8px; color: #fff;">influ-JSON es un Studio local</h2>
+      <h2 id="staticHostTitle" style="font-family: var(--font-display); font-size: 22px; margin: 0 0 8px; color: #fff;">Aquí no corre el Studio</h2>
       <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 16px; line-height: 1.5;">
-        Esta web se publica desde <code>main</code>, pero solo como estáticos.
-        El PIN, login Google, el roster y <code>character_lock</code> necesitan
-        <strong style="color:#fff; font-weight:600;">Node + SQLite</strong> en tu máquina — aquí no hay API ni sesiones.
+        Pages solo sirve estáticos. El login Google, PIN, roster y <code>character_lock</code> viven en el
+        <strong style="color:#fff; font-weight:600;">Studio Node + SQLite</strong> (online o en tu PC).
       </p>
+      <div id="staticHostOnlineWrap" class="u-hidden" style="margin-bottom:14px;">
+        <a id="btnStaticHostOnline" class="btn" href="#" target="_blank" rel="noopener noreferrer" style="width:100%; padding:12px; text-align:center; text-decoration:none; display:block;">
+          Abrir Studio online (Google / PIN)
+        </a>
+        <p style="color: var(--text-muted); font-size: 11px; margin:8px 0 0; line-height:1.4;">
+          Misma app con OAuth Google — cada cuenta tiene su roster aislado.
+        </p>
+      </div>
+      <p style="color: var(--text-muted); font-size: 12px; margin: 0 0 8px;">O arranca en local:</p>
       <pre id="staticHostCmd" style="margin:0 0 14px; padding:12px 14px; background:rgba(0,0,0,0.45); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:var(--text-primary); font-family:var(--font-mono); font-size:12px; line-height:1.55; overflow-x:auto; white-space:pre-wrap;">git clone https://github.com/oscarkleinkopf/influ-json.git
 cd influ-json
 npm install
 npm start</pre>
       <p style="color: var(--text-muted); font-size: 12px; margin: 0 0 18px; line-height: 1.45;">
-        Luego abre <code>http://127.0.0.1:3000</code> · PIN por defecto <code>1234</code>.
+        Local: <code>http://127.0.0.1:3000</code> · Deploy: ver <code>docs/DEPLOY_ONLINE.md</code>
       </p>
       <div style="display:flex; flex-wrap:wrap; gap:10px;">
-        <button type="button" class="btn" id="btnStaticHostCopy" style="flex:1; min-width:140px; padding:12px;">Copiar comandos</button>
+        <button type="button" class="btn btn-secondary" id="btnStaticHostCopy" style="flex:1; min-width:140px; padding:12px;">Copiar comandos</button>
         <a class="btn btn-secondary" id="btnStaticHostRepo" href="https://github.com/oscarkleinkopf/influ-json" target="_blank" rel="noopener noreferrer" style="flex:1; min-width:140px; padding:12px; text-align:center; text-decoration:none;">Ver repo</a>
       </div>
     </div>
@@ -2222,7 +2230,7 @@ npm start</pre>
           Continuar con Google
         </a>
         <p style="font-size:11px; color:var(--text-muted); margin:8px 0 0; line-height:1.4;">
-          Cada cuenta Google obtiene su propio roster aislado (mismo aislamiento que invitaciones). Solo en Studio local (<code>npm start</code>) — no en GitHub Pages.
+          Cada cuenta Google obtiene su propio roster aislado. Funciona en el Studio hospedado (online) o con <code>npm start</code> — no en GitHub Pages (sin API).
         </p>
         <div style="display:flex; align-items:center; gap:10px; margin:14px 0 4px;">
           <hr style="flex:1; border:none; border-top:1px solid var(--glass-border); margin:0;">

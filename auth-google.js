@@ -1,6 +1,7 @@
 /**
  * Google OAuth (opt-in) → studio_profiles aislados por cuenta.
  * ENABLE_GOOGLE_AUTH=1 + GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET.
+ * Online: PUBLIC_BASE_URL + GOOGLE_REDIRECT_URI https://tu-host/.../callback
  * Sin flag: rutas 404 / UI oculta. PIN e invitaciones intactos.
  */
 'use strict';
@@ -8,6 +9,7 @@
 const crypto = require('crypto');
 const https = require('https');
 const { URL } = require('url');
+const { getPublicBaseUrl } = require('./public-url');
 
 const GOOGLE_AUTH = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN = 'https://oauth2.googleapis.com/token';
@@ -22,9 +24,11 @@ function isGoogleAuthEnabled(env = process.env) {
 function getGoogleRedirectUri(req, env = process.env) {
   const fromEnv = String(env.GOOGLE_REDIRECT_URI || '').trim();
   if (fromEnv) return fromEnv;
-  const host = req.get('host') || '127.0.0.1:3000';
-  const proto = (req.get('x-forwarded-proto') || req.protocol || 'http').split(',')[0].trim();
-  return `${proto}://${host}/api/auth/google/callback`;
+  const base = getPublicBaseUrl(req, env);
+  if (base) return `${base}/api/auth/google/callback`;
+  const host = (req && req.get && req.get('host')) || '127.0.0.1:3000';
+  const proto = (req && req.get && (req.get('x-forwarded-proto') || req.protocol)) || 'http';
+  return `${String(proto).split(',')[0].trim()}://${host}/api/auth/google/callback`;
 }
 
 function signOAuthState(payload, secret) {

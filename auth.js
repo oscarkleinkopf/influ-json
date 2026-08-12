@@ -4,6 +4,7 @@
  */
 const crypto = require('crypto');
 const expressSession = require('express-session');
+const { shouldUseSecureCookies } = require('./public-url');
 
 const DEFAULT_PIN_FALLBACK = '1234';
 
@@ -42,7 +43,8 @@ const sessionMiddleware = expressSession({
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.COOKIE_SECURE === '1'
+    // HTTPS online (PUBLIC_BASE_URL / COOKIE_SECURE) — requerido detrás de Render/Fly
+    secure: shouldUseSecureCookies()
   }
 });
 
@@ -51,10 +53,14 @@ const loginAttempts = new Map(); // key → { fails, lockedUntil }
 const MAX_FAILS = Number(process.env.LOGIN_MAX_FAILS || 5);
 const LOCK_MS = Number(process.env.LOGIN_LOCK_MS || 60_000);
 
-/** True when behind a reverse proxy that sets X-Forwarded-For (explicit opt-in). */
+/** True when behind a reverse proxy that sets X-Forwarded-For (explicit opt-in or PUBLIC_BASE_URL https). */
 function isTrustProxyEnabled() {
-  const v = String(process.env.TRUST_PROXY || '').trim().toLowerCase();
-  return v === '1' || v === 'true' || v === 'yes';
+  try {
+    return require('./public-url').shouldTrustProxy();
+  } catch (_) {
+    const v = String(process.env.TRUST_PROXY || '').trim().toLowerCase();
+    return v === '1' || v === 'true' || v === 'yes';
+  }
 }
 
 /**

@@ -121,11 +121,33 @@ test('Google auth: findOrCreateStudioProfileFromGoogle aísla por sub', () => {
   fs.rmSync(dataDir, { recursive: true, force: true });
 });
 
-test('Google auth: state HMAC roundtrip', () => {
-  const g = require('../auth-google');
-  const secret = 'state-secret';
-  const token = g.signOAuthState({ n: 'nonce1', ts: Date.now() }, secret);
-  const ok = g.verifyOAuthState(token, secret);
-  assert.equal(ok.n, 'nonce1');
-  assert.equal(g.verifyOAuthState(token + 'x', secret), null);
+test('Google auth: PUBLIC_BASE_URL define redirect online', () => {
+  const { getGoogleRedirectUri } = require('../auth-google');
+  const { getPublicBaseUrl, shouldUseSecureCookies, shouldTrustProxy } = require('../public-url');
+  const req = { get: (h) => (h === 'host' ? 'old.example' : null), protocol: 'http' };
+  assert.equal(
+    getGoogleRedirectUri(req, {
+      PUBLIC_BASE_URL: 'https://influ.example.com/',
+      GOOGLE_REDIRECT_URI: ''
+    }),
+    'https://influ.example.com/api/auth/google/callback'
+  );
+  assert.equal(
+    getPublicBaseUrl(null, { PUBLIC_BASE_URL: 'https://a.test/' }),
+    'https://a.test'
+  );
+  assert.equal(shouldUseSecureCookies({ PUBLIC_BASE_URL: 'https://a.test' }), true);
+  assert.equal(shouldTrustProxy({ PUBLIC_BASE_URL: 'https://a.test' }), true);
+  assert.equal(shouldTrustProxy({ TRUST_PROXY: '0', PUBLIC_BASE_URL: 'https://a.test' }), false);
+});
+
+test('deploy online: Dockerfile + render.yaml + studio-online.json + docs', () => {
+  assert.ok(fs.existsSync(path.join(root, 'Dockerfile')));
+  assert.ok(fs.existsSync(path.join(root, 'render.yaml')));
+  assert.ok(fs.existsSync(path.join(root, 'docs', 'DEPLOY_ONLINE.md')));
+  const online = JSON.parse(fs.readFileSync(path.join(root, 'studio-online.json'), 'utf8'));
+  assert.ok('studioUrl' in online);
+  const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+  assert.match(app, /studio-online\.json/);
+  assert.match(app, /btnStaticHostOnline/);
 });

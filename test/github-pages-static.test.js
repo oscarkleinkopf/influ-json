@@ -22,8 +22,10 @@ test('sin API Studio muestra staticHostModal (no login PIN)', () => {
   assert.match(appJs, /probeStudioApiStatus/);
   assert.match(appJs, /isStaticHostEnvironment\(\)[\s\S]{0,120}showStaticHostScreen/);
   assert.match(indexHtml, /id="staticHostModal"/);
-  assert.match(indexHtml, /Studio local/);
+  assert.match(indexHtml, /Aquí no corre el Studio|Studio local/);
   assert.match(indexHtml, /npm start/);
+  assert.match(indexHtml, /id="staticHostOnlineWrap"/);
+  assert.match(indexHtml, /id="btnStaticHostOnline"/);
 });
 
 test('landing docs/ explica arranque local', () => {
@@ -38,5 +40,5 @@ test('landing docs/ explica arranque local', () => {
 
 test('staticHostModal menciona sesiones (Google no en Pages)', () => {
   assert.match(indexHtml, /id="staticHostModal"/);
-  assert.match(indexHtml, /login Google|sesiones/i);
+  assert.match(indexHtml, /login Google|Studio Node|sesiones|hospedado/i);
 });
