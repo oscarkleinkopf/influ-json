@@ -33,16 +33,19 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **PIN local** | `1234` · Pages = modal (no Studio) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 
-### Sesión reciente (Cursor, 2026-08-12) — UX-4 continuación (módulos)
+### Sesión reciente (Cursor, 2026-08-12) — UX-4 continuación II
 
-**Pedido:** Sigue con UX-4.
+**Pedido:** Continúa (UX-4).
 
-**Hecho (sobre #92):**
-- `studio-toast.js` · `queue-poller.js` · `persona-form.js` (`readPersonaForm`) · `persona-card.js`
-- `compilePromptAndJSON` / `getFullPersonaJSON` / `savePersona` usan form único
-- Select + campaña usan `buildSelectPersonaCard` / `buildCampaignPersonaCard`
-- CSS: `.btn-compact`, `.settings-field-input`, `.empty-filter-panel`, `.persona-card--compact`
-- Tests: `test/ux4-modules.test.js`
+**Hecho:**
+- `variant-presets.js` (presets spicy/traditional fuera de `app.js`; ~1.1k líneas menos)
+- `applyAnalysisToFormFields` en `persona-form.js`
+- ~179 `style=` → utilidades CSS (`.u-hidden`, `.u-flex-between`, …); `.filter-btn-active`
+- Tests ampliados en `test/ux4-modules.test.js`
+
+### Sesión previa (Cursor, 2026-08-12) — UX-4 módulos
+
+**Hecho:** toast / queue / form / card UMD + CSS btn-compact.
 
 ### Sesión previa (Cursor, 2026-08-11) — Merge + UX-4 parciales
 

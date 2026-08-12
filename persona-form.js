@@ -80,5 +80,60 @@
     };
   }
 
-  return { readPersonaForm, readPersonaRowFields, fieldValue };
+  function setField(doc, id, val) {
+    const el = doc.getElementById(id);
+    if (el && val != null) el.value = val;
+  }
+
+  /**
+   * Escribe analysisResult → campos del formulario.
+   * @returns {{ clothingHint: string }}
+   */
+  function applyAnalysisToFormFields(analysis, doc) {
+    const d = doc || (typeof document !== 'undefined' ? document : null);
+    if (!d || !analysis) return { clothingHint: '' };
+
+    const i = analysis.identity || {};
+    const f = analysis.facial_features || {};
+    const h = analysis.hair || {};
+    const a = analysis.aesthetic || {};
+    const p = analysis.photography || {};
+    const c = analysis.clothing || {};
+    const b = analysis.body || {};
+
+    const genderVal = (i.gender || '').toLowerCase().includes('masc') ? 'Male' : 'Female';
+    setField(d, 'pName', i.name || 'Nuevo Influencer');
+    setField(d, 'pGender', genderVal);
+    setField(d, 'pAge', i.apparent_age || '25 años');
+    setField(d, 'pEthnicity', i.ethnicity_appearance || 'Mixta');
+    setField(d, 'pStyle', a.overall_vibe || 'Natural');
+    setField(d, 'pHair', `${h.texture || 'ondulado'} ${h.length || 'largo'}`);
+    setField(d, 'pSetting', p.background_setting || 'Fondo neutro');
+    setField(d, 'pSkinTone', f.skin_tone || 'Piel clara');
+    setField(d, 'pSkinTexture', f.skin_texture || 'Piel suave con poros naturales');
+    setField(d, 'pEyebrows', f.eyebrow_style || 'Cejas naturales');
+    setField(
+      d,
+      'pLips',
+      f.lips || (f.lip_color ? `${f.lip_color} ${f.lip_shape || ''}`.trim() : '') || 'Labios rosados naturales'
+    );
+    setField(d, 'pHairColor', h.color || 'Castaño');
+    setField(d, 'pHairTexture', h.texture || 'Ondulado');
+    setField(d, 'pHairLength', h.length || 'Largo');
+    setField(d, 'pEyeColor', f.eye_color || 'Marrón');
+    setField(d, 'pFaceShape', f.face_shape || 'Ovalada');
+    setField(d, 'pSmileType', f.smile_type || 'Natural');
+    setField(d, 'pBodyType', b.body_type || i.body_type || 'Atlético y proporcionado');
+    setField(d, 'pHeight', b.height_appearance || 'Estatura media (~1.65 m)');
+    setField(d, 'pProportions', b.proportions || 'Hombros equilibrados, cintura definida, caderas suaves');
+    setField(d, 'pPosture', b.posture || 'Erguida y relajada');
+    setField(d, 'pFitness', b.fitness_level || 'Tono natural ligero');
+    setField(d, 'pBodySkin', b.skin_continuity || 'Mismo tono de piel en rostro, cuello y brazos');
+
+    return {
+      clothingHint: `${c.type || ''} en ${c.color || ''}`
+    };
+  }
+
+  return { readPersonaForm, readPersonaRowFields, fieldValue, applyAnalysisToFormFields, setField };
 });

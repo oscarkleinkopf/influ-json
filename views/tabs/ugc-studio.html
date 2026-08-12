@@ -8,7 +8,7 @@
         
         <div class="studio-layout">
           <div class="glass-card">
-            <h2 style="font-family: var(--font-display); margin-bottom: 20px;">Configuración de Producción</h2>
+            <h2 class="u-card-title">Configuración de Producción</h2>
             
             <div style="display: flex; flex-direction: column; gap: 20px;">
               <div>
@@ -63,22 +63,22 @@
                   <button class="btn" id="btnExportUgcChatbot" data-offline-highlight="pack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(52, 211, 153, 0.28); border: 1px solid rgba(52, 211, 153, 0.55); color: #fff;">
                     Copiar JSON (recomendado)
                   </button>
-                  <button class="btn btn-secondary" id="btnGenerateUgcImage" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Pollinations opt-in (token/pollen)">
+                  <button class="btn btn-secondary u-full-center-row" id="btnGenerateUgcImage" title="Pollinations opt-in (token/pollen)">
                     Generar boceto (opt-in · puede pedir token)
                   </button>
-                  <details id="ugcDownloadsDetails" style="margin: 0;">
+                  <details id="ugcDownloadsDetails" class="u-m-0">
                     <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 8px 0;">Descargas opcionales (ZIP / kit / licencia)</summary>
                     <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
-                  <button class="btn btn-secondary" id="btnDownloadJsonPack" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <button class="btn btn-secondary u-full-center-row" id="btnDownloadJsonPack">
                     📥 Descargar Pack Maestro JSON (.json)
                   </button>
-                  <button class="btn btn-secondary" id="btnExportPersonaZip" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <button class="btn btn-secondary u-full-center-row" id="btnExportPersonaZip">
                     📦 Exportar pack completo (.zip)
                   </button>
-                  <button class="btn btn-secondary" id="btnExportBrandKit" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <button class="btn btn-secondary u-full-center-row" id="btnExportBrandKit">
                     🎁 Descargar kit marca (packs + guión)
                   </button>
-                  <button class="btn btn-secondary" id="btnGenerateCommercialLicense" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <button class="btn btn-secondary u-full-center-row" id="btnGenerateCommercialLicense">
                     📄 Emitir Certificado de Licencia Comercial (TikTok / Meta)
                   </button>
                     </div>
@@ -90,7 +90,7 @@
                 </div>
               </div>
 
-              <details id="ugcAdvancedAdsDetails" style="margin-bottom: 20px;">
+              <details id="ugcAdvancedAdsDetails" class="u-mb-20">
                 <summary style="cursor: pointer; font-family: var(--font-display); font-size: 15px; color: var(--text-secondary); padding: 8px 0;">Anuncios estáticos (boceto opt-in) — avanzado</summary>
                 <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
               <div>

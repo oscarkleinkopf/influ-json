@@ -2,7 +2,7 @@
   </div>
   
   <!-- History Image Modal -->
-  <div class="history-modal-overlay" id="historyModal" style="display: none;">
+  <div class="history-modal-overlay u-hidden" id="historyModal">
     <button type="button" class="history-nav-btn history-nav-prev" id="btnHistoryPrev" onclick="navigateHistoryModal(-1)" title="Anterior (Flecha izquierda)">&#8249;</button>
     <div class="history-modal-content">
       <button class="history-modal-close" onclick="closeHistoryModal()">&times;</button>
@@ -35,7 +35,7 @@
             </div>
             
             <div class="import-dropzone" id="importDropzone">
-              <input type="file" id="importImages" multiple accept="image/*" style="display: none;">
+              <input type="file" id="importImages" multiple accept="image/*" class="u-hidden">
               <span class="import-dropzone-icon">📥</span>
               <p style="font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 4px 0;">Arrastra fotos aquí o haz clic para buscar</p>
               <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Sube de 1 a 4 fotos de rostro (JPG, PNG, WEBP)</p>
@@ -58,7 +58,7 @@
               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
           </div>
 
-          <div style="margin-bottom: 20px;">
+          <div class="u-mb-20">
             <label for="importScriptTopic" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px;">📦 Producto / Nicho para Guiones UGC (Opcional)</label>
             <input type="text" id="importScriptTopic" placeholder="Ej: Crema hidratante antiedad Glow Serum" 
               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
@@ -81,13 +81,13 @@
       </div>
 
       <!-- Paso 3: Vista Previa y Confirmación (1.2 — aún no en portafolio) -->
-      <div id="importPreview" style="display: none;">
+      <div id="importPreview" class="u-hidden">
         <h3 style="font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">📋 Perfil Analizado</h3>
         <p id="importConfirmHint" class="import-confirm-hint" style="display:none; font-size: 12px; color: #fde68a; margin: 0 0 14px; line-height: 1.4;">
           Aún no está en tu portafolio. Revisa y confirma, o descarta.
         </p>
         
-        <div class="editor-form-group" style="margin-bottom: 20px;">
+        <div class="editor-form-group u-mb-20">
           <div>
             <label for="importSuggestedName" style="display: block; margin-bottom: 6px; font-size: 11px;">Nombre Sugerido (Editable)</label>
             <input type="text" id="importSuggestedName" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px;">
@@ -103,9 +103,9 @@
 
         <!-- JSON Output Preview -->
         <div class="prompt-console" style="margin-top: 0; margin-bottom: 20px; background: rgba(0,0,0,0.3);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <div class="u-flex-between">
             <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase;">Estructura influ-JSON Detectada</span>
-            <button type="button" class="btn btn-secondary btn-sm" id="btnCopyImportJSON" style="padding: 2px 8px; font-size: 9px; height: auto;">Copiar JSON</button>
+            <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyImportJSON">Copiar JSON</button>
           </div>
           <textarea id="importJsonOutput" readonly style="width: 100%; height: 110px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; padding: 8px; color: #a7f3d0; font-family: var(--font-mono); font-size: 10px; resize: none; outline: none;"></textarea>
         </div>
@@ -134,10 +134,10 @@
   </div>
 
   <!-- Static host (GitHub Pages / file://): no hay API Node — no fingir login PIN -->
-  <div id="staticHostModal" class="login-modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="staticHostTitle">
+  <div id="staticHostModal" class="login-modal-overlay u-hidden" role="dialog" aria-modal="true" aria-labelledby="staticHostTitle">
     <div class="glass-card login-card" style="width: 100%; max-width: 460px; text-align: left; padding: 36px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
       <div class="logo-icon" style="margin: 0 0 16px; width: 56px; height: 56px; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center;">I</div>
-      <p style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin:0 0 8px;">GitHub Pages · main</p>
+      <p class="u-eyebrow">GitHub Pages · main</p>
       <h2 id="staticHostTitle" style="font-family: var(--font-display); font-size: 22px; margin: 0 0 8px; color: #fff;">influ-JSON es un Studio local</h2>
       <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 16px; line-height: 1.5;">
         Esta web se publica desde <code>main</code>, pero solo como estáticos.
@@ -159,7 +159,7 @@ npm start</pre>
   </div>
 
   <!-- Login Screen Modal Overlay -->
-  <div id="loginModal" class="login-modal-overlay" style="display: none;">
+  <div id="loginModal" class="login-modal-overlay u-hidden">
     <div class="glass-card login-card" style="width: 100%; max-width: 400px; text-align: center; padding: 40px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
       <div class="logo-icon" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center;">I</div>
       <h2 style="font-family: var(--font-display); font-size: 22px; margin-bottom: 6px; color: #fff;">influ-JSON Studio</h2>
@@ -179,11 +179,11 @@ npm start</pre>
         <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px; line-height:1.4;">
           Crea tu propio espacio aislado. Tus influencers no se mezclan con los de Administración ni de otros testers.
         </p>
-        <label for="inviteCodeInput" style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:6px;">Código</label>
+        <label for="inviteCodeInput" class="u-label-sm">Código</label>
         <input type="text" id="inviteCodeInput" placeholder="INFLU-XXXX-XXXX" autocomplete="off" style="width:100%; padding:10px; margin-bottom:10px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:13px; letter-spacing:1px; text-transform:uppercase;">
-        <label for="inviteNameInput" style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:6px;">Tu nombre / marca</label>
+        <label for="inviteNameInput" class="u-label-sm">Tu nombre / marca</label>
         <input type="text" id="inviteNameInput" placeholder="Ej. Marca Beauty" style="width:100%; padding:10px; margin-bottom:10px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:13px;">
-        <label for="invitePinInput" style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:6px;">Elige un PIN (mín. 4)</label>
+        <label for="invitePinInput" class="u-label-sm">Elige un PIN (mín. 4)</label>
         <input type="password" id="invitePinInput" placeholder="••••" minlength="4" style="width:100%; padding:10px; margin-bottom:12px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:16px; letter-spacing:4px; text-align:center;">
         <p id="inviteRedeemError" style="display:none; color:var(--danger); font-size:12px; margin:0 0 12px;"></p>
         <button type="submit" class="btn" style="width:100%; padding:12px;">Activar invitación</button>
@@ -193,25 +193,25 @@ npm start</pre>
   </div>
 
   <!-- Banner PIN por defecto (seguridad) -->
-  <div id="pinDefaultBanner" class="pin-default-banner" style="display:none;" role="status">
+  <div id="pinDefaultBanner" class="pin-default-banner u-hidden" role="status">
     <span>Tu PIN sigue siendo el valor por defecto (<code>1234</code>). Cámbialo en el asistente o en Ajustes → Perfiles.</span>
     <button type="button" class="btn btn-secondary btn-sm" id="btnPinBannerSettings">Abrir perfiles</button>
     <button type="button" class="btn btn-secondary btn-sm" id="btnPinBannerDismiss" aria-label="Cerrar">✕</button>
   </div>
 
   <!-- Asistente primer arranque: cambiar PIN por defecto (bloqueante) -->
-  <div id="setupPinModal" class="login-modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="setupPinTitle">
+  <div id="setupPinModal" class="login-modal-overlay u-hidden" role="dialog" aria-modal="true" aria-labelledby="setupPinTitle">
     <div class="glass-card login-card" style="width:100%; max-width:420px; text-align:left; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.8); position:relative;">
-      <p style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin:0 0 8px;">Primer arranque</p>
+      <p class="u-eyebrow">Primer arranque</p>
       <h2 id="setupPinTitle" style="font-family:var(--font-display); font-size:22px; margin:0 0 8px; color:#fff;">Protege tu Studio</h2>
       <p style="font-size:13px; color:var(--text-secondary); margin:0 0 16px; line-height:1.45;">
         El PIN por defecto (<code>1234</code>) no es seguro. Elige uno nuevo (mín. 6 caracteres) antes de crear influencers.
         El Studio escucha solo en localhost por defecto; si expones la red, este paso es obligatorio.
       </p>
       <form id="setupPinForm">
-        <label for="setupPinInput" style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:6px;">Nuevo PIN</label>
+        <label for="setupPinInput" class="u-label-sm">Nuevo PIN</label>
         <input type="password" id="setupPinInput" required minlength="6" autocomplete="new-password" placeholder="••••••" style="width:100%; padding:12px; margin-bottom:12px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:18px; letter-spacing:6px; text-align:center;">
-        <label for="setupPinConfirmInput" style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:6px;">Confirmar PIN</label>
+        <label for="setupPinConfirmInput" class="u-label-sm">Confirmar PIN</label>
         <input type="password" id="setupPinConfirmInput" required minlength="6" autocomplete="new-password" placeholder="••••••" style="width:100%; padding:12px; margin-bottom:12px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:18px; letter-spacing:6px; text-align:center;">
         <p id="setupPinError" style="display:none; color:var(--danger); font-size:12px; margin:0 0 12px;"></p>
         <button type="submit" class="btn" id="btnSetupPinSubmit" style="width:100%; padding:12px;">Guardar PIN y continuar</button>
@@ -223,7 +223,7 @@ npm start</pre>
   </div>
 
   <!-- Banner rate-limit Pollinations (429) -->
-  <div id="rateLimitBanner" class="rate-limit-banner" style="display:none;" role="status" aria-live="polite">
+  <div id="rateLimitBanner" class="rate-limit-banner u-hidden" role="status" aria-live="polite">
     <span class="rate-limit-dot" aria-hidden="true"></span>
     <span id="rateLimitBannerText">Pollinations limitó peticiones (429). La cola espera y reintenta sola.</span>
     <button type="button" class="btn btn-secondary btn-sm" id="btnRateLimitGoOffline" style="margin-left:auto; font-size:11px; padding:4px 10px; flex-shrink:0;">
@@ -244,7 +244,7 @@ npm start</pre>
   </div>
 
   <!-- Banner offline: JSON-first sigue disponible + toggle modo offline (W8) -->
-  <div id="offlineBanner" class="offline-banner" style="display:none;" role="status" aria-live="polite">
+  <div id="offlineBanner" class="offline-banner u-hidden" role="status" aria-live="polite">
     <span class="offline-dot" aria-hidden="true"></span>
     <span id="offlineBannerText">Sin conexión al Studio — puedes copiar JSON ya cargado; generación Pollinations pausada.</span>
     <label class="offline-mode-toggle" style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; white-space:nowrap;">
@@ -255,23 +255,23 @@ npm start</pre>
   <div id="offlineModeBar" class="offline-mode-bar" style="display:flex; align-items:center; gap:10px; padding:6px 14px; background:rgba(0,0,0,0.35); border-bottom:1px solid var(--glass-border); font-size:12px; color:var(--text-secondary);">
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
       <input type="checkbox" id="offlineModeToggleBar" />
-      <span><strong style="color:#fff;">Modo offline</strong> — Studio útil sin gen: prioriza <em>Copiar JSON (recomendado)</em></span>
+      <span><strong class="u-color-white">Modo offline</strong> — Studio útil sin gen: prioriza <em>Copiar JSON (recomendado)</em></span>
     </label>
   </div>
 
   <!-- Onboarding member (post-invitación / roster vacío) -->
-  <div id="memberWelcomeModal" class="login-modal-overlay" style="display:none;" role="dialog" aria-labelledby="memberWelcomeTitle">
+  <div id="memberWelcomeModal" class="login-modal-overlay u-hidden" role="dialog" aria-labelledby="memberWelcomeTitle">
     <div class="glass-card login-card" style="width:100%; max-width:440px; text-align:left; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.8); position:relative;">
       <button type="button" id="btnCloseMemberWelcome" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;" aria-label="Cerrar">✕</button>
-      <p style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin:0 0 8px;">Tu espacio aislado</p>
+      <p class="u-eyebrow">Tu espacio aislado</p>
       <h2 id="memberWelcomeTitle" style="font-family:var(--font-display); font-size:22px; margin:0 0 8px; color:#fff;">Bienvenido a influ-JSON</h2>
       <p id="memberWelcomeLead" style="font-size:13px; color:var(--text-secondary); margin:0 0 18px; line-height:1.45;">
         Este perfil es solo tuyo. No verás ni mezclarás creaciones de Administración u otros testers.
       </p>
       <ol style="margin:0 0 20px; padding-left:18px; font-size:13px; color:var(--text-secondary); line-height:1.55;">
-        <li style="margin-bottom:8px;"><strong style="color:#fff;">Crear o importar</strong> un influencer</li>
-        <li style="margin-bottom:8px;"><strong style="color:#fff;">Guardar</strong> — aparece en tu portafolio (solo JSON)</li>
-        <li style="margin-bottom:8px;"><strong style="color:#fff;">Copiar JSON (recomendado)</strong> a ChatGPT / Gemini / Claude free</li>
+        <li class="u-mb-8"><strong class="u-color-white">Crear o importar</strong> un influencer</li>
+        <li class="u-mb-8"><strong class="u-color-white">Guardar</strong> — aparece en tu portafolio (solo JSON)</li>
+        <li class="u-mb-8"><strong class="u-color-white">Copiar JSON (recomendado)</strong> a ChatGPT / Gemini / Claude free</li>
       </ol>
       <div class="flex-col-gap-8">
         <button type="button" class="btn" id="btnMemberWelcomeCreate" style="width:100%; padding:12px;">Crear</button>
@@ -283,18 +283,18 @@ npm start</pre>
   </div>
 
   <!-- Onboarding founder / Administración (roster vacío) -->
-  <div id="founderWelcomeModal" class="login-modal-overlay" style="display:none;" role="dialog" aria-labelledby="founderWelcomeTitle">
+  <div id="founderWelcomeModal" class="login-modal-overlay u-hidden" role="dialog" aria-labelledby="founderWelcomeTitle">
     <div class="glass-card login-card" style="width:100%; max-width:460px; text-align:left; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.8); position:relative;">
       <button type="button" id="btnCloseFounderWelcome" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;" aria-label="Cerrar">✕</button>
-      <p style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin:0 0 8px;">Cero costo primero</p>
+      <p class="u-eyebrow">Cero costo primero</p>
       <h2 id="founderWelcomeTitle" style="font-family:var(--font-display); font-size:22px; margin:0 0 8px; color:#fff;">Tu estudio de influencers</h2>
       <p id="founderWelcomeLead" style="font-size:13px; color:var(--text-secondary); margin:0 0 18px; line-height:1.45;">
         Crea prompts + JSON (<code>character_lock</code>) y pégalos en chatbots gratis. Pollinations es opcional.
       </p>
       <ol style="margin:0 0 20px; padding-left:18px; font-size:13px; color:var(--text-secondary); line-height:1.55;">
-        <li style="margin-bottom:8px;"><strong style="color:#fff;">Crear o importar</strong> un personaje</li>
-        <li style="margin-bottom:8px;"><strong style="color:#fff;">Guardar</strong> (solo JSON — sin esperar imagen)</li>
-        <li style="margin-bottom:8px;"><strong style="color:#fff;">Copiar JSON</strong> → ChatGPT / Gemini / Claude free</li>
+        <li class="u-mb-8"><strong class="u-color-white">Crear o importar</strong> un personaje</li>
+        <li class="u-mb-8"><strong class="u-color-white">Guardar</strong> (solo JSON — sin esperar imagen)</li>
+        <li class="u-mb-8"><strong class="u-color-white">Copiar JSON</strong> → ChatGPT / Gemini / Claude free</li>
       </ol>
       <div class="flex-col-gap-8">
         <button type="button" class="btn" id="btnFounderWelcomeCreate" style="width:100%; padding:12px;">Crear</button>
@@ -326,7 +326,7 @@ npm start</pre>
   </nav>
 
   <!-- Settings & API Key Modal Overlay -->
-  <div id="settingsModal" class="login-modal-overlay" style="display: none;">
+  <div id="settingsModal" class="login-modal-overlay u-hidden">
     <div class="glass-card login-card" style="width: 100%; max-width: 480px; text-align: left; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); position: relative;">
       <button type="button" id="btnCloseSettings" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;">✕</button>
 
@@ -375,48 +375,48 @@ npm start</pre>
           </div>
         </form>
 
-        <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
+        <hr class="u-hr-soft">
       </div>
 
-      <div id="genMetricsSettingsSection" style="display:none;">
-        <h3 style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Métricas de generación (local)</h3>
-        <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+      <div id="genMetricsSettingsSection" class="u-hidden">
+        <h3 class="u-section-title">Métricas de generación (local)</h3>
+        <p class="u-section-lead">
           Contadores gratis en SQLite: cuántos retratos / variantes / fallos 429 por perfil. Prepara la decisión de Replicate sin pagarlo.
         </p>
         <p id="genMetricsLine" style="font-size:13px; color:#a7f3d0; margin:0 0 8px; line-height:1.5;"></p>
         <div id="genMetricsByProfile" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;"></div>
         <button type="button" id="btnRefreshGenMetrics" class="btn btn-secondary btn-sm" style="font-size:11px;">Actualizar métricas</button>
-        <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
+        <hr class="u-hr-soft">
       </div>
 
-      <div id="auditLogSettingsSection" style="display:none;">
-        <h3 style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Audit log (local)</h3>
-        <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+      <div id="auditLogSettingsSection" class="u-hidden">
+        <h3 class="u-section-title">Audit log (local)</h3>
+        <p class="u-section-lead">
           Últimas 50 acciones sensibles: archivar, borrar, exportar, backup. Solo lectura — solo Administración.
         </p>
         <div id="auditLogList" class="audit-log-list" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; margin-bottom:12px;"></div>
         <button type="button" id="btnRefreshAuditLog" class="btn btn-secondary btn-sm" style="font-size:11px;">Actualizar log</button>
-        <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
+        <hr class="u-hr-soft">
       </div>
 
       <div id="memberSettingsHint" style="display:none; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
-        Tu cuenta es de <strong style="color:#fff;">tester invitado</strong>. El Studio ya funciona gratis con <strong style="color:#fff;">Copiar JSON</strong>.
+        Tu cuenta es de <strong class="u-color-white">tester invitado</strong>. El Studio ya funciona gratis con <strong class="u-color-white">Copiar JSON</strong>.
         El token de Pollinations (bocetos) lo configura solo Administración en Ajustes — aquí gestionas tu PIN y cierras sesión.
       </div>
 
       <div id="profilesSettingsSection">
-        <h3 id="profilesSettingsHeading" style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Perfiles de usuario (local)</h3>
-        <p id="profilesSettingsLead" style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+        <h3 id="profilesSettingsHeading" class="u-section-title">Perfiles de usuario (local)</h3>
+        <p id="profilesSettingsLead" class="u-section-lead">
           Varios emprendedores en el mismo Studio, cada uno con su PIN y su roster. Sin nube ni OAuth.
         </p>
         <div id="profilesList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;"></div>
         <form id="createProfileForm" style="display:none; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end;">
           <div>
-            <label for="newProfileName" style="font-size:10px; color:var(--text-muted);">Nombre</label>
+            <label for="newProfileName" class="u-fs-10-muted">Nombre</label>
             <input id="newProfileName" type="text" placeholder="Ej. Marca Beauty" required class="settings-field-input">
           </div>
           <div>
-            <label for="newProfilePin" style="font-size:10px; color:var(--text-muted);">PIN (mín. 4)</label>
+            <label for="newProfilePin" class="u-fs-10-muted">PIN (mín. 4)</label>
             <input id="newProfilePin" type="password" placeholder="••••" required minlength="4" class="settings-field-input">
           </div>
           <button type="submit" class="btn btn-secondary btn-sm" style="padding:10px 12px;">Crear</button>
@@ -426,19 +426,19 @@ npm start</pre>
         </div>
       </div>
 
-      <div id="invitesSettingsSection" style="display:none;">
-        <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
-        <h3 style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Invitaciones (Administración)</h3>
-        <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+      <div id="invitesSettingsSection" class="u-hidden">
+        <hr class="u-hr-soft">
+        <h3 class="u-section-title">Invitaciones (Administración)</h3>
+        <p class="u-section-lead">
           Genera códigos para que otros prueben el Studio. Cada invitado obtiene un perfil <strong>aislado</strong> — sus creaciones no se mezclan con las tuyas.
         </p>
         <form id="createInviteForm" style="display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-bottom:12px;">
           <div>
-            <label for="inviteNoteInput" style="font-size:10px; color:var(--text-muted);">Nota (opcional)</label>
+            <label for="inviteNoteInput" class="u-fs-10-muted">Nota (opcional)</label>
             <input id="inviteNoteInput" type="text" placeholder="Ej. tester beauty" maxlength="200" class="settings-field-input">
           </div>
           <div>
-            <label for="inviteDaysInput" style="font-size:10px; color:var(--text-muted);">Caduca en (días)</label>
+            <label for="inviteDaysInput" class="u-fs-10-muted">Caduca en (días)</label>
             <input id="inviteDaysInput" type="number" min="1" max="365" value="14" class="settings-field-input">
           </div>
           <button type="submit" class="btn btn-sm" style="padding:10px 12px;">Crear código</button>
@@ -450,15 +450,15 @@ npm start</pre>
         <div id="invitesList" class="flex-col-gap-8"></div>
       </div>
 
-      <div id="backupsSettingsSection" style="display:none;">
-        <hr style="border: none; border-top: 1px solid var(--glass-border); margin: 24px 0;">
-        <h3 style="font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; color: #fff;">Backup SQLite (Administración)</h3>
-        <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
+      <div id="backupsSettingsSection" class="u-hidden">
+        <hr class="u-hr-soft">
+        <h3 class="u-section-title">Backup SQLite (Administración)</h3>
+        <p class="u-section-lead">
           Copia local de la base en <code>data/backups/</code>. Gratis, sin nube. Se conservan los últimos <strong id="backupKeepHint">10</strong> (env <code>BACKUP_KEEP</code>). Restaurar pide reiniciar el servidor.
         </p>
         <div class="flex-row-gap-8" style="margin-bottom:12px;">
           <div style="flex:1; min-width:140px;">
-            <label for="backupLabelInput" style="font-size:10px; color:var(--text-muted);">Etiqueta (opcional)</label>
+            <label for="backupLabelInput" class="u-fs-10-muted">Etiqueta (opcional)</label>
             <input id="backupLabelInput" type="text" placeholder="antes_demo" maxlength="40" class="settings-field-input">
           </div>
           <button type="button" id="btnCreateBackup" class="btn btn-sm" style="padding:10px 12px;">Crear backup</button>
@@ -471,7 +471,7 @@ npm start</pre>
   </div>
 
   <!-- W11 — Checklist post sesión chatbot (localStorage, sin API) -->
-  <div id="chatbotSessionModal" class="login-modal-overlay" style="display:none;" role="dialog" aria-labelledby="chatbotSessionTitle">
+  <div id="chatbotSessionModal" class="login-modal-overlay u-hidden" role="dialog" aria-labelledby="chatbotSessionTitle">
     <div class="login-card" style="max-width:420px; width:92%;">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
         <div>
@@ -512,6 +512,7 @@ npm start</pre>
   <script src="queue-poller.js?v=1.0.0"></script>
   <script src="persona-form.js?v=1.0.0"></script>
   <script src="persona-card.js?v=1.0.0"></script>
-  <script src="app.js?v=1.14.0"></script>
+  <script src="variant-presets.js?v=1.0.0"></script>
+  <script src="app.js?v=1.14.1"></script>
 </body>
 </html>

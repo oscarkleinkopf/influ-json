@@ -259,6 +259,9 @@ app.get('/persona-form.js', (req, res) => {
 app.get('/persona-card.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'persona-card.js'));
 });
+app.get('/variant-presets.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'variant-presets.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });

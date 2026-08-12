@@ -146,3 +146,53 @@ test('CSS UX-4: btn-compact y persona-card--compact', () => {
   assert.match(appJs, /btn-compact/);
   assert.match(appJs, /empty-filter-panel/);
 });
+
+test('variant-presets UMD + app wiring', () => {
+  const vp = require('../variant-presets.js');
+  assert.ok(vp.VARIANT_PRESETS.traditional);
+  assert.ok(vp.VARIANT_PRESETS.spicy);
+  assert.ok(Array.isArray(vp.VARIANT_ACCESSORIES));
+  assert.deepEqual(vp.VARIANT_BATCH_OPTIONS, [1, 4]);
+  assert.equal(vp.getPreset('missing'), vp.VARIANT_PRESETS.traditional);
+  assert.ok(vp.clothingFor(vp.VARIANT_PRESETS.traditional, 'Female').length > 0);
+  assert.match(appJs, /InfluVariantPresets/);
+  assert.match(appJs, /_variantPresetsApi/);
+  assert.doesNotMatch(appJs, /Selfie primer plano \(rostro\)/);
+  assert.match(foot, /variant-presets\.js/);
+  assert.match(serverJs, /variant-presets\.js/);
+});
+
+test('applyAnalysisToFormFields escribe form mock', () => {
+  const store = {};
+  const doc = {
+    getElementById(id) {
+      if (!store[id]) store[id] = { value: '' };
+      return store[id];
+    }
+  };
+  const out = form.applyAnalysisToFormFields({
+    identity: { name: 'Val', gender: 'Female', apparent_age: '24', ethnicity_appearance: 'Latina' },
+    facial_features: {
+      skin_tone: 'Clara', eye_color: 'Verde', face_shape: 'Ovalada', smile_type: 'Natural',
+      skin_texture: 'Suave', eyebrow_style: 'Arqueadas', lips: 'Rosados'
+    },
+    hair: { color: 'Negro', texture: 'Liso', length: 'Largo' },
+    aesthetic: { overall_vibe: 'Chic' },
+    photography: { background_setting: 'Café' },
+    clothing: { type: 'Vestido', color: 'rojo' },
+    body: { body_type: 'Atlético' }
+  }, doc);
+  assert.equal(store.pName.value, 'Val');
+  assert.equal(store.pEyeColor.value, 'Verde');
+  assert.equal(store.pBodyType.value, 'Atlético');
+  assert.match(out.clothingHint, /Vestido/);
+});
+
+test('CSS utilities UX-4 presentes', () => {
+  assert.match(css, /\.u-hidden/);
+  assert.match(css, /\.u-flex-between/);
+  assert.match(css, /\.u-section-title/);
+  assert.match(css, /\.filter-btn-active/);
+  const pe = fs.readFileSync(path.join(root, 'views', 'tabs', 'persona-engine.html'), 'utf8');
+  assert.match(pe, /u-hidden|u-flex-between|u-mt-10/);
+});
