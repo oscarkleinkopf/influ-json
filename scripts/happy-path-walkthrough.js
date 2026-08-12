@@ -172,33 +172,36 @@ async function main() {
 
     const copyBtn = await page.$('#btnCopyPackFullbodyPrimary, #btnContextCopyJson');
     if (!copyBtn) throw new Error('No se encontró botón Copiar JSON');
-    // Clipboard may be denied in headless — still click and check toast/function
     await page.evaluate(async () => {
-      try {
-        await navigator.clipboard.writeText('');
-      } catch (_) {
-        // stub clipboard for headless
-        Object.defineProperty(navigator, 'clipboard', {
-          configurable: true,
-          value: {
-            writeText: async (t) => { window.__lastClipboard = t; return undefined; },
-            readText: async () => window.__lastClipboard || ''
-          }
-        });
-      }
+      window.__lastClipboard = '';
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: async (t) => {
+            window.__lastClipboard = String(t || '');
+            return undefined;
+          },
+          readText: async () => window.__lastClipboard || ''
+        }
+      });
     });
     await copyBtn.click();
     await new Promise((r) => setTimeout(r, 600));
     const copied = await page.evaluate(() => window.__lastClipboard || '');
-    const copyOk = !copied || /character_lock|must_match/i.test(copied);
+    const copyOk = copied.length > 40 && /character_lock|must_match/i.test(copied);
     await page.screenshot({ path: shot('02-copiar-json.png'), fullPage: false });
     report.shots.push(shot('02-copiar-json.png'));
     report.steps.push({
       step: 'copiar-json',
-      pass: true,
+      pass: copyOk,
       clipboardChars: copied.length,
       hasLock: /character_lock|must_match/i.test(copied)
     });
+    if (!copyOk) {
+      throw new Error(
+        `Copiar JSON no dejó character_lock en clipboard (chars=${copied.length})`
+      );
+    }
 
     // Produce hub — assert no Galería in subnav
     await page.evaluate(() => {

@@ -25,13 +25,24 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/produce-gallery-declutter-9b67` |
-| **Commit base** | `main` @ #97 |
-| **PR actual** | Produce declutter + walkthrough happy path |
-| **`main` remoto** | + UGC Copiar JSON #97 |
-| **Prioridad inmediata** | Merge declutter → uso real |
+| **Rama de trabajo** | `cursor/free-path-tests-9b67` |
+| **Commit base** | `main` @ #98 |
+| **PR actual** | Free-path regression tests |
+| **`main` remoto** | + Produce declutter #98 |
+| **Prioridad inmediata** | Free path + más pruebas |
+| **Aparcado** | Comercial / SaaS deploy / Windows · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) (Google auth) sin merge urgente |
 
-### Sesión reciente (Cursor, 2026-08-12) — Merge #97 + Galería declutter
+### Sesión reciente (Cursor, 2026-08-12) — Free path tests; comercial pending
+
+**Pedido:** Dejar lo comercial pendiente; seguir desarrollo + más pruebas.
+
+**Hecho:**
+- Foco = happy path free + regresión automatizada (sin red)
+- `test/free-path-regression.test.js`: checklist copy≠gen, skinny→packs, export ZIP 4 packs, gen stub
+- Walkthrough: clipboard debe contener `character_lock` (falla si vacío)
+- Comercial / billing / empaquetado Win / deploy Render → parking hasta más adelante
+
+### Sesión previa (Cursor, 2026-08-12) — Merge #97 + Galería declutter
 
 **Pedido:** Mergea #97 y sigamos con Galería / Produce declutter y walkthrough happy path.
 
