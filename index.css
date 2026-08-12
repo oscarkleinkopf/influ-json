@@ -326,6 +326,24 @@ body {
   color: var(--text-muted);
 }
 
+.active-context-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--glass-border);
+}
+
+.active-context-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .studio-context-copy {
   background: rgba(52, 211, 153, 0.28) !important;
   border: 1px solid rgba(52, 211, 153, 0.55) !important;
@@ -4506,6 +4524,8 @@ button.is-queue-locked:disabled {
 }
 .u-mt-10 { margin-top: 10px; }
 .u-mb-8 { margin-bottom: 8px; }
+.u-mb-24 { margin-bottom: 24px; }
+.u-d-block { display: block; }
 .u-mb-20 { margin-bottom: 20px; }
 .u-m-0 { margin: 0; }
 .u-color-white { color: #fff; }

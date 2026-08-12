@@ -25,14 +25,24 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/free-path-tests-9b67` |
-| **Commit base** | `main` @ #98 |
-| **PR actual** | Free-path regression tests |
-| **`main` remoto** | + Produce declutter #98 |
-| **Prioridad inmediata** | Free path + más pruebas |
-| **Aparcado** | Comercial / SaaS deploy / Windows · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) (Google auth) sin merge urgente |
+| **Rama de trabajo** | `cursor/ux-active-persona-9b67` |
+| **Commit base** | `main` @ #100 |
+| **PR actual** | UX-1b Guiones + vocab import |
+| **`main` remoto** | + free-path tests #100 |
+| **Prioridad inmediata** | Free path / UX operatividad |
+| **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-12) — Free path tests; comercial pending
+### Sesión reciente (Cursor, 2026-08-12) — UX contexto activo en Guiones
+
+**Pedido:** Seguir con el bloque de desarrollo.
+
+**Hecho:**
+- [#100](https://github.com/oscarkleinkopf/influ-json/pull/100) ya en `main`
+- Script Engine: readout `#scriptActivePersonaName` sincronizado con chip/UGC (`populateActiveUgcData`)
+- Import: `#btnCopyImportJSON` → «Copiar estructura» (vocab UX-1c)
+- Comercial sigue aparcado
+
+### Sesión previa (Cursor, 2026-08-12) — Free path tests; comercial pending
 
 **Pedido:** Dejar lo comercial pendiente; seguir desarrollo + más pruebas.
 

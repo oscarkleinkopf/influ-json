@@ -90,6 +90,15 @@ test('UX-1b: chip global Trabajando con + Copiar JSON de contexto', () => {
   assert.match(css, /\.active-persona-chip/);
 });
 
+test('UX-1b: Guiones muestra el mismo influencer activo que UGC', () => {
+  assert.match(html, /id="scriptActivePersonaName"/);
+  assert.match(html, /id="scriptActiveAvatar"/);
+  assert.match(html, /id="ugcActiveName"/);
+  assert.match(appJs, /populateActiveUgcData[\s\S]{0,1200}scriptActivePersonaName/);
+  assert.match(appJs, /updateActivePersonaChip[\s\S]{0,400}populateActiveUgcData/);
+  assert.match(css, /\.active-context-row/);
+});
+
 test('UX-1c: ≤3 botones con label exacto «Copiar JSON»', () => {
   // Botones interactivos cuyo texto visible es exactamente "Copiar JSON"
   const buttonRe = /<button\b[^>]*>([\s\S]*?)<\/button>/gi;
@@ -106,4 +115,7 @@ test('UX-1c: ≤3 botones con label exacto «Copiar JSON»', () => {
   assert.match(html, /Packs ▾/);
   // UGC CTA copia pack product (honesty #97)
   assert.match(appJs, /btnExportUgcChatbot[\s\S]{0,500}copyFreeChatbotPack\(['"]product['"]\)/);
+  // Import copia estructura cruda — no debe decir «Copiar JSON»
+  assert.match(html, /id="btnCopyImportJSON"[^>]*>\s*Copiar estructura\s*</);
+  assert.doesNotMatch(html, /id="btnCopyImportJSON"[^>]*>\s*Copiar JSON\s*</);
 });

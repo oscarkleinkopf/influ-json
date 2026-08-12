@@ -1615,6 +1615,8 @@ function updateActivePersonaChip() {
   const p = state.selectedPersona;
   if (nameEl) nameEl.textContent = p?.name || 'Sin influencer';
   if (copyBtn) copyBtn.disabled = !p;
+  // Mantener paneles Producir (UGC + Guiones) alineados con el chip
+  try { populateActiveUgcData(); } catch (_) {}
 }
 
 function closeActivePersonaMenu() {
@@ -6535,10 +6537,19 @@ function populateActiveUgcData() {
     setSrc('ugcActiveAvatar', 'assets/influencer_female.png');
     setText('ugcActiveName', 'Sin influencer');
     setText('ugcActiveMeta', 'Elegí uno en el chip del header o en Influencers');
+    setSrc('scriptActiveAvatar', 'assets/influencer_female.png');
+    setText('scriptActivePersonaName', 'Sin influencer');
+    setText('scriptActivePersonaMeta', 'Elegí uno en el chip del header o en Influencers');
   } else {
     setSrc('ugcActiveAvatar', creator.image || 'assets/influencer_female.png');
     setText('ugcActiveName', creator.name || 'Influencer');
     setText('ugcActiveMeta', `${creator.age || ''} • ${creator.ethnicity || creator.ethnicity_appearance || ''}`);
+    setSrc('scriptActiveAvatar', creator.image || 'assets/influencer_female.png');
+    setText('scriptActivePersonaName', creator.name || 'Influencer');
+    setText(
+      'scriptActivePersonaMeta',
+      `${creator.age || ''} • ${creator.ethnicity || creator.ethnicity_appearance || ''}`.replace(/^\s•\s*$/, '').trim() || 'Contexto del chip del header'
+    );
   }
 
   const prodImg = creator.gender === 'Male' ? 'assets/product_bottle.png' : 'assets/product_serum.png';
