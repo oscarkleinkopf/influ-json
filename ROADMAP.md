@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-12 | **UX-5** harness DB aislada | `run-tests.js` / `run-smoke.js`; `INFLU_SKIP_DB_MIGRATE`; DoD captura; close #72/#76–80 |
 | 2026-08-12 | **PLAN-UX** auditoría | Documento de orden UI (sin código) |
 | 2026-08-12 | **UX-4** presets + CSS utils | `variant-presets.js`; `applyAnalysisToFormFields`; ~179 style→`.u-*` |
 | 2026-08-12 | **UX-4** módulos JS + CSS | toast/queue/form/card UMD; `readPersonaForm`; btn-compact |

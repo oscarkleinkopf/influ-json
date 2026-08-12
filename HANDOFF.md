@@ -25,13 +25,25 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #92 UX-4 + #84 PLAN-UX |
-| **PR actual** | — (merges hechos) |
-| **`main` remoto** | UX-4 (#92) + PLAN-UX (#84) merged |
-| **Prioridad inmediata** | **UX-5** (DB tests aislada) o más CSS/`app.js` |
+| **Rama de trabajo** | `cursor/ux5-db-harness-9b67` |
+| **Commit base** | `main` @ #92 UX-4 |
+| **PR actual** | UX-5 harness DB aislada |
+| **`main` remoto** | UX-4 (#92) + PLAN-UX (#84); #93 UX-4 restos pendiente |
+| **Prioridad inmediata** | Merge UX-5 → luego merge #93 si aplica |
 
-### Sesión reciente (Cursor, 2026-08-12) — Merges a main
+### Sesión reciente (Cursor, 2026-08-12) — UX-5 harness
+
+**Pedido:** Sigamos con UX-5.
+
+**Hecho:**
+- `scripts/run-tests.js` + `scripts/run-smoke.js` — `DATA_DIR` temporal, `INFLU_SKIP_DB_MIGRATE=1`, `STUDIO_PIN=1234`
+- `paths.js`: flag `INFLU_SKIP_DB_MIGRATE` (tests no copian `influ.sqlite` de raíz)
+- `npm test` → runner aislado; escape `npm run test:raw`
+- Tests `test/ux5-data-dir-isolation.test.js` (334 pass; `data/influ.sqlite` del workspace intacto)
+- PLAN-NEXT DoD: captura de pestaña afectada + nota DB aislada
+- Cerrados drafts stale #72, #76–#80 (comentarios UX-5)
+
+### Sesión previa (Cursor, 2026-08-12) — Merges a main
 
 **Pedido:** Anda haciendo merge a GitHub.
 

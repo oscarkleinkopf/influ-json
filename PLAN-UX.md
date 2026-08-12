@@ -161,9 +161,11 @@ Lo avanzado —LoRA (L2/L5), face-lock de pago, comparador A/B, historial de ver
 
 ## 9. Bloque UX-5 — Harness
 
-- **Aislar la DB en tests.** `npm test` corre contra `data/influ.sqlite` y deja residuo (`SpeedTestPersona`, `DualSyncPersona_…`, perfiles extra). Debería usar `DATA_DIR=$(mktemp -d)`. Hoy, ejecutar los tests ensucia el roster de trabajo — y esas personas fantasma aparecen en la UI.
-- **Cerrar los 6 PRs draft abiertos.** Cinco son fixes de generación de imagen y uno (#72) es justo UX de Ajustes. Mantenerlos abiertos multiplica los conflictos sobre `app.js` / `index.html`, que es exactamente el archivo que este plan va a mover.
-- **Añadir a la *definition of done*** de `PLAN-NEXT.md` una línea: «captura de la pestaña afectada renderizada en navegador». Es la práctica que faltaba.
+**Estado (2026-08-12):** en curso — aislamiento DB + DoD.
+
+- **Aislar la DB en tests.** ✅ `npm test` → `scripts/run-tests.js` con `DATA_DIR` temporal + `INFLU_SKIP_DB_MIGRATE=1`. Escape hatch: `npm run test:raw` (usa `./data`).
+- **Cerrar los 6 PRs draft abiertos.** ✅ Cerrados #72 + #76–#80 (2026-08-12) con comentario UX-5; reabrir solo con repro en `main`.
+- **Definition of done** en `PLAN-NEXT.md`: ✅ línea de captura de pestaña afectada en navegador.
 
 ---
 
