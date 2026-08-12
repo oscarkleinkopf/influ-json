@@ -25,13 +25,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/produce-gallery-declutter-9b67` |
-| **Commit base** | `main` @ #97 |
-| **PR actual** | Produce declutter + walkthrough happy path |
-| **`main` remoto** | + UGC Copiar JSON #97 |
-| **Prioridad inmediata** | Merge declutter → uso real |
+| **Rama de trabajo** | `cursor/google-auth-profiles-9b67` |
+| **Commit base** | `main` @ #98 |
+| **PR actual** | Google login opt-in + Pages check |
+| **`main` remoto** | + Produce declutter #98 |
+| **Prioridad inmediata** | Configurar GOOGLE_CLIENT_* y probar login |
 
-### Sesión reciente (Cursor, 2026-08-12) — Merge #97 + Galería declutter
+### Sesión reciente (Cursor, 2026-08-12) — GitHub + Pages + Google auth
+
+**Pedido:** Respaldar en GitHub, revisar Pages, login Google para aislar creaciones.
+
+**Hecho:**
+- [#98](https://github.com/oscarkleinkopf/influ-json/pull/98) → `main`
+- Pages (`https://oscarkleinkopf.github.io/influ-json/`): 200 + `staticHostModal` (Studio local; sin API). Google **no** en Pages.
+- Google OAuth opt-in: `ENABLE_GOOGLE_AUTH=1` + `auth-google.js` → perfil member aislado por `google_sub` (schema v12)
+
+### Sesión previa (Cursor, 2026-08-12) — Merge #97 + Galería declutter
 
 **Pedido:** Mergea #97 y sigamos con Galería / Produce declutter y walkthrough happy path.
 

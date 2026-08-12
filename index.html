@@ -2193,8 +2193,8 @@
       <h2 id="staticHostTitle" style="font-family: var(--font-display); font-size: 22px; margin: 0 0 8px; color: #fff;">influ-JSON es un Studio local</h2>
       <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 16px; line-height: 1.5;">
         Esta web se publica desde <code>main</code>, pero solo como estáticos.
-        El PIN, el roster y <code>character_lock</code> necesitan
-        <strong style="color:#fff; font-weight:600;">Node + SQLite</strong> en tu máquina — aquí no hay API.
+        El PIN, login Google, el roster y <code>character_lock</code> necesitan
+        <strong style="color:#fff; font-weight:600;">Node + SQLite</strong> en tu máquina — aquí no hay API ni sesiones.
       </p>
       <pre id="staticHostCmd" style="margin:0 0 14px; padding:12px 14px; background:rgba(0,0,0,0.45); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:var(--text-primary); font-family:var(--font-mono); font-size:12px; line-height:1.55; overflow-x:auto; white-space:pre-wrap;">git clone https://github.com/oscarkleinkopf/influ-json.git
 cd influ-json
@@ -2217,6 +2217,20 @@ npm start</pre>
       <h2 style="font-family: var(--font-display); font-size: 22px; margin-bottom: 6px; color: #fff;">influ-JSON Studio</h2>
       <p class="u-lead-secondary">Elige tu perfil e introduce el PIN.</p>
       
+      <div id="googleAuthLoginBlock" class="u-hidden" style="margin-bottom:16px;">
+        <a id="btnGoogleLogin" class="btn btn-secondary" href="/api/auth/google" style="width:100%; padding:12px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+          Continuar con Google
+        </a>
+        <p style="font-size:11px; color:var(--text-muted); margin:8px 0 0; line-height:1.4;">
+          Cada cuenta Google obtiene su propio roster aislado (mismo aislamiento que invitaciones). Solo en Studio local (<code>npm start</code>) — no en GitHub Pages.
+        </p>
+        <div style="display:flex; align-items:center; gap:10px; margin:14px 0 4px;">
+          <hr style="flex:1; border:none; border-top:1px solid var(--glass-border); margin:0;">
+          <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase;">o con PIN</span>
+          <hr style="flex:1; border:none; border-top:1px solid var(--glass-border); margin:0;">
+        </div>
+      </div>
+
       <form id="loginForm">
         <label for="loginProfileSelect" style="display:block; text-align:left; font-size:11px; color:var(--text-muted); margin-bottom:6px;">Perfil</label>
         <select id="loginProfileSelect" style="width:100%; padding:10px; margin-bottom:14px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:#fff; outline:none; font-size:13px;">

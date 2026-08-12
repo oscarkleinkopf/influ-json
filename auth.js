@@ -1,6 +1,6 @@
 /**
- * Auth local del Studio — PIN + perfiles + rate-limit.
- * Sin OAuth / multi-tenant cloud: perfiles locales en SQLite.
+ * Auth local del Studio — PIN + perfiles + Google OAuth opt-in + rate-limit.
+ * Google: auth-google.js (ENABLE_GOOGLE_AUTH). Sin flag = solo PIN/invites.
  */
 const crypto = require('crypto');
 const expressSession = require('express-session');

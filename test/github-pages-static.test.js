@@ -31,6 +31,12 @@ test('landing docs/ explica arranque local', () => {
   assert.match(docsIndex, /npm start/);
   assert.match(docsIndex, /character_lock/);
   assert.match(docsIndex, /127\.0\.0\.1:3000/);
+  assert.match(docsIndex, /login Google|Google opt-in/i);
   assert.ok(fs.existsSync(path.join(root, 'docs', '.nojekyll')));
   assert.ok(fs.existsSync(path.join(root, '.nojekyll')));
+});
+
+test('staticHostModal menciona sesiones (Google no en Pages)', () => {
+  assert.match(indexHtml, /id="staticHostModal"/);
+  assert.match(indexHtml, /login Google|sesiones/i);
 });

@@ -32,9 +32,23 @@ Abrir `http://localhost:3000` (PIN por defecto: `1234`, configurable en `.env` c
 
 Despliegue actual: rama **`main`**, carpeta **`/`** → `https://oscarkleinkopf.github.io/influ-json/`.
 
-Esa URL **no es el Studio**. Pages solo sirve estáticos (sin Node, SQLite ni `/api/*`), así que el PIN no desbloquea nada ahí. Tras el fix de Pages, la home en `main` muestra cómo arrancar en local (`npm start` → `http://127.0.0.1:3000`).
+Esa URL **no es el Studio**. Pages solo sirve estáticos (sin Node, SQLite ni `/api/*`), así que el PIN / login Google no desbloquean nada ahí. La home en `main` muestra cómo arrancar en local (`npm start` → `http://127.0.0.1:3000`).
 
 Landing alternativa (opcional): [`docs/index.html`](./docs/index.html) — no hace falta cambiar Settings si ya publicas la raíz de `main`.
+
+### Login Google (opt-in, Studio local)
+
+Para aislar creaciones por cuenta de Google en el Studio local:
+
+```bash
+# .env
+ENABLE_GOOGLE_AUTH=1
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URI=http://127.0.0.1:3000/api/auth/google/callback
+```
+
+En [Google Cloud Console](https://console.cloud.google.com/apis/credentials) crea un cliente OAuth **Web** con ese redirect. Cada cuenta Google obtiene un perfil `member` con roster aislado (como las invitaciones). PIN e invitaciones siguen disponibles. **No funciona en GitHub Pages** (sin API).
 
 | Comando | Qué arranca |
 |---------|-------------|

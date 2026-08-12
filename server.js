@@ -26,6 +26,7 @@ firstRun.ensureSessionSecret();
 
 const dbService = require('./db');
 const authService = require('./auth');
+const googleAuth = require('./auth-google');
 const aiService = require('./ai-service');
 const genQueue = require('./gen-queue');
 const {
@@ -85,6 +86,8 @@ app.use((req, res, next) => {
     p === '/api/auth/logout' ||
     p === '/api/auth/profiles' ||
     p === '/api/auth/me' ||
+    p === '/api/auth/google' ||
+    p === '/api/auth/google/callback' ||
     p === '/api/setup/change-pin' ||
     p.startsWith('/api/invites/redeem') ||
     !p.startsWith('/api/');
@@ -183,7 +186,9 @@ function publicProfileDTO(row) {
     role: row.role,
     active: !!row.active,
     created_at: row.created_at,
-    last_login_at: row.last_login_at || null
+    last_login_at: row.last_login_at || null,
+    authProvider: row.auth_provider || (row.google_sub ? 'google' : 'pin'),
+    googleEmail: row.google_email || null
   };
 }
 
@@ -419,8 +424,54 @@ app.get('/api/auth/profiles', (req, res) => {
     success: true,
     profiles: dbService.listStudioProfilesPublic({ forLogin: true }).map(publicProfileDTO),
     pinRequired: authService.isAuthEnabled(),
-    pinIsDefault: authService.isPinDefault()
+    pinIsDefault: authService.isPinDefault(),
+    googleAuthEnabled: googleAuth.isGoogleAuthEnabled()
   });
+});
+
+// Google OAuth (opt-in) — perfiles aislados por cuenta
+app.get('/api/auth/google', (req, res) => {
+  try {
+    if (!googleAuth.isGoogleAuthEnabled()) {
+      return res.status(404).json({ success: false, message: 'Google auth desactivado (ENABLE_GOOGLE_AUTH=1 + credenciales).' });
+    }
+    const { url } = googleAuth.beginGoogleLogin(req);
+    return res.redirect(302, url);
+  } catch (err) {
+    console.error('[auth/google]', err);
+    return res.status(500).json({ success: false, message: err.message || 'No se pudo iniciar Google login.' });
+  }
+});
+
+app.get('/api/auth/google/callback', async (req, res) => {
+  const failRedirect = (msg) => {
+    const q = encodeURIComponent(msg || 'Error Google login');
+    return res.redirect(302, `/?google_auth_error=${q}`);
+  };
+  try {
+    if (!googleAuth.isGoogleAuthEnabled()) {
+      return failRedirect('Google auth desactivado');
+    }
+    if (req.query.error) {
+      return failRedirect(String(req.query.error_description || req.query.error));
+    }
+    const identity = await googleAuth.completeGoogleLogin(req, {
+      code: req.query.code,
+      state: req.query.state
+    });
+    const profile = dbService.findOrCreateStudioProfileFromGoogle(identity);
+    dbService.touchStudioProfileLogin(profile.id);
+    authService.establishAuthenticatedSession(req, profile, (err) => {
+      if (err) {
+        console.error('[auth/google/callback] session', err);
+        return failRedirect('No se pudo crear la sesión');
+      }
+      return res.redirect(302, '/?google_auth=1');
+    });
+  } catch (err) {
+    console.error('[auth/google/callback]', err);
+    return failRedirect(err.message || 'Error Google login');
+  }
 });
 
 // API Connection Status
@@ -450,6 +501,7 @@ app.get('/api/status', (req, res) => {
     publicBindUnsafe,
     publicBindBlockReason,
     authEnabled,
+    googleAuthEnabled: googleAuth.isGoogleAuthEnabled(),
     authenticated: !!(req.session && req.session.authenticated),
     profile: req.session?.profileId
       ? { id: req.session.profileId, name: req.session.profileName, role: req.session.profileRole }

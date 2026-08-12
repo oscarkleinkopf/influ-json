@@ -1398,13 +1398,19 @@ module.exports = {
   // ─── Studio profiles (local multi-user, free) ─────────────────
   listStudioProfilesPublic({ forLogin = false } = {}) {
     const rows = db.prepare(`
-      SELECT id, name, role, active, created_at, last_login_at
+      SELECT id, name, role, active, created_at, last_login_at,
+             google_sub, google_email, auth_provider, pin_salt
       FROM studio_profiles
       WHERE active = 1
       ORDER BY created_at ASC
     `).all();
     if (!forLogin) return rows;
-    return rows.filter((p) => !isHarnessStudioProfileName(p.name));
+    return rows.filter((p) => {
+      if (isHarnessStudioProfileName(p.name)) return false;
+      // Login PIN: ocultar perfiles solo-Google (no tienen PIN usable)
+      if (p.pin_salt === 'google-oauth-only' || (p.auth_provider === 'google' && !p.pin_salt)) return false;
+      return true;
+    });
   },
 
   listStudioProfilesAdmin() {
@@ -1420,9 +1426,57 @@ module.exports = {
   findStudioProfileByPin(pin) {
     const rows = db.prepare('SELECT * FROM studio_profiles WHERE active = 1').all();
     for (const row of rows) {
+      if (row.pin_salt === 'google-oauth-only') continue;
       if (authCrypto.verifyPinHash(pin, row.pin_salt, row.pin_hash)) return row;
     }
     return null;
+  },
+
+  findStudioProfileByGoogleSub(sub) {
+    if (!sub) return null;
+    return db.prepare(
+      'SELECT * FROM studio_profiles WHERE google_sub = ? AND active = 1'
+    ).get(String(sub));
+  },
+
+  /**
+   * Crea o reutiliza perfil member aislado para una cuenta Google.
+   * PIN sentinel no usable — el login es solo vía OAuth.
+   */
+  findOrCreateStudioProfileFromGoogle({ sub, email, name }) {
+    const { v4: uuidv4 } = require('uuid');
+    const cleanSub = String(sub || '').trim();
+    if (!cleanSub) throw new Error('google_sub requerido');
+    const existing = this.findStudioProfileByGoogleSub(cleanSub);
+    if (existing) return existing;
+
+    let baseName = String(name || '').trim() || (email ? String(email).split('@')[0] : '') || 'Usuario Google';
+    baseName = baseName.slice(0, 80);
+    let cleanName = baseName;
+    let n = 2;
+    while (db.prepare('SELECT id FROM studio_profiles WHERE LOWER(name) = LOWER(?)').get(cleanName)) {
+      cleanName = `${baseName} (${n})`;
+      n += 1;
+      if (n > 50) throw new Error('No se pudo asignar nombre de perfil único.');
+    }
+
+    const id = uuidv4();
+    const salt = 'google-oauth-only';
+    const hash = authCrypto.hashPin(require('crypto').randomBytes(24).toString('hex')).hash;
+    db.prepare(`
+      INSERT INTO studio_profiles
+        (id, name, pin_hash, pin_salt, role, active, google_sub, google_email, auth_provider)
+      VALUES (?, ?, ?, ?, 'member', 1, ?, ?, 'google')
+    `).run(
+      id,
+      cleanName,
+      hash,
+      salt,
+      cleanSub,
+      email ? String(email).trim().toLowerCase() : null
+    );
+    syncDbToWorkspace();
+    return this.getStudioProfileById(id);
   },
 
   touchStudioProfileLogin(id) {
