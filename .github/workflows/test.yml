@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -23,6 +23,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+        id: setup-chrome
 
       - name: Unit / integration tests
         run: npm test
@@ -41,3 +45,22 @@ jobs:
           INFLU_SKIP_ENV_PERSIST: '1'
           STUDIO_PIN: '1234'
           SESSION_SECRET: 'ci-session-secret'
+
+      - name: Layout smoke (Chrome width + screenshot)
+        run: npm run layout-smoke
+        env:
+          DISABLE_GIT_BACKUP: '1'
+          ENABLE_GIT_BACKUP: ''
+          INFLU_SKIP_ENV_PERSIST: '1'
+          STUDIO_PIN: '1234'
+          SESSION_SECRET: 'ci-session-secret'
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+          LAYOUT_SHOT_DIR: artifacts
+
+      - name: Upload layout screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: layout-smoke-dashboard
+          path: artifacts/layout-smoke-dashboard.png
+          if-no-files-found: ignore

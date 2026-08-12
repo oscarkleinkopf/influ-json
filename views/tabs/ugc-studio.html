@@ -16,8 +16,8 @@
                 <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <img id="ugcActiveAvatar" src="assets/influencer_female.png" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
                   <div>
-                    <h4 id="ugcActiveName" style="font-family: var(--font-display); font-weight: 600;">Sofia</h4>
-                    <p id="ugcActiveMeta" style="font-size: 11px; color: var(--text-secondary);">Latina, 25 años</p>
+                    <h4 id="ugcActiveName" class="u-font-display-600">Sofia</h4>
+                    <p id="ugcActiveMeta" class="u-fs-11-sec">Latina, 25 años</p>
                   </div>
                 </div>
               </div>
@@ -27,8 +27,8 @@
                 <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <img id="ugcActiveProductImg" src="assets/product_serum.png" alt="Producto" style="width: 44px; height: 44px; border-radius: var(--border-radius-sm); object-fit: cover;">
                   <div>
-                    <h4 id="ugcActiveProduct" style="font-family: var(--font-display); font-weight: 600;">Glow Serum Organics</h4>
-                    <p id="ugcActiveProductMeta" style="font-size: 11px; color: var(--text-secondary);">Piel brillante en 5 minutos</p>
+                    <h4 id="ugcActiveProduct" class="u-font-display-600">Glow Serum Organics</h4>
+                    <p id="ugcActiveProductMeta" class="u-fs-11-sec">Piel brillante en 5 minutos</p>
                   </div>
                 </div>
               </div>
@@ -94,39 +94,39 @@
                 <summary style="cursor: pointer; font-family: var(--font-display); font-size: 15px; color: var(--text-secondary); padding: 8px 0;">Anuncios estáticos (boceto opt-in) — avanzado</summary>
                 <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">🎯 Anuncio estático (formato + gancho · boceto Pollinations opt-in)</h3>
+                <h3 class="u-title-14-sec">🎯 Anuncio estático (formato + gancho · boceto Pollinations opt-in)</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <label style="font-size: 12px;">Formato del Anuncio</label>
-                  <select id="adFormatSelect" style="font-size: 12px; padding: 8px;">
+                  <select id="adFormatSelect" class="u-fs-12-pad8">
                     <option value="9:16">📱 Vertical 9:16 (TikTok / Reels / Stories)</option>
                     <option value="1:1" selected>Square 1:1 (Meta Feed / Instagram)</option>
                   </select>
                   
                   <label style="font-size: 12px; margin-top: 6px;">Gancho Comercial (Overlay Text Hook)</label>
-                  <select id="adHookSelect" style="font-size: 12px; padding: 8px;">
+                  <select id="adHookSelect" class="u-fs-12-pad8">
                     <option value="Probé esto por 7 días y los resultados me sorprendieron 😱">🎯 "Probé esto por 7 días y..."</option>
                     <option value="La razón por la que todos en TikTok están obsesionados con esto 🔥">🔥 "La razón por la que todos están obsesionados..."</option>
                     <option value="⚡ 50% OFF — Solo por hoy con envío gratis">⚡ "50% OFF — Solo por hoy"</option>
                     <option value="🛑 STOP SCROLLING: La solución definitiva que buscabas">🛑 "STOP SCROLLING — La solución definitiva"</option>
                   </select>
                   
-                  <button class="btn btn-secondary" id="btnRenderAdCreative" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
+                  <button class="btn btn-secondary u-full-center-mt" id="btnRenderAdCreative" >
                     🎨 Crear boceto de anuncio (opt-in · puede pedir token)
                   </button>
                 </div>
               </div>
 
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">🚀 Lote de bocetos (opt-in · cola Pollinations)</h3>
+                <h3 class="u-title-14-sec">🚀 Lote de bocetos (opt-in · cola Pollinations)</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">
                     Selecciona productos para encolar bocetos (5 ganchos × 2 formatos por producto). No publica en Meta/TikTok — solo genera imágenes locales si hay token.
                   </p>
                   <div id="bulkProductSelectorContainer" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 6px;">
-                    <span style="font-size: 11px; color: var(--text-muted);">Cargando catálogo...</span>
+                    <span class="u-fs-11-muted">Cargando catálogo...</span>
                   </div>
                   
-                  <button class="btn btn-secondary" id="btnStartBulkAdGeneration" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
+                  <button class="btn btn-secondary u-full-center-mt" id="btnStartBulkAdGeneration" >
                     ⚡ Encolar lote de bocetos (10 por producto · opt-in)
                   </button>
 
@@ -136,7 +136,7 @@
                       <span id="bulkBatchProgressText">0 / 0 (0%)</span>
                     </div>
                     <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
-                      <div id="bulkBatchProgressBar" style="width: 0%; height: 100%; background: var(--accent-gradient); transition: width 0.3s ease;"></div>
+                      <div id="bulkBatchProgressBar" class="u-progress-fill"></div>
                     </div>
                     <button class="btn btn-secondary" id="btnDownloadBulkBatchZip" style="width: 100%; display: none; align-items: center; justify-content: center; gap: 8px;">
                       📥 Descargar Todo el Lote de Anuncios (.ZIP / PNGs)
@@ -151,7 +151,7 @@
               </details>
 
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">🎬 Video UGC Pipeline <span style="font-size:11px; font-weight:600; color:#f59e0b; letter-spacing:0.04em;">(DEMO — sin pipeline real)</span></h3>
+                <h3 class="u-title-16-sec">🎬 Video UGC Pipeline <span style="font-size:11px; font-weight:600; color:#f59e0b; letter-spacing:0.04em;">(DEMO — sin pipeline real)</span></h3>
                 <p style="font-size:12px; color:var(--text-muted); margin:0 0 10px; line-height:1.4;">Simulación de timeline local. Veo/Runway no están conectados; el path gratis sigue siendo Copiar JSON / packs UGC.</p>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
                   <button class="btn btn-secondary u-w-full" id="btnGenerateUgcVideo" >
@@ -163,7 +163,7 @@
                       <span id="videoTimelineProgress">0%</span>
                     </div>
                     <div class="progress-bar-container" style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; position: relative;">
-                      <div id="videoProgressBar" style="width: 0%; height: 100%; background: var(--accent-gradient); transition: width 0.3s ease;"></div>
+                      <div id="videoProgressBar" class="u-progress-fill"></div>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 8px; font-size: 9px; color: var(--text-muted);">
                       <div class="timeline-step u-text-center-flex1" id="vtStep1" >Gancho</div>
@@ -176,7 +176,7 @@
               </div>
               
               <div>
-                <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">Configuración Legal & Cumplimiento (June 2026)</h3>
+                <h3 class="u-title-16-sec">Configuración Legal & Cumplimiento (June 2026)</h3>
                 
                 <div class="compliance-controls">
                   <div class="toggle-switch-wrapper">

@@ -32,6 +32,7 @@ const env = {
   ENABLE_GIT_BACKUP: '',
   // Do not migrate workspace root influ.sqlite into the temp dir
   INFLU_SKIP_DB_MIGRATE: process.env.INFLU_SKIP_DB_MIGRATE || '1',
+  INFLU_TEST_UPLOADS: process.env.INFLU_TEST_UPLOADS || '1',
   ENABLE_LEGACY_MIRRORS: '0',
   HOST: process.env.HOST || '127.0.0.1'
 };

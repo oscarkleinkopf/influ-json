@@ -25,13 +25,24 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #94 UX-5 + #93 UX-4 restos |
-| **PR actual** | — (merges hechos) |
-| **`main` remoto** | UX-5 (#94) + UX-4 restos (#93) |
-| **Prioridad inmediata** | Siguiente ítem PLAN-UX / producto (free path pulido) |
+| **Rama de trabajo** | `cursor/ux-detalles-cierre-9b67` |
+| **Commit base** | `main` @ #94+#93 |
+| **PR actual** | Cierre detalles UX (style/split/uploads/Chrome) |
+| **`main` remoto** | UX-5 + UX-4 restos |
+| **Prioridad inmediata** | Merge detalles → producto free path |
 
-### Sesión reciente (Cursor, 2026-08-12) — Merges #94 + #93
+### Sesión reciente (Cursor, 2026-08-12) — Cierre detalles no esenciales
+
+**Pedido:** Terminemos todos esos detalles antes de continuar con el resto.
+
+**Hecho:**
+- `photo-upload-ui.js` + `variant-vault-ui.js` (DOM fuera de `app.js`)
+- Más `style=` → utilidades CSS
+- Uploads de test → `DATA_DIR/references` (`getReferencesUploadDir` + `INFLU_TEST_UPLOADS`)
+- `npm run layout-smoke` (Chrome: ancho `.main-content` ≥70% + screenshot artifact en CI)
+- Drafts #72 / #76–#80: **backlog explícito** — no reintegrar en masa; reabrir solo con repro en `main`
+
+### Sesión previa (Cursor, 2026-08-12) — Merges #94 + #93
 
 **Pedido:** Continua con eso (merge UX-5 y UX-4 restos).
 
@@ -39,7 +50,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - [#94](https://github.com/oscarkleinkopf/influ-json/pull/94) UX-5 → `main` (CI verde)
 - [#93](https://github.com/oscarkleinkopf/influ-json/pull/93) UX-4 restos → `main` (rebase + fix tests founder/happy-path; 336 pass)
 
-**Siguiente:** PLAN-UX cerrado en UX-0…UX-5 esencial; priorizar pulido free path / lo que diga el owner.
+**Siguiente:** tras merge de detalles, pulido free path / lo que diga el owner.
 
 ### Sesión previa (Cursor, 2026-08-12) — UX-5 harness
 

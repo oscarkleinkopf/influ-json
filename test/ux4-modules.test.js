@@ -225,6 +225,56 @@ test('photo-analysis UMD + app wiring', async () => {
   assert.match(serverJs, /photo-analysis\.js/);
 });
 
+test('photo-upload-ui UMD + app wiring', () => {
+  const uploadUi = require('../photo-upload-ui.js');
+  assert.equal(typeof uploadUi.createPhotoUploadUi, 'function');
+  const api = uploadUi.createPhotoUploadUi({
+    authFetch: async () => ({ ok: true, json: async () => ({ success: false }) }),
+    toastInfo() {},
+    toastSuccess() {},
+    toastError() {},
+    toastLoading() {},
+    QueuePoller: { start() {} },
+    setGitSyncingState() {},
+    getState: () => ({ personas: [] }),
+    refreshPersonaLists() {},
+    selectPersona() {},
+    populateActiveUgcData() {},
+    updateClothingDropdown() {},
+    compilePromptAndJSON() {},
+    buildPromptFromAnalysis: () => 'prompt',
+    photoAnalysis: {
+      extractDominantColors: async () => [],
+      generateDetailedJSON: async () => ({}),
+      ANALYSIS_FIELD_OPTIONS: {}
+    },
+    applyAnalysisToFormFields: () => ({ clothingHint: '' })
+  });
+  assert.equal(typeof api.setupPhotoUpload, 'function');
+  assert.equal(typeof api.resetUploadDropzone, 'function');
+  assert.equal(typeof api.runPhotoAnalysis, 'function');
+  assert.equal(typeof api.applyAnalysisToForm, 'function');
+  assert.equal(typeof api.saveAnalysisAsPersona, 'function');
+  assert.equal(typeof api.getAnalysisResult, 'function');
+  assert.equal(typeof api.setAnalysisResult, 'function');
+  assert.equal(typeof api.getUploadedImagePath, 'function');
+  assert.equal(typeof api.setUploadedImagePath, 'function');
+  api.setAnalysisResult({ identity: { name: 'Test' } });
+  assert.equal(api.getAnalysisResult().identity.name, 'Test');
+  api.setUploadedImagePath('assets/ref.jpg');
+  assert.equal(api.getUploadedImagePath(), 'assets/ref.jpg');
+
+  assert.match(appJs, /InfluPhotoUploadUi/);
+  assert.match(appJs, /createPhotoUploadUi/);
+  assert.match(appJs, /window\.resetUploadDropzone/);
+  assert.doesNotMatch(appJs, /function setupPhotoUpload\s*\(/);
+  assert.doesNotMatch(appJs, /function resetUploadDropzone\s*\(/);
+  assert.doesNotMatch(appJs, /async function saveAnalysisAsPersona/);
+  assert.match(appJs, /async function deletePersonaAction/);
+  assert.match(foot, /photo-upload-ui\.js/);
+  assert.match(serverJs, /photo-upload-ui\.js/);
+});
+
 test('buildPortfolioCard + LOOK_PRESETS en módulos', () => {
   assert.equal(typeof card.buildPortfolioCard, 'function');
   assert.match(appJs, /buildPortfolioCard/);
@@ -232,6 +282,8 @@ test('buildPortfolioCard + LOOK_PRESETS en módulos', () => {
   assert.ok(Array.isArray(vp.LOOK_PRESETS));
   assert.ok(vp.LOOK_PRESETS.length >= 4);
   assert.equal(typeof vp.findOptionByRegex, 'function');
-  assert.match(appJs, /LOOK_PRESETS = _variantPresetsApi/);
+  const vaultSrc = fs.readFileSync(path.join(root, 'variant-vault-ui.js'), 'utf8');
+  assert.match(vaultSrc, /LOOK_PRESETS = presetsApi/);
+  assert.match(appJs, /InfluVariantVaultUi/);
   assert.doesNotMatch(appJs, /id: 'beach', label: '🏖️ Playa'/);
 });

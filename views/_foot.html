@@ -29,7 +29,7 @@
       <div id="importStep1">
         <div class="editor-form-group">
           <div class="u-mb-18">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="u-flex-between-mb8">
               <label style="font-weight: 600; font-size: 12px; margin: 0;">📷 Fotos de Referencia (Máximo 4)</label>
               <span class="import-counter-badge" id="importCounterBadge">0/4 cargadas</span>
             </div>
@@ -66,7 +66,7 @@
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
-          <button type="button" class="btn btn-secondary" id="btnCancelImportStep1" style="padding: 10px 24px;">Cancelar</button>
+          <button type="button" class="btn btn-secondary u-pad-10-24" id="btnCancelImportStep1" >Cancelar</button>
           <button type="button" class="btn" id="btnAnalyzeInfluencer" style="padding: 10px 24px; background: var(--accent-primary);">Analizar Influencer</button>
         </div>
       </div>
@@ -117,7 +117,7 @@
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
-          <button type="button" class="btn btn-secondary" id="btnCancelImportPreview" style="padding: 10px 24px;">Descartar</button>
+          <button type="button" class="btn btn-secondary u-pad-10-24" id="btnCancelImportPreview" >Descartar</button>
           <button type="button" class="btn" id="btnConfirmImport" style="padding: 10px 24px; background: #10b981;">Crear Persona y Guardar</button>
         </div>
       </div>
@@ -265,10 +265,10 @@ npm start</pre>
       <button type="button" id="btnCloseMemberWelcome" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;" aria-label="Cerrar">✕</button>
       <p class="u-eyebrow">Tu espacio aislado</p>
       <h2 id="memberWelcomeTitle" class="u-title-display">Bienvenido a influ-JSON</h2>
-      <p id="memberWelcomeLead" style="font-size:13px; color:var(--text-secondary); margin:0 0 18px; line-height:1.45;">
+      <p id="memberWelcomeLead" class="u-lead-13">
         Este perfil es solo tuyo. No verás ni mezclarás creaciones de Administración u otros testers.
       </p>
-      <ol style="margin:0 0 20px; padding-left:18px; font-size:13px; color:var(--text-secondary); line-height:1.55;">
+      <ol class="u-list-soft">
         <li class="u-mb-8"><strong class="u-color-white">Crear o importar</strong> un influencer</li>
         <li class="u-mb-8"><strong class="u-color-white">Guardar</strong> — aparece en tu portafolio (solo JSON)</li>
         <li class="u-mb-8"><strong class="u-color-white">Copiar JSON (recomendado)</strong> a ChatGPT / Gemini / Claude free</li>
@@ -277,7 +277,7 @@ npm start</pre>
         <button type="button" class="btn u-input-pad-12" id="btnMemberWelcomeCreate" >Crear</button>
         <button type="button" class="btn btn-secondary u-input-pad-10" id="btnMemberWelcomeImport" >Importar</button>
         <button type="button" class="btn btn-secondary u-input-pad-10" id="btnMemberWelcomeDashboard" >Cómo usar</button>
-        <button type="button" id="btnMemberWelcomeSkip" style="background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">Ahora no</button>
+        <button type="button" id="btnMemberWelcomeSkip" class="u-link-quiet">Ahora no</button>
       </div>
     </div>
   </div>
@@ -288,10 +288,10 @@ npm start</pre>
       <button type="button" id="btnCloseFounderWelcome" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;" aria-label="Cerrar">✕</button>
       <p class="u-eyebrow">Cero costo primero</p>
       <h2 id="founderWelcomeTitle" class="u-title-display">Tu estudio de influencers</h2>
-      <p id="founderWelcomeLead" style="font-size:13px; color:var(--text-secondary); margin:0 0 18px; line-height:1.45;">
+      <p id="founderWelcomeLead" class="u-lead-13">
         Crea prompts + JSON (<code>character_lock</code>) y pégalos en chatbots gratis. Pollinations es opcional.
       </p>
-      <ol style="margin:0 0 20px; padding-left:18px; font-size:13px; color:var(--text-secondary); line-height:1.55;">
+      <ol class="u-list-soft">
         <li class="u-mb-8"><strong class="u-color-white">Crear o importar</strong> un personaje</li>
         <li class="u-mb-8"><strong class="u-color-white">Guardar</strong> (solo JSON — sin esperar imagen)</li>
         <li class="u-mb-8"><strong class="u-color-white">Copiar JSON</strong> → ChatGPT / Gemini / Claude free</li>
@@ -300,7 +300,7 @@ npm start</pre>
         <button type="button" class="btn u-input-pad-12" id="btnFounderWelcomeCreate" >Crear</button>
         <button type="button" class="btn btn-secondary u-input-pad-10" id="btnFounderWelcomeImport" >Importar</button>
         <button type="button" class="btn btn-secondary u-input-pad-10" id="btnFounderWelcomeGuide" >Cómo usar</button>
-        <button type="button" id="btnFounderWelcomeSkip" style="background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">Ahora no</button>
+        <button type="button" id="btnFounderWelcomeSkip" class="u-link-quiet">Ahora no</button>
       </div>
     </div>
   </div>
@@ -369,7 +369,7 @@ npm start</pre>
             <small class="u-hint-muted">Opcional. Face-lock (Fase R) / L3 LoRA no son el path free — ver docs/FACELOCK_R.md y docs/lora/L3_PAID.md. Activá ENABLE_PAID_FACE_LOCK=1 en .env.</small>
           </div>
 
-          <div style="display: flex; gap: 10px;">
+          <div class="u-flex-gap-10">
             <button type="submit" class="btn" style="flex: 2; padding: 10px;">💾 Guardar Claves en .env</button>
             <button type="button" id="btnDisableKeys" class="btn btn-secondary" style="flex: 1; padding: 10px; font-size: 11px;">Restablecer a 100% Gratis</button>
           </div>
@@ -494,8 +494,8 @@ npm start</pre>
       </div>
       <p id="chatbotSessionStatus" style="font-size:12px; color:var(--text-muted); margin:14px 0 0; line-height:1.4;"></p>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
-        <button type="button" id="btnSaveChatbotSession" class="btn btn-sm" style="flex:1; min-width:120px; padding:10px 12px;">Guardar checklist</button>
-        <button type="button" id="btnRecopyChatbotSession" class="btn btn-secondary btn-sm" data-offline-highlight="pack" style="flex:1; min-width:120px; padding:10px 12px;">Volver a copiar bloque</button>
+        <button type="button" id="btnSaveChatbotSession" class="btn btn-sm u-flex-min-input" >Guardar checklist</button>
+        <button type="button" id="btnRecopyChatbotSession" class="btn btn-secondary btn-sm u-flex-min-input" data-offline-highlight="pack" >Volver a copiar bloque</button>
       </div>
     </div>
   </div>
@@ -513,7 +513,9 @@ npm start</pre>
   <script src="persona-form.js?v=1.0.0"></script>
   <script src="persona-card.js?v=1.0.0"></script>
   <script src="variant-presets.js?v=1.0.0"></script>
+  <script src="variant-vault-ui.js?v=1.0.0"></script>
   <script src="photo-analysis.js?v=1.0.0"></script>
+  <script src="photo-upload-ui.js?v=1.0.0"></script>
   <script src="app.js?v=1.14.1"></script>
 </body>
 </html>

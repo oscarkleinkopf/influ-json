@@ -21,3 +21,6 @@ influ.sqlite-shm
 personas.json
 scratch/**/*.sqlite
 scratch/**/*.sqlite-*
+
+# Layout smoke screenshots (CI artifact; local scratch)
+artifacts/

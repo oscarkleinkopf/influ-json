@@ -10,9 +10,15 @@
     "build:index": "node scripts/build-index.js",
     "test": "node scripts/run-tests.js",
     "test:raw": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 node --test --test-concurrency=1 test/*.test.js",
-    "smoke": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 INFLU_SKIP_DB_MIGRATE=1 node scripts/run-smoke.js"
+    "smoke": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 INFLU_SKIP_DB_MIGRATE=1 node scripts/run-smoke.js",
+    "layout-smoke": "node scripts/layout-smoke.js"
   },
-  "keywords": ["ugc", "influencer", "character-lock", "pollinations"],
+  "keywords": [
+    "ugc",
+    "influencer",
+    "character-lock",
+    "pollinations"
+  ],
   "author": "",
   "license": "MIT",
   "type": "commonjs",
@@ -26,5 +32,8 @@
     "multer": "^2.2.0",
     "sharp": "^0.35.3",
     "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.2.0"
   }
 }

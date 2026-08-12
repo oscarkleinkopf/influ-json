@@ -35,7 +35,8 @@ function registerImportRoutes(app, deps) {
     }
 
     const relativePath = `assets/references/${req.file.filename}`;
-    const absolutePath = path.join(rootDir, relativePath);
+    // Multer already wrote to getReferencesUploadDir() (assets/ or DATA_DIR in tests)
+    const absolutePath = req.file.path || path.join(rootDir, relativePath);
 
     try {
       await imageValidation.assertValidImageFile(absolutePath);
@@ -166,7 +167,8 @@ function registerImportRoutes(app, deps) {
 
     const filename = `ref_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
     const relativePath = `assets/references/${filename}`;
-    const absolutePath = path.join(rootDir, relativePath);
+    const { getReferencesUploadDir } = require('../paths');
+    const absolutePath = path.join(getReferencesUploadDir(), filename);
 
     const dir = path.dirname(absolutePath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -379,13 +381,13 @@ function registerImportRoutes(app, deps) {
       // 1. Process files upload
       if (req.files && req.files.length > 0) {
         for (const file of req.files) {
-          const abs = path.join(rootDir, 'assets', 'references', file.filename);
+          const abs = file.path || path.join(rootDir, 'assets', 'references', file.filename);
           try {
             await imageValidation.assertValidImageFile(abs);
           } catch (valErr) {
             // Borrar el resto de archivos de este request que ya pasaron
             for (const f of req.files) {
-              imageValidation.safeUnlink(path.join(rootDir, 'assets', 'references', f.filename));
+              imageValidation.safeUnlink(f.path || path.join(rootDir, 'assets', 'references', f.filename));
             }
             return res.status(400).json({
               success: false,
@@ -396,8 +398,8 @@ function registerImportRoutes(app, deps) {
           filenames.push(file.filename);
           imagePaths.push(`assets/references/${file.filename}`);
         }
-      } 
-    
+      }
+
       // 2. Process remote image URL if provided (with robust error handling)
       if (req.body.imageUrl) {
         const url = req.body.imageUrl;
@@ -448,7 +450,12 @@ function registerImportRoutes(app, deps) {
       for (let i = 0; i < imagePaths.length; i++) {
         const imgPath = imagePaths[i];
         const filename = filenames[i];
-        const fullPath = path.join(rootDir, imgPath);
+        let fullPath;
+        try {
+          fullPath = resolveSafeAssetPath(imgPath);
+        } catch (_) {
+          fullPath = path.join(rootDir, imgPath);
+        }
       
         if (imgPath.startsWith('assets/references/')) {
           try {

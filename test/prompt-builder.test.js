@@ -237,9 +237,12 @@ test('index.html carga prompt-builder.js antes de app.js', () => {
 
 test('app.js delega a InfluPromptBuilder', () => {
   const js = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  const vault = fs.readFileSync(path.join(__dirname, '..', 'variant-vault-ui.js'), 'utf8');
   assert.match(js, /window\.InfluPromptBuilder|_promptBuilder\(\)/);
   assert.match(js, /assembleCharacterLock/);
-  assert.match(js, /buildVariantPrompt/);
+  // buildVariantPrompt vive en variant-vault-ui (vía _promptBuilder inject)
+  assert.match(vault, /buildVariantPrompt/);
+  assert.match(js, /_promptBuilder/);
   assert.doesNotMatch(js, /free_chatbot_system: `Eres un generador de UGC/);
 });
 

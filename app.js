@@ -860,10 +860,10 @@ async function refreshProfilesSettingsList() {
           ${p.id === currentId ? '<span class="profile-current-tag">Activo</span>' : ''}
           <button type="button" class="btn btn-secondary btn-sm" data-rename-profile="${p.id}" data-name="${escapeLockHtml(p.name)}">Renombrar</button>
           <button type="button" class="btn btn-secondary btn-sm" data-repin-profile="${p.id}">Cambiar PIN</button>
-          ${(isAdmin && p.id !== currentId) ? `<button type="button" class="btn btn-secondary btn-sm" data-delete-profile="${p.id}" style="color:var(--danger);">Eliminar</button>` : ''}
+          ${(isAdmin && p.id !== currentId) ? `<button type="button" class="btn btn-secondary btn-sm u-color-danger" data-delete-profile="${p.id}" >Eliminar</button>` : ''}
         </div>
       </div>
-    `).join('') || '<p style="font-size:12px;color:var(--text-muted);">Sin perfiles.</p>';
+    `).join('') || '<p class="u-muted-12-plain">Sin perfiles.</p>';
 
     list.querySelectorAll('[data-rename-profile]').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -907,7 +907,7 @@ async function refreshProfilesSettingsList() {
       });
     });
   } catch (err) {
-    list.innerHTML = `<p style="font-size:12px;color:var(--danger);">${escapeLockHtml(err.message || 'Error al cargar perfiles')}</p>`;
+    list.innerHTML = `<p class="u-danger-12">${escapeLockHtml(err.message || 'Error al cargar perfiles')}</p>`;
   }
 }
 
@@ -937,11 +937,11 @@ async function refreshInvitesSettingsList() {
         <div class="profile-row-actions">
           ${inv.status === 'active' ? `
             <button type="button" class="btn btn-secondary btn-sm" data-copy-invite="${escapeLockHtml(inv.code)}">Copiar</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-revoke-invite="${inv.id}" style="color:var(--danger);">Revocar</button>
+            <button type="button" class="btn btn-secondary btn-sm u-color-danger" data-revoke-invite="${inv.id}" >Revocar</button>
           ` : `<span class="profile-meta">${inv.expiresAt ? 'caduca ' + escapeLockHtml(String(inv.expiresAt).slice(0, 10)) : ''}</span>`}
         </div>
       </div>
-    `).join('') || '<p style="font-size:12px;color:var(--text-muted);">Aún no hay invitaciones.</p>';
+    `).join('') || '<p class="u-muted-12-plain">Aún no hay invitaciones.</p>';
 
     list.querySelectorAll('[data-copy-invite]').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -965,7 +965,7 @@ async function refreshInvitesSettingsList() {
       });
     });
   } catch (err) {
-    list.innerHTML = `<p style="font-size:12px;color:var(--danger);">${escapeLockHtml(err.message || 'Error al cargar invitaciones')}</p>`;
+    list.innerHTML = `<p class="u-danger-12">${escapeLockHtml(err.message || 'Error al cargar invitaciones')}</p>`;
   }
 }
 
@@ -1003,7 +1003,7 @@ async function refreshGenMetricsSettings() {
             — ${r.portraits || 0} retratos, ${r.variants || 0} variantes, ${r.fail_429 || 0}×429
           </div>`;
         }).join('')
-        : '<p style="font-size:12px;color:var(--text-muted);margin:0;">Aún no hay generaciones registradas en gen_metrics.</p>';
+        : '<p class="u-muted-12">Aún no hay generaciones registradas en gen_metrics.</p>';
     }
   } catch (err) {
     line.textContent = err.message || 'No se pudieron cargar métricas';
@@ -1023,18 +1023,18 @@ const AUDIT_ACTION_LABELS = {
 async function refreshAuditLogSettings() {
   const list = document.getElementById('auditLogList');
   if (!list || !isCurrentUserAdmin()) return;
-  list.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin:0;">Cargando…</p>';
+  list.innerHTML = '<p class="u-muted-12">Cargando…</p>';
   try {
     const res = await authFetch('/api/audit/events?limit=50');
     if (res.status === 403) {
-      list.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin:0;">Solo Administración.</p>';
+      list.innerHTML = '<p class="u-muted-12">Solo Administración.</p>';
       return;
     }
     const data = await res.json();
     if (!data.success) throw new Error(data.message || 'Error');
     const events = Array.isArray(data.events) ? data.events : [];
     if (!events.length) {
-      list.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin:0;">Aún no hay eventos. Archiva, exporta o crea un backup para ver el rastro.</p>';
+      list.innerHTML = '<p class="u-muted-12">Aún no hay eventos. Archiva, exporta o crea un backup para ver el rastro.</p>';
       return;
     }
     list.innerHTML = events.map((ev) => {
@@ -1086,10 +1086,10 @@ async function refreshBackupsSettingsList() {
         </div>
         <div class="profile-row-actions">
           <a class="btn btn-secondary btn-sm" href="/api/backups/${encodeURIComponent(s.filename)}/download" download="${escapeLockHtml(s.filename)}">Descargar</a>
-          <button type="button" class="btn btn-secondary btn-sm" data-restore-backup="${escapeLockHtml(s.filename)}" style="color:var(--danger);">Restaurar</button>
+          <button type="button" class="btn btn-secondary btn-sm u-color-danger" data-restore-backup="${escapeLockHtml(s.filename)}" >Restaurar</button>
         </div>
       </div>
-    `).join('') || '<p style="font-size:12px;color:var(--text-muted);">Sin snapshots todavía.</p>';
+    `).join('') || '<p class="u-muted-12-plain">Sin snapshots todavía.</p>';
 
     list.querySelectorAll('[data-restore-backup]').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -1106,7 +1106,7 @@ async function refreshBackupsSettingsList() {
       });
     });
   } catch (err) {
-    list.innerHTML = `<p style="font-size:12px;color:var(--danger);">${escapeLockHtml(err.message || 'Error al cargar backups')}</p>`;
+    list.innerHTML = `<p class="u-danger-12">${escapeLockHtml(err.message || 'Error al cargar backups')}</p>`;
   }
 }
 
@@ -2900,7 +2900,7 @@ function resetPersonaFormForNew() {
   state.selectedPersona = null;
   state.scratchExtendedTraits = null;
   state.activeNicheId = null;
-  uploadedImagePath = null;
+  setUploadedImagePath(null);
 
   // Clear selection highlight on portfolio / select grids
   try { refreshPersonaLists(); } catch (e) { /* grids may not be ready */ }
@@ -3034,7 +3034,7 @@ function selectPersona(persona) {
   // Selecting an existing persona always exits pure "create new" mode
   state.isCreatingNewPersona = false;
   state.selectedPersona = persona;
-  uploadedImagePath = null; // Clear upload session when selecting another persona
+  setUploadedImagePath(null); // Clear upload session when selecting another persona
   state.activeNicheId = null;
   try {
     let d = persona.detailedJSON;
@@ -3296,6 +3296,55 @@ const QueuePoller = (typeof InfluQueuePoller !== 'undefined'
 });
 window.QueuePoller = QueuePoller;
 
+// ─── Photo upload UI (UX extract → photo-upload-ui.js) ───────────────────────
+const _photoAnalysisApi = (typeof InfluPhotoAnalysis !== 'undefined'
+  ? InfluPhotoAnalysis
+  : (typeof window !== 'undefined' ? window.InfluPhotoAnalysis : null));
+if (!_photoAnalysisApi) console.error('[photo] photo-analysis.js no cargado');
+
+const PhotoUploadUi = (typeof InfluPhotoUploadUi !== 'undefined'
+  ? InfluPhotoUploadUi
+  : window.InfluPhotoUploadUi
+).createPhotoUploadUi({
+  authFetch: (...args) => authFetch(...args),
+  toastInfo: (...args) => toastInfo(...args),
+  toastSuccess: (...args) => toastSuccess(...args),
+  toastError: (...args) => toastError(...args),
+  toastLoading: (...args) => toastLoading(...args),
+  QueuePoller,
+  setGitSyncingState: (...args) => setGitSyncingState(...args),
+  getState: () => state,
+  refreshPersonaLists: (...args) => refreshPersonaLists(...args),
+  selectPersona: (...args) => selectPersona(...args),
+  populateActiveUgcData: (...args) => populateActiveUgcData(...args),
+  updateClothingDropdown: (...args) => updateClothingDropdown(...args),
+  compilePromptAndJSON: (...args) => compilePromptAndJSON(...args),
+  buildPromptFromAnalysis: (data) => _promptBuilder().buildPromptFromAnalysis(data),
+  photoAnalysis: _photoAnalysisApi,
+  applyAnalysisToFormFields: (analysis) => {
+    const formApi = (typeof InfluPersonaForm !== 'undefined' ? InfluPersonaForm : window.InfluPersonaForm);
+    return formApi.applyAnalysisToFormFields(analysis);
+  }
+});
+
+const setupPhotoUpload = (...args) => PhotoUploadUi.setupPhotoUpload(...args);
+const handlePhotoUrl = (...args) => PhotoUploadUi.handlePhotoUrl(...args);
+const handlePhotoFile = (...args) => PhotoUploadUi.handlePhotoFile(...args);
+const resetUploadDropzone = (...args) => PhotoUploadUi.resetUploadDropzone(...args);
+const uploadToServer = (...args) => PhotoUploadUi.uploadToServer(...args);
+const runPhotoAnalysis = (...args) => PhotoUploadUi.runPhotoAnalysis(...args);
+const displayAnalysisResults = (...args) => PhotoUploadUi.displayAnalysisResults(...args);
+const renderColorSwatches = (...args) => PhotoUploadUi.renderColorSwatches(...args);
+const renderAnalysisDetailGrid = (...args) => PhotoUploadUi.renderAnalysisDetailGrid(...args);
+const applyAnalysisToForm = (...args) => PhotoUploadUi.applyAnalysisToForm(...args);
+const saveAnalysisAsPersona = (...args) => PhotoUploadUi.saveAnalysisAsPersona(...args);
+const getAnalysisResult = () => PhotoUploadUi.getAnalysisResult();
+const setAnalysisResult = (v) => PhotoUploadUi.setAnalysisResult(v);
+const getUploadedImagePath = () => PhotoUploadUi.getUploadedImagePath();
+const setUploadedImagePath = (v) => PhotoUploadUi.setUploadedImagePath(v);
+/** Inline onclick in HTML / dropzone preview — must stay on window. */
+window.resetUploadDropzone = resetUploadDropzone;
+
 function setGitSyncingState(message) {
   if (gitIndicator) gitIndicator.className = 'git-indicator syncing';
   if (gitStatusText) gitStatusText.textContent = 'Respaldando en GitHub...';
@@ -3338,7 +3387,8 @@ function getFullPersonaJSON() {
   
   // 1. Start with the richest source (analysisResult or stored detailedJSON)
   // IMPORTANT: only treat as object if it's a real persona object (not a string / char-map)
-  if (typeof analysisResult !== 'undefined' && analysisResult && isRealPersonaObject(analysisResult)) {
+  const analysisResult = getAnalysisResult();
+  if (analysisResult && isRealPersonaObject(analysisResult)) {
     base = JSON.parse(JSON.stringify(analysisResult));
   } else if (state.selectedPersona && state.selectedPersona.detailedJSON) {
     try {
@@ -5113,7 +5163,7 @@ async function savePersona(opts = {}) {
         body: JSON.stringify({
           prompt: promptText,
           // Never borrow another persona's face when creating new
-          referenceLocalPath: uploadedImagePath || (creatingNew ? null : state.selectedPersona?.image),
+          referenceLocalPath: getUploadedImagePath() || (creatingNew ? null : state.selectedPersona?.image),
           personaId: creatingNew ? 'new_persona' : (state.selectedPersona?.id || 'new_persona'),
           generationType: 'portrait'
         })
@@ -5131,11 +5181,11 @@ async function savePersona(opts = {}) {
   }
 
   const finalImage = portraitPath
-    || uploadedImagePath
+    || getUploadedImagePath()
     || (creatingNew ? null : state.selectedPersona?.image)
     || (gender === 'Male' ? 'assets/influencer_male.png' : 'assets/nano_banana_influencer.png');
   const finalImageUGC = portraitPath
-    || uploadedImagePath
+    || getUploadedImagePath()
     || (creatingNew ? null : state.selectedPersona?.imageUGC)
     || (gender === 'Male' ? 'assets/influencer_male_bottle.png' : 'assets/nano_banana_ugc.png');
 
@@ -5163,7 +5213,7 @@ async function savePersona(opts = {}) {
     const data = await res.json();
     if (data.success) {
       state.personas = Array.isArray(data.personas) ? data.personas : state.personas;
-      uploadedImagePath = null;
+      setUploadedImagePath(null);
       state.isCreatingNewPersona = false;
 
       const createBanner = document.getElementById('createModeBanner');
@@ -5535,7 +5585,7 @@ async function generateCampaignScriptsAction() {
 
 async function renderCampaigns() {
   const listGrid = document.getElementById('campaignListGrid');
-  listGrid.innerHTML = '<p style="color:var(--text-secondary);">Cargando campañas...</p>';
+  listGrid.innerHTML = '<p class="u-color-secondary">Cargando campañas...</p>';
   
   try {
     const res = await authFetch('/api/campaigns');
@@ -5546,7 +5596,7 @@ async function renderCampaigns() {
     if (campaigns.length === 0) {
       listGrid.innerHTML = `
         <div class="empty-roster-panel" style="padding: 8px 0;">
-          <p class="empty-roster-lead" style="margin-bottom: 12px;">Aún no hay campañas. Agrupa influencers + producto y exporta un ZIP comercial.</p>
+          <p class="empty-roster-lead u-mb-12" >Aún no hay campañas. Agrupa influencers + producto y exporta un ZIP comercial.</p>
           <div class="empty-roster-actions">
             <button type="button" class="btn btn-sm" id="btnEmptyCampaignCreate">+ Nueva Campaña</button>
           </div>
@@ -5571,7 +5621,7 @@ async function renderCampaigns() {
       listGrid.appendChild(card);
     });
   } catch (err) {
-    listGrid.innerHTML = '<p style="color:var(--text-secondary);">Error al recuperar listado de campañas.</p>';
+    listGrid.innerHTML = '<p class="u-color-secondary">Error al recuperar listado de campañas.</p>';
   }
 }
 
@@ -6109,7 +6159,7 @@ function renderBulkProductSelector() {
 
   const products = state.products || [];
   if (products.length === 0) {
-    container.innerHTML = `<span style="font-size: 11px; color: var(--text-muted);">No hay productos en el catálogo. Agregue productos en el tab de Catálogo.</span>`;
+    container.innerHTML = `<span class="u-fs-11-muted">No hay productos en el catálogo. Agregue productos en el tab de Catálogo.</span>`;
     return;
   }
 
@@ -6495,14 +6545,14 @@ function setupGallery() {
 
 async function renderGallery() {
   const grid = document.getElementById('galleryGrid');
-  grid.innerHTML = '<p style="color:var(--text-secondary);">Cargando galería...</p>';
+  grid.innerHTML = '<p class="u-color-secondary">Cargando galería...</p>';
   
   try {
     const res = await authFetch('/api/gallery');
     state.galleryItems = await res.json();
     renderGalleryGrid(state.galleryItems);
   } catch (err) {
-    grid.innerHTML = '<p style="color:var(--text-secondary);">Error al recuperar la galería.</p>';
+    grid.innerHTML = '<p class="u-color-secondary">Error al recuperar la galería.</p>';
   }
 }
 
@@ -6514,7 +6564,7 @@ function renderGalleryGrid(items) {
     const q = (document.getElementById('gallerySearchInput')?.value || '').trim();
     grid.innerHTML = `
       <div class="empty-roster-panel" style="grid-column:1/-1;">
-        <p class="empty-roster-lead" style="margin-bottom: 12px;">
+        <p class="empty-roster-lead u-mb-12" >
           ${q
             ? 'Ningún prompt coincide con la búsqueda.'
             : 'La galería está vacía. Guarda un prompt exitoso desde Persona Engine (botón «Guardar en galería»).'}
@@ -6540,7 +6590,7 @@ function renderGalleryGrid(items) {
       <img src="${item.image_path || 'assets/influencer_female_serum.png'}" class="gallery-card-img" alt="Gallery preview">
       <div class="gallery-card-content">
         <p class="gallery-card-prompt">${item.prompt}</p>
-        <button class="btn btn-sm btn-secondary" style="width: 100%;" onclick="loadPromptFromGallery('${item.prompt.replace(/'/g, "\\'")}')">Cargar prompt</button>
+        <button class="btn btn-sm btn-secondary u-w-full"  onclick="loadPromptFromGallery('${item.prompt.replace(/'/g, "\\'")}')">Cargar prompt</button>
       </div>
     `;
     grid.appendChild(card);
@@ -6562,505 +6612,9 @@ window.loadPromptFromGallery = loadPromptFromGallery;
 window.revertVersion = revertVersion;
 
 // =============================================
-// PHOTO UPLOAD & AI ANALYSIS MODULE
+// PHOTO UPLOAD & AI ANALYSIS — photo-upload-ui.js (InfluPhotoUploadUi)
+// Thin wrappers + window.resetUploadDropzone wired near QueuePoller above.
 // =============================================
-
-let analysisResult = null; // stores the last generated detailed JSON
-let uploadedImagePath = null;
-
-function setupPhotoUpload() {
-  const dropzone = document.getElementById('uploadDropzone');
-  if (!dropzone) return;
-  const fileInput = document.getElementById('photoFileInput');
-  const btnLoadPhotoUrl = document.getElementById('btnLoadPhotoUrl');
-  const photoUrlInput = document.getElementById('photoUrlInput');
-
-  // Click to open file picker
-  dropzone.addEventListener('click', (e) => {
-    if (e.target.closest('.btn-change-photo')) return;
-    fileInput.click();
-  });
-
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) handlePhotoFile(e.target.files[0]);
-  });
-
-  // Drag and drop
-  dropzone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropzone.classList.add('drag-over');
-  });
-  dropzone.addEventListener('dragleave', () => {
-    dropzone.classList.remove('drag-over');
-  });
-  dropzone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropzone.classList.remove('drag-over');
-    if (e.dataTransfer.files.length > 0) handlePhotoFile(e.dataTransfer.files[0]);
-  });
-
-  // Load photo from URL
-  if (btnLoadPhotoUrl && photoUrlInput) {
-    btnLoadPhotoUrl.addEventListener('click', async () => {
-      const url = photoUrlInput.value.trim();
-      if (!url) {
-        toastInfo('Por favor introduce un link de imagen.');
-        return;
-      }
-      await handlePhotoUrl(url);
-    });
-
-    // Support enter key on input
-    photoUrlInput.addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const url = photoUrlInput.value.trim();
-        if (!url) {
-          toastInfo('Por favor introduce un link de imagen.');
-          return;
-        }
-        await handlePhotoUrl(url);
-      }
-    });
-  }
-
-  // Action buttons
-  document.getElementById('btnCopyAnalysisJSON').addEventListener('click', () => {
-    const output = document.getElementById('analysisJsonOutput').textContent;
-    navigator.clipboard.writeText(output);
-    toastSuccess('JSON detallado copiado al portapapeles');
-  });
-
-  document.getElementById('btnApplyAnalysis').addEventListener('click', applyAnalysisToForm);
-  document.getElementById('btnSaveAnalysisPersona').addEventListener('click', saveAnalysisAsPersona);
-}
-
-async function handlePhotoUrl(url) {
-  // Show spinner
-  const statusCard = document.getElementById('analysisStatusCard');
-  statusCard.style.display = 'flex';
-  document.getElementById('analysisSpinner').style.display = 'block';
-  document.getElementById('analysisStatusTitle').textContent = 'Descargando imagen de referencia...';
-  document.getElementById('analysisStatusMsg').textContent = 'Conectando con la URL del perfil/imagen proporcionada.';
-
-  // Disable button/input
-  const btnLoad = document.getElementById('btnLoadPhotoUrl');
-  if (btnLoad) btnLoad.disabled = true;
-
-  try {
-    const res = await authFetch('/api/upload-reference-url', {
-      method: 'POST',
-      body: JSON.stringify({ url })
-    });
-    
-    const data = await res.json();
-    if (!data.success) {
-      throw new Error(data.message || 'Error al descargar la imagen.');
-    }
-    
-    uploadedImagePath = data.filePath;
-    
-    // Show preview in dropzone
-    const dropzone = document.getElementById('uploadDropzone');
-    dropzone.classList.add('has-image');
-    dropzone.innerHTML = `
-      <img src="${data.filePath}" alt="Reference Photo" class="upload-preview-img">
-      <div class="upload-preview-overlay">
-        <div class="upload-preview-info">
-          <div class="upload-preview-name">Imagen desde URL</div>
-          <div class="upload-preview-meta">${(data.size / 1024).toFixed(0)} KB · ${data.fileName}</div>
-        </div>
-        <button class="btn-change-photo" onclick="resetUploadDropzone()">Cambiar foto</button>
-      </div>
-    `;
-
-    const photoUrlInput = document.getElementById('photoUrlInput');
-    if (photoUrlInput) photoUrlInput.value = '';
-    
-    // Start analysis
-    await runPhotoAnalysis(data.filePath);
-  } catch (err) {
-    document.getElementById('analysisSpinner').style.display = 'none';
-    document.getElementById('analysisStatusTitle').textContent = '⚠ Error de Descarga';
-    document.getElementById('analysisStatusMsg').textContent = err.message || 'No se pudo descargar la imagen. Asegúrate de que el enlace sea público y directo.';
-  } finally {
-    if (btnLoad) btnLoad.disabled = false;
-  }
-}
-
-async function handlePhotoFile(file) {
-  if (!file.type.startsWith('image/')) {
-    toastInfo('Selecciona un archivo de imagen válido.');
-    return;
-  }
-
-  // Show preview in dropzone
-  const dropzone = document.getElementById('uploadDropzone');
-  const reader = new FileReader();
-
-  reader.onload = async (e) => {
-    const imgDataUrl = e.target.result;
-
-    // Replace dropzone content with preview
-    dropzone.classList.add('has-image');
-    dropzone.innerHTML = `
-      <img src="${imgDataUrl}" alt="Reference Photo" class="upload-preview-img">
-      <div class="upload-preview-overlay">
-        <div class="upload-preview-info">
-          <div class="upload-preview-name">${file.name}</div>
-          <div class="upload-preview-meta">${(file.size / 1024).toFixed(0)} KB · ${file.type}</div>
-        </div>
-        <button class="btn-change-photo" onclick="resetUploadDropzone()">Cambiar foto</button>
-      </div>
-    `;
-
-    // Upload to server
-    await uploadToServer(file);
-
-    // Start analysis
-    await runPhotoAnalysis(imgDataUrl);
-  };
-
-  reader.readAsDataURL(file);
-}
-
-function resetUploadDropzone() {
-  const dropzone = document.getElementById('uploadDropzone');
-  dropzone.classList.remove('has-image');
-  dropzone.innerHTML = `
-    <input type="file" id="photoFileInput" accept="image/*" style="display:none;">
-    <div class="upload-icon-circle">
-      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    </div>
-    <div class="upload-text-main">Arrastra tu foto aquí</div>
-    <div class="upload-text-sub">o haz <span>click para seleccionar</span> · JPG, PNG, WebP · max 10MB</div>
-  `;
-
-  // Re-attach file input listener
-  const newFileInput = document.getElementById('photoFileInput');
-  newFileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) handlePhotoFile(e.target.files[0]);
-  });
-
-  // Re-attach click handler
-  dropzone.addEventListener('click', (e) => {
-    if (e.target.closest('.btn-change-photo')) return;
-    newFileInput.click();
-  });
-
-  // Hide analysis panels
-  document.getElementById('analysisStatusCard').style.display = 'none';
-  document.getElementById('colorSwatchesContainer').style.display = 'none';
-  document.getElementById('analysisDetailGrid').style.display = 'none';
-  document.getElementById('analysisJsonSection').style.display = 'none';
-  document.getElementById('analysisActions').style.display = 'none';
-}
-
-async function uploadToServer(file) {
-  const formData = new FormData();
-  formData.append('photo', file);
-
-  try {
-    setGitSyncingState();
-    const res = await authFetch('/api/upload-reference', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (data.success) {
-      uploadedImagePath = data.filePath;
-      if (data.gitSynced) {
-        toastSuccess('¡Foto subida y respaldada en GitHub!');
-      } else {
-        toastError('Foto guardada localmente. Error en Git.');
-      }
-    }
-  } catch (err) {
-    console.error('Upload error:', err);
-  }
-}
-
-async function runPhotoAnalysis(imageDataUrl) {
-  // Show spinner
-  const statusCard = document.getElementById('analysisStatusCard');
-  statusCard.style.display = 'flex';
-  document.getElementById('analysisSpinner').style.display = 'block';
-  document.getElementById('analysisStatusTitle').textContent = 'Analizando imagen...';
-  document.getElementById('analysisStatusMsg').textContent = 'Extrayendo paleta de colores, composición fotográfica y rasgos faciales.';
-
-  // Extract dominant colors from canvas
-  const colors = await extractDominantColors(imageDataUrl);
-
-  // Check if Gemini Vision API is connected
-  const statusRes = await fetch('/api/status');
-  const statusData = await statusRes.json();
-  
-  if (statusData.apiConnected && uploadedImagePath) {
-    document.getElementById('analysisStatusTitle').textContent = '🤖 Analizando con Gemini Vision...';
-    try {
-      const aiRes = await authFetch('/api/ai/analyze-photo', {
-        method: 'POST',
-        body: JSON.stringify({ imagePath: uploadedImagePath })
-      });
-      const aiData = await aiRes.json();
-      if (aiData.success && aiData.analysis) {
-        analysisResult = aiData.analysis;
-        displayAnalysisResults(colors);
-        toastSuccess('Análisis de foto completado con Gemini Vision API!');
-        return;
-      }
-    } catch (err) {
-      console.warn('Gemini vision analysis failed, falling back to local simulation.');
-    }
-  }
-
-  // Fallback simulation mode
-  await new Promise(resolve => setTimeout(resolve, 1800));
-  analysisResult = await generateDetailedJSON(imageDataUrl, colors);
-  displayAnalysisResults(colors);
-}
-
-function displayAnalysisResults(colors) {
-  // Update status card to done
-  document.getElementById('analysisSpinner').style.display = 'none';
-  document.getElementById('analysisStatusTitle').textContent = '✓ Análisis completado';
-  document.getElementById('analysisStatusMsg').textContent = `Se generaron ${Object.values(analysisResult).reduce((sum, cat) => sum + (typeof cat === 'object' && !Array.isArray(cat) ? Object.keys(cat).length : 0), 0)} campos detallados en 6 categorías.`;
-
-  // Show color swatches
-  renderColorSwatches(colors);
-
-  // Show editable detail grid
-  renderAnalysisDetailGrid(analysisResult);
-
-  // Show JSON output
-  const jsonSection = document.getElementById('analysisJsonSection');
-  jsonSection.style.display = 'block';
-  document.getElementById('analysisJsonOutput').textContent = JSON.stringify(analysisResult, null, 2);
-
-  // Show action buttons
-  document.getElementById('analysisActions').style.display = 'flex';
-}
-
-// UX-4 — motor de análisis en photo-analysis.js
-const _photoAnalysisApi = (typeof InfluPhotoAnalysis !== 'undefined'
-  ? InfluPhotoAnalysis
-  : (typeof window !== 'undefined' ? window.InfluPhotoAnalysis : null));
-if (!_photoAnalysisApi) console.error('[photo] photo-analysis.js no cargado');
-const extractDominantColors = (...args) => _photoAnalysisApi.extractDominantColors(...args);
-const generateDetailedJSON = (imageDataUrl, colors) =>
-  _photoAnalysisApi.generateDetailedJSON(imageDataUrl, colors, { anchorReference: uploadedImagePath || null });
-const ANALYSIS_FIELD_OPTIONS = _photoAnalysisApi?.ANALYSIS_FIELD_OPTIONS || {};
-
-function renderColorSwatches(colors) {
-  const container = document.getElementById('colorSwatchesContainer');
-  container.style.display = 'block';
-  const swatchesEl = document.getElementById('colorSwatches');
-  swatchesEl.innerHTML = '';
-
-  const labels = ['Dominante', 'Piel', 'Cabello', 'Fondo', 'Ropa', 'Acento', 'Sombra', 'Brillo'];
-  colors.forEach((c, i) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'color-swatch-col';
-    wrapper.innerHTML = `
-      <div class="color-swatch analysis-reveal delay-${Math.min(i + 1, 8)}" style="background-color: ${c.hex};" title="${c.hex}"></div>
-      <div class="color-swatch-label">${labels[i] || ''}</div>
-    `;
-    swatchesEl.appendChild(wrapper);
-  });
-}
-
-function renderAnalysisDetailGrid(data) {
-  const grid = document.getElementById('analysisDetailGrid');
-  grid.style.display = 'grid';
-  grid.innerHTML = '';
-
-  const categories = [
-    { key: 'identity', label: '👤 Identidad', cssClass: 'identity' },
-    { key: 'facial_features', label: '🧬 Rasgos Faciales', cssClass: 'facial' },
-    { key: 'hair', label: '💇 Cabello', cssClass: 'hair-cat' },
-    { key: 'aesthetic', label: '✨ Estética', cssClass: 'aesthetic' },
-    { key: 'photography', label: '📷 Fotografía', cssClass: 'photo' },
-    { key: 'clothing', label: '👗 Vestimenta', cssClass: 'clothing-cat' }
-  ];
-
-  let delayIdx = 0;
-  categories.forEach(cat => {
-    const section = data[cat.key];
-    if (!section || typeof section !== 'object') return;
-
-    // Category header
-    const header = document.createElement('div');
-    header.className = `analysis-category ${cat.cssClass} analysis-reveal delay-${Math.min(++delayIdx, 8)}`;
-    header.textContent = cat.label;
-    grid.appendChild(header);
-
-    // Fields
-    Object.entries(section).forEach(([fieldKey, fieldVal]) => {
-      if (fieldVal === null) return;
-      const field = document.createElement('div');
-      const isLong = String(fieldVal).length > 50;
-      field.className = `analysis-field ${isLong ? 'full-width' : ''} analysis-reveal delay-${Math.min(++delayIdx % 8 + 1, 8)}`;
-
-      const labelText = fieldKey
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, l => l.toUpperCase());
-
-      // Check if there are options defined for this field
-      const options = ANALYSIS_FIELD_OPTIONS[cat.key]?.[fieldKey];
-      let inputHtml = '';
-
-      if (options) {
-        const valLower = String(fieldVal).toLowerCase();
-        const lowerOptions = options.map(o => o.toLowerCase());
-        
-        let selectedIndex = lowerOptions.findIndex(o => o === valLower || valLower.includes(o) || o.includes(valLower));
-        let optionsList = [...options];
-        
-        if (selectedIndex === -1) {
-          optionsList.unshift(fieldVal);
-          selectedIndex = 0;
-        }
-
-        inputHtml = `
-          <select data-category="${cat.key}" data-field="${fieldKey}" class="analysis-editable-input">
-            ${optionsList.map((opt, idx) => `
-              <option value="${opt}" ${idx === selectedIndex ? 'selected' : ''}>${opt}</option>
-            `).join('')}
-          </select>
-        `;
-      } else {
-        inputHtml = `
-          <input type="text" value="${String(fieldVal).replace(/"/g, '&quot;')}" data-category="${cat.key}" data-field="${fieldKey}" class="analysis-editable-input">
-        `;
-      }
-
-      field.innerHTML = `
-        <span class="analysis-field-label">${labelText}</span>
-        ${inputHtml}
-      `;
-      grid.appendChild(field);
-    });
-  });
-
-  // Listen for edits to update the JSON output in real time
-  grid.querySelectorAll('.analysis-editable-input').forEach(input => {
-    const updateHandler = () => {
-      const cat = input.dataset.category;
-      const field = input.dataset.field;
-      if (analysisResult[cat]) {
-        analysisResult[cat][field] = input.value;
-      }
-      // Rebuild prompt
-      analysisResult.generation_prompt = buildPromptFromAnalysis(analysisResult);
-      document.getElementById('analysisJsonOutput').textContent = JSON.stringify(analysisResult, null, 2);
-    };
-    input.addEventListener('input', updateHandler);
-    input.addEventListener('change', updateHandler);
-  });
-
-  // Build initial prompt
-  analysisResult.generation_prompt = buildPromptFromAnalysis(analysisResult);
-  document.getElementById('analysisJsonOutput').textContent = JSON.stringify(analysisResult, null, 2);
-}
-
-function buildPromptFromAnalysis(data) {
-  return _promptBuilder().buildPromptFromAnalysis(data);
-}
-
-function applyAnalysisToForm() {
-  if (!analysisResult) return;
-  const formApi = (typeof InfluPersonaForm !== 'undefined' ? InfluPersonaForm : window.InfluPersonaForm);
-  const { clothingHint } = formApi.applyAnalysisToFormFields(analysisResult);
-  updateClothingDropdown(clothingHint || '');
-  compilePromptAndJSON();
-  toastSuccess('Datos del análisis aplicados al formulario (incluye cuerpo)');
-}
-
-async function saveAnalysisAsPersona() {
-  if (!analysisResult) return;
-
-  const name = (analysisResult && analysisResult.identity && analysisResult.identity.name) || 'Influencer';
-  toastLoading(`Generando retrato virtual consistente con ${name}...`);
-  
-  const promptText = buildPromptFromAnalysis(analysisResult);
-  let portraitPath = uploadedImagePath;
-  
-  try {
-    QueuePoller.start();
-    const imgRes = await authFetch('/api/ai/generate-image', {
-      method: 'POST',
-      body: JSON.stringify({ prompt: promptText, referenceLocalPath: uploadedImagePath })
-    });
-    const imgData = await imgRes.json();
-    if (imgData.success && imgData.imagePath) {
-      portraitPath = imgData.imagePath;
-    }
-  } catch (err) {
-    console.warn('Image generation failed or offline. Using reference photo as fallback.');
-  }
-
-  const i = analysisResult.identity || {};
-  const f = analysisResult.facial_features || {};
-  const h = analysisResult.hair || {};
-  const a = analysisResult.aesthetic || {};
-  const p = analysisResult.photography || {};
-  const c = analysisResult.clothing || {};
-
-  const personaData = {
-    name: i.name || 'Nuevo Influencer',
-    gender: (i.gender || '').toLowerCase().includes('masc') ? 'Male' : 'Female',
-    age: i.apparent_age || '25 años',
-    ethnicity: i.ethnicity_appearance || 'Mixta',
-    style: a.overall_vibe || 'Natural',
-    hair: `${h.color || ''}, ${h.texture || ''}, ${h.length || ''}`,
-    lighting: p.lighting_type || 'Luz natural',
-    camera: p.camera_lens || 'DSLR portrait photograph, 50mm lens',
-    clothing: `${c.type || ''} en ${c.color || ''}`,
-    setting: p.background_setting || 'Fondo neutro',
-    detailedJSON: analysisResult,
-    image: portraitPath || 'assets/influencer_female.png',
-    imageUGC: portraitPath || 'assets/influencer_female_serum.png'
-  };
-
-  setGitSyncingState();
-  try {
-    const res = await authFetch('/api/personas', {
-      method: 'POST',
-      body: JSON.stringify(personaData)
-    });
-    const data = await res.json();
-    if (data.success) {
-      state.personas = Array.isArray(data.personas) ? data.personas : state.personas;
-      uploadedImagePath = null; // Clear upload path after successful save
-      const saved = data.persona
-        || state.personas.find(p => p.name && p.name.toLowerCase() === personaData.name.toLowerCase());
-      refreshPersonaLists();
-      if (saved) {
-        try { selectPersona(saved); } catch (e) { console.warn(e); refreshPersonaLists(); }
-      }
-
-      try { populateActiveUgcData(); } catch (e) { console.warn(e); }
-      applyAnalysisToForm();
-
-      // Automatically save prompt to gallery
-      const promptText = buildPromptFromAnalysis(analysisResult);
-      const imgPath = uploadedImagePath || (personaData.gender === 'Male' ? 'assets/influencer_male.png' : 'assets/influencer_female.png');
-      try {
-        await authFetch('/api/gallery', {
-          method: 'POST',
-          body: JSON.stringify({ prompt: promptText, imagePath: imgPath })
-        });
-      } catch (galleryErr) {
-        console.error('Failed to auto-save to gallery:', galleryErr);
-      }
-
-      if (data.gitSynced) {
-        toastSuccess('¡Persona del análisis guardada y respaldada en GitHub!');
-      } else {
-        toastError('Guardada localmente. Error en Git.');
-      }
-    }
-  } catch (err) {
-    toastError('Error de servidor al guardar persona.');
-  }
-}
 
 async function deletePersonaAction() {
   if (!state.selectedPersona || !state.selectedPersona.id) {
@@ -7162,478 +6716,67 @@ async function deletePersonaAction() {
   }
 }
 
-// ─── Influencer Variants (Poses, Wardrobe, Attitude) Manager & Spicy Mode ───
-
-// ─── Influencer Variants presets (UX-4 → variant-presets.js) ───
+// ─── Influencer Variants (UX → variant-vault-ui.js + variant-presets.js) ───
 const _variantPresetsApi = (typeof InfluVariantPresets !== 'undefined'
   ? InfluVariantPresets
   : (typeof window !== 'undefined' ? window.InfluVariantPresets : null));
 if (!_variantPresetsApi) console.error('[variants] variant-presets.js no cargado');
-const VARIANT_PRESETS = _variantPresetsApi?.VARIANT_PRESETS || {};
 
-window.setVariantMode = function(mode) {
-  state.variantMode = mode;
-
-  const btnTrad = document.getElementById('btnModeTraditional');
-  const btnSpicy = document.getElementById('btnModeSpicy');
-
-  if (btnTrad) btnTrad.classList.toggle('active', mode === 'traditional');
-  if (btnSpicy) btnSpicy.classList.toggle('active', mode === 'spicy');
-
-  const layout = document.querySelector('.variant-vault-layout');
-  if (layout) {
-    layout.classList.toggle('spicy-theme', mode === 'spicy');
-  }
-
-  const builder = document.getElementById('variantPromptBuilder');
-  if (builder) builder.classList.toggle('variant-mode-spicy', mode === 'spicy');
-
-  populateVariantDropdowns();
-};
-
-function populateVariantDropdowns() {
-  const mode = state.variantMode || 'traditional';
-  const preset = VARIANT_PRESETS[mode] || VARIANT_PRESETS.traditional;
-  const p = state.selectedPersona;
-  const gender = p ? p.gender : (document.getElementById('pGender')?.value || 'Female');
-
-  const fill = _variantPresetsApi?.fillSelect || ((el, items) => {
-    if (!el) return;
-    el.innerHTML = '';
-    (items || []).forEach((item) => {
-      const opt = document.createElement('option');
-      opt.value = item.value;
-      opt.textContent = item.label;
-      el.appendChild(opt);
-    });
-  });
-  const clothList = _variantPresetsApi?.clothingFor
-    ? _variantPresetsApi.clothingFor(preset, gender)
-    : ((preset.clothing && (preset.clothing[gender] || preset.clothing.Female)) || []);
-  fill(document.getElementById('vPose'), preset.poses);
-  fill(document.getElementById('vAttitude'), preset.attitudes);
-  fill(document.getElementById('vClothing'), clothList);
-  fill(document.getElementById('vSetting'), preset.settings);
-
-  // G1/G2/G3 — refrescar chips del constructor de prompt tras poblar los selects
-  renderVariantChips();
-  renderLookPresets();
-  renderBatchChips();
+const _variantVaultUiApi = (typeof InfluVariantVaultUi !== 'undefined'
+  ? InfluVariantVaultUi
+  : (typeof window !== 'undefined' ? window.InfluVariantVaultUi : null));
+if (!_variantVaultUiApi || typeof _variantVaultUiApi.createVariantVaultUi !== 'function') {
+  console.error('[variants] variant-vault-ui.js no cargado');
 }
 
-// G1 — Constructor de prompt por chips (estilo studio): los chips escriben en los
-// selects ocultos (fuente de verdad de generateVariantAction). Accesorios se pliegan
-// en el vestuario al generar.
-const VARIANT_ACCESSORIES = _variantPresetsApi?.VARIANT_ACCESSORIES || [];
-
-
-function renderVariantChips() {
-  const groups = [
-    ['vPose', 'chipsPose'],
-    ['vAttitude', 'chipsAttitude'],
-    ['vClothing', 'chipsClothing'],
-    ['vSetting', 'chipsSetting']
-  ];
-  groups.forEach(([selId, contId]) => {
-    const sel = document.getElementById(selId);
-    const cont = document.getElementById(contId);
-    if (!sel || !cont) return;
-    cont.innerHTML = '';
-    Array.from(sel.options).forEach(opt => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'pb-chip' + (opt.value === sel.value ? ' active' : '');
-      chip.textContent = opt.textContent;
-      chip.title = opt.value;
-      chip.addEventListener('click', () => {
-        sel.value = opt.value;
-        cont.querySelectorAll('.pb-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-      });
-      cont.appendChild(chip);
-    });
-  });
-  renderAccessoryChips();
-}
-
-function renderAccessoryChips() {
-  const cont = document.getElementById('chipsAccessories');
-  if (!cont) return;
-  if (!Array.isArray(state.variantAccessories)) state.variantAccessories = [];
-  cont.innerHTML = '';
-  VARIANT_ACCESSORIES.forEach(a => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    const on = state.variantAccessories.includes(a.value);
-    chip.className = 'pb-chip' + (on ? ' active' : '');
-    chip.textContent = a.label;
-    chip.addEventListener('click', () => {
-      const i = state.variantAccessories.indexOf(a.value);
-      if (i >= 0) state.variantAccessories.splice(i, 1);
-      else state.variantAccessories.push(a.value);
-      chip.classList.toggle('active');
-    });
-    cont.appendChild(chip);
-  });
-}
-
-function randomizeVariantChips() {
-  ['vPose', 'vAttitude', 'vClothing', 'vSetting'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (sel && sel.options.length) {
-      sel.selectedIndex = Math.floor(Math.random() * sel.options.length);
-    }
-  });
-  const shuffled = [...VARIANT_ACCESSORIES].sort(() => Math.random() - 0.5);
-  const n = Math.floor(Math.random() * 3); // 0–2 accesorios
-  state.variantAccessories = shuffled.slice(0, n).map(a => a.value);
-  renderVariantChips();
-  if (typeof toastInfo === 'function') toastInfo('🎲 Combinación aleatoria lista — pulsa Generar');
-}
-window.randomizeVariantChips = randomizeVariantChips;
-
-// G2 — Looks rápidos (UX-4 → variant-presets.js)
-const LOOK_PRESETS = _variantPresetsApi?.LOOK_PRESETS || [];
-const findOptionByRegex = _variantPresetsApi?.findOptionByRegex || ((sel, rx) => {
-  if (!sel || !rx) return null;
-  const opt = Array.from(sel.options).find(o => rx.test(o.value) || rx.test(o.textContent));
-  return opt ? opt.value : null;
+const _variantVaultUi = _variantVaultUiApi.createVariantVaultUi({
+  getState: () => state,
+  authFetch: (...args) => authFetch(...args),
+  toastSuccess: (...args) => toastSuccess(...args),
+  toastError: (...args) => toastError(...args),
+  toastInfo: (...args) => toastInfo(...args),
+  toastLoading: (...args) => toastLoading(...args),
+  QueuePoller,
+  getFullPersonaJSON: (...args) => getFullPersonaJSON(...args),
+  resolveSkinForPrompt: (...args) => resolveSkinForPrompt(...args),
+  buildIdentityLockBlock: (...args) => buildIdentityLockBlock(...args),
+  _promptBuilder: () => _promptBuilder(),
+  personaSeed: (...args) => personaSeed(...args),
+  notifyGenerationFailure: (...args) => notifyGenerationFailure(...args),
+  setGitSyncingState: (...args) => setGitSyncingState(...args),
+  renderPersonaGrids: (...args) => renderPersonaGrids(...args),
+  populateActiveUgcData: (...args) => populateActiveUgcData(...args),
+  updateSideBySideComparator: (...args) => updateSideBySideComparator(...args),
+  renderQaMatrix: (...args) => renderQaMatrix(...args),
+  renderFacePack: (...args) => renderFacePack(...args),
+  renderHappyPathChecklist: (...args) => renderHappyPathChecklist(...args),
+  openHistoryModal: (...args) => openHistoryModal(...args),
+  updateDashboardStats: (...args) => updateDashboardStats(...args),
+  loadGenerationHistory: (...args) => loadGenerationHistory(...args),
+  refreshFaceLockOptIn: (...args) => refreshFaceLockOptIn(...args),
+  copyFreeChatbotPack: (...args) => copyFreeChatbotPack(...args),
+  variantPresetsApi: _variantPresetsApi,
+  document,
+  window
 });
 
-function applyLookPreset(preset) {
-  const set = (id, rx) => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    const v = findOptionByRegex(sel, rx);
-    if (v != null) sel.value = v;
-  };
-  set('vPose', preset.pose);
-  set('vAttitude', preset.attitude);
-  set('vClothing', preset.clothing);
-  set('vSetting', preset.setting);
-  state.variantAccessories = Array.isArray(preset.accessories) ? [...preset.accessories] : [];
-  renderVariantChips();
-  if (typeof toastInfo === 'function') toastInfo(`${preset.label} aplicado — ajusta o pulsa Generar`);
-}
+_variantVaultUi.bindWindowGlobals(window);
 
-function renderLookPresets() {
-  const cont = document.getElementById('chipsLookPresets');
-  if (!cont) return;
-  cont.innerHTML = '';
-  LOOK_PRESETS.forEach(p => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'pb-chip';
-    chip.textContent = p.label;
-    chip.addEventListener('click', () => applyLookPreset(p));
-    cont.appendChild(chip);
-  });
-}
-
-// G3 — Batch acotado (1 / 4) con aviso de pollen. Se encola 1 a la vez (gen-queue).
-const VARIANT_BATCH_OPTIONS = _variantPresetsApi?.VARIANT_BATCH_OPTIONS || [1, 4];
-
-function updateBatchHint() {
-  const el = document.getElementById('batchPollenHint');
-  if (!el) return;
-  const n = state.variantBatch || 1;
-  const cost = (n * 0.002).toFixed(3);
-  el.textContent = n > 1
-    ? `Generará ${n} imágenes (1 a la vez). Con token de Pollinations consume ~${cost} pollen (flux). El path gratis del producto es copiar el JSON al chatbot.`
-    : 'Genera 1 imagen. Con token de Pollinations consume ~0.002 pollen (flux).';
-}
-
-function renderBatchChips() {
-  const cont = document.getElementById('chipsBatch');
-  if (!cont) return;
-  if (!state.variantBatch) state.variantBatch = 1;
-  cont.innerHTML = '';
-  VARIANT_BATCH_OPTIONS.forEach(n => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'pb-chip' + (state.variantBatch === n ? ' active' : '');
-    chip.textContent = String(n);
-    chip.addEventListener('click', () => {
-      state.variantBatch = n;
-      renderBatchChips();
-    });
-    cont.appendChild(chip);
-  });
-  updateBatchHint();
-}
-
-function updateVariantClothingDropdown(gender) {
-  populateVariantDropdowns();
-}
-
-async function loadVariantsForPersona(personaId) {
-  const grid = document.getElementById('variantGalleryGrid');
-  if (!grid) return;
-  grid.innerHTML = '<div class="u-muted-13">Cargando variaciones...</div>';
-  
-  try {
-    const res = await authFetch(`/api/personas/${personaId}/variants`);
-    state.activeVariants = await res.json();
-    // Recalcular scores faltantes en background (gratis, local)
-    const missing = (state.activeVariants || []).some((v) => v && v.consistency_distance == null && v.image_path);
-    if (missing) {
-      try {
-        const scoreRes = await authFetch(`/api/personas/${personaId}/consistency/rescore`, {
-          method: 'POST',
-          body: JSON.stringify({ onlyMissing: true })
-        });
-        const scoreData = await scoreRes.json();
-        if (scoreData.success && Array.isArray(scoreData.variants)) {
-          state.activeVariants = scoreData.variants;
-        }
-      } catch (_) { /* non-blocking */ }
-    }
-    renderVariantVaultGrid();
-    renderQaMatrix();
-    try { renderFacePack(); } catch (_) {}
-  } catch (err) {
-    grid.innerHTML = '<div class="u-error-13">Error al cargar poses.</div>';
-    renderQaMatrix();
-    try { renderFacePack(); } catch (_) {}
-  }
-}
-
-function consistencyChipHtml(v) {
-  const grade = v?.consistency_grade;
-  const dist = v?.consistency_distance;
-  if (dist == null && !grade) return '';
-  const tone = grade === 'ok' ? 'ok' : grade === 'warn' ? 'warn' : grade === 'bad' ? 'bad' : 'muted';
-  const label = grade === 'ok' ? 'OK' : grade === 'warn' ? 'Revisar' : grade === 'bad' ? 'Drift' : '—';
-  const title = `dHash vs ancla: distancia ${dist ?? '—'}. Señal de composición/color — no es face-lock.`;
-  return `<span class="variant-consistency-chip is-${tone}" title="${title}">${label}${dist != null ? ` · ${dist}` : ''}</span>`;
-}
-
-function renderVariantVaultGrid() {
-  const grid = document.getElementById('variantGalleryGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  
-  if (state.activeVariants.length === 0) {
-    grid.innerHTML = `
-      <div class="vault-empty-offline">
-        <p class="vault-empty-offline__title">Sin gens — igual puedes exportar packs</p>
-        <p class="vault-empty-offline__lead">
-          Copia JSON / packs a un chatbot free. «Generar boceto» es opcional e inestable (Pollinations).
-        </p>
-        <div class="vault-empty-offline__actions">
-          <button type="button" class="btn btn-sm" data-offline-highlight="pack" id="btnVaultEmptyCopyPack">Copiar JSON (recomendado)</button>
-          <button type="button" class="btn btn-secondary btn-sm" id="btnVaultEmptyGenBoceto">Generar boceto (opt-in · puede pedir token)</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('btnVaultEmptyCopyPack')?.addEventListener('click', () => {
-      copyFreeChatbotPack('fullbody');
-    });
-    document.getElementById('btnVaultEmptyGenBoceto')?.addEventListener('click', () => {
-      document.getElementById('btnGenerateVariant')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-    updateSideBySideComparator(null);
-    renderQaMatrix();
-    return;
-  }
-
-  updateSideBySideComparator(state.activeVariants[0]);
-  renderQaMatrix();
-
-  state.activeVariants.forEach(v => {
-    const card = document.createElement('div');
-    card.className = 'variant-card';
-    card.innerHTML = `
-      <img class="variant-card__img" src="${v.image_path}" title="Haz clic para ver la imagen en tamaño grande">
-      ${consistencyChipHtml(v)}
-      <div class="variant-zoom-icon" aria-hidden="true">🔍</div>
-      <div class="variant-hover-actions">
-        <div class="variant-hover-actions__pose">
-          ${(v.pose || '').split('(')[0]}
-        </div>
-        <div class="variant-hover-actions__btns">
-          <button type="button" class="btn btn-sm btn-primary variant-card__btn" onclick="event.stopPropagation(); setMainVariantAction('${v.image_path}', '${v.id}')">⭐ Perfil</button>
-          <button type="button" class="btn btn-sm btn-secondary variant-card__btn variant-card__btn--danger" onclick="event.stopPropagation(); deleteVariantAction('${v.id}')">🗑️ Borrar</button>
-        </div>
-      </div>
-    `;
-
-    // Click to view enlarged image in history modal
-    card.addEventListener('click', (e) => {
-      if (e.target.tagName === 'BUTTON') return;
-      
-      const promptDetails = `Pose: ${v.pose || 'N/A'}\nVestuario: ${v.clothing || 'N/A'}\nActitud: ${v.attitude || 'N/A'}\nEntorno: ${v.setting || 'N/A'}\ndHash: ${v.consistency_distance ?? '—'} (${v.consistency_grade || 'sin score'})`;
-      
-      openHistoryModal({
-        id: v.id,
-        image_path: v.image_path,
-        generation_type: 'variant',
-        created_at: v.created_at || new Date().toISOString(),
-        prompt: promptDetails
-      });
-    });
-    
-    grid.appendChild(card);
-  });
-}
-
-// Attach these to window so inline onclick handlers work
-window.setMainVariantAction = async function(imagePath, variantId) {
-  if (!state.selectedPersona) return;
-  setGitSyncingState();
-  try {
-    const idPart = variantId || 'set-main';
-    const res = await authFetch(`/api/personas/${state.selectedPersona.id}/variants/${idPart}/set-main`, {
-      method: 'POST',
-      body: JSON.stringify({ imagePath })
-    });
-    const data = await res.json();
-    if (data.success) {
-      state.personas = data.personas;
-      state.selectedPersona = state.personas.find(p => p.id === state.selectedPersona.id);
-      renderPersonaGrids();
-      populateActiveUgcData();
-      updateSideBySideComparator(state.lastComparedVariant);
-      toastSuccess('¡Retrato principal actualizado!');
-    } else {
-      toastError(data.message || 'Error al actualizar retrato.');
-    }
-  } catch (e) {
-    toastError('Error al actualizar retrato.');
-  }
-};
-
-window.deleteVariantAction = async function(variantId) {
-  if (!state.selectedPersona) return;
-  if (!confirm('¿Estás seguro de que deseas eliminar esta pose/variación?')) return;
-  
-  setGitSyncingState();
-  try {
-    const res = await authFetch(`/api/personas/${state.selectedPersona.id}/variants/${variantId}`, {
-      method: 'DELETE'
-    });
-    const data = await res.json();
-    if (data.success) {
-      state.activeVariants = data.variants;
-      renderVariantVaultGrid();
-      toastSuccess('Pose eliminada correctamente.');
-    }
-  } catch (e) {
-    toastError('Error al eliminar pose.');
-  }
-};
-
-async function generateVariantAction() {
-  const p = state.selectedPersona;
-  if (!p) {
-    toastInfo('Selecciona un influencer primero.');
-    return;
-  }
-
-  // G3 — batch acotado (1/4) con aviso de pollen; se encola 1 a la vez.
-  const batch = Math.max(1, Math.min(state.variantBatch || 1, 4));
-  if (batch > 1) {
-    const cost = (batch * 0.002).toFixed(3);
-    if (!confirm(`Vas a generar ${batch} imágenes (1 a la vez). Con token de Pollinations consume ~${cost} pollen. ¿Continuar?`)) {
-      return;
-    }
-  }
-
-  let ok = 0;
-  for (let i = 0; i < batch; i++) {
-    const success = await generateOneVariant(p, i, batch);
-    if (!success) break; // corta el lote si falla (p.ej. 429 / sin saldo)
-    ok++;
-  }
-  if (batch > 1 && ok > 0) {
-    toastSuccess(`Lote listo: ${ok}/${batch} imágenes generadas para ${p.name}.`);
-  }
-}
-
-async function generateOneVariant(p, index, total) {
-  const pose = document.getElementById('vPose').value;
-  const attitude = document.getElementById('vAttitude').value;
-  const clothingBase = document.getElementById('vClothing').value;
-  const accessories = (state.variantAccessories || []).join(', ');
-  const clothing = accessories ? `${clothingBase}, con ${accessories}` : clothingBase;
-  const setting = document.getElementById('vSetting').value;
-  const mode = state.variantMode || 'traditional';
-
-  const statusCard = document.getElementById('variantGenStatus');
-  const statusText = document.getElementById('variantGenStatusText');
-  const counter = total > 1 ? ` (${index + 1} de ${total})` : '';
-  statusCard.style.display = 'flex';
-  statusCard.classList.add('loading-pulse');
-  statusText.textContent = `Renderizando ${mode === 'spicy' ? 'spicy' : 'pose'} de ${p.name}${counter}...`;
-  toastLoading(`Generando variante${counter} de ${p.name} — misma cara que el retrato principal...`);
-
-  // SAME identity pipeline for traditional + spicy (only pose/clothes/scene change)
-  const detailed = getFullPersonaJSON();
-  const skin = resolveSkinForPrompt(detailed, p);
-  const id = buildIdentityLockBlock(p, detailed, skin);
-  const framing = _promptBuilder().detectVariantFraming(pose);
-  const variantPrompt = _promptBuilder().buildVariantPrompt({
-    id,
-    skin,
-    pose,
-    attitude,
-    clothing,
-    setting,
-    framing,
-    hairFallback: p.hair
-  });
-
-  try {
-    QueuePoller.start();
-    const res = await authFetch(`/api/personas/${p.id}/variants`, {
-      method: 'POST',
-      body: JSON.stringify({
-        pose,
-        attitude,
-        clothing,
-        setting,
-        prompt: variantPrompt,
-        photoreal: true,
-        identityLock: true,
-        framing,
-        mode,
-        // Semilla distinta por imagen del lote → misma identidad, composición variada
-        seed: personaSeed(p.id) + index,
-        // R2 — face-lock pago solo si el toggle está marcado (default off)
-        preferFaceLock: !!(document.getElementById('preferFaceLockToggle')?.checked)
-      })
-    });
-    const data = await res.json();
-    if (data.success) {
-      state.activeVariants = data.variants;
-      renderVariantVaultGrid();
-      updateSideBySideComparator(data.variant || data.variants?.[0]);
-      renderHappyPathChecklist();
-      statusText.textContent = framing === 'fullbody'
-        ? `✓ Cuerpo entero generado${counter}!`
-        : `✓ Pose agregada${counter}!`;
-      if (total === 1) {
-        toastSuccess(framing === 'fullbody'
-          ? `Cuerpo entero de ${p.name} listo`
-          : `Variante lista — cara anclada a ${p.name}`);
-      }
-      statusCard.classList.remove('loading-pulse');
-      if (index + 1 >= total) setTimeout(() => statusCard.style.display = 'none', 3000);
-      return true;
-    } else {
-      statusText.textContent = 'Error al generar la pose.';
-      notifyGenerationFailure(data);
-      statusCard.classList.remove('loading-pulse');
-      return false;
-    }
-  } catch (err) {
-    statusText.textContent = 'La generación falló o el servidor está offline.';
-    notifyGenerationFailure(null, err);
-    statusCard.classList.remove('loading-pulse');
-    setTimeout(() => statusCard.style.display = 'none', 4000);
-    return false;
-  }
-}
+function populateVariantDropdowns(...args) { return _variantVaultUi.populateVariantDropdowns(...args); }
+function renderVariantChips(...args) { return _variantVaultUi.renderVariantChips(...args); }
+function renderAccessoryChips(...args) { return _variantVaultUi.renderAccessoryChips(...args); }
+function randomizeVariantChips(...args) { return _variantVaultUi.randomizeVariantChips(...args); }
+function applyLookPreset(...args) { return _variantVaultUi.applyLookPreset(...args); }
+function renderLookPresets(...args) { return _variantVaultUi.renderLookPresets(...args); }
+function updateBatchHint(...args) { return _variantVaultUi.updateBatchHint(...args); }
+function renderBatchChips(...args) { return _variantVaultUi.renderBatchChips(...args); }
+function updateVariantClothingDropdown(...args) { return _variantVaultUi.updateVariantClothingDropdown(...args); }
+function loadVariantsForPersona(...args) { return _variantVaultUi.loadVariantsForPersona(...args); }
+function consistencyChipHtml(...args) { return _variantVaultUi.consistencyChipHtml(...args); }
+function renderVariantVaultGrid(...args) { return _variantVaultUi.renderVariantVaultGrid(...args); }
+async function generateVariantAction(...args) { return _variantVaultUi.generateVariantAction(...args); }
+async function generateOneVariant(...args) { return _variantVaultUi.generateOneVariant(...args); }
+async function deleteVariantAction(...args) { return _variantVaultUi.deleteVariantAction(...args); }
 
 async function archivePersonaAction() {
   const p = state.selectedPersona;
@@ -7668,25 +6811,12 @@ async function archivePersonaAction() {
 }
 
 function setupVariantManager() {
-  refreshFaceLockOptIn();
-  document.getElementById('btnGenerateVariant').addEventListener('click', async () => {
-    await generateVariantAction();
-    // Refresh stats & history when a variant is generated
-    const dataRes = await authFetch('/api/data');
-    const data = await dataRes.json();
-    state.generationStats = data.generationStats || { total: 0 };
-    updateDashboardStats();
-    if (state.selectedPersona) {
-      loadGenerationHistory(state.selectedPersona.id);
-    }
-  });
-  
+  // generate + randomize + face-lock refresh → variant-vault-ui.js
+  _variantVaultUi.setupVariantManager();
+
   document.getElementById('btnArchivePersona').addEventListener('click', archivePersonaAction);
 
-  const btnRandomize = document.getElementById('btnRandomizeVariant');
-  if (btnRandomize) btnRandomize.addEventListener('click', randomizeVariantChips);
-
-  // Set up Active / Archived filter buttons
+  // Set up Active / Archived filter buttons (persona CRUD / portfolio — stay in app)
   const btnActive = document.getElementById('btnFilterActive');
   const btnArchived = document.getElementById('btnFilterArchived');
   

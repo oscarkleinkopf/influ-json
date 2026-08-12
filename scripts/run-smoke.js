@@ -26,6 +26,7 @@ const env = {
   DISABLE_GIT_BACKUP: '1',
   ENABLE_GIT_BACKUP: '',
   INFLU_SKIP_DB_MIGRATE: process.env.INFLU_SKIP_DB_MIGRATE || '1',
+  INFLU_TEST_UPLOADS: process.env.INFLU_TEST_UPLOADS || '1',
   ENABLE_LEGACY_MIRRORS: '0',
   HOST: process.env.HOST || '127.0.0.1'
 };
