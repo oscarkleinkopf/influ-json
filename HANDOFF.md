@@ -29,17 +29,28 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **Commit base** | `main` @ #91+#90+#89 |
 | **PR actual** | [#92](https://github.com/oscarkleinkopf/influ-json/pull/92) UX-4 parciales HTML |
 | **`main` remoto** | Pages #91 · PIN #90 · UX-2 #89 merged |
-| **Prioridad inmediata** | Merge UX-4; luego UX-5 (DB tests aislada) o #72 |
+| **Prioridad inmediata** | Seguir UX-4 en #92 (módulos JS + CSS); luego UX-5 |
 | **PIN local** | `1234` · Pages = modal (no Studio) |
 | **Servidor correcto** | `npm start` → `node server.js` |
 
-### Sesión reciente (Cursor, 2026-08-11) — Merge + UX-4 parciales
+### Sesión reciente (Cursor, 2026-08-12) — UX-4 continuación (módulos)
+
+**Pedido:** Sigue con UX-4.
+
+**Hecho (sobre #92):**
+- `studio-toast.js` · `queue-poller.js` · `persona-form.js` (`readPersonaForm`) · `persona-card.js`
+- `compilePromptAndJSON` / `getFullPersonaJSON` / `savePersona` usan form único
+- Select + campaña usan `buildSelectPersonaCard` / `buildCampaignPersonaCard`
+- CSS: `.btn-compact`, `.settings-field-input`, `.empty-filter-panel`, `.persona-card--compact`
+- Tests: `test/ux4-modules.test.js`
+
+### Sesión previa (Cursor, 2026-08-11) — Merge + UX-4 parciales
 
 **Pedido:** Merge y continuar siguiente paso.
 
 **Merges:** #91 Pages → #90 PIN → #89 UX-2 → `main`.
 
-**UX-4 (este PR):**
+**UX-4 (parciales):**
 - `views/_head.html` + `views/tabs/*.html` + `views/_foot.html`
 - `views/compose-index.js` · `server.js` sirve `composeIndexHtml()`
 - `npm run build:index` regenera `index.html` (Pages)

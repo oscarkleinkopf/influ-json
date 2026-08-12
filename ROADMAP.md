@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-12 | **UX-4** módulos JS + CSS | toast/queue/form/card UMD; `readPersonaForm`; btn-compact |
 | 2026-08-11 | **UX-4** parciales HTML | `views/` + `composeIndexHtml`; `npm run build:index` |
 | 2026-08-11 | **UX-2** Persona Engine 3 pasos | Identidad / Lock&Packs / Variaciones; Avanzado plegado |
 | 2026-08-11 | **GitHub Pages** estático honesto | Modal en raíz `main` `/`; Pages ≠ Studio (`npm start`) |

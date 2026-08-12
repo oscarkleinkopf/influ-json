@@ -247,6 +247,18 @@ app.get('/prompt-builder.js', (req, res) => {
 app.get('/face-pack.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'face-pack.js'));
 });
+app.get('/studio-toast.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'studio-toast.js'));
+});
+app.get('/queue-poller.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'queue-poller.js'));
+});
+app.get('/persona-form.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'persona-form.js'));
+});
+app.get('/persona-card.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'persona-card.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });

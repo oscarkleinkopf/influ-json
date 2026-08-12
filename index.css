@@ -4153,3 +4153,70 @@ button.is-queue-locked:disabled {
     top: 56px; /* debajo del mobile-header */
   }
 }
+
+
+/* UX-4 — repeated inline → classes */
+.btn-compact {
+  font-size: 11px;
+  padding: 6px 10px;
+}
+.btn-archive-quiet {
+  font-size: 11px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+}
+.settings-field-input {
+  width: 100%;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+}
+.flex-col-gap-8 {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flex-row-gap-8 {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+.empty-filter-panel {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 40px 20px;
+  font-size: 14px;
+}
+.empty-filter-panel__icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+.empty-filter-panel__title {
+  margin-bottom: 8px;
+  color: #fff;
+  font-weight: 600;
+}
+.empty-filter-panel__lead {
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.text-muted-sm {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.persona-card--compact img {
+  height: 90px;
+}
+.persona-card--compact .persona-card-info {
+  padding: 6px 8px;
+}
+.persona-card--compact .persona-card-name {
+  font-size: 12px;
+}

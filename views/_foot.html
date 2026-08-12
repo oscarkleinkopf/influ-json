@@ -273,7 +273,7 @@ npm start</pre>
         <li style="margin-bottom:8px;"><strong style="color:#fff;">Guardar</strong> — aparece en tu portafolio (solo JSON)</li>
         <li style="margin-bottom:8px;"><strong style="color:#fff;">Copiar JSON (recomendado)</strong> a ChatGPT / Gemini / Claude free</li>
       </ol>
-      <div style="display:flex; flex-direction:column; gap:8px;">
+      <div class="flex-col-gap-8">
         <button type="button" class="btn" id="btnMemberWelcomeCreate" style="width:100%; padding:12px;">Crear</button>
         <button type="button" class="btn btn-secondary" id="btnMemberWelcomeImport" style="width:100%; padding:10px; font-size:12px;">Importar</button>
         <button type="button" class="btn btn-secondary" id="btnMemberWelcomeDashboard" style="width:100%; padding:10px; font-size:12px;">Cómo usar</button>
@@ -296,7 +296,7 @@ npm start</pre>
         <li style="margin-bottom:8px;"><strong style="color:#fff;">Guardar</strong> (solo JSON — sin esperar imagen)</li>
         <li style="margin-bottom:8px;"><strong style="color:#fff;">Copiar JSON</strong> → ChatGPT / Gemini / Claude free</li>
       </ol>
-      <div style="display:flex; flex-direction:column; gap:8px;">
+      <div class="flex-col-gap-8">
         <button type="button" class="btn" id="btnFounderWelcomeCreate" style="width:100%; padding:12px;">Crear</button>
         <button type="button" class="btn btn-secondary" id="btnFounderWelcomeImport" style="width:100%; padding:10px; font-size:12px;">Importar</button>
         <button type="button" class="btn btn-secondary" id="btnFounderWelcomeGuide" style="width:100%; padding:10px; font-size:12px;">Cómo usar</button>
@@ -413,11 +413,11 @@ npm start</pre>
         <form id="createProfileForm" style="display:none; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end;">
           <div>
             <label for="newProfileName" style="font-size:10px; color:var(--text-muted);">Nombre</label>
-            <input id="newProfileName" type="text" placeholder="Ej. Marca Beauty" required style="width:100%; padding:8px; background:rgba(0,0,0,0.4); border:1px solid var(--glass-border); border-radius:6px; color:#fff; font-size:12px;">
+            <input id="newProfileName" type="text" placeholder="Ej. Marca Beauty" required class="settings-field-input">
           </div>
           <div>
             <label for="newProfilePin" style="font-size:10px; color:var(--text-muted);">PIN (mín. 4)</label>
-            <input id="newProfilePin" type="password" placeholder="••••" required minlength="4" style="width:100%; padding:8px; background:rgba(0,0,0,0.4); border:1px solid var(--glass-border); border-radius:6px; color:#fff; font-size:12px;">
+            <input id="newProfilePin" type="password" placeholder="••••" required minlength="4" class="settings-field-input">
           </div>
           <button type="submit" class="btn btn-secondary btn-sm" style="padding:10px 12px;">Crear</button>
         </form>
@@ -435,11 +435,11 @@ npm start</pre>
         <form id="createInviteForm" style="display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-bottom:12px;">
           <div>
             <label for="inviteNoteInput" style="font-size:10px; color:var(--text-muted);">Nota (opcional)</label>
-            <input id="inviteNoteInput" type="text" placeholder="Ej. tester beauty" maxlength="200" style="width:100%; padding:8px; background:rgba(0,0,0,0.4); border:1px solid var(--glass-border); border-radius:6px; color:#fff; font-size:12px;">
+            <input id="inviteNoteInput" type="text" placeholder="Ej. tester beauty" maxlength="200" class="settings-field-input">
           </div>
           <div>
             <label for="inviteDaysInput" style="font-size:10px; color:var(--text-muted);">Caduca en (días)</label>
-            <input id="inviteDaysInput" type="number" min="1" max="365" value="14" style="width:100%; padding:8px; background:rgba(0,0,0,0.4); border:1px solid var(--glass-border); border-radius:6px; color:#fff; font-size:12px;">
+            <input id="inviteDaysInput" type="number" min="1" max="365" value="14" class="settings-field-input">
           </div>
           <button type="submit" class="btn btn-sm" style="padding:10px 12px;">Crear código</button>
         </form>
@@ -447,7 +447,7 @@ npm start</pre>
           Código: <code id="lastInviteCodeValue" style="font-size:15px; letter-spacing:1px; color:#fff;"></code>
           <button type="button" id="btnCopyLastInvite" class="btn btn-secondary btn-sm" style="margin-left:8px; font-size:11px;">Copiar</button>
         </div>
-        <div id="invitesList" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div id="invitesList" class="flex-col-gap-8"></div>
       </div>
 
       <div id="backupsSettingsSection" style="display:none;">
@@ -456,16 +456,16 @@ npm start</pre>
         <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
           Copia local de la base en <code>data/backups/</code>. Gratis, sin nube. Se conservan los últimos <strong id="backupKeepHint">10</strong> (env <code>BACKUP_KEEP</code>). Restaurar pide reiniciar el servidor.
         </p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:end;">
+        <div class="flex-row-gap-8" style="margin-bottom:12px;">
           <div style="flex:1; min-width:140px;">
             <label for="backupLabelInput" style="font-size:10px; color:var(--text-muted);">Etiqueta (opcional)</label>
-            <input id="backupLabelInput" type="text" placeholder="antes_demo" maxlength="40" style="width:100%; padding:8px; background:rgba(0,0,0,0.4); border:1px solid var(--glass-border); border-radius:6px; color:#fff; font-size:12px;">
+            <input id="backupLabelInput" type="text" placeholder="antes_demo" maxlength="40" class="settings-field-input">
           </div>
           <button type="button" id="btnCreateBackup" class="btn btn-sm" style="padding:10px 12px;">Crear backup</button>
           <a id="btnExportStudioZip" class="btn btn-secondary btn-sm" href="/api/export/studio" style="padding:10px 12px; text-decoration:none;">Export studio ZIP</a>
         </div>
         <p id="backupMetaLine" style="font-size:11px; color:var(--text-muted); margin:0 0 10px;"></p>
-        <div id="backupsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div id="backupsList" class="flex-col-gap-8"></div>
       </div>
     </div>
   </div>
@@ -508,6 +508,10 @@ npm start</pre>
   <script src="chatbot-packs.js?v=1.4.0"></script>
   <script src="import-flow.js?v=1.0.0"></script>
   <script src="prompt-builder.js?v=1.1.0"></script>
-  <script src="app.js?v=1.13.1"></script>
+  <script src="studio-toast.js?v=1.0.0"></script>
+  <script src="queue-poller.js?v=1.0.0"></script>
+  <script src="persona-form.js?v=1.0.0"></script>
+  <script src="persona-card.js?v=1.0.0"></script>
+  <script src="app.js?v=1.14.0"></script>
 </body>
 </html>
