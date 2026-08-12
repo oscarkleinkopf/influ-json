@@ -151,6 +151,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-12 | **UGC Copiar JSON** honesty | `#btnExportUgcChatbot` → `copyFreeChatbotPack('product')`; sin Sofia fake; vídeo en details |
+| 2026-08-12 | **Merge #96** Ajustes tabs → main | redo #72 Claves/Perfiles/Invites/Studio/Cuenta |
 | 2026-08-12 | **Ajustes tabs** redo #72 | Claves/Perfiles/Invites/Studio/Cuenta; filtro+prune; `settings-tabs.test.js` |
 | 2026-08-12 | **Merge #95** cierre detalles → main | modules upload/vault; uploads `DATA_DIR`; layout-smoke |
 | 2026-08-12 | **UX detalles cierre** modules + uploads + Chrome | photo/vault UI; `getReferencesUploadDir`; `layout-smoke`; backlog #72/#76–80 |

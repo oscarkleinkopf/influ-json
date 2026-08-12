@@ -25,13 +25,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/settings-tabs-ux-9b67` |
-| **Commit base** | `main` @ #95 |
-| **PR actual** | Ajustes con pestañas (redo #72) |
-| **`main` remoto** | UX-5 + UX-4 restos + cierre detalles #95 |
-| **Prioridad inmediata** | Merge settings tabs → free path / lo que diga el owner |
+| **Rama de trabajo** | `cursor/ux-ugc-copiar-json-9b67` |
+| **Commit base** | `main` @ #96 |
+| **PR actual** | UGC: Copiar JSON real + empty state |
+| **`main` remoto** | + Ajustes tabs #96 |
+| **Prioridad inmediata** | Merge UGC honesty → más free path si hace falta |
 
-### Sesión reciente (Cursor, 2026-08-12) — Merge #95 + Ajustes tabs
+### Sesión reciente (Cursor, 2026-08-12) — Merge #96 + UGC Copiar JSON
+
+**Pedido:** Mergea #96 y sigamos.
+
+**Hecho:**
+- [#96](https://github.com/oscarkleinkopf/influ-json/pull/96) → `main` (Ajustes con pestañas / redo #72)
+- UGC `#btnExportUgcChatbot`: ahora **copia** pack `product` (antes solo navegaba a la ficha)
+- Empty state sin demo «Sofia»; vídeo DEMO en `<details>`
+
+### Sesión previa (Cursor, 2026-08-12) — Merge #95 + Ajustes tabs
 
 **Pedido:** Mergea #95 y sigamos.
 
