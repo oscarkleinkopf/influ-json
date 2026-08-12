@@ -25,19 +25,21 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux4-restos-9b67` (rebase sobre main + #94) |
-| **Commit base** | `main` @ #94 UX-5 |
-| **PR actual** | #93 UX-4 restos (fix CI) |
-| **`main` remoto** | UX-5 (#94) merged; #93 pendiente |
-| **Prioridad inmediata** | Verde #93 → merge a main |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ #94 UX-5 + #93 UX-4 restos |
+| **PR actual** | — (merges hechos) |
+| **`main` remoto** | UX-5 (#94) + UX-4 restos (#93) |
+| **Prioridad inmediata** | Siguiente ítem PLAN-UX / producto (free path pulido) |
 
-### Sesión reciente (Cursor, 2026-08-12) — Merges UX-5 + fix UX-4 restos
+### Sesión reciente (Cursor, 2026-08-12) — Merges #94 + #93
 
-**Pedido:** Continua con eso (merge #94 + #93).
+**Pedido:** Continua con eso (merge UX-5 y UX-4 restos).
 
-**Hecho:**
-- [#94](https://github.com/oscarkleinkopf/influ-json/pull/94) UX-5 → `main`
-- Rebase #93 sobre main; tests ajustados a `persona-card.js` / `id="btnGenerateVariant"`
+**Merges:**
+- [#94](https://github.com/oscarkleinkopf/influ-json/pull/94) UX-5 → `main` (CI verde)
+- [#93](https://github.com/oscarkleinkopf/influ-json/pull/93) UX-4 restos → `main` (rebase + fix tests founder/happy-path; 336 pass)
+
+**Siguiente:** PLAN-UX cerrado en UX-0…UX-5 esencial; priorizar pulido free path / lo que diga el owner.
 
 ### Sesión previa (Cursor, 2026-08-12) — UX-5 harness
 
