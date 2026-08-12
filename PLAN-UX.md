@@ -98,7 +98,7 @@ Controles muertos o simulados detectados: `#btnGenerateCampaignScripts` (sin han
 | Hoy | Propuesta | Razón |
 |-----|-----------|-------|
 | Resumen · Persona Engine | **Influencers** (portafolio → ficha → editor) | El portafolio y el selector de personas son la misma cosa en dos sitios |
-| UGC Studio · Script Engine · Galería Prompts | **Producir** (imagen, guion, variantes; la galería pasa a panel lateral) | Las tres operan sobre «el influencer activo + un producto» |
+| UGC Studio · Script Engine · Galería Prompts | **Producir** (UGC + Guiones; galería demoted ✅ — ficha «Ver galería») | Las tres operan sobre «el influencer activo + un producto» |
 | Campañas · Licensing & Pitch | **Negocio** | 1 y 4 controles visibles respectivamente; no justifican pestaña propia |
 | Cómo usar | Botón **?** en el header + primer arranque | Es ayuda, no un destino |
 

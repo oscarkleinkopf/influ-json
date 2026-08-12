@@ -25,13 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux-ugc-copiar-json-9b67` |
-| **Commit base** | `main` @ #96 |
-| **PR actual** | UGC: Copiar JSON real + empty state |
-| **`main` remoto** | + Ajustes tabs #96 |
-| **Prioridad inmediata** | Merge UGC honesty → más free path si hace falta |
+| **Rama de trabajo** | `cursor/produce-gallery-declutter-9b67` |
+| **Commit base** | `main` @ #97 |
+| **PR actual** | Produce declutter + walkthrough happy path |
+| **`main` remoto** | + UGC Copiar JSON #97 |
+| **Prioridad inmediata** | Merge declutter → uso real |
 
-### Sesión reciente (Cursor, 2026-08-12) — Merge #96 + UGC Copiar JSON
+### Sesión reciente (Cursor, 2026-08-12) — Merge #97 + Galería declutter
+
+**Pedido:** Mergea #97 y sigamos con Galería / Produce declutter y walkthrough happy path.
+
+**Hecho:**
+- [#97](https://github.com/oscarkleinkopf/influ-json/pull/97) → `main`
+- Galería fuera del hub Producir; entrada desde ficha (`Ver galería`)
+- Empty gallery → CTA «Ir a Copiar JSON» (paso 2)
+- Walkthrough happy path (capturas)
+
+### Sesión previa (Cursor, 2026-08-12) — Merge #96 + UGC Copiar JSON
 
 **Pedido:** Mergea #96 y sigamos.
 
