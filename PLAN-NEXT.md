@@ -228,8 +228,9 @@ No asignar dos bots al mismo archivo caliente (`app.js`, `server.js`) a la vez.
 
 ## Definition of done (cada Wi)
 
-- [ ] `npm test` verde (+ tests del item).
-- [ ] Smoke 9/9 si toca servidor o happy path.
+- [ ] `npm test` verde (+ tests del item). **Los tests usan `DATA_DIR` temporal** (`scripts/run-tests.js`) — no deben ensuciar `data/influ.sqlite` del workspace.
+- [ ] Smoke 9/9 si toca servidor o happy path (`npm run smoke` también aisla DB).
+- [ ] **Captura de la pestaña afectada renderizada en navegador** (screenshot o grabación corta en el PR / walkthrough). Es la verificación visual que faltaba.
 - [ ] PR draft: qué / por qué / cómo se probó / free path intacto.
 - [ ] HANDOFF actualizado (foco + log).
 - [ ] Sin `.env` ni `data/` en el commit.

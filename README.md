@@ -41,7 +41,9 @@ Landing alternativa (opcional): [`docs/index.html`](./docs/index.html) — no ha
 | `npm start` | **Studio completo** (`server.js` + SQLite) |
 | `npm run build:index` | Regenera `index.html` desde `views/` (tras editar parciales; Pages usa ese archivo) |
 | `npm run start:minimal` | Demo offline (sin SQLite; **no** usar para trabajo real) |
-| `npm test` | Tests (cola, import, validador, export, auth…) |
+| `npm test` | Tests con `DATA_DIR` temporal (`scripts/run-tests.js`; no ensucia `data/`) |
+| `npm run test:raw` | Tests contra `./data` (debug; no usar en CI habitual) |
+| `npm run smoke` | Smoke con DB aislada |
 | `npm run smoke` | Happy path API (9 checks: crear, pack, import, export, isolation) |
 
 ## Flujo emprendedor gratis (60 segundos)

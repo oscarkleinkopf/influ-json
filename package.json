@@ -8,8 +8,9 @@
     "start:minimal": "node server-minimal.js",
     "dev": "node --watch server.js",
     "build:index": "node scripts/build-index.js",
-    "test": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 node --test --test-concurrency=1 test/*.test.js",
-    "smoke": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 node test/smoke.js"
+    "test": "node scripts/run-tests.js",
+    "test:raw": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 node --test --test-concurrency=1 test/*.test.js",
+    "smoke": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 INFLU_SKIP_DB_MIGRATE=1 node scripts/run-smoke.js"
   },
   "keywords": ["ugc", "influencer", "character-lock", "pollinations"],
   "author": "",

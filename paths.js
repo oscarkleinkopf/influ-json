@@ -80,6 +80,12 @@ function resolveDatabasePath() {
     return DB_PATH;
   }
 
+  // UX-5 / tests: never copy workspace root influ.sqlite into an isolated DATA_DIR
+  if (process.env.INFLU_SKIP_DB_MIGRATE === '1') {
+    console.log(`[paths] INFLU_SKIP_DB_MIGRATE=1 — creating new database at ${DB_PATH}`);
+    return DB_PATH;
+  }
+
   const candidates = [
     WORKSPACE_DB_MIRROR,
     path.join(PROJECT_ROOT, 'scratch', DB_FILENAME),

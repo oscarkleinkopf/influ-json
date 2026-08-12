@@ -35,7 +35,7 @@ Stack: Node/Express, better-sqlite3, front monolítico (`index.html` + `app.js` 
 - Imagen: `image-provider.js` (default `pollinations`). Face-lock pago opt-in: `ENABLE_PAID_FACE_LOCK=1` + toggle UI — ver `docs/FACELOCK_R.md`. **Ojo (2026):** Pollinations pasó a créditos «pollen» y su API moderna **exige token Bearer**; el acceso anónimo devuelve `401`/`402 "Insufficient balance"`. Sigue cero-costo con un token gratis (`POLLINATIONS_TOKEN`, grants diarios cubren `flux`) — ver `.env.example`. El fetch vive en `ai-service.js` (endpoint moderno `https://gen.pollinations.ai/image/{prompt}`).
 - Tras mutar personas: refrescar `state.personas` + grids.
 - UI en español; errores honestos (429, offline).
-- Tests: `npm test` → `node --test test/*.test.js`.
+- Tests: `npm test` → `scripts/run-tests.js` (DATA_DIR temporal; no ensucia `data/`). Escape: `npm run test:raw`.
 
 ## Happy path a proteger
 
@@ -82,7 +82,7 @@ El usuario alterna entre **Antigravity** (principal) y **Cursor**. Cada cambio d
 
 ## Cursor Cloud specific instructions
 
-- Arranque / tests: ver README + `package.json` (`npm start`, `npm test`, `npm run smoke`). Auth: `STUDIO_PIN` en `.env`.
+- Arranque / tests: ver README + `package.json` (`npm start`, `npm test` → DB aislada, `npm run smoke`). Auth: `STUDIO_PIN` en `.env`.
 - **DB mirrors (W6):** fuente de verdad = `data/influ.sqlite` (gitignore). Root `influ.sqlite` is **not tracked** — write-only when `ENABLE_LEGACY_MIRRORS=1` (`syncDbToWorkspace`); read only as one-shot migration candidate in `paths.resolveDatabasePath` if `data/` DB is missing. `personas.json` is the intentional **text** roster mirror (also gitignore by default; git backup stages only that path, never the binary). Do **not** `git add -f influ.sqlite`. Recovery on fresh clone: `npm start` → creates/migrates `data/influ.sqlite` from root mirror / scratch / empty; ZIP snapshots under `data/backups/` via Studio admin.
 - **Diagnostics (runtime):** `GET /api/status` — env/config (auth, bind, `dataDir`/`dbPath`, image providers, free-path flags); úsalo al depurar PIN/setup, Pollinations vs face-lock, o paths de DB. `GET /api/queue-status` — cola de generación (`pendingCount`, cooldown 429, `currentTaskInfo`); úsalo cuando gen se atasca, tarda, o sospechas cooldown anti-429.
 - **CSP** (`auth.securityHeaders`): enforce por defecto. `CSP_REPORT_ONLY=1` → solo report. `CSP_ALLOW_HTTPS_IMG=1` → reañade `https:` a `img-src` si hace falta. El front no debe `fetch` orígenes externos (`connect-src 'self'`); Pollinations es server-side. `'unsafe-inline'` en script/style sigue por el monolito (`onclick` / estilos en templates / Google Fonts).
