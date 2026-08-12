@@ -681,6 +681,25 @@ function updateMemberEmptyRosterBanner() {
   banner.style.display = show ? 'flex' : 'none';
 }
 
+/** Tabs de Ajustes: evita el muro de perfiles sin poder llegar a Claves/Studio. */
+function setSettingsTab(tabId) {
+  const allowed = new Set(['claves', 'perfiles', 'invites', 'studio', 'cuenta']);
+  const id = allowed.has(tabId) ? tabId : 'cuenta';
+  document.querySelectorAll('[data-settings-tab]').forEach((btn) => {
+    const on = btn.getAttribute('data-settings-tab') === id;
+    btn.classList.toggle('is-active', on);
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  document.querySelectorAll('[data-settings-panel]').forEach((panel) => {
+    const on = panel.getAttribute('data-settings-panel') === id;
+    panel.classList.toggle('is-active', on);
+    if (on) panel.removeAttribute('hidden');
+    else panel.setAttribute('hidden', '');
+  });
+  try { sessionStorage.setItem('influ_settings_tab', id); } catch (e) {}
+}
+window.setSettingsTab = setSettingsTab;
+
 function applyRoleBasedSettingsUi() {
   const isAdmin = isCurrentUserAdmin();
   const keys = document.getElementById('adminKeysSettingsSection');
@@ -688,19 +707,39 @@ function applyRoleBasedSettingsUi() {
   const title = document.getElementById('settingsModalTitle');
   const heading = document.getElementById('profilesSettingsHeading');
   const lead = document.getElementById('profilesSettingsLead');
-  const metrics = document.getElementById('genMetricsSettingsSection');
-  const auditLog = document.getElementById('auditLogSettingsSection');
+  const tabClaves = document.getElementById('settingsTabClaves');
+  const tabPerfiles = document.getElementById('settingsTabPerfiles');
+  const tabInvites = document.getElementById('settingsTabInvites');
+  const tabStudio = document.getElementById('settingsTabStudio');
+  const tabCuenta = document.getElementById('settingsTabCuenta');
+
   if (keys) keys.style.display = isAdmin ? 'block' : 'none';
   if (hint) hint.style.display = isAdmin ? 'none' : 'block';
-  if (metrics) metrics.style.display = isAdmin ? 'block' : 'none';
-  if (auditLog) auditLog.style.display = isAdmin ? 'block' : 'none';
-  if (title) title.textContent = isAdmin ? 'Ajustes de Proveedores y Claves API' : 'Tu cuenta';
+  if (tabClaves) tabClaves.hidden = !isAdmin;
+  if (tabInvites) tabInvites.hidden = !isAdmin;
+  if (tabStudio) tabStudio.hidden = !isAdmin;
+  if (tabPerfiles) tabPerfiles.hidden = false;
+  if (tabCuenta) tabCuenta.hidden = false;
+
+  if (title) title.textContent = isAdmin ? 'Ajustes' : 'Tu cuenta';
   if (heading) heading.textContent = isAdmin ? 'Perfiles de usuario (local)' : 'Tu perfil';
   if (lead) {
     lead.textContent = isAdmin
-      ? 'Varios emprendedores en el mismo Studio, cada uno con su PIN y su roster. Sin nube ni OAuth.'
+      ? 'Varios emprendedores en el mismo Studio, cada uno con su PIN y su roster. Sin nube ni OAuth. Las filas no abren otra pantalla: renombrar, cambiar PIN o eliminar.'
       : 'Cambia tu PIN o cierra sesión. Tus influencers siguen aislados en este perfil.';
   }
+
+  let preferred = isAdmin ? 'claves' : 'cuenta';
+  try {
+    const saved = sessionStorage.getItem('influ_settings_tab');
+    if (saved) preferred = saved;
+  } catch (e) {}
+  if (!isAdmin) {
+    preferred = preferred === 'perfiles' ? 'perfiles' : 'cuenta';
+  } else if (!['claves', 'perfiles', 'invites', 'studio', 'cuenta'].includes(preferred)) {
+    preferred = 'claves';
+  }
+  setSettingsTab(preferred);
 }
 
 function updateActiveProfileChip() {
@@ -817,10 +856,9 @@ function setupPinDefaultBanner() {
       showSetupPinModal();
       return;
     }
+    try { sessionStorage.setItem('influ_settings_tab', 'perfiles'); } catch (e) {}
     document.getElementById('btnOpenSettings')?.click();
-    setTimeout(() => {
-      document.getElementById('profilesSettingsSection')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    setTimeout(() => setSettingsTab('perfiles'), 50);
   });
 }
 
@@ -835,11 +873,9 @@ async function refreshProfilesSettingsList() {
     const isAdmin = !!data.isAdmin || isCurrentUserAdmin();
     const createForm = document.getElementById('createProfileForm');
     if (createForm) createForm.style.display = isAdmin ? 'grid' : 'none';
-    const invitesSection = document.getElementById('invitesSettingsSection');
-    if (invitesSection) invitesSection.style.display = isAdmin ? 'block' : 'none';
-    const backupsSection = document.getElementById('backupsSettingsSection');
-    if (backupsSection) backupsSection.style.display = isAdmin ? 'block' : 'none';
-    applyRoleBasedSettingsUi();
+    const pruneBar = document.getElementById('profilesPruneBar');
+    if (pruneBar) pruneBar.style.display = isAdmin ? 'block' : 'none';
+    // Tabs / rol: lo aplica setupSettings al abrir; aquí no reseteamos la pestaña activa.
     if (isAdmin) {
       refreshInvitesSettingsList();
       refreshBackupsSettingsList();
@@ -850,7 +886,50 @@ async function refreshProfilesSettingsList() {
       ? (data.profiles || [])
       : (data.profiles || []).filter(p => p.id === currentId);
 
-    list.innerHTML = visibleProfiles.map(p => `
+    visibleProfiles.sort((a, b) => {
+      if (a.id === currentId) return -1;
+      if (b.id === currentId) return 1;
+      const roleRank = (r) => (r === 'owner' || r === 'admin' ? 0 : 1);
+      const rr = roleRank(a.role) - roleRank(b.role);
+      if (rr !== 0) return rr;
+      return String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' });
+    });
+
+    const filterInput = document.getElementById('profilesListFilter');
+    const q = (filterInput?.value || '').trim().toLowerCase();
+    const filtered = q
+      ? visibleProfiles.filter((p) => String(p.name || '').toLowerCase().includes(q)
+        || String(p.role || '').toLowerCase().includes(q))
+      : visibleProfiles;
+
+    const countEl = document.getElementById('profilesListCount');
+    if (countEl) {
+      countEl.textContent = q
+        ? `${filtered.length} / ${visibleProfiles.length}`
+        : `${visibleProfiles.length} perfil${visibleProfiles.length === 1 ? '' : 'es'}`;
+    }
+
+    const current = visibleProfiles.find((p) => p.id === currentId) || visibleProfiles[0];
+    const cuentaSummary = document.getElementById('cuentaActiveProfileSummary');
+    if (cuentaSummary && current) {
+      cuentaSummary.innerHTML = `
+        <div>
+          <strong>${escapeLockHtml(current.name)}</strong>
+          <span class="profile-meta">${escapeLockHtml(current.role === 'owner' ? 'admin' : current.role)} · ${current.personaCount || 0} influencers</span>
+        </div>
+        <div class="profile-row-actions">
+          <span class="profile-current-tag">Activo</span>
+          <button type="button" class="btn btn-secondary btn-sm" data-rename-profile="${current.id}" data-name="${escapeLockHtml(current.name)}">Renombrar</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-repin-profile="${current.id}">Cambiar PIN</button>
+        </div>
+      `;
+    } else if (cuentaSummary) {
+      cuentaSummary.innerHTML = '<p class="u-muted-12-plain">Sin perfil activo.</p>';
+    }
+
+    const renderRows = (container, profiles, { allowDelete }) => {
+      if (!container) return;
+      container.innerHTML = profiles.map(p => `
       <div class="profile-row ${p.id === currentId ? 'is-current' : ''}">
         <div>
           <strong>${escapeLockHtml(p.name)}</strong>
@@ -860,52 +939,66 @@ async function refreshProfilesSettingsList() {
           ${p.id === currentId ? '<span class="profile-current-tag">Activo</span>' : ''}
           <button type="button" class="btn btn-secondary btn-sm" data-rename-profile="${p.id}" data-name="${escapeLockHtml(p.name)}">Renombrar</button>
           <button type="button" class="btn btn-secondary btn-sm" data-repin-profile="${p.id}">Cambiar PIN</button>
-          ${(isAdmin && p.id !== currentId) ? `<button type="button" class="btn btn-secondary btn-sm u-color-danger" data-delete-profile="${p.id}" >Eliminar</button>` : ''}
+          ${(allowDelete && p.id !== currentId) ? `<button type="button" class="btn btn-secondary btn-sm u-color-danger" data-delete-profile="${p.id}">Eliminar</button>` : ''}
         </div>
       </div>
     `).join('') || '<p class="u-muted-12-plain">Sin perfiles.</p>';
+    };
 
-    list.querySelectorAll('[data-rename-profile]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const name = prompt('Nuevo nombre del perfil:', btn.getAttribute('data-name') || '');
-        if (!name) return;
-        const res2 = await authFetch(`/api/profiles/${btn.getAttribute('data-rename-profile')}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ name })
+    renderRows(list, filtered, { allowDelete: isAdmin });
+
+    const bindProfileActions = (root) => {
+      if (!root) return;
+      root.querySelectorAll('[data-rename-profile]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const name = prompt('Nuevo nombre del perfil:', btn.getAttribute('data-name') || '');
+          if (!name) return;
+          const res2 = await authFetch(`/api/profiles/${btn.getAttribute('data-rename-profile')}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ name })
+          });
+          const d = await res2.json();
+          if (!d.success) return toastError(d.message || 'No se pudo renombrar');
+          if (state.currentProfile?.id === d.profile.id) {
+            state.currentProfile = d.profile;
+            updateActiveProfileChip();
+          }
+          toastSuccess('Perfil renombrado');
+          refreshProfilesSettingsList();
         });
-        const d = await res2.json();
-        if (!d.success) return toastError(d.message || 'No se pudo renombrar');
-        if (state.currentProfile?.id === d.profile.id) {
-          state.currentProfile = d.profile;
-          updateActiveProfileChip();
-        }
-        toastSuccess('Perfil renombrado');
-        refreshProfilesSettingsList();
       });
-    });
-    list.querySelectorAll('[data-repin-profile]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const pin = prompt('Nuevo PIN (mín. 4 caracteres):');
-        if (!pin) return;
-        const res2 = await authFetch(`/api/profiles/${btn.getAttribute('data-repin-profile')}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ pin })
+      root.querySelectorAll('[data-repin-profile]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const pin = prompt('Nuevo PIN (mín. 4 caracteres):');
+          if (!pin) return;
+          const res2 = await authFetch(`/api/profiles/${btn.getAttribute('data-repin-profile')}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ pin })
+          });
+          const d = await res2.json();
+          if (!d.success) return toastError(d.message || 'No se pudo cambiar el PIN');
+          toastSuccess('PIN actualizado');
         });
-        const d = await res2.json();
-        if (!d.success) return toastError(d.message || 'No se pudo cambiar el PIN');
-        toastSuccess('PIN actualizado');
       });
-    });
-    list.querySelectorAll('[data-delete-profile]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('¿Eliminar este perfil? Sus influencers pasarán al perfil más antiguo.')) return;
-        const res2 = await authFetch(`/api/profiles/${btn.getAttribute('data-delete-profile')}`, { method: 'DELETE' });
-        const d = await res2.json();
-        if (!d.success) return toastError(d.message || 'No se pudo eliminar');
-        toastSuccess('Perfil eliminado');
-        refreshProfilesSettingsList();
+      root.querySelectorAll('[data-delete-profile]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('¿Eliminar este perfil? Sus influencers pasarán al perfil más antiguo.')) return;
+          const res2 = await authFetch(`/api/profiles/${btn.getAttribute('data-delete-profile')}`, { method: 'DELETE' });
+          const d = await res2.json();
+          if (!d.success) return toastError(d.message || 'No se pudo eliminar');
+          toastSuccess('Perfil eliminado');
+          refreshProfilesSettingsList();
+        });
       });
-    });
+    };
+
+    bindProfileActions(list);
+    bindProfileActions(cuentaSummary);
+
+    if (filterInput && !filterInput.dataset.boundFilter) {
+      filterInput.dataset.boundFilter = '1';
+      filterInput.addEventListener('input', () => refreshProfilesSettingsList());
+    }
   } catch (err) {
     list.innerHTML = `<p class="u-danger-12">${escapeLockHtml(err.message || 'Error al cargar perfiles')}</p>`;
   }
@@ -1133,8 +1226,10 @@ function openPollinationsSettings() {
     return;
   }
   const modal = document.getElementById('settingsModal');
+  try { sessionStorage.setItem('influ_settings_tab', 'claves'); } catch (e) {}
   document.getElementById('btnOpenSettings')?.click();
   setTimeout(() => {
+    setSettingsTab('claves');
     const input = document.getElementById('pollinationsTokenInput');
     if (input) {
       input.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1152,6 +1247,20 @@ function setupSettings() {
   const btnClose = document.getElementById('btnCloseSettings');
   const form = document.getElementById('settingsForm');
   const btnDisable = document.getElementById('btnDisableKeys');
+
+  document.getElementById('settingsTabNav')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-settings-tab]');
+    if (!btn || btn.hidden) return;
+    const tab = btn.getAttribute('data-settings-tab');
+    setSettingsTab(tab);
+    if (tab === 'studio' && isCurrentUserAdmin()) {
+      refreshGenMetricsSettings();
+      refreshAuditLogSettings();
+      refreshBackupsSettingsList();
+    }
+    if (tab === 'invites' && isCurrentUserAdmin()) refreshInvitesSettingsList();
+    if (tab === 'perfiles') refreshProfilesSettingsList();
+  });
 
   if (btnOpen) {
     btnOpen.addEventListener('click', () => {
@@ -1197,6 +1306,41 @@ function setupSettings() {
 
   document.getElementById('btnLogoutSession')?.addEventListener('click', logoutSession);
   setupPinDefaultBanner();
+
+  document.getElementById('btnPruneEmptyTestProfiles')?.addEventListener('click', async () => {
+    if (!isCurrentUserAdmin()) return;
+    const TEST_NAME = /^(Member Sec|MetricsMem_|Onboard_|SmokeMember|SmokeMem)/i;
+    try {
+      const res = await authFetch('/api/profiles');
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Error');
+      const currentId = data.currentProfileId;
+      const victims = (data.profiles || []).filter((p) =>
+        p.id !== currentId
+        && p.role !== 'owner'
+        && p.role !== 'admin'
+        && !(p.personaCount > 0)
+        && TEST_NAME.test(String(p.name || ''))
+      );
+      if (!victims.length) {
+        toastInfo('No hay perfiles de prueba vacíos para limpiar.');
+        return;
+      }
+      if (!confirm(`¿Eliminar ${victims.length} perfiles de prueba vacíos? Sus influencers (si hubiera) pasarían al perfil más antiguo.`)) return;
+      let ok = 0;
+      let fail = 0;
+      for (const p of victims) {
+        const r = await authFetch(`/api/profiles/${p.id}`, { method: 'DELETE' });
+        const d = await r.json().catch(() => ({}));
+        if (d.success) ok += 1;
+        else fail += 1;
+      }
+      toastSuccess(`Limpieza: ${ok} eliminados${fail ? `, ${fail} fallaron` : ''}.`);
+      refreshProfilesSettingsList();
+    } catch (err) {
+      toastError(err.message || 'No se pudo limpiar perfiles');
+    }
+  });
 
   const createInviteForm = document.getElementById('createInviteForm');
   if (createInviteForm) {

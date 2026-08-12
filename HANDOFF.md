@@ -25,13 +25,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux-detalles-cierre-9b67` |
-| **Commit base** | `main` @ #94+#93 |
-| **PR actual** | Cierre detalles UX (style/split/uploads/Chrome) |
-| **`main` remoto** | UX-5 + UX-4 restos |
-| **Prioridad inmediata** | Merge detalles → producto free path |
+| **Rama de trabajo** | `cursor/settings-tabs-ux-9b67` |
+| **Commit base** | `main` @ #95 |
+| **PR actual** | Ajustes con pestañas (redo #72) |
+| **`main` remoto** | UX-5 + UX-4 restos + cierre detalles #95 |
+| **Prioridad inmediata** | Merge settings tabs → free path / lo que diga el owner |
 
-### Sesión reciente (Cursor, 2026-08-12) — Cierre detalles no esenciales
+### Sesión reciente (Cursor, 2026-08-12) — Merge #95 + Ajustes tabs
+
+**Pedido:** Mergea #95 y sigamos.
+
+**Hecho:**
+- [#95](https://github.com/oscarkleinkopf/influ-json/pull/95) → `main` (detalles: modules, uploads, layout-smoke)
+- Redo draft #72: modal Ajustes con pestañas Claves / Perfiles / Invitaciones / Studio / Cuenta (`views/_foot.html` + `setSettingsTab` + filtro/prune perfiles)
+- Test `test/settings-tabs.test.js`
+
+### Sesión previa (Cursor, 2026-08-12) — Cierre detalles no esenciales
 
 **Pedido:** Terminemos todos esos detalles antes de continuar con el resto.
 
