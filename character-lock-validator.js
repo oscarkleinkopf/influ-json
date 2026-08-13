@@ -45,6 +45,32 @@
     return { level, field, message, hint: hint || null };
   }
 
+  /** Etiqueta sugerida cuando Origen = «Latina» a secas + tez clara (anti-sesgo). */
+  const LATINA_TEZ_CLARA = 'Latina de tez clara';
+
+  /**
+   * @param {string} ethnicity
+   * @param {string} skinTone
+   * @param {string} skinHex
+   * @returns {{ needed: true, suggested: string, message: string } | null}
+   */
+  function suggestLatinaLightSkinFix(ethnicity, skinTone, skinHex) {
+    const eth = String(ethnicity || '').trim();
+    // Solo «Latina» exacta (no «Latina / Mediterránea» ni ya «…tez clara»)
+    if (!/^latina$/i.test(eth)) return null;
+    if (/tez\s*clara/i.test(eth)) return null;
+    const tone = String(skinTone || '').trim();
+    const brightness = hexBrightness(skinHex);
+    const lightSkin = (brightness !== null && brightness >= 155)
+      || /clara|porcelana|fair|ivory|pálid|pale|light|beige/i.test(tone);
+    if (!lightSkin) return null;
+    return {
+      needed: true,
+      suggested: LATINA_TEZ_CLARA,
+      message: '«Latina» a secas con tez clara: los generadores tienden a oscurecerla. Mejor «Latina de tez clara».'
+    };
+  }
+
   /**
    * Valida el JSON completo de persona (salida de getFullPersonaJSON o JSON importado).
    *
@@ -113,13 +139,11 @@
     }
     // Anti-sesgo: «Latina» a secas + tez clara → los generadores tienden a oscurecer
     const ethnicity = String(identity.ethnicity_appearance || json.ethnicity || '');
-    const brightness = hexBrightness(skinHex);
-    const lightSkin = (brightness !== null && brightness >= 155)
-      || /clara|porcelana|fair|ivory|pálid|light/i.test(skinTone);
-    if (/^latina$/i.test(ethnicity.trim()) && lightSkin && !/tez clara|clara/i.test(ethnicity)) {
+    const latinaFix = suggestLatinaLightSkinFix(ethnicity, skinTone, skinHex);
+    if (latinaFix) {
       warnings.push(issue('warning', 'identity.ethnicity_appearance',
-        '«Latina» a secas con tez clara: los generadores tienden a oscurecerla. Mejor «Latina de tez clara».',
-        'Formulario → Etnia aparente'));
+        latinaFix.message,
+        'Formulario → Origen / Apariencia → «Usar Latina de tez clara»'));
     }
 
     // ── Rostro ─────────────────────────────────────────────────────────
@@ -322,6 +346,8 @@
 
   return {
     validateCharacterLock,
+    suggestLatinaLightSkinFix,
+    LATINA_TEZ_CLARA,
     isValidHex,
     hexBrightness,
     diffCharacterLocks,
