@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-13 | **Merge #104** happy path UI | walkthrough crear→guardar→Copiar JSON en `main` |
 | 2026-08-13 | **Happy path UI** walkthrough | crear→guardar→aparece→Copiar JSON; dismiss `founderWelcomeModal` |
 | 2026-08-13 | **UX-2 DoD** Avanzado único + alturas | create ≤1800; Copiar JSON above-fold; LoRA/A-B/lock en un details |
 | 2026-08-13 | **Merge #102** + Identidad compacta | crear: sin muro/Biblia; ≤40 controles; layout-smoke create-compact |
