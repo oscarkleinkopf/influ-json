@@ -25,14 +25,26 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux2-identidad-compact-9b67` |
-| **Commit base** | `main` @ #102 merged |
-| **PR actual** | [#103](https://github.com/oscarkleinkopf/influ-json/pull/103) — UX-2 DoD estricto |
-| **`main` remoto** | + #102 |
-| **Prioridad inmediata** | Free path / UX operatividad |
+| **Rama de trabajo** | `cursor/happy-path-validate-9b67` |
+| **Commit base** | `main` @ #103 merged |
+| **PR actual** | (este) — walkthrough UI create → Copiar JSON |
+| **`main` remoto** | + #103 (UX-2 DoD) |
+| **Prioridad inmediata** | Free path / fricción real si aparece |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — UX-2 DoD estricto (Avanzado único + alturas)
+### Sesión reciente (Cursor, 2026-08-13) — Merge #103 + happy path UI
+
+**Pedido:** Dale con merge, happy path.
+
+**Hecho:**
+- [#103](https://github.com/oscarkleinkopf/influ-json/pull/103) → `main` (UX-2 DoD)
+- Validación: `npm run walkthrough` + `npm run layout-smoke` OK en Chrome
+- Walkthrough ahora cubre **crear en UI → Guardar → aparece → Copiar JSON** (P0; ya no crea solo por API)
+- Dismiss correcto de `#founderWelcomeModal` (antes se ocultaba un id inexistente y el modal bloqueaba Galería/Campañas)
+- Capturas: `/opt/cursor/artifacts/screenshots/happy-path/` (+ `00-crear-form`, `00b-tras-guardar`)
+- Comercial sigue aparcado
+
+### Sesión previa (Cursor, 2026-08-13) — UX-2 DoD estricto (Avanzado único + alturas)
 
 **Pedido:** Terminar lo pendiente de UX-2/UX-3.
 

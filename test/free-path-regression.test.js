@@ -246,4 +246,9 @@ test('free-path: walkthrough exige clipboard con lock (source)', () => {
   assert.match(walk, /clipboardChars/);
   assert.match(walk, /pass:\s*copyOk/);
   assert.match(walk, /no dejó character_lock/);
+  // P0: crear en UI → guardar → aparece (no solo API)
+  assert.match(walk, /create-ui-save-appears/);
+  assert.match(walk, /startCreateScratchFlow|resetPersonaFormForNew/);
+  assert.match(walk, /btnSavePersona|savePersona\(\{\s*withPortrait:\s*false\s*\}\)/);
+  assert.match(walk, /founderWelcomeModal/);
 });
