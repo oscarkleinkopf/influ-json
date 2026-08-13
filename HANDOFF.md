@@ -25,14 +25,26 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/lock-identidad-honesto-9b67` |
-| **Commit base** | `main` @ #106 merged |
-| **PR actual** | (este) — lock Identidad Latina+tez clara |
-| **`main` remoto** | + #106 (primer JSON) |
-| **Prioridad inmediata** | Merge → idea #3 inspirar desde foto (o #4/#6) |
+| **Rama de trabajo** | `cursor/import-ritual-foto-9b67` |
+| **Commit base** | `main` @ #107 merged |
+| **PR actual** | (este) — ritual inspirar desde foto |
+| **`main` remoto** | + #107 (lock Identidad) |
+| **Prioridad inmediata** | Merge → idea #4 UX-1c ≤3 Copiar JSON (o #6 README) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Idea #2 lock Identidad
+### Sesión reciente (Cursor, 2026-08-13) — Idea #3 ritual inspirar desde foto
+
+**Pedido:** Mergea #107 y seguimos.
+
+**Hecho:**
+- [#107](https://github.com/oscarkleinkopf/influ-json/pull/107) → `main`
+- Modal «Inspirar desde foto»: pasos Subir → Confirmar tez/ojos/pelo → Guardar → Copiar JSON
+- `applyImportConfirmTraits` escribe `must_match` en `detailedJSON.character_lock`
+- Tras guardar: `setStep2Focus` + toast Copiar JSON (igual que crear desde cero)
+- Walkthrough: paso `import-ritual-ui` + captura `08-import-ritual.png`
+- Siguiente: idea #4 UX-1c ≤3 Copiar JSON
+
+### Sesión previa (Cursor, 2026-08-13) — Idea #2 lock Identidad
 
 **Pedido:** Mergea #106 y seguimos con 2.
 

@@ -7582,7 +7582,10 @@ function initImportModal() {
     loadPersonaVariants:
       typeof loadPersonaVariants === 'function' ? loadPersonaVariants : loadVariantsForPersona,
     getState: () => state,
-    QueuePoller
+    QueuePoller,
+    setStep2Focus,
+    setPersonaStep,
+    copyFreeChatbotPack
   });
 }
 

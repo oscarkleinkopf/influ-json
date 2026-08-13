@@ -568,6 +568,44 @@ async function main() {
     report.steps.push({ step: 'negocio-campaign-precheck', pass: campOk, campaignPrecheck });
     if (!campOk) report.ok = false;
 
+    // Idea #3 — ritual inspirar desde foto (UI): modal + traits + CTA
+    await page.evaluate(() => {
+      document.getElementById('btnCloseImportModal')?.click();
+      const open = document.getElementById('btnOpenImportModal');
+      if (open) open.click();
+      else if (typeof window.InfluImportFlow?.initImportModal === 'function') {
+        /* already inited */
+      }
+    });
+    await new Promise((r) => setTimeout(r, 400));
+    const importRitual = await page.evaluate(() => {
+      const modal = document.getElementById('importInfluencerModal');
+      const display = modal ? getComputedStyle(modal).display : null;
+      const step1Active = document.querySelector('[data-import-ritual="1"]')?.classList.contains('is-active');
+      return {
+        display,
+        title: (modal?.querySelector('h2')?.textContent || '').trim(),
+        hasSkin: !!document.getElementById('importConfirmSkin'),
+        hasEyes: !!document.getElementById('importConfirmEyes'),
+        hasHair: !!document.getElementById('importConfirmHair'),
+        cta: (document.getElementById('btnConfirmImport')?.textContent || '').trim(),
+        step1Active: !!step1Active,
+        analyzeLabel: (document.getElementById('btnAnalyzeInfluencer')?.textContent || '').trim()
+      };
+    });
+    await page.screenshot({ path: shot('08-import-ritual.png'), fullPage: false });
+    report.shots.push(shot('08-import-ritual.png'));
+    const importOk = importRitual.display === 'flex'
+      && /Inspirar desde foto/i.test(importRitual.title)
+      && importRitual.hasSkin
+      && importRitual.hasEyes
+      && importRitual.hasHair
+      && /Copiar JSON/i.test(importRitual.cta)
+      && importRitual.step1Active;
+    report.steps.push({ step: 'import-ritual-ui', pass: importOk, importRitual });
+    if (!importOk) report.ok = false;
+    await page.evaluate(() => document.getElementById('btnCloseImportModal')?.click());
+
     const reportPath = path.join(shotDir, 'walkthrough-report.json');
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
     console.log('[happy-path-walk] report →', reportPath);

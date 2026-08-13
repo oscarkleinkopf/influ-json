@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-13 | **Import ritual foto** | confirmar tez/ojos/pelo → Guardar → Copiar JSON; mismo foco paso 2 |
 | 2026-08-13 | **Lock Identidad** Latina+tez clara | hint + aplicar en paso 1; score lock inline; soft nudge al guardar |
 | 2026-08-13 | **Paso 2 primer JSON** | `data-step2-focus` tras crear; Biblia/pose ocultos; Copiar JSON only |
 | 2026-08-13 | **PLAN-UX §12** backlog post-UX | paso 2 primer JSON → lock Identidad → import foto → UX-1c → chrome → README |
