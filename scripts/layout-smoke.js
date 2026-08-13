@@ -38,6 +38,7 @@ async function setSessionCookies(page, base, pin) {
     body: JSON.stringify({ pin })
   });
   if (!login.ok) throw new Error(`login HTTP ${login.status}`);
+  const loginBody = await login.json().catch(() => ({}));
   const setCookie = login.headers.getSetCookie?.() || [];
   const raw = login.headers.get('set-cookie');
   const cookies = setCookie.length ? setCookie : (raw ? raw.split(/,(?=\s*[^;]+=)/) : []);
@@ -51,7 +52,10 @@ async function setSessionCookies(page, base, pin) {
       url: base
     });
   }
-  return cookies.map((c) => c.split(';')[0]).join('; ');
+  return {
+    cookieHeader: cookies.map((c) => c.split(';')[0]).join('; '),
+    csrfToken: loginBody.csrfToken || null
+  };
 }
 
 async function dismissOverlays(page) {
@@ -147,12 +151,16 @@ async function main() {
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
 
-    const cookieHeader = await setSessionCookies(page, base, pin);
+    const { cookieHeader, csrfToken } = await setSessionCookies(page, base, pin);
 
     // Seed one persona so Negocio/Persona steps show real context
     const createRes = await fetch(`${base}/api/personas`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: cookieHeader },
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: cookieHeader,
+        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {})
+      },
       body: JSON.stringify({
         name: 'Layout Smoke Luna',
         gender: 'Female',
@@ -178,11 +186,16 @@ async function main() {
     });
     const created = await createRes.json().catch(() => ({}));
     if (!createRes.ok || !created.success) {
-      throw new Error(`create persona failed: ${createRes.status}`);
+      throw new Error(`create persona failed: ${createRes.status}${created.code ? ` ${created.code}` : ''}`);
     }
     report.checks.push({ check: 'seed-persona', pass: true });
 
     await page.goto(`${base}/`, { waitUntil: 'networkidle2', timeout: 60000 });
+    if (csrfToken) {
+      await page.evaluate((token) => {
+        if (window.state) window.state.csrfToken = token;
+      }, csrfToken).catch(() => {});
+    }
     await dismissOverlays(page);
     await page.waitForSelector('.main-content', { timeout: 15000 });
 

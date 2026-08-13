@@ -115,10 +115,16 @@ test('POST /api/setup/change-pin rejects short PIN and 1234; accepts valid', asy
       assert.equal(login.status, 200);
       assert.equal(loginData.success, true);
       const cookie = cookieFrom(login);
+      const csrf = loginData.csrfToken;
+      const csrfHdr = {
+        'Content-Type': 'application/json',
+        Cookie: cookie,
+        ...(csrf ? { 'X-CSRF-Token': csrf } : {})
+      };
 
       const tooShort = await fetch(`${base}/api/setup/change-pin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Cookie: cookie },
+        headers: csrfHdr,
         body: JSON.stringify({ pin: 'abc', confirmPin: 'abc' })
       });
       assert.equal(tooShort.status, 400);
@@ -127,21 +133,21 @@ test('POST /api/setup/change-pin rejects short PIN and 1234; accepts valid', asy
 
       const stillDefault = await fetch(`${base}/api/setup/change-pin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Cookie: cookie },
+        headers: csrfHdr,
         body: JSON.stringify({ pin: '1234', confirmPin: '1234' })
       });
       assert.equal(stillDefault.status, 400);
 
       const mismatch = await fetch(`${base}/api/setup/change-pin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Cookie: cookie },
+        headers: csrfHdr,
         body: JSON.stringify({ pin: 'seguro99', confirmPin: 'seguro00' })
       });
       assert.equal(mismatch.status, 400);
 
       const ok = await fetch(`${base}/api/setup/change-pin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Cookie: cookie },
+        headers: csrfHdr,
         body: JSON.stringify({ pin: 'seguro99', confirmPin: 'seguro99' })
       });
       const okBody = await ok.json();

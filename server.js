@@ -136,13 +136,18 @@ function resolveSessionProfile(req) {
 function requireAuth(req, res, next) {
   if (!authService.isAuthEnabled()) {
     resolveSessionProfile(req);
+    if (req.session) authService.ensureCsrfToken(req.session);
     return next();
   }
   if (req.session && req.session.authenticated && req.session.profileId) {
+    authService.ensureCsrfToken(req.session);
     return next();
   }
   const profileId = resolveSessionProfile(req);
-  if (req.session?.authenticated && profileId) return next();
+  if (req.session?.authenticated && profileId) {
+    authService.ensureCsrfToken(req.session);
+    return next();
+  }
   return res.status(401).json({ success: false, message: 'Acceso denegado. PIN inválido o sesión expirada.' });
 }
 
@@ -389,12 +394,13 @@ app.post('/api/auth/login', (req, res) => {
       success: true,
       message: 'Sesión iniciada correctamente.',
       profile: publicProfileDTO(profile),
-      pinIsDefault: authService.isPinDefault()
+      pinIsDefault: authService.isPinDefault(),
+      csrfToken: authService.ensureCsrfToken(req.session)
     });
   });
 });
 
-app.post('/api/auth/logout', (req, res) => {
+app.post('/api/auth/logout', authService.csrfProtection, (req, res) => {
   req.session.destroy(() => {
     res.clearCookie('influ.sid');
     res.json({ success: true, message: 'Sesión cerrada.' });
@@ -410,7 +416,8 @@ app.get('/api/auth/me', (req, res) => {
     success: true,
     authenticated: true,
     profile: publicProfileDTO(profile),
-    pinIsDefault: authService.isPinDefault()
+    pinIsDefault: authService.isPinDefault(),
+    csrfToken: authService.ensureCsrfToken(req.session)
   });
 });
 
@@ -501,6 +508,7 @@ app.get('/api/status', (req, res) => {
   if (authenticated) {
     body.dataDir = dbService.getDataDir ? dbService.getDataDir() : DATA_DIR;
     body.dbPath = dbService.getDbPath ? dbService.getDbPath() : null;
+    body.csrfToken = authService.ensureCsrfToken(req.session);
   }
   res.json(body);
 });
@@ -509,7 +517,7 @@ app.get('/api/status', (req, res) => {
  * Primer arranque: cambiar PIN por defecto (escribe STUDIO_PIN en .env + hash admin).
  * Requiere sesión de Administración. Mínimo 6 caracteres; no admite 1234.
  */
-app.post('/api/setup/change-pin', requireAuth, requireAdmin, (req, res) => {
+app.post('/api/setup/change-pin', requireAuth, authService.csrfProtection, requireAdmin, (req, res) => {
   try {
     const { pin, confirmPin } = req.body || {};
     const nextPin = firstRun.validateNewStudioPin(pin, confirmPin);
@@ -539,7 +547,8 @@ app.post('/api/setup/change-pin', requireAuth, requireAdmin, (req, res) => {
             success: true,
             message: 'PIN actualizado. Guárdalo en un lugar seguro.',
             pinIsDefault: authService.isPinDefault(),
-            setupRequired: authService.isPinDefault()
+            setupRequired: authService.isPinDefault(),
+            csrfToken: authService.ensureCsrfToken(req.session)
           });
         }
       );
@@ -551,7 +560,8 @@ app.post('/api/setup/change-pin', requireAuth, requireAdmin, (req, res) => {
       success: true,
       message: 'PIN actualizado. Guárdalo en un lugar seguro.',
       pinIsDefault: authService.isPinDefault(),
-      setupRequired: authService.isPinDefault()
+      setupRequired: authService.isPinDefault(),
+      csrfToken: req.session ? authService.ensureCsrfToken(req.session) : null
     });
   } catch (err) {
     const status = err.code === 'PIN_TOO_SHORT' || err.code === 'PIN_MISMATCH' || err.code === 'PIN_STILL_DEFAULT'
@@ -573,6 +583,8 @@ registerInviteRedeemRoute(app, {
 // =============================================
 
 app.use('/api', requireAuth);
+// CSRF tras auth: mutaciones cookie exigen X-CSRF-Token (Bearer/CLI exento).
+app.use('/api', authService.csrfProtection);
 
 // Cola: solo con sesión (o auth off en localhost). Evita recon de currentTaskInfo.
 app.get('/api/queue-status', (req, res) => {

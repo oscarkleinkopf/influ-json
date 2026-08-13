@@ -38,6 +38,7 @@ async function setSessionCookies(page, base, pin) {
     body: JSON.stringify({ pin })
   });
   if (!login.ok) throw new Error(`login HTTP ${login.status}`);
+  const loginBody = await login.json().catch(() => ({}));
   const setCookie = login.headers.getSetCookie?.() || [];
   const raw = login.headers.get('set-cookie');
   const cookies = setCookie.length ? setCookie : (raw ? raw.split(/,(?=\s*[^;]+=)/) : []);
@@ -51,7 +52,10 @@ async function setSessionCookies(page, base, pin) {
       url: base
     });
   }
-  return cookies.map((c) => c.split(';')[0]).join('; ');
+  return {
+    cookieHeader: cookies.map((c) => c.split(';')[0]).join('; '),
+    csrfToken: loginBody.csrfToken || null
+  };
 }
 
 async function main() {
@@ -139,11 +143,16 @@ async function main() {
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
 
-    await setSessionCookies(page, base, pin);
+    const session = await setSessionCookies(page, base, pin);
 
     const personaName = `Walkthrough Luna ${Date.now().toString(36).slice(-4)}`;
 
     await page.goto(`${base}/`, { waitUntil: 'networkidle2', timeout: 60000 });
+    if (session.csrfToken) {
+      await page.evaluate((token) => {
+        if (window.state) window.state.csrfToken = token;
+      }, session.csrfToken).catch(() => {});
+    }
     // Dismiss blocking overlays (id real: founderWelcomeModal)
     const dismissOverlays = async () => {
       await page.evaluate(() => {

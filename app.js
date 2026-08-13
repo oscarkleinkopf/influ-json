@@ -37,8 +37,17 @@ let state = {
   /** ugc-creator Layer 4 — cámara iPhone activa para packs */
   ugcCameraId: 'selfie',
   /** Formato UGC activo (testimonial, lifestyle, …) */
-  ugcShotTypeId: null
+  ugcShotTypeId: null,
+  /** CSRF synchronizer (sesión cookie) — viene de login /status /me */
+  csrfToken: null
 };
+
+function rememberCsrfToken(payload) {
+  const token = payload && payload.csrfToken;
+  if (token && typeof token === 'string') {
+    state.csrfToken = token;
+  }
+}
 
 const HAPPY_PATH_COPY_KEY = 'influ_happy_path_copied_v1';
 const MEMBER_ONBOARD_DISMISS_PREFIX = 'influ_member_onboard_dismissed_';
@@ -93,10 +102,18 @@ async function authFetch(url, options = {}) {
   }
   // Cookie session (influ.sid) — no Bearer/PIN in JS storage.
   // Server still accepts Authorization: Bearer for tests/CLI.
+  const method = String(options.method || 'GET').toUpperCase();
+  if (state.csrfToken && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+    options.headers['X-CSRF-Token'] = state.csrfToken;
+  }
 
   try {
     const res = await fetch(url, options);
     setOfflineBanner(false);
+    try {
+      const peekCsrf = res.headers.get('x-csrf-token');
+      if (peekCsrf) state.csrfToken = peekCsrf;
+    } catch (_) { /* ignore */ }
 
     if (res.status === 401) {
       // Pollinations auth/pollen can surface as 401 — no cerrar sesión Studio.
@@ -231,7 +248,9 @@ async function probeStudioApiStatus() {
     const res = await fetch('/api/status', { credentials: 'same-origin' });
     const ct = (res.headers.get('content-type') || '').toLowerCase();
     if (!res.ok || !ct.includes('application/json')) return null;
-    return await res.json();
+    const data = await res.json();
+    rememberCsrfToken(data);
+    return data;
   } catch (_) {
     return null;
   }
@@ -336,6 +355,7 @@ function setupLogin() {
       const data = await res.json();
 
       if (data.success) {
+        rememberCsrfToken(data);
         state.currentProfile = data.profile || null;
         state.pinIsDefault = !!data.pinIsDefault;
         updateActiveProfileChip();
@@ -390,6 +410,7 @@ function setupLogin() {
         if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
         return toastError(msg);
       }
+      rememberCsrfToken(data);
       state.currentProfile = data.profile || null;
       state.pinIsDefault = false;
       state.justRedeemedInvite = true;
@@ -837,6 +858,7 @@ function setupPinWizard() {
         toastError(msg);
         return;
       }
+      rememberCsrfToken(data);
       state.pinIsDefault = !!data.pinIsDefault;
       hideSetupPinModal();
       maybeShowPinDefaultBanner();
@@ -1213,10 +1235,13 @@ async function refreshBackupsSettingsList() {
 
 async function logoutSession() {
   try {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    const headers = {};
+    if (state.csrfToken) headers['X-CSRF-Token'] = state.csrfToken;
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin', headers });
   } catch (e) {}
   try { sessionStorage.removeItem('studioPin'); } catch (e) {}
   state.currentProfile = null;
+  state.csrfToken = null;
   updateActiveProfileChip();
   showLoginScreen();
   toastInfo('Sesión cerrada');

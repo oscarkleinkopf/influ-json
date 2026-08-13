@@ -32,7 +32,7 @@ Marca cada ítem antes de poner `HOST=0.0.0.0` (o publicar un puerto).
 | 10 | Backup: Ajustes → Backup SQLite (+ export ZIP sin `.env`) | ✅ | Tras restaurar: reinicia `npm start` |
 | 11 | `/api/status` sin auth no filtra paths/URLs internas | ✅ (esta entrega) | — |
 | 12 | `/api/queue-status` requiere sesión (auth on) | ✅ (esta entrega) | — |
-| 13 | CSRF token en mutaciones cookie | ⬜ pendiente | Mitigado parcial con `SameSite=Lax` |
+| 13 | CSRF token en mutaciones cookie | ✅ `auth.csrfProtection` | Header `X-CSRF-Token`; Bearer/CLI exento; `CSRF_PROTECTION=0` apaga |
 | 14 | HSTS | ⬜ N/A localhost | Solo si terminas TLS tú |
 
 ## 3. Runbook operador
@@ -85,8 +85,9 @@ Arranque con PIN default o auth off en bind público → **503** en `/api/*` pro
 | W6 mirrors | `test/untrack-mirrors.test.js`, `test/sqlite-mirror-policy.test.js` |
 | P0 paths / ownership | `test/p0-security.test.js`, `test/backup-ownership.test.js` |
 | Mercado (status slim + cookies + queue auth) | `test/sec-market.test.js` |
+| CSRF synchronizer | `test/sec-csrf.test.js` |
 
 ## 5. Fuera de alcance (ahora)
 
 - PR #99 Google / SaaS, billing, empaquetado Windows, Replicate por defecto, rewrite React.
-- CSRF completo y HSTS — siguientes cortes si el Studio se publica con TLS de forma habitual.
+- HSTS — solo si terminas TLS tú de forma habitual (no aplica en localhost).

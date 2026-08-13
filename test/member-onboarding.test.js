@@ -24,28 +24,19 @@ test('settings keys: member cannot write .env; admin can', async () => {
   const member = db.createStudioProfile({ name: `KeysMem_${Date.now()}`, pin: '6677', role: 'member' });
 
   await withServer(async (base) => {
-    const memLogin = await fetch(`${base}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: '6677', profileId: member.id })
-    });
-    const memCookie = (memLogin.headers.getSetCookie?.()?.[0] || memLogin.headers.get('set-cookie') || '').split(';')[0];
+    const { loginSession } = require('./helpers/session');
+    const mem = await loginSession(base, { pin: '6677', profileId: member.id });
     const forbid = await fetch(`${base}/api/settings/keys`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: memCookie },
+      headers: mem.jsonHeaders(),
       body: JSON.stringify({ geminiApiKey: 'should-not-save' })
     });
     assert.equal(forbid.status, 403);
 
-    const adminLogin = await fetch(`${base}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: process.env.STUDIO_PIN || '1234' })
-    });
-    const adminCookie = (adminLogin.headers.getSetCookie?.()?.[0] || adminLogin.headers.get('set-cookie') || '').split(';')[0];
+    const admin = await loginSession(base);
     const allow = await fetch(`${base}/api/settings/keys`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      headers: admin.jsonHeaders(),
       body: JSON.stringify({})
     });
     assert.notEqual(allow.status, 403);

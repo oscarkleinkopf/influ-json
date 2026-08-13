@@ -60,17 +60,13 @@ test('archive escribe evento; export registra actor; member 403 al listar', asyn
   });
 
   await withServer(async (base) => {
-    const adminLogin = await fetch(`${base}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: process.env.STUDIO_PIN || '1234' })
-    });
-    assert.equal(adminLogin.status, 200);
-    const adminCookie = (adminLogin.headers.getSetCookie?.()?.[0] || adminLogin.headers.get('set-cookie') || '').split(';')[0];
+    const { loginSession } = require('./helpers/session');
+    const admin = await loginSession(base);
+    assert.equal(admin.data.success, true);
 
     const arch = await fetch(`${base}/api/personas/${persona.id}/archive`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      headers: admin.jsonHeaders(),
       body: JSON.stringify({ archived: true })
     });
     assert.equal(arch.status, 200);
@@ -84,7 +80,7 @@ test('archive escribe evento; export registra actor; member 403 al listar', asyn
     );
 
     const exp = await fetch(`${base}/api/export/persona/${persona.id}`, {
-      headers: { Cookie: adminCookie }
+      headers: admin.headers()
     });
     assert.equal(exp.status, 200);
     // Drain ZIP body so connection closes cleanly
@@ -98,7 +94,7 @@ test('archive escribe evento; export registra actor; member 403 al listar', asyn
     assert.ok(exportEv.actor_profile_id, 'export debe registrar actor');
 
     const adminList = await fetch(`${base}/api/audit/events?limit=50`, {
-      headers: { Cookie: adminCookie }
+      headers: admin.headers()
     });
     assert.equal(adminList.status, 200);
     const adminBody = await adminList.json();
@@ -106,14 +102,9 @@ test('archive escribe evento; export registra actor; member 403 al listar', asyn
     assert.ok(Array.isArray(adminBody.events));
     assert.ok(adminBody.events.some((e) => e.action === 'persona.archive'));
 
-    const memLogin = await fetch(`${base}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: '6677', profileId: member.id })
-    });
-    const memCookie = (memLogin.headers.getSetCookie?.()?.[0] || memLogin.headers.get('set-cookie') || '').split(';')[0];
+    const mem = await loginSession(base, { pin: '6677', profileId: member.id });
     const memRes = await fetch(`${base}/api/audit/events`, {
-      headers: { Cookie: memCookie }
+      headers: mem.headers()
     });
     assert.equal(memRes.status, 403);
   });

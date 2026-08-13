@@ -231,10 +231,12 @@ function requireAuth(req, res, next) {
     if (req.session && !req.session.profileId) {
       req.session.authenticated = true;
     }
+    if (req.session) ensureCsrfToken(req.session);
     return next();
   }
 
   if (req.session && req.session.authenticated) {
+    ensureCsrfToken(req.session);
     return next();
   }
 
@@ -290,6 +292,82 @@ function isCspReportOnly(env = process.env) {
   return String(env.CSP_REPORT_ONLY || '').trim() === '1';
 }
 
+// ─── CSRF (mutaciones con cookie; Bearer/CLI exentos) ───────────
+const CSRF_SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+const CSRF_EXEMPT_PATHS = new Set([
+  '/api/auth/login',
+  '/api/invites/redeem'
+]);
+
+function isCsrfProtectionEnabled(env = process.env) {
+  const v = String(env.CSRF_PROTECTION ?? '1').trim().toLowerCase();
+  return v !== '0' && v !== 'false' && v !== 'off' && v !== 'no';
+}
+
+function ensureCsrfToken(session) {
+  if (!session || typeof session !== 'object') return null;
+  if (!session.csrfToken || typeof session.csrfToken !== 'string') {
+    session.csrfToken = crypto.randomBytes(32).toString('hex');
+  }
+  return session.csrfToken;
+}
+
+function timingSafeEqualStr(a, b) {
+  const left = Buffer.from(String(a || ''), 'utf8');
+  const right = Buffer.from(String(b || ''), 'utf8');
+  if (left.length !== right.length || left.length === 0) return false;
+  try {
+    return crypto.timingSafeEqual(left, right);
+  } catch (_) {
+    return false;
+  }
+}
+
+function hasBearerAuthorization(req) {
+  const h = req.headers?.authorization || req.headers?.Authorization || '';
+  return /^Bearer\s+\S+/i.test(String(h));
+}
+
+function isCsrfExemptPath(req) {
+  const full = String(req.originalUrl || req.url || '').split('?')[0];
+  if (CSRF_EXEMPT_PATHS.has(full)) return true;
+  const p = String(req.path || '');
+  if (p === '/auth/login' || p === '/invites/redeem') return true;
+  if (full.endsWith('/api/auth/login') || full.endsWith('/api/invites/redeem')) return true;
+  return false;
+}
+
+/**
+ * CSRF synchronizer: exige `X-CSRF-Token` (o body `_csrf`) = `session.csrfToken`
+ * en mutaciones autenticadas por cookie. Exento: GET, login, redeem, Bearer.
+ */
+function csrfProtection(req, res, next) {
+  if (!isCsrfProtectionEnabled()) return next();
+  if (CSRF_SAFE_METHODS.has(String(req.method || '').toUpperCase())) return next();
+  if (isCsrfExemptPath(req)) return next();
+  if (hasBearerAuthorization(req)) return next();
+
+  // Sin sesión cookie autenticada → defer a requireAuth (401), no 403 CSRF.
+  if (!req.session?.authenticated && !req.session?.csrfToken) {
+    return next();
+  }
+
+  const expected = ensureCsrfToken(req.session);
+  const got =
+    req.get('x-csrf-token') ||
+    req.get('csrf-token') ||
+    (req.body && typeof req.body === 'object' ? req.body._csrf : null);
+
+  if (!expected || !got || !timingSafeEqualStr(got, expected)) {
+    return res.status(403).json({
+      success: false,
+      code: 'CSRF',
+      message: 'CSRF token inválido o ausente. Recarga el Studio e inténtalo de nuevo.'
+    });
+  }
+  return next();
+}
+
 /**
  * Anti session-fixation (Sec #3): rota el id de sesión y luego adjunta el perfil.
  * Usar en login, invite redeem y change-pin — no en Bearer/CLI.
@@ -314,6 +392,7 @@ function establishAuthenticatedSession(req, profile, cb) {
   req.session.regenerate((err) => {
     if (err) return cb(err);
     Object.assign(req.session, next);
+    ensureCsrfToken(req.session);
     if (typeof req.session.save === 'function') {
       req.session.save((saveErr) => cb(saveErr || null));
     } else {
@@ -353,6 +432,9 @@ module.exports = {
   buildContentSecurityPolicy,
   isCspReportOnly,
   establishAuthenticatedSession,
+  ensureCsrfToken,
+  csrfProtection,
+  isCsrfProtectionEnabled,
   verifyPin: verifyLegacyStudioPin,
   verifyLegacyStudioPin,
   verifyPinHash,

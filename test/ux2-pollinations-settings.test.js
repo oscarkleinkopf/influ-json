@@ -59,14 +59,10 @@ test('API: admin puede guardar POLLINATIONS_TOKEN (temp .env)', async () => {
   const pin = (process.env.STUDIO_PIN || '1234').trim();
 
   try {
-    const login = await fetch(`${base}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin })
-    });
-    const cookie = (login.headers.getSetCookie?.()?.[0] || login.headers.get('set-cookie') || '').split(';')[0];
+    const { loginSession } = require('./helpers/session');
+    const session = await loginSession(base, { pin });
 
-    const getBefore = await fetch(`${base}/api/settings/keys`, { headers: { Cookie: cookie } });
+    const getBefore = await fetch(`${base}/api/settings/keys`, { headers: session.headers() });
     assert.equal(getBefore.status, 200);
     const before = await getBefore.json();
     assert.equal(before.success, true);
@@ -75,7 +71,7 @@ test('API: admin puede guardar POLLINATIONS_TOKEN (temp .env)', async () => {
     const marker = `ux2_test_${Date.now()}`;
     const post = await fetch(`${base}/api/settings/keys`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      headers: session.jsonHeaders(),
       body: JSON.stringify({ pollinationsToken: marker })
     });
     const postData = await post.json();
@@ -84,7 +80,7 @@ test('API: admin puede guardar POLLINATIONS_TOKEN (temp .env)', async () => {
     assert.equal(postData.pollinationsConnected, true);
     assert.equal(process.env.POLLINATIONS_TOKEN, marker);
 
-    const getAfter = await fetch(`${base}/api/settings/keys`, { headers: { Cookie: cookie } });
+    const getAfter = await fetch(`${base}/api/settings/keys`, { headers: session.headers() });
     const after = await getAfter.json();
     assert.equal(after.pollinationsConfigured, true);
     assert.equal(after.pollinationsToken, undefined); // never leak

@@ -161,16 +161,12 @@ test('API lock-revisions: owner OK; member 404 en persona ajena', async () => {
   });
 
   await withServer(async (base) => {
-    const adminLogin = await fetch(`${base}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: process.env.STUDIO_PIN || '1234' })
-    });
-    assert.equal(adminLogin.status, 200);
-    const adminCookie = (adminLogin.headers.getSetCookie?.()?.[0] || adminLogin.headers.get('set-cookie') || '').split(';')[0];
+    const { loginSession } = require('./helpers/session');
+    const admin = await loginSession(base);
+    assert.equal(admin.data.success, true);
 
     const list = await fetch(`${base}/api/personas/${persona.id}/lock-revisions`, {
-      headers: { Cookie: adminCookie }
+      headers: admin.headers()
     });
     assert.equal(list.status, 200);
     const listed = await list.json();
@@ -179,7 +175,7 @@ test('API lock-revisions: owner OK; member 404 en persona ajena', async () => {
 
     const revId = listed.revisions[0].id;
     const one = await fetch(`${base}/api/personas/${persona.id}/lock-revisions/${revId}`, {
-      headers: { Cookie: adminCookie }
+      headers: admin.headers()
     });
     assert.equal(one.status, 200);
     const oneBody = await one.json();
@@ -187,21 +183,16 @@ test('API lock-revisions: owner OK; member 404 en persona ajena', async () => {
     assert.ok(oneBody.revision?.lock);
     assert.ok(oneBody.diff);
 
-    const memLogin = await fetch(`${base}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: '6677', profileId: member.id })
-    });
-    const memCookie = (memLogin.headers.getSetCookie?.()?.[0] || memLogin.headers.get('set-cookie') || '').split(';')[0];
+    const mem = await loginSession(base, { pin: '6677', profileId: member.id });
 
     const forbid = await fetch(`${base}/api/personas/${persona.id}/lock-revisions`, {
-      headers: { Cookie: memCookie }
+      headers: mem.headers()
     });
     assert.equal(forbid.status, 404);
 
     const forbidRestore = await fetch(`${base}/api/personas/${persona.id}/lock-revisions/${revId}/restore`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: memCookie },
+      headers: mem.jsonHeaders(),
       body: '{}'
     });
     assert.equal(forbidRestore.status, 404);
