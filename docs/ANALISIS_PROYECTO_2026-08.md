@@ -19,7 +19,7 @@ El proyecto también está más maduro de lo que su interfaz monolítica sugiere
 
 La conclusión principal no es “añadir más funciones”. Es:
 
-1. **Reparar dos regresiones P0 y cerrar higiene de release.**
+1. **Resolver los hallazgos P0 y cerrar higiene de release.**
 2. **Hacer que instalar, diagnosticar y recuperar el Studio sea sencillo.**
 3. **Convertir `character_lock` v1 en un contrato formal y portable.**
 4. **Cerrar accesibilidad, borradores y recuperación de errores.**
@@ -159,6 +159,38 @@ Advisories: DoS por expansión no acotada; hay fix disponible (`brace-expansion 
 
 **Criterio de hecho:** CI falla ante cualquier advisory high/critical no aceptado explícitamente.
 
+### P0-S2 · SSRF residual en URLs de referencia
+
+La defensa actual bloquea IPs privadas textuales y revalida redirects, pero tiene dos huecos verificables:
+
+- IPv4-mapped IPv6 (`[::ffff:127.0.0.1]`) no se reconoce como loopback.
+- Hostnames públicos que resuelven a loopback/red privada se validan solo por nombre; no se revalida la IP DNS usada para conectar.
+
+**Contexto:** requiere una sesión autenticada, así que el riesgo en localhost es bajo. En LAN/VPS puede permitir acceso server-side a servicios internos.
+
+**Corrección propuesta:**
+
+- Normalizar IPv4, IPv6 e IPv4-mapped antes de comparar rangos.
+- Resolver DNS y rechazar cualquier A/AAAA privada, loopback o link-local.
+- Repetir la validación en cada redirect.
+- Evitar DNS rebinding fijando la IP validada en la conexión o revalidando inmediatamente antes del fetch.
+- Limitar puertos remotos por defecto a 80/443.
+
+**Criterio de hecho:** tests bloquean `::ffff:127.0.0.1`, loopback por hostname y redirect público → privado.
+
+### P0-S3 · Valores `.env` admiten saltos de línea
+
+`first-run.upsertEnvVar` y Ajustes → Claves interpolan valores directamente como `KEY=value`. PINs y tokens no rechazan `\r`/`\n`, por lo que un valor puede añadir líneas arbitrarias al `.env`.
+
+Es admin-only y CSRF está activo, pero sigue siendo un fallo de integridad y agrava cualquier compromiso de sesión admin.
+
+**Corrección propuesta:**
+
+- Rechazar CR/LF y NUL en PINs/tokens.
+- Escritura temporal + rename atómico.
+- Permisos `0600` en POSIX.
+- Test que confirma que un intento `valor\nOTRA_CLAVE=x` devuelve 400 y no modifica `.env`.
+
 ### P0-Q1 · El release gate no cubre todas las mutaciones del front
 
 El test CSRF comprueba que `authFetch` adjunta el token, pero no impide que una nueva mutación use `fetch` directo. Eso permitió la regresión del batch.
@@ -287,6 +319,17 @@ En status/UI, separar:
 
 “Disponible” no debería significar simultáneamente “módulo cargado”, “token configurado” y “puede generar ahora”.
 
+### F7 · Corregir el contrato de finalización de cola
+
+`queue-poller.js` consulta `q.completedCount`, pero `gen-queue.getStatus()` no devuelve ese campo. La rama que refresca variantes por contador nunca observa una finalización real.
+
+**Alternativas:**
+
+- Añadir un `completedCount` monotónico al status; o
+- eliminar esa rama y refrescar únicamente en transición `active/pending → idle`.
+
+**Criterio de hecho:** al terminar una generación, la variante nueva aparece una vez sin recargar ni hacer polling redundante.
+
 ---
 
 ## 6. Mejoras de usabilidad
@@ -389,6 +432,30 @@ Esto puede cambiar la persona en futuras imágenes.
 
 Acciones: “Guardar nueva identidad” o “Mantener lock anterior”.
 
+### U7 · Smoke móvil como gate de CI
+
+El layout smoke solo usa 1440×900. El bug histórico más costoso fue precisamente móvil, pero hoy 414×896 no está protegido.
+
+**Propuesta:**
+
+- Reutilizar el mismo script con viewport 414×896.
+- Comprobar:
+  - borde derecho de `.main-content` ≤ viewport;
+  - `scrollWidth <= clientWidth`;
+  - dashboard, Ficha paso 1 y CTA Copiar JSON visibles;
+  - screenshot móvil como artifact.
+
+### U8 · Recuperación automática de CSRF
+
+`authFetch` adjunta el token, pero no tiene flujo global para un `403 CSRF` por pestaña vieja o token rotado.
+
+**Propuesta:**
+
+1. Ante `code=CSRF`, pedir un token fresco a `/api/auth/me` o `/api/status`.
+2. Reintentar **una sola vez** la petición idempotente desde la perspectiva del cliente.
+3. Si falla, conservar el borrador y mostrar “Recargar sesión”.
+4. Nunca convertir silenciosamente un 403 en lista vacía.
+
 ---
 
 ## 7. Mejoras de seguridad
@@ -486,6 +553,22 @@ Registrar solo metadatos mínimos; nunca PIN, token ni body.
 - HSTS no debe activarse en localhost HTTP.
 - Si existe `PUBLIC_HTTPS_ORIGIN`, validar `Origin`/`Sec-Fetch-Site` en mutaciones como defensa adicional a CSRF.
 - En ese modo: `COOKIE_SECURE=1`, `TRUST_PROXY=1`, HSTS y allowlist de host/origin.
+
+### S9 · Gaps de aislamiento/autorización en endpoints secundarios
+
+El núcleo de personas sí está aislado, pero quedan endpoints secundarios:
+
+- `GET /api/stats/generations` llama `getGenerationStats()` sin `profileId`.
+- `POST /api/sync` no exige `requireAdmin`; cualquier sesión puede disparar backup Git si está habilitado.
+- `GET /api/local-gpu/status` devuelve URLs internas del backend a cualquier perfil autenticado.
+- `/api/import-influencer` admite hasta cuatro uploads pero no usa `apiRateLimit('heavy')`.
+
+**Corrección propuesta:**
+
+- Stats por `req.session.profileId`.
+- Sync solo Administración.
+- Status GPU enmascarado para member.
+- Rate-limit heavy en import y tests de aislamiento/autorización.
 
 ---
 
@@ -617,29 +700,38 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 3. Gate CI para audit high/critical.
 4. Gate estático contra mutaciones con `fetch` directo.
 5. Test del batch.
+6. Corregir `completedCount` fantasma de la cola.
 
-### Corte B — Operación en otra máquina
+### Corte B — Hardening de datos/red
+
+1. SSRF IPv4-mapped + resolución DNS segura.
+2. Rechazar CR/LF en `.env`; escritura atómica/permisos.
+3. Scope stats + sync admin + GPU status enmascarado.
+4. Rate-limit del import.
+
+### Corte C — Operación en otra máquina
 
 1. `npm run doctor`.
 2. Support bundle redactado.
 3. Restore en dos fases + `quick_check`.
 4. Launcher `.cmd` / `.sh` + ZIP release.
 
-### Corte C — Contrato portable
+### Corte D — Contrato portable
 
 1. JSON Schema `influ-persona/v1`.
 2. Normalize/migrate/import.
 3. Proveniencia de rasgos.
 4. Test round-trip entre instalaciones.
 
-### Corte D — UX resistente
+### Corte E — UX resistente
 
 1. Autosave de borradores.
-2. Diálogos accesibles y teclado.
-3. Errores con CTA y códigos.
-4. Diff antes de cambiar `must_match`.
+2. Smoke móvil en CI.
+3. Diálogos accesibles y teclado.
+4. Recovery CSRF + errores con CTA/códigos.
+5. Diff antes de cambiar `must_match`.
 
-### Corte E — Modo LAN/VPS (solo si se usa)
+### Corte F — Modo LAN/VPS (solo si se usa)
 
 1. Tokens API separados del PIN.
 2. Store de sesión SQLite.
@@ -648,7 +740,7 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 5. Origin/Host allowlist + HSTS condicional.
 6. Audit de eventos de seguridad.
 
-### Corte F — Medir el valor
+### Corte G — Medir el valor
 
 1. Prueba de identidad guiada.
 2. Lock lab A/B.
@@ -671,12 +763,13 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 
 ## 12. Próxima decisión recomendada
 
-El siguiente PR de código debería ser **Corte A / P0**:
+Los siguientes PRs de código deberían ser pequeños y secuenciales:
 
 ```text
-fix batch ads + test de aislamiento
-→ actualizar dependencia vulnerable
-→ gates CI (audit + fetch mutante)
+1. fix batch ads + test de aislamiento
+2. actualizar dependencia vulnerable + gate audit
+3. hardening SSRF + env injection
+4. gates CI (fetch mutante + smoke móvil)
 ```
 
 Después, el mayor retorno para usuarios reales es **Doctor + launcher local**, no otra función de generación.

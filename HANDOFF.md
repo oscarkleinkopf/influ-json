@@ -29,7 +29,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **Commit base** | `main` @ #116 merged |
 | **PR actual** | [#117](https://github.com/oscarkleinkopf/influ-json/pull/117) — análisis proyecto + ideas priorizadas |
 | **`main` remoto** | + #115/#116 (CSRF + handoff) |
-| **Prioridad inmediata** | Corte A: batch ads + dependency audit + gates CI |
+| **Prioridad inmediata** | Corte A/B: batch ads + dependency audit + SSRF/env hardening |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
 ### Sesión reciente (Cursor, 2026-08-13) — Análisis integral post-CSRF
@@ -40,6 +40,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - `docs/ANALISIS_PROYECTO_2026-08.md` — auditoría + roadmap por cortes
 - P0 encontrado: batch ads usa `fetch` sin CSRF y firma incorrecta de `genQueue.enqueue`
 - P0 supply-chain: advisory high transitivo `brace-expansion@5.0.7`
+- P0 red/integridad: SSRF IPv4-mapped/DNS + CR/LF en valores `.env`
 - Siguiente recomendado: reparar P0 → Doctor/launcher → schema portable v1
 
 ### Sesión previa (Cursor, 2026-08-13) — Merge #115 CSRF
