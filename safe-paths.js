@@ -2,9 +2,11 @@
  * Helpers de seguridad local (Paso 2 HANDOFF):
  * - Rutas de assets acotadas al proyecto / DATA_DIR
  * - URLs remotas sin SSRF a redes privadas / link-local
+ * - IPv4-mapped IPv6, puertos 80/443, resolución DNS (anti-rebinding básico)
  */
 const path = require('path');
 const fs = require('fs');
+const dns = require('dns');
 const { URL } = require('url');
 const { PROJECT_ROOT, DATA_DIR } = require('./paths');
 
@@ -101,8 +103,55 @@ function ipv4Parts(host) {
   return parts;
 }
 
+/**
+ * Extrae IPv4 de formas IPv4-mapped IPv6 (::ffff:127.0.0.1 o ::ffff:7f00:1).
+ * @param {string} host
+ * @returns {string|null} dotted IPv4 o null
+ */
+function extractIpv4Mapped(host) {
+  const h = String(host || '').toLowerCase();
+  const dotted = h.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
+  if (dotted) return dotted[1];
+  const hex = h.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (hex) {
+    const hi = parseInt(hex[1], 16);
+    const lo = parseInt(hex[2], 16);
+    return `${(hi >> 8) & 255}.${hi & 255}.${(lo >> 8) & 255}.${lo & 255}`;
+  }
+  return null;
+}
+
+/** Hostname sin brackets; IPv4-mapped colapsado a dotted quad. */
+function normalizeHostname(hostname) {
+  let host = String(hostname || '').toLowerCase().replace(/^\[|\]$/g, '');
+  const mapped = extractIpv4Mapped(host);
+  return mapped || host;
+}
+
+function getAllowedRemotePorts() {
+  const raw = process.env.REMOTE_IMAGE_ALLOWED_PORTS;
+  if (raw == null || String(raw).trim() === '') return [80, 443];
+  return String(raw)
+    .split(',')
+    .map((p) => Number(String(p).trim()))
+    .filter((n) => Number.isInteger(n) && n > 0 && n <= 65535);
+}
+
+function assertSafeRemotePort(parsed) {
+  const defaultPort = parsed.protocol === 'https:' ? 443 : 80;
+  const port = parsed.port ? Number(parsed.port) : defaultPort;
+  const allowed = getAllowedRemotePorts();
+  if (!allowed.includes(port)) {
+    throw makeError(
+      UNSAFE_URL,
+      `Puerto remoto no permitido (${port}). Solo ${allowed.join('/')}.`
+    );
+  }
+  return port;
+}
+
 function isPrivateOrLocalHost(hostname) {
-  const host = String(hostname || '').toLowerCase().replace(/^\[|\]$/g, '');
+  const host = normalizeHostname(hostname);
   if (!host) return true;
   if (
     host === 'localhost' ||
@@ -139,7 +188,7 @@ function isPrivateOrLocalHost(hostname) {
 }
 
 /**
- * Valida URL remota para descarga de referencias (anti-SSRF).
+ * Valida URL remota para descarga de referencias (anti-SSRF) — checks síncronos.
  * @param {string} inputUrl
  * @returns {URL}
  */
@@ -162,6 +211,57 @@ function assertSafeRemoteImageUrl(inputUrl) {
   if (isPrivateOrLocalHost(parsed.hostname)) {
     throw makeError(UNSAFE_URL, 'URL apunta a una red privada o local (bloqueada).');
   }
+  assertSafeRemotePort(parsed);
+  return parsed;
+}
+
+/**
+ * Además de assertSafeRemoteImageUrl, resuelve DNS y rechaza A/AAAA privadas.
+ * @param {string} inputUrl
+ * @param {{ lookup?: Function }} [opts] lookup(hostname, { all: true }) → [{ address, family }]
+ * @returns {Promise<URL>}
+ */
+async function assertSafeRemoteImageUrlResolved(inputUrl, opts = {}) {
+  const parsed = assertSafeRemoteImageUrl(inputUrl);
+  const host = parsed.hostname.replace(/^\[|\]$/g, '');
+
+  // Literal IP ya cubierta por isPrivateOrLocalHost; no hace falta lookup.
+  if (ipv4Parts(normalizeHostname(host)) || host.includes(':')) {
+    return parsed;
+  }
+
+  const lookupFn =
+    opts.lookup ||
+    ((hostname, options) =>
+      new Promise((resolve, reject) => {
+        dns.lookup(hostname, { all: true, verbatim: true, ...(options || {}) }, (err, addresses) => {
+          if (err) reject(err);
+          else resolve(addresses);
+        });
+      }));
+
+  let addresses;
+  try {
+    addresses = await lookupFn(host, { all: true });
+  } catch (err) {
+    throw makeError(UNSAFE_URL, `No se pudo resolver el host remoto: ${err.message || 'DNS'}`);
+  }
+
+  const list = Array.isArray(addresses) ? addresses : addresses ? [addresses] : [];
+  if (list.length === 0) {
+    throw makeError(UNSAFE_URL, 'El host remoto no resolvió ninguna dirección.');
+  }
+
+  for (const entry of list) {
+    const addr = typeof entry === 'string' ? entry : entry.address;
+    if (isPrivateOrLocalHost(addr)) {
+      throw makeError(
+        UNSAFE_URL,
+        'URL resuelve a una red privada o local (bloqueada).'
+      );
+    }
+  }
+
   return parsed;
 }
 
@@ -171,5 +271,9 @@ module.exports = {
   isGitBackupEnabled,
   resolveSafeAssetPath,
   assertSafeRemoteImageUrl,
-  isPrivateOrLocalHost
+  assertSafeRemoteImageUrlResolved,
+  isPrivateOrLocalHost,
+  normalizeHostname,
+  extractIpv4Mapped,
+  getAllowedRemotePorts
 };

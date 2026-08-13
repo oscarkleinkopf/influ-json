@@ -31,6 +31,7 @@ const genQueue = require('./gen-queue');
 const {
   resolveSafeAssetPath,
   assertSafeRemoteImageUrl,
+  assertSafeRemoteImageUrlResolved,
   UNSAFE_PATH,
   UNSAFE_URL
 } = require('./safe-paths');
@@ -594,7 +595,9 @@ app.get('/api/queue-status', (req, res) => {
   });
 });
 
-registerLocalGpuRoutes(app);
+registerLocalGpuRoutes(app, {
+  isAdmin: (req) => dbService.isAdminRole(req.session?.profileRole)
+});
 
 // Personas (W5c) — CRUD / variants / versions / license / export
 // triggerBackgroundVariants llega desde routes/import.js (W5d) justo abajo.
@@ -635,6 +638,7 @@ const { triggerBackgroundVariants } = registerImportRoutes(app, {
   runGitBackup,
   upload,
   assertSafeRemoteImageUrl,
+  assertSafeRemoteImageUrlResolved,
   UNSAFE_URL,
   scoreVariantAgainstPersona: scoreVariantAgainstPersonaFn,
   scratchDir: SCRATCH_DIR,
@@ -1015,8 +1019,8 @@ app.get('/api/niches', (req, res) => {
   }
 });
 
-// Git sync trigger
-app.post('/api/sync', (req, res) => {
+// Git sync trigger (solo Administración — puede empujar a remoto si ENABLE_GIT_BACKUP=1)
+app.post('/api/sync', requireAdmin, (req, res) => {
   // Save DB copy first to ensure latest backup
   dbService.syncDbToWorkspace();
   runGitBackup((gitSuccess, msg) => {

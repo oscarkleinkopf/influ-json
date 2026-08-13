@@ -21,12 +21,18 @@ function registerImportRoutes(app, deps) {
     runGitBackup,
     upload,
     assertSafeRemoteImageUrl,
+    assertSafeRemoteImageUrlResolved,
     UNSAFE_URL,
     scoreVariantAgainstPersona,
     scratchDir,
     rootDir = path.join(__dirname, '..'),
     apiRateLimit = (_bucket) => (_req, _res, next) => next()
   } = deps;
+
+  // Fallback: si no inyectan resolved, usar sync + dns interno
+  const resolveUrl =
+    assertSafeRemoteImageUrlResolved ||
+    (async (u) => assertSafeRemoteImageUrl(u));
 
   // Upload reference photo endpoint
   app.post('/api/upload-reference', apiRateLimit('heavy'), upload.single('photo'), async (req, res) => {
@@ -70,7 +76,7 @@ function registerImportRoutes(app, deps) {
     const MAX_BYTES = 15 * 1024 * 1024;
     const FETCH_MS = 12000;
 
-    let parsed = assertSafeRemoteImageUrl(inputUrl);
+    let parsed = await resolveUrl(inputUrl);
     let targetUrl = parsed.toString();
     console.log(`Resolving reference image URL: ${targetUrl}`);
 
@@ -80,6 +86,8 @@ function registerImportRoutes(app, deps) {
     const browserUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
     async function fetchWithLimit(url, userAgent) {
+      // Revalidar host+DNS en cada hop (anti SSRF / rebinding)
+      await resolveUrl(url);
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), FETCH_MS);
       try {
@@ -94,7 +102,8 @@ function registerImportRoutes(app, deps) {
         while ([301, 302, 303, 307, 308].includes(current.status) && hops < 3) {
           const loc = current.headers.get('location');
           if (!loc) break;
-          const next = assertSafeRemoteImageUrl(new URL(loc, url).toString()).toString();
+          const nextParsed = await resolveUrl(new URL(loc, url).toString());
+          const next = nextParsed.toString();
           current = await fetch(next, {
             headers: { 'User-Agent': userAgent },
             redirect: 'manual',
@@ -144,10 +153,10 @@ function registerImportRoutes(app, deps) {
         console.log(`Extracted OpenGraph/Twitter image URL from HTML page: ${extractedImage}`);
 
         if (extractedImage.startsWith('http')) {
-          targetUrl = assertSafeRemoteImageUrl(extractedImage).toString();
+          targetUrl = (await resolveUrl(extractedImage)).toString();
         } else {
           const parsedBase = new URL(inputUrl);
-          targetUrl = assertSafeRemoteImageUrl(new URL(extractedImage, parsedBase.origin).toString()).toString();
+          targetUrl = (await resolveUrl(new URL(extractedImage, parsedBase.origin).toString())).toString();
         }
 
         ({ response, finalUrl } = await fetchWithLimit(targetUrl, browserUserAgent));
@@ -373,7 +382,11 @@ function registerImportRoutes(app, deps) {
 
 
   // Import Real Influencer (Fase 2) - supports both /api/import-influencer and /api/personas/import
-  app.post(['/api/import-influencer', '/api/personas/import'], upload.array('photo', 4), async (req, res) => {
+  app.post(
+    ['/api/import-influencer', '/api/personas/import'],
+    apiRateLimit('heavy'),
+    upload.array('photo', 4),
+    async (req, res) => {
     const imagePaths = [];
     const filenames = [];
 

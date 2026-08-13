@@ -364,28 +364,18 @@ function registerAdminRoutes(app, deps) {
   // Settings Endpoint — Update API Keys in .env safely via GUI (solo Administración)
   app.post('/api/settings/keys', requireAdmin, (req, res) => {
     try {
+      const firstRun = require('../first-run');
       const { geminiApiKey, replicateApiToken, pollinationsToken } = req.body || {};
-      const envPath = path.join(rootDir, '.env');
-      let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
-
-      function updateEnvVar(key, val) {
-        if (val === undefined || val === null) return;
-        const regex = new RegExp(`^${key}=.*$`, 'm');
-        if (regex.test(envContent)) {
-          envContent = envContent.replace(regex, `${key}=${val}`);
-        } else {
-          envContent += `\n${key}=${val}`;
-        }
-        process.env[key] = val;
-      }
 
       if (pollinationsToken !== undefined) {
-        updateEnvVar('POLLINATIONS_TOKEN', String(pollinationsToken).trim());
+        firstRun.upsertEnvVar('POLLINATIONS_TOKEN', String(pollinationsToken).trim());
       }
-      if (geminiApiKey !== undefined) updateEnvVar('GEMINI_API_KEY', geminiApiKey.trim());
-      if (replicateApiToken !== undefined) updateEnvVar('REPLICATE_API_TOKEN', replicateApiToken.trim());
-
-      fs.writeFileSync(envPath, envContent.trim() + '\n', 'utf8');
+      if (geminiApiKey !== undefined) {
+        firstRun.upsertEnvVar('GEMINI_API_KEY', String(geminiApiKey).trim());
+      }
+      if (replicateApiToken !== undefined) {
+        firstRun.upsertEnvVar('REPLICATE_API_TOKEN', String(replicateApiToken).trim());
+      }
 
       const pollenOn = !!(process.env.POLLINATIONS_TOKEN || process.env.POLLINATIONS_API_TOKEN || '').trim();
       res.json({
@@ -396,7 +386,8 @@ function registerAdminRoutes(app, deps) {
         replicateConnected: !!process.env.REPLICATE_API_TOKEN
       });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      const status = err.code === 'ENV_VALUE_UNSAFE' ? 400 : 500;
+      res.status(status).json({ success: false, error: err.message, code: err.code || undefined });
     }
   });
 
