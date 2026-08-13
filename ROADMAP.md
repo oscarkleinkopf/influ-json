@@ -151,6 +151,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-13 | **Paso 2 primer JSON** | `data-step2-focus` tras crear; Biblia/pose ocultos; Copiar JSON only |
+| 2026-08-13 | **PLAN-UX §12** backlog post-UX | paso 2 primer JSON → lock Identidad → import foto → UX-1c → chrome → README |
 | 2026-08-13 | **Merge #104** happy path UI | walkthrough crear→guardar→Copiar JSON en `main` |
 | 2026-08-13 | **Happy path UI** walkthrough | crear→guardar→aparece→Copiar JSON; dismiss `founderWelcomeModal` |
 | 2026-08-13 | **UX-2 DoD** Avanzado único + alturas | create ≤1800; Copiar JSON above-fold; LoRA/A-B/lock en un details |

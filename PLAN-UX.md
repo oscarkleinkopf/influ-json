@@ -194,3 +194,35 @@ UX-0 y UX-5 son de bajo riesgo y alto retorno, y conviene hacerlos antes de cual
 - **No añadir features de pago** mientras el layout base esté roto.
 - **No borrar pestañas sin mover su contenido**: `Licensing` y `Campañas` tienen poco control visible pero endpoints y skills reales detrás.
 - **No tocar el path gratis.** Cualquier reordenación debe seguir permitiendo: crear → guardar → copiar JSON → pegar en chatbot, sin token ni tarjeta.
+
+---
+
+## 12. Backlog post-UX (2026-08-13) — ideas de mejora
+
+Tras cerrar UX-0…5 + walkthrough UI (#104), el Studio **funciona** en el loop crear → guardar → Copiar JSON. Lo que queda es jerarquía y honestidad del free path, no más features de pago.
+
+### Diagnóstico corto
+
+| Síntoma | Por qué importa |
+|---------|-----------------|
+| Paso 2 (Lock & Packs) sigue siendo un escritorio | Biblia / Nueva Pose / Crear UGC compiten con Copiar JSON justo después de crear |
+| Muchos «Copiar JSON» | El mensaje es correcto; la repetición diluye *el* botón |
+| Lock avisa tarde (toast ~89%, «Latina» oscurece tez) | El valor de producto llega *después* de copiar, no al crear |
+| README vs UI | Nombres viejos («Persona Engine», «recomendado») desorientan |
+| Importar foto es de 2ª | El concepto es «desde cero **o** inspirados»; solo crear tiene ritual + walkthrough |
+| Chrome de entorno (offline + PIN + toast) | En primer uso tapa el trabajo |
+
+### Orden de implementación (elegido)
+
+| # | Idea | Criterio de hecho | Estado |
+|---|------|-------------------|--------|
+| **1** | **Paso 2 · modo «primer JSON»** — tras Crear influencer, Lock & Packs muestra ficha mínima + card Copiar JSON; Biblia / pose / UGC / panel derecho / detalles de identidad van a «Más herramientas» | En viewport 900 px el botón verde es lo único grande; `data-step2-focus=1` | ✅ esta rama |
+| **2** | **Lock honesto en Identidad** — si origen=Latina + tez clara, sugerir «Latina de tez clara» *antes* de guardar; score visible en paso 1 | Guardar no deja el toast como único aviso | pendiente |
+| **3** | **Ritual «inspirar desde foto»** — subir → confirmar tez/ojos/pelo → guardar → Copiar JSON (+ walkthrough) | Mismo P0 que crear desde cero | pendiente |
+| **4** | **UX-1c estricto** — ≤3 destinos «Copiar JSON» (header + pack primary + empty CTAs); resto = Copiar prompt / estructura / pack X | Inventario HTML ≤3 | pendiente |
+| **5** | **Silenciar chrome primer uso** — PIN en Ajustes (no barra+toast); offline = chip; Git/Ajustes colapsados | Primer viewport sin doble aviso PIN | pendiente |
+| **6** | **Alinear README / Cómo usar** a botones reales (Influencers · Ficha · Copiar JSON) | Novato no ve «Persona Engine» | pendiente |
+
+### No ahora (sin cambio)
+
+- PR #99 Google / SaaS, Replicate, video real, empaquetado Windows, React rewrite, más adapters de modelo en paso 2.

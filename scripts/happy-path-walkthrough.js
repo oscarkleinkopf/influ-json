@@ -216,14 +216,28 @@ async function main() {
       const cards = [...document.querySelectorAll('.persona-card, [data-persona-id], .portfolio-card')];
       const inDom = cards.some((c) => (c.textContent || '').includes(name));
       const sel = window.state?.selectedPersona;
+      const root = document.getElementById('persona-engine');
+      const right = document.getElementById('personaRightPanel');
+      const pose = document.getElementById('btnSheetPose');
+      const poseWrap = pose?.closest('[data-step2-secondary]');
+      const banner = document.getElementById('personaStep2FocusBanner');
+      const isGone = (el) => !el
+        || getComputedStyle(el).display === 'none'
+        || el.offsetParent === null
+        || (el.getClientRects?.().length === 0);
       return {
         inState,
         inDom,
         selectedName: sel?.name || null,
         selectedId: sel?.id || null,
         creating: !!window.state?.isCreatingNewPersona,
-        step: document.getElementById('persona-engine')?.getAttribute('data-active-step'),
-        hasCopy: !!document.getElementById('btnCopyPackFullbodyPrimary')
+        step: root?.getAttribute('data-active-step'),
+        focus: root?.getAttribute('data-step2-focus'),
+        focusState: !!window.state?.step2FocusMode,
+        hasCopy: !!document.getElementById('btnCopyPackFullbodyPrimary'),
+        bannerVisible: !!(banner && !banner.hidden && getComputedStyle(banner).display !== 'none'),
+        rightHidden: isGone(right),
+        poseHidden: isGone(poseWrap) || isGone(pose)
       };
     }, personaName);
     await page.screenshot({ path: shot('00b-tras-guardar.png'), fullPage: false });
@@ -232,7 +246,10 @@ async function main() {
       && afterSave.selectedName === personaName
       && !afterSave.creating
       && afterSave.step === '2'
-      && afterSave.hasCopy;
+      && afterSave.hasCopy
+      && afterSave.focus === '1'
+      && afterSave.rightHidden
+      && afterSave.poseHidden;
     report.steps.push({
       step: 'create-ui-save-appears',
       pass: saveOk,
@@ -241,9 +258,30 @@ async function main() {
     });
     if (!saveOk) {
       throw new Error(
-        `P0: guardar UI no dejó persona en roster/paso 2: ${JSON.stringify(afterSave)}`
+        `P0: guardar UI no dejó persona en roster/paso 2 foco: ${JSON.stringify(afterSave)}`
       );
     }
+
+    // Salir del modo primer JSON → herramientas completas
+    await page.evaluate(() => {
+      if (typeof window.clearStep2Focus === 'function') window.clearStep2Focus();
+      else document.getElementById('btnStep2FocusExit')?.click();
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    const afterExit = await page.evaluate(() => {
+      const root = document.getElementById('persona-engine');
+      const right = document.getElementById('personaRightPanel');
+      return {
+        focus: root?.getAttribute('data-step2-focus'),
+        rightVisible: !!(right && getComputedStyle(right).display !== 'none')
+      };
+    });
+    report.steps.push({
+      step: 'step2-focus-exit',
+      pass: afterExit.focus === '0' && afterExit.rightVisible,
+      afterExit
+    });
+    if (afterExit.focus !== '0') report.ok = false;
 
     // Portafolio: la nueva debe verse
     await page.evaluate(() => {
