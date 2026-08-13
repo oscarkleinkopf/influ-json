@@ -25,14 +25,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/sec-market-checklist-9b67` |
-| **Commit base** | `main` @ #112 merged |
-| **PR actual** | [#113](https://github.com/oscarkleinkopf/influ-json/pull/113) — seguridad de mercado checklist |
-| **`main` remoto** | + #112 (walkthrough import ritual) |
-| **Prioridad inmediata** | Merge este PR → CSRF/HSTS solo si se publica con TLS / o #99 si se pide |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ #113 merged |
+| **PR actual** | — |
+| **`main` remoto** | + #113 (seguridad mercado) |
+| **Prioridad inmediata** | Empaquetado / CSRF-HSTS si TLS / o #99 si se pide |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Seguridad de mercado
+### Sesión reciente (Cursor, 2026-08-13) — Merge #113 seguridad mercado
+
+**Pedido:** CI verde en #113.
+
+**Hecho:**
+- [#113](https://github.com/oscarkleinkopf/influ-json/pull/113) → `main` (checklist + slim status + queue auth)
+- Guía: `docs/SECURITY_MARKET.md`
+
+### Sesión previa (Cursor, 2026-08-13) — Seguridad de mercado
 
 **Pedido:** Tras #112, checklist seguridad mercado (docs + hardening alto valor).
 
