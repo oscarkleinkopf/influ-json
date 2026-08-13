@@ -43,23 +43,34 @@ Landing alternativa (opcional): [`docs/index.html`](./docs/index.html) — no ha
 | `npm run start:minimal` | Demo offline (sin SQLite; **no** usar para trabajo real) |
 | `npm test` | Tests con `DATA_DIR` temporal (`scripts/run-tests.js`; no ensucia `data/` ni `assets/references`) |
 | `npm run test:raw` | Tests contra `./data` (debug; no usar en CI habitual) |
-| `npm run smoke` | Smoke con DB aislada |
+| `npm run smoke` | Smoke con DB aislada · happy path API |
 | `npm run layout-smoke` | Chrome: ancho `.main-content` ≥70% + screenshot (`artifacts/`) |
-| `npm run smoke` | Happy path API (9 checks: crear, pack, import, export, isolation) |
+| `npm run walkthrough` | Happy path UI (crear → Guardar → Copiar JSON) |
 
 ## Flujo emprendedor gratis (60 segundos)
 
-Guía con nombres de botón reales del Studio:
+Nombres = **botones / hubs reales** del Studio (sidebar):
 
-1. **Resumen** → checklist «Arranque en 60 segundos» (o ve a **Persona Engine**).
-2. **Crear desde Cero** *o* importa una foto de referencia.
-3. Completa nombre, tez, cara y cuerpo → **Crear Influencer** / Guardar.
-4. Copia un pack — botón **Copiar JSON (recomendado)** / packs free.
+1. **Influencers** → checklist «Arranque en 60 segundos» (Portafolio) *o* subnav **Ficha / Editor**.
+2. **Crear influencer** *o* **Importar referencia** / **Inspirar desde foto**.
+3. Completa nombre, tez, ojos y pelo → **Crear influencer** / **Guardar personaje** (solo JSON).
+4. En paso **Lock & Packs**: botón verde **Copiar JSON** (pack cuerpo entero). Variantes en **Packs ▾**.
 5. (Opcional) **Generar boceto (opt-in · puede pedir token)** con Pollinations — no hace falta para el flujo; sin `POLLINATIONS_TOKEN` suele fallar (401/402).
 6. Pégalo en ChatGPT / Gemini / Claude / Meta **free** y pide variantes: *«misma persona, cuerpo entero, producto en mano»*.
-7. Cuando quieras llevarte todo: **Exportar pack completo (.zip)**.
+7. Cuando quieras llevarte todo: **Exportar pack completo (.zip)** o **Descargar kit marca**.
 
-El panel **Character lock** (Sólido / Aceptable / Débil) te avisa si falta tez hex, cuerpo, etc. **Copiar nunca se bloquea.**
+El panel de salud del `character_lock` (Sólido / Aceptable / Débil) avisa si falta tez hex, cuerpo, etc. **Copiar nunca se bloquea.**
+
+### Mapa de la UI (para no perderte)
+
+| En la UI | Qué es |
+|----------|--------|
+| **Influencers** | Hub: Portafolio + Ficha / Editor |
+| **Producir** | Hub: UGC + Guiones |
+| **Negocio** | Hub: Campañas + Licensing |
+| **Copiar JSON** | Acción canónica (header chip + Lock & Packs + checklist) |
+| **Offline** | Chip en el sidebar (pausa Pollinations; prioriza JSON) |
+| **Studio / Git** | Ajustes y sync — colapsados en el footer del sidebar |
 
 ### ¿Qué es `character_lock`?
 
@@ -69,14 +80,14 @@ Un bloque JSON con lo que **debe** repetirse en cada imagen (cara, tez, pelo, si
 
 | Usa… | Para… |
 |------|--------|
-| **Copiar JSON / packs** (recomendado) | Seguir el personaje en ChatGPT / Gemini / Claude free — sin red de imagen |
+| **Copiar JSON** / Packs ▾ | Seguir el personaje en ChatGPT / Gemini / Claude free — sin red de imagen |
 | Pollinations «Generar boceto (opt-in · puede pedir token)» | Bocetos locales opcionales; requiere token/pollen; acepta 429 |
 
-> **Nota (2026):** Pollinations migró a créditos «pollen» y su API moderna **exige un token**; el acceso **anónimo** ya no genera imágenes (error `401` / *«Insufficient balance»*). Sigue siendo **cero costo**: crea una API key gratis en [enter.pollinations.ai/keys](https://enter.pollinations.ai/keys) y ponla como `POLLINATIONS_TOKEN` en `.env` (los grants diarios gratis cubren `flux`, sin tarjeta). El flujo recomendado —copiar JSON/packs a un chatbot free— **no** necesita esto.
+> **Nota (2026):** Pollinations migró a créditos «pollen» y su API moderna **exige un token**; el acceso **anónimo** ya no genera imágenes (error `401` / *«Insufficient balance»*). Sigue siendo **cero costo**: crea una API key gratis en [enter.pollinations.ai/keys](https://enter.pollinations.ai/keys) y ponla como `POLLINATIONS_TOKEN` en `.env` (los grants diarios gratis cubren `flux`, sin tarjeta). El flujo free —**Copiar JSON** a un chatbot— **no** necesita esto.
 
-**Modo offline** (barra superior del Studio): desactiva Pollinations y resalta los botones de copiar JSON. Si ves **429**, el banner sugiere activar modo offline — la cola no cambia, solo el énfasis.
+**Modo offline** (chip **Offline** en el sidebar): desactiva Pollinations y resalta los botones de copiar. Si ves **429**, el banner sugiere activar offline — la cola no cambia, solo el énfasis.
 
-Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a la vez** y enfría sola. No pulses generar otra vez; copia el pack.
+Si ves **429 / espera Ns** (chip o banner ámbar): la cola genera **1 imagen a la vez** y enfría sola. No pulses generar otra vez; usa **Copiar JSON**.
 
 ### LoRA de personaje (opt-in, Fase L)
 
@@ -91,24 +102,23 @@ Consistencia más fuerte que el prompt solo — **sin romper el free path**:
 ## Datos y PIN
 
 - DB: `data/influ.sqlite` (portable; ver `paths.js`). Los mirrors `./influ.sqlite` y `./personas.json` **no se versionan** (W6); opt-in legacy: `ENABLE_LEGACY_MIRRORS=1`.
-- Auth local: `STUDIO_PIN` en `.env` (no lo subas a Git).
+- Auth local: `STUDIO_PIN` en `.env` (no lo subas a Git). PIN por defecto → cámbialo en **Ajustes → Perfiles** (no hay barra permanente de aviso).
 - Perfil **Administración**: genera códigos de invitación en Ajustes. Quien canjea («Tengo una invitación» en el login) obtiene un perfil propio; influencers/productos/campañas **no se mezclan**.
 - **Backup local** (solo Administración): Ajustes → Backup SQLite → crea/restaura copias en `data/backups/` (tras restaurar, reinicia `npm start`).
-- **Presets de nicho** (Persona Engine): Beauty / Fitness / Moda rellenan el formulario y refuerzan el `character_lock`.
-- **Kit marca**: botón «Descargar kit marca» → ZIP con packs chatbot + guión UGC ~15s (`?kit=1`).
-- **Cómo usar**: pestaña con guía visual del flujo gratis (sidebar → Cómo usar).
-- **Matriz QA** (ficha del influencer): compara retrato ancla · cuerpo · spicy a ojo; checklist cara/tez/pelo (sin API de scoring).
-- **Importar**: Analizar = vista previa (no guarda). Confirmar = portafolio + anclas en segundo plano. Descartar no deja huérfanos.
+- **Presets de nicho** (Ficha · Identidad): Beauty / Fitness / Moda rellenan el formulario y refuerzan el `character_lock`.
+- **Kit marca**: «Descargar kit marca» → ZIP con packs chatbot + guión UGC ~15s (`?kit=1`).
+- **Cómo usar**: guía visual del flujo gratis (sidebar → **? Cómo usar**).
+- **Matriz QA** (paso Variaciones): compara retrato ancla · cuerpo · spicy a ojo; checklist cara/tez/pelo (sin API de scoring).
+- **Inspirar desde foto**: Analizar = vista previa (no guarda). Confirmar tez/ojos/pelo → Guardar → Copiar JSON.
 - **Guardar personaje** = JSON-first (sin Pollinations). **Generar boceto (opt-in · puede pedir token)** es opcional.
-- **Portafolio**: botón «Copiar JSON (recomendado)» en cada tarjeta (pack cuerpo entero → chatbot free).
 - Primer arranque (Administración, roster vacío): modal founder con crear / import / guía.
-- Import preview descartado también limpia fotos `ref_*` temporales del disco.
-- Auto-commit Git **apagado** por defecto; solo con `ENABLE_GIT_BACKUP=1`.
+- Auto-commit Git **apagado** por defecto; solo con `ENABLE_GIT_BACKUP=1` (botón bajo **Studio / Git**).
 - `npm run start:minimal` **no** es producción.
 
 ## Documentación
 
 - [HANDOFF.md](./HANDOFF.md) — foco actual entre Cursor ↔ Antigravity
 - [ROADMAP.md](./ROADMAP.md) — plan y filosofía
+- [PLAN-UX.md](./PLAN-UX.md) — plan de usabilidad
 - [AGENTS.md](./AGENTS.md) — reglas para agentes
 - [SKILLS_MANUAL.md](./SKILLS_MANUAL.md) — skills de agentes
