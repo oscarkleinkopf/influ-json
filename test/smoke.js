@@ -313,17 +313,23 @@ async function runSmoke(base) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pin: memberPin, profileId: memberId })
     });
+    const memLoginBody = await memLogin.json();
     const memberCookie = cookieFrom(memLogin);
+    const memberCsrf = memLoginBody.csrfToken || redeemed.csrfToken;
+    const memHdr = {
+      Cookie: memberCookie,
+      ...(memberCsrf ? { 'X-CSRF-Token': memberCsrf } : {})
+    };
     const roster = await (
-      await fetch(`${base}/api/data`, { headers: { Cookie: memberCookie } })
+      await fetch(`${base}/api/data`, { headers: memHdr })
     ).json();
     const seesAdmin = (roster.personas || []).some((p) => createdIds.includes(p.id));
     const del = await fetch(`${base}/api/personas/${createdId}`, {
       method: 'DELETE',
-      headers: { Cookie: memberCookie }
+      headers: memHdr
     });
     const exp = await fetch(`${base}/api/export/persona/${createdId}`, {
-      headers: { Cookie: memberCookie }
+      headers: memHdr
     });
     if (!seesAdmin && del.status === 404 && exp.status === 404) {
       ok('8.member-isolation', `personas=${(roster.personas || []).length}`);
