@@ -46,9 +46,13 @@ test('UX-2: identidad pliega escena y marca; avanzado pliega A/B y LoRA', () => 
   assert.match(pe, /id="personaIdentitySceneDetails"/);
   assert.match(pe, /id="personaIdentityBrandDetails"/);
   assert.match(pe, /id="personaIdentityExtraTraits"/);
+  assert.match(pe, /id="personaIdentityProfileDetails"/);
+  assert.match(pe, /id="personaCreateOptionsCard"/);
   assert.match(pe, /id="personaAdvancedTools"/);
   assert.match(pe, /id="loraAdvancedPanel"[^>]*data-persona-step="advanced"/);
   assert.match(pe, /id="abComparatorContainer"[^>]*data-persona-step="advanced"/);
+  assert.match(pe, /id="personaRightPanel"[^>]*data-persona-step="2"|data-persona-step="2"[^>]*id="personaRightPanel"/);
+  assert.match(pe, /id="personaCompiledPromptConsole"[^>]*data-persona-step="2"|data-persona-step="2"[^>]*id="personaCompiledPromptConsole"/);
   // Details de identidad no nacen abiertos
   assert.doesNotMatch(pe, /id="personaIdentityExtraTraits"[^>]*\sopen[\s>]/);
   assert.doesNotMatch(pe, /id="personaAdvancedTools"[^>]*\sopen[\s>]/);
@@ -58,11 +62,15 @@ test('UX-2: identidad pliega escena y marca; avanzado pliega A/B y LoRA', () => 
 test('UX-2: CSS oculta pasos inactivos; crear → paso 1, select → paso 2', () => {
   assert.match(css, /#persona-engine\[data-active-step="1"\] \[data-persona-step="2"\]/);
   assert.match(css, /#persona-engine\[data-active-step="2"\] \[data-persona-step="3"\]/);
+  assert.match(css, /data-form-open="1"[\s\S]{0,80}personaCreateOptionsCard/);
+  assert.match(css, /data-creating="1"[\s\S]{0,80}data-persona-edit-only/);
   assert.match(appJs, /startCreateScratchFlow[\s\S]{0,800}setPersonaStep\(1/);
   assert.match(appJs, /selectPersona\(persona\)[\s\S]{0,2200}setPersonaStep\(2/);
   assert.match(appJs, /action === 'packs'[\s\S]{0,350}setPersonaStep\(2/);
   // Al cambiar paso se pliegan avanzados
   assert.match(appJs, /#personaAdvancedTools[\s\S]{0,280}d\.open\s*=\s*false/);
+  assert.match(appJs, /data-form-open/);
+  assert.match(appJs, /resetPersonaFormForNew[\s\S]{0,8000}setPersonaStep\(1/);
 });
 
 test('UX-2: campaigns editor-layout no lleva id personaEditorLayout', () => {

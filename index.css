@@ -521,6 +521,16 @@ body {
   display: none !important;
 }
 
+/* Paso 1 con formulario abierto: foco en Identidad (sin muro Crear + Biblia) */
+#persona-engine[data-active-step="1"][data-form-open="1"] #personaCreateOptionsCard,
+#persona-engine[data-active-step="1"][data-form-open="1"] #nichePresetsBar {
+  display: none !important;
+}
+
+#persona-engine[data-form-open="1"][data-creating="1"] [data-persona-edit-only] {
+  display: none !important;
+}
+
 /* Avanzado: oculto en el flujo principal salvo details abiertas por el usuario en paso 2 */
 #persona-engine[data-active-step="1"] [data-persona-step="advanced"],
 #persona-engine[data-active-step="3"] [data-persona-step="advanced"] {

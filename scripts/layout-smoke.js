@@ -211,6 +211,68 @@ async function main() {
     }, 'Layout Smoke Luna');
     await new Promise((r) => setTimeout(r, 400));
 
+    // Create-from-scratch: compact Identidad (altura + controles)
+    await page.evaluate(() => {
+      if (typeof startCreateScratchFlow === 'function') startCreateScratchFlow();
+    });
+    await new Promise((r) => setTimeout(r, 600));
+    const createMetrics = await page.evaluate(() => {
+      const pe = document.getElementById('persona-engine');
+      const form = document.getElementById('personaForm');
+      const isVisible = (el) => {
+        if (!el) return false;
+        if (el.closest('details:not([open])')) return false;
+        const s = getComputedStyle(el);
+        if (s.display === 'none' || s.visibility === 'hidden') return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      };
+      const controls = [...(pe?.querySelectorAll('button, input, select, textarea') || [])].filter(isVisible);
+      return {
+        step: pe?.getAttribute('data-active-step'),
+        formOpen: pe?.getAttribute('data-form-open'),
+        creating: pe?.getAttribute('data-creating'),
+        peScrollHeight: pe?.scrollHeight || 0,
+        visibleControls: controls.length,
+        createCardHidden: !isVisible(document.getElementById('personaCreateOptionsCard')),
+        rightPanelHidden: !isVisible(document.getElementById('personaRightPanel')),
+        archiveHidden: !isVisible(document.getElementById('btnArchivePersona'))
+      };
+    });
+    const createPass = createMetrics.step === '1'
+      && createMetrics.formOpen === '1'
+      && createMetrics.creating === '1'
+      && createMetrics.createCardHidden
+      && createMetrics.rightPanelHidden
+      && createMetrics.archiveHidden
+      && createMetrics.peScrollHeight <= 2200
+      && createMetrics.visibleControls <= 40;
+    report.checks.push({ check: 'persona-create-compact', pass: createPass, createMetrics });
+    if (!createPass) report.ok = false;
+    await page.screenshot({ path: shot('01b-persona-create.png'), fullPage: false });
+    report.shots.push(shot('01b-persona-create.png'));
+
+    // Re-select seeded persona for remaining steps (exit create mode)
+    await page.evaluate((name) => {
+      const p = (window.state?.personas || []).find((x) => x.name === name);
+      if (p && typeof window.selectPersona === 'function') window.selectPersona(p);
+      if (typeof updateActivePersonaChip === 'function') updateActivePersonaChip();
+      if (typeof populateActiveUgcData === 'function') populateActiveUgcData();
+      if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: false });
+    }, 'Layout Smoke Luna');
+    await new Promise((r) => setTimeout(r, 500));
+    const reselected = await page.evaluate(() => ({
+      name: window.state?.selectedPersona?.name || null,
+      creating: !!window.state?.isCreatingNewPersona,
+      chip: (document.getElementById('activePersonaChipName')?.textContent || '').trim()
+    }));
+    report.checks.push({
+      check: 'reselect-after-create',
+      pass: reselected.name === 'Layout Smoke Luna' && !reselected.creating,
+      reselected
+    });
+    if (reselected.name !== 'Layout Smoke Luna' || reselected.creating) report.ok = false;
+
     for (const step of [1, 2, 3]) {
       await page.evaluate((n) => {
         if (typeof setPersonaStep === 'function') setPersonaStep(n, { scroll: false });
