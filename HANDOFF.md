@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/corte-c-ops-9b67` |
 | **Commit base** | `main` @ #119 merged |
-| **PR actual** | Corte C — doctor / support bundle / restore 2 fases / launcher |
+| **PR actual** | [#120](https://github.com/oscarkleinkopf/influ-json/pull/120) — Corte C ops |
 | **`main` remoto** | + #119 (Corte B hardening) |
 | **Prioridad inmediata** | Terminar Corte C; luego Corte D (schema influ-persona/v1) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
