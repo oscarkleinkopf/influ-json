@@ -695,6 +695,8 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 
 ### Corte A — Baseline confiable
 
+> **Estado 2026-08-13:** en implementación (`cursor/corte-a-baseline-9b67`).
+
 1. Reparar batch ads (CSRF + firma de cola + ownership).
 2. Resolver advisory high de `brace-expansion`.
 3. Gate CI para audit high/critical.

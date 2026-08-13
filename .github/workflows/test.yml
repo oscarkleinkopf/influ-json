@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit production dependencies (high+)
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1
         id: setup-chrome

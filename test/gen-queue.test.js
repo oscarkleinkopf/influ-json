@@ -16,8 +16,22 @@ test('genQueue.getStatus() returns required status schema', () => {
   assert.equal(typeof status.isCoolingDown, 'boolean');
   assert.equal(typeof status.cooldownRemainingMs, 'number');
   assert.ok('currentTaskInfo' in status);
+  assert.equal(typeof status.completedCount, 'number');
   assert.equal(status.minGapMs, 10);
   assert.equal(status.rateLimitCooldownMs, 150);
+});
+
+test('genQueue completedCount incrementa al terminar jobs', async () => {
+  genQueue._resetForTests();
+  const before = genQueue.getStatus().completedCount;
+  await genQueue.enqueue('count-ok', async () => 'ok');
+  try {
+    await genQueue.enqueue('count-fail', async () => {
+      throw new Error('boom');
+    });
+  } catch (_) { /* expected */ }
+  const after = genQueue.getStatus().completedCount;
+  assert.equal(after, before + 2);
 });
 
 test('genQueue serializes tasks sequentially in FIFO order', async () => {
