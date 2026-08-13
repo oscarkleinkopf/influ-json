@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/oscarkleinkopf/influ-json/schemas/influ-persona-v1.schema.json",
+  "title": "influ-persona/v1",
+  "description": "Contrato portable de identidad para influencers virtuales (character_lock). Extensiones desconocidas se conservan.",
+  "type": "object",
+  "required": ["schema_id", "identity", "character_lock"],
+  "properties": {
+    "schema_id": {
+      "type": "string",
+      "const": "influ-persona/v1"
+    },
+    "created_with": {
+      "type": "string",
+      "description": "Herramienta/versión que emitió el JSON (ej. influ-json@1.0.0)"
+    },
+    "identity": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "gender": { "type": ["string", "null"] },
+        "apparent_age": { "type": ["string", "null"] },
+        "ethnicity_appearance": { "type": ["string", "null"] },
+        "body_type": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "facial_features": {
+      "type": "object",
+      "properties": {
+        "skin_tone": { "type": ["string", "null"] },
+        "skin_tone_hex": { "type": ["string", "null"] },
+        "eye_color": { "type": ["string", "null"] },
+        "face_shape": { "type": ["string", "null"] },
+        "facial_asymmetry": { "type": ["string", "null"] },
+        "distinctive_marks": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "hair": {
+      "type": "object",
+      "properties": {
+        "color": { "type": ["string", "null"] },
+        "texture": { "type": ["string", "null"] },
+        "length": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "body": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "character_lock": {
+      "type": "object",
+      "required": ["version", "must_match_every_image"],
+      "properties": {
+        "version": { "type": "integer", "const": 1 },
+        "free_tier": { "type": "boolean" },
+        "purpose": { "type": "string" },
+        "free_chatbot_system": { "type": "string" },
+        "must_match_every_image": {
+          "type": "object",
+          "required": ["name", "skin_tone", "eye_color", "hair_color"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "skin_tone": { "type": "string", "minLength": 1 },
+            "skin_tone_hex": { "type": ["string", "null"] },
+            "eye_color": { "type": "string", "minLength": 1 },
+            "hair_color": { "type": "string", "minLength": 1 },
+            "hair_texture": { "type": ["string", "null"] },
+            "hair_length": { "type": ["string", "null"] },
+            "facial_asymmetry": { "type": ["string", "null"] },
+            "distinctive_marks": { "type": ["string", "null"] }
+          },
+          "additionalProperties": true
+        },
+        "never_change": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "trait_provenance": {
+      "type": "object",
+      "description": "Origen opcional de rasgos (user|gemini|heuristic|preset|correction)",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["user", "gemini", "heuristic", "preset", "correction", "synthesized", "unknown"]
+      }
+    }
+  },
+  "additionalProperties": true
+}

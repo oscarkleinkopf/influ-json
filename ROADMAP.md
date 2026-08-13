@@ -151,6 +151,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-13 | **Corte D (en curso)** | schema `influ-persona/v1` + migrate/validate/canonicalize + round-trip |
+| 2026-08-13 | **Corte C → main (#120)** | doctor + support-bundle + restore 2 fases + start-studio |
 | 2026-08-13 | **Corte C (en curso)** | doctor + support-bundle + restore 2 fases + start-studio launchers |
 | 2026-08-13 | **Corte B → main (#119)** | SSRF IPv4-mapped/DNS; CR/LF `.env`; stats/sync/GPU/import |
 | 2026-08-13 | **Corte B (en curso)** | SSRF IPv4-mapped/DNS; CR/LF `.env`; stats/sync/GPU/import |

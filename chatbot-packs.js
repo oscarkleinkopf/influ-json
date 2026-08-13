@@ -179,9 +179,23 @@ ${STANDARD_NEGATIVE_PROMPT}`;
   /**
    * @param {object} personaOrJson — fila persona o detailedJSON
    * @param {{ fallbackName?: string }} [opts]
-   * @returns {object} JSON de personaje con character_lock usable
+   * @returns {object} JSON de personaje con character_lock usable + schema_id influ-persona/v1
    */
   function normalizePersonaForPack(personaOrJson, opts = {}) {
+    // Corte D: preferir contrato portable si el módulo está disponible (Node / UMD).
+    try {
+      let InfluPersona = null;
+      if (typeof require === 'function') {
+        try { InfluPersona = require('./influ-persona'); } catch (_) {}
+      }
+      if (!InfluPersona && typeof globalThis !== 'undefined') {
+        InfluPersona = globalThis.InfluPersona || null;
+      }
+      if (InfluPersona && typeof InfluPersona.migrate === 'function') {
+        return InfluPersona.migrate(personaOrJson, opts);
+      }
+    } catch (_) { /* fall through legacy */ }
+
     let raw = personaOrJson && typeof personaOrJson === 'object' ? { ...personaOrJson } : {};
     const fallbackName = opts.fallbackName || raw.name || null;
 
@@ -210,6 +224,7 @@ ${STANDARD_NEGATIVE_PROMPT}`;
     if (mustEmpty) {
       json.character_lock = synthesizeCharacterLock(json, fallbackName);
     }
+    json.schema_id = json.schema_id || 'influ-persona/v1';
     return json;
   }
 
