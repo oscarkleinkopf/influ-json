@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-13 | **Corte A (en curso)** | batch ads CSRF+enqueue; brace-expansion 5.0.9; CI audit high; fetch gate; completedCount |
 | 2026-08-13 | **Análisis integral post-CSRF** | P0 batch/advisory/SSRF/env; roadmap operación/schema/UX/LAN en `docs/ANALISIS_PROYECTO_2026-08.md` |
 | 2026-08-13 | **Walkthrough import P0** | foto→confirmar lock→guardar→Copiar JSON (+ capturas 08*) |
 | 2026-08-13 | **README / Cómo usar** | vocab Influencers·Ficha·Copiar JSON; sin Persona Engine/(recomendado) |
