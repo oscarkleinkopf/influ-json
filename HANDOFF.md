@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/corte-b-hardening-9b67` |
 | **Commit base** | `main` @ #118 merged |
-| **PR actual** | Corte B — hardening SSRF / .env / scope |
+| **PR actual** | [#119](https://github.com/oscarkleinkopf/influ-json/pull/119) — Corte B hardening |
 | **`main` remoto** | + #118 (Corte A baseline) |
 | **Prioridad inmediata** | Terminar Corte B; luego Corte C (Doctor/launcher) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
