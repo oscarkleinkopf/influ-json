@@ -161,7 +161,19 @@ test('UX-1d: walkthrough cubre hub Negocio (Licensing + Campañas)', () => {
   assert.match(walk, /navigateToTab\(['"]licensing['"]\)/);
   assert.match(walk, /licenseActivePersonaName/);
   assert.match(walk, /negocio-licensing-chip/);
-  assert.match(walk, /btnNewCampaign/);
+  assert.match(walk, /btnEmptyCampaignCreate|btnNewCampaign/);
+  assert.match(walk, /negocio-campaign-empty-cta/);
   assert.match(walk, /negocio-campaign-precheck/);
   assert.match(walk, /personaCheck/);
+  assert.match(walk, /persona-step-\$\{step\}|01b-persona-step-/);
+  assert.match(walk, /personaIdentityExtraTraits/);
+});
+
+test('UX visual: layout-smoke cubre Persona pasos + Negocio', () => {
+  const smoke = fs.readFileSync(path.join(root, 'scripts/layout-smoke.js'), 'utf8');
+  assert.match(smoke, /persona-step-\$\{step\}|persona-step-/);
+  assert.match(smoke, /licensing-chip/);
+  assert.match(smoke, /campaigns-empty-one-cta/);
+  assert.match(smoke, /campaigns-precheck/);
+  assert.match(smoke, /layout-smoke-report\.json/);
 });

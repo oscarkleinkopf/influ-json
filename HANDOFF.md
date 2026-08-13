@@ -25,14 +25,35 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux-active-persona-9b67` |
-| **Commit base** | `main` @ #100 |
-| **PR actual** | [#101](https://github.com/oscarkleinkopf/influ-json/pull/101) — UX contexto activo + honesty producto |
-| **`main` remoto** | + free-path tests #100 |
+| **Rama de trabajo** | `cursor/ux-empty-persona-steps-9b67` |
+| **Commit base** | `main` @ #101 merged |
+| **PR actual** | [#102](https://github.com/oscarkleinkopf/influ-json/pull/102) — empty states + UX-2 + smoke visual |
+| **`main` remoto** | + #101 (chip activo + honesty producto) |
 | **Prioridad inmediata** | Free path / UX operatividad |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-12) — Honesty Glow Serum + walkthrough Negocio
+### Sesión reciente (Cursor, 2026-08-12) — Smoke visual Negocio + Persona pasos
+
+**Pedido:** Seguir con smoke visual.
+
+**Hecho (rama `cursor/ux-empty-persona-steps-9b67` / PR #102):**
+- `layout-smoke`: dashboard + pasos 1–3 + Licensing chip + Campañas empty/precheck; report JSON; CI sube todos los PNG
+- Walkthrough: capturas `01b-persona-step-*` + `07a-campaigns-empty`
+- Ambos OK en Chrome headless (artifacts bajo `/opt/cursor/artifacts/screenshots/`)
+- Comercial sigue aparcado
+
+### Sesión previa (Cursor, 2026-08-12) — Merge #101 + empty states + UX-2 fino
+
+**Pedido:** Mergear #101 y continuar con (1) empty states y (3) UX-2 Persona Engine.
+
+**Hecho:**
+- [#101](https://github.com/oscarkleinkopf/influ-json/pull/101) → `main`
+- Campañas vacías: 1 CTA (ocultar header); sin roster → «Crear influencer»
+- Historial vacío → «Ir a Copiar JSON» (paso 2)
+- Identidad: must_match visible; extras en `<details>`; Avanzado se pliega al cambiar paso
+- Comercial sigue aparcado
+
+### Sesión previa (Cursor, 2026-08-12) — Honesty Glow Serum + walkthrough Negocio
 
 **Pedido:** Continuar (#101).
 

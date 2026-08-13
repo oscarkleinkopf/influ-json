@@ -46,7 +46,7 @@ jobs:
           STUDIO_PIN: '1234'
           SESSION_SECRET: 'ci-session-secret'
 
-      - name: Layout smoke (Chrome width + screenshot)
+      - name: Layout smoke (Chrome width + screenshots hubs)
         run: npm run layout-smoke
         env:
           DISABLE_GIT_BACKUP: '1'
@@ -56,11 +56,15 @@ jobs:
           SESSION_SECRET: 'ci-session-secret'
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
           LAYOUT_SHOT_DIR: artifacts
+          LAYOUT_SHOT_PATH: artifacts/layout-smoke-dashboard.png
 
-      - name: Upload layout screenshot
+      - name: Upload layout screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: layout-smoke-dashboard
-          path: artifacts/layout-smoke-dashboard.png
+          name: layout-smoke
+          path: |
+            artifacts/layout-smoke-dashboard.png
+            artifacts/*.png
+            artifacts/layout-smoke-report.json
           if-no-files-found: ignore

@@ -163,6 +163,37 @@ async function main() {
     }, 'Walkthrough Luna');
     await new Promise((r) => setTimeout(r, 400));
 
+    // Visual smoke — Persona Engine pasos 1→2→3
+    await page.evaluate(() => {
+      if (typeof navigateToTab === 'function') navigateToTab('persona-engine');
+    });
+    for (const step of [1, 2, 3]) {
+      await page.evaluate((n) => {
+        if (typeof setPersonaStep === 'function') setPersonaStep(n, { scroll: false });
+      }, step);
+      await new Promise((r) => setTimeout(r, 350));
+      const info = await page.evaluate(() => {
+        const root = document.getElementById('persona-engine');
+        const extra = document.getElementById('personaIdentityExtraTraits');
+        const adv = document.getElementById('personaAdvancedTools');
+        const copy = document.getElementById('btnCopyPackFullbodyPrimary');
+        return {
+          activeStep: root?.getAttribute('data-active-step'),
+          extraOpen: !!extra?.open,
+          advOpen: !!adv?.open,
+          hasCopy: !!copy
+        };
+      });
+      const stepOk = info.activeStep === String(step)
+        && (step !== 1 || info.extraOpen === false)
+        && (step !== 2 || info.hasCopy)
+        && (step !== 2 || info.advOpen === false);
+      await page.screenshot({ path: shot(`01b-persona-step-${step}.png`), fullPage: false });
+      report.shots.push(shot(`01b-persona-step-${step}.png`));
+      report.steps.push({ step: `persona-step-${step}`, pass: stepOk, info });
+      if (!stepOk) report.ok = false;
+    }
+
     // Go to ficha / step 2
     await page.evaluate(() => {
       if (typeof navigateToTab === 'function') navigateToTab('persona-engine');
@@ -297,10 +328,36 @@ async function main() {
 
     await page.evaluate(() => {
       if (typeof navigateToTab === 'function') navigateToTab('campaigns');
+      if (typeof renderCampaigns === 'function') return renderCampaigns();
     });
-    await new Promise((r) => setTimeout(r, 300));
-    const btnNew = await page.$('#btnNewCampaign');
-    if (btnNew) await btnNew.click();
+    await new Promise((r) => setTimeout(r, 500));
+    const campEmpty = await page.evaluate(() => {
+      const emptyBtn = document.getElementById('btnEmptyCampaignCreate');
+      const headerBtn = document.getElementById('btnNewCampaign');
+      return {
+        hasEmptyCta: !!emptyBtn,
+        emptyVisible: !!(emptyBtn && getComputedStyle(emptyBtn).display !== 'none'),
+        headerHidden: !!(headerBtn && headerBtn.hidden)
+      };
+    });
+    await page.screenshot({ path: shot('07a-campaigns-empty.png'), fullPage: false });
+    report.shots.push(shot('07a-campaigns-empty.png'));
+    const emptyOk = campEmpty.hasEmptyCta && campEmpty.emptyVisible && campEmpty.headerHidden;
+    report.steps.push({ step: 'negocio-campaign-empty-cta', pass: emptyOk, campEmpty });
+    if (!emptyOk) report.ok = false;
+
+    const openCampaign = await page.$('#btnEmptyCampaignCreate');
+    if (openCampaign) await openCampaign.click();
+    else {
+      const btnNew = await page.$('#btnNewCampaign');
+      if (btnNew) {
+        await page.evaluate(() => {
+          const b = document.getElementById('btnNewCampaign');
+          if (b) b.hidden = false;
+        });
+        await btnNew.click();
+      }
+    }
     await new Promise((r) => setTimeout(r, 400));
     const campaignPrecheck = await page.evaluate(() => {
       const checks = [...document.querySelectorAll('input[name="personaCheck"]')];
