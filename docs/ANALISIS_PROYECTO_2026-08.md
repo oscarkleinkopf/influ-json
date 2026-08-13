@@ -715,7 +715,7 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 
 ### Corte C — Operación en otra máquina
 
-> **Estado 2026-08-13:** en implementación (`cursor/corte-c-ops-9b67`).
+> **Estado 2026-08-13:** ✅ en `main` (#120).
 
 1. `npm run doctor`.
 2. Support bundle redactado.
@@ -723,6 +723,8 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 4. Launcher `.cmd` / `.sh` + ZIP release.
 
 ### Corte D — Contrato portable
+
+> **Estado 2026-08-13:** en implementación (`cursor/corte-d-persona-schema-9b67`).
 
 1. JSON Schema `influ-persona/v1`.
 2. Normalize/migrate/import.

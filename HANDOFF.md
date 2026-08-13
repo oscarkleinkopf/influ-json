@@ -25,14 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/corte-c-ops-9b67` |
-| **Commit base** | `main` @ #119 merged |
-| **PR actual** | [#120](https://github.com/oscarkleinkopf/influ-json/pull/120) — Corte C ops |
-| **`main` remoto** | + #119 (Corte B hardening) |
-| **Prioridad inmediata** | Terminar Corte C; luego Corte D (schema influ-persona/v1) |
+| **Rama de trabajo** | `cursor/corte-d-persona-schema-9b67` |
+| **Commit base** | `main` @ #120 merged |
+| **PR actual** | Corte D — schema influ-persona/v1 |
+| **`main` remoto** | + #120 (Corte C ops) |
+| **Prioridad inmediata** | Terminar Corte D; luego Corte E (UX resistente) o F si LAN |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Merge #119 + Corte C
+### Sesión reciente (Cursor, 2026-08-13) — CI autónomo + Corte D
+
+**Pedido:** ¿Puedo revisar los tests en GitHub yo mismo?
+
+**Hecho:**
+- Sí — `gh pr checks` / `gh pr view` (sin esperar aviso manual)
+- [#120](https://github.com/oscarkleinkopf/influ-json/pull/120) CI verde → mergeado a `main`
+- Arranque **Corte D**: `schemas/influ-persona-v1.schema.json` + `influ-persona.js` (normalize/migrate/validate/canonicalize)
+
+### Sesión previa (Cursor, 2026-08-13) — Merge #119 + Corte C
 
 **Pedido:** Tests de #119 OK → integrar y seguir.
 
