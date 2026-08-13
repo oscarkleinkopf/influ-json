@@ -217,7 +217,7 @@ Tras cerrar UX-0…5 + walkthrough UI (#104), el Studio **funciona** en el loop 
 | # | Idea | Criterio de hecho | Estado |
 |---|------|-------------------|--------|
 | **1** | **Paso 2 · modo «primer JSON»** — tras Crear influencer, Lock & Packs muestra ficha mínima + card Copiar JSON; Biblia / pose / UGC / panel derecho / detalles de identidad van a «Más herramientas» | En viewport 900 px el botón verde es lo único grande; `data-step2-focus=1` | ✅ esta rama |
-| **2** | **Lock honesto en Identidad** — si origen=Latina + tez clara, sugerir «Latina de tez clara» *antes* de guardar; score visible en paso 1 | Guardar no deja el toast como único aviso | pendiente |
+| **2** | **Lock honesto en Identidad** — si origen=Latina + tez clara, sugerir «Latina de tez clara» *antes* de guardar; score visible en paso 1 | Guardar no deja el toast como único aviso | ✅ esta rama |
 | **3** | **Ritual «inspirar desde foto»** — subir → confirmar tez/ojos/pelo → guardar → Copiar JSON (+ walkthrough) | Mismo P0 que crear desde cero | pendiente |
 | **4** | **UX-1c estricto** — ≤3 destinos «Copiar JSON» (header + pack primary + empty CTAs); resto = Copiar prompt / estructura / pack X | Inventario HTML ≤3 | pendiente |
 | **5** | **Silenciar chrome primer uso** — PIN en Ajustes (no barra+toast); offline = chip; Git/Ajustes colapsados | Primer viewport sin doble aviso PIN | pendiente |

@@ -726,11 +726,15 @@
                   <label for="pHair">Cabello (Resumen)</label>
                   <input type="text" id="pHair" list="dlHair" placeholder="Selecciona o escribe..." value="Marrón ondulado largo">
                 </div>
-                <div>
-                  <label for="pEthnicity">Origen / Apariencia</label>
-                  <input type="text" id="pEthnicity" list="dlEthnicity" placeholder="Selecciona o escribe..." value="Latina / Mediterránea">
+                  <div>
+                    <label for="pEthnicity">Origen / Apariencia</label>
+                    <input type="text" id="pEthnicity" list="dlEthnicity" placeholder="Selecciona o escribe..." value="Latina / Mediterránea">
+                  </div>
                 </div>
-              </div>
+                <div id="identityLockHint" class="identity-lock-hint" hidden data-persona-step="1">
+                  <p id="identityLockHintText" class="identity-lock-hint-text"></p>
+                  <button type="button" class="btn btn-sm" id="btnApplyEthnicityTezClara">Usar «Latina de tez clara»</button>
+                </div>
 
               <details id="personaIdentityProfileDetails" class="persona-identity-details">
                 <summary>Edad, vibe y estilo — opcional</summary>
@@ -772,9 +776,12 @@
 
               <!-- Detalles Físicos: must_match visible; extras plegados (UX-2) -->
               <div class="glass-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); margin-top: 14px; padding: 14px; border-radius: var(--border-radius-md);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
                   <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin: 0; font-family: var(--font-display);">✨ Identidad (must_match)</h4>
-                  <button type="button" id="btnGenerateTraits" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; cursor: pointer;">🎲 Generar Rasgos Únicos</button>
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <div id="identityLockHealthInline" class="lock-health-inline" hidden aria-live="polite"></div>
+                    <button type="button" id="btnGenerateTraits" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; cursor: pointer;">🎲 Generar Rasgos Únicos</button>
+                  </div>
                 </div>
                 <div class="form-row">
                   <div>

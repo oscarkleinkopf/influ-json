@@ -25,14 +25,25 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/paso2-primer-json-9b67` |
-| **Commit base** | `main` @ #105 |
-| **PR actual** | (este) — paso 2 modo primer JSON |
-| **`main` remoto** | + #103–#105 |
-| **Prioridad inmediata** | Merge primer JSON → idea #2 lock Identidad |
+| **Rama de trabajo** | `cursor/lock-identidad-honesto-9b67` |
+| **Commit base** | `main` @ #106 merged |
+| **PR actual** | (este) — lock Identidad Latina+tez clara |
+| **`main` remoto** | + #106 (primer JSON) |
+| **Prioridad inmediata** | Merge → idea #3 inspirar desde foto (o #4/#6) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Paso 2 · primer JSON
+### Sesión reciente (Cursor, 2026-08-13) — Idea #2 lock Identidad
+
+**Pedido:** Mergea #106 y seguimos con 2.
+
+**Hecho:**
+- [#106](https://github.com/oscarkleinkopf/influ-json/pull/106) → `main`
+- `suggestLatinaLightSkinFix` en validador; hint en Identidad + botón «Usar Latina de tez clara»
+- Score lock inline en paso 1 (`#identityLockHealthInline`)
+- Soft nudge al guardar (no bloquea)
+- Siguiente: idea #3 ritual inspirar desde foto
+
+### Sesión previa (Cursor, 2026-08-13) — Paso 2 · primer JSON
 
 **Pedido:** Actualizar doc con ideas e implementar empezando por #1.
 

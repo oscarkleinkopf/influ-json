@@ -3172,7 +3172,8 @@ function resetPersonaFormForNew() {
   document.getElementById('pName').value = randomName;
   document.getElementById('pGender').value = 'Female';
   document.getElementById('pAge').value = '25 años';
-  document.getElementById('pEthnicity').value = 'Latina';
+  // Default honesto: evita warning Latina + tez clara (idea #2)
+  document.getElementById('pEthnicity').value = 'Latina de tez clara';
   document.getElementById('pStyle').value = 'Minimalista y natural';
   document.getElementById('pHair').value = 'Marrón ondulado largo';
   document.getElementById('pSetting').value = 'Sala de estar moderna y neutral';
@@ -4785,6 +4786,9 @@ function setupPersonaEngine() {
   
   document.getElementById('btnSavePersona')?.addEventListener('click', () => savePersona({ withPortrait: false }));
   document.getElementById('btnSavePersonaWithPortrait')?.addEventListener('click', () => savePersona({ withPortrait: true }));
+  document.getElementById('btnApplyEthnicityTezClara')?.addEventListener('click', () => {
+    applyLatinaTezClaraSuggestion();
+  });
   document.getElementById('btnDeletePersona').addEventListener('click', deletePersonaAction);
 
   // Sync color picker ↔ hex text
@@ -5134,6 +5138,64 @@ function compilePromptAndJSON() {
 
   // F1 — salud del character_lock (valida exactamente el JSON que se copiará)
   renderLockHealth(jsonConfig);
+  refreshIdentityLockHints(jsonConfig);
+}
+
+/**
+ * Idea #2 — aviso Latina + tez clara en Identidad (antes de guardar/copiar).
+ */
+function refreshIdentityLockHints(personaJSON) {
+  const hint = document.getElementById('identityLockHint');
+  const hintText = document.getElementById('identityLockHintText');
+  const inline = document.getElementById('identityLockHealthInline');
+  const ethEl = document.getElementById('pEthnicity');
+  const skinEl = document.getElementById('pSkinTone');
+  const hexEl = document.getElementById('pSkinToneHex');
+
+  let fix = null;
+  if (typeof CharacterLockValidator !== 'undefined' && CharacterLockValidator.suggestLatinaLightSkinFix) {
+    const eth = ethEl?.value || personaJSON?.identity?.ethnicity_appearance || '';
+    const tone = skinEl?.value || personaJSON?.facial_features?.skin_tone || '';
+    const hex = hexEl?.value || personaJSON?.facial_features?.skin_tone_hex || '';
+    fix = CharacterLockValidator.suggestLatinaLightSkinFix(eth, tone, hex);
+  }
+  if (hint && hintText) {
+    if (fix) {
+      hint.hidden = false;
+      hintText.textContent = fix.message;
+    } else {
+      hint.hidden = true;
+      hintText.textContent = '';
+    }
+  }
+
+  if (inline && typeof CharacterLockValidator !== 'undefined') {
+    let v = null;
+    try {
+      v = CharacterLockValidator.validateCharacterLock(personaJSON || getFullPersonaJSON());
+    } catch (_) { v = null; }
+    if (v) {
+      inline.hidden = false;
+      inline.className = `lock-health-inline lock-${v.grade}`;
+      inline.textContent = `Lock ${v.gradeLabel} · ${v.score}%`;
+      inline.title = v.summary || '';
+    } else {
+      inline.hidden = true;
+      inline.textContent = '';
+    }
+  }
+}
+
+function applyLatinaTezClaraSuggestion() {
+  const ethEl = document.getElementById('pEthnicity');
+  const suggested = (typeof CharacterLockValidator !== 'undefined' && CharacterLockValidator.LATINA_TEZ_CLARA)
+    || 'Latina de tez clara';
+  if (ethEl) {
+    ethEl.value = suggested;
+    ethEl.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  try { compilePromptAndJSON(); } catch (_) {}
+  toastSuccess('Origen actualizado a «Latina de tez clara» — mejor ancla free.');
 }
 
 /**
@@ -5373,6 +5435,21 @@ async function savePersona(opts = {}) {
   if (!name) {
     toastError('Indica un nombre para el influencer antes de guardar.');
     return;
+  }
+
+  // Idea #2 — soft nudge (no bloquea): Latina + tez clara sin corrección
+  if (typeof CharacterLockValidator !== 'undefined' && CharacterLockValidator.suggestLatinaLightSkinFix) {
+    const tone = document.getElementById('pSkinTone')?.value || '';
+    const hex = document.getElementById('pSkinToneHex')?.value || '';
+    const fix = CharacterLockValidator.suggestLatinaLightSkinFix(ethnicity || document.getElementById('pEthnicity')?.value || '', tone, hex);
+    if (fix && !state._latinaTezNudgeShown) {
+      state._latinaTezNudgeShown = true;
+      toastInfo(`${fix.message} Puedes pulsar «Usar Latina de tez clara» en Identidad.`, {
+        actionLabel: 'Usar sugerencia',
+        onAction: () => applyLatinaTezClaraSuggestion(),
+        duration: 9000
+      });
+    }
   }
 
   // Create mode is sticky until selectPersona / successful create selects the new one
