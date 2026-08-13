@@ -25,14 +25,25 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux1c-copiar-json-9b67` |
-| **Commit base** | `main` @ #108 merged |
-| **PR actual** | (este) — UX-1c ≤3 Copiar JSON |
-| **`main` remoto** | + #108 (ritual foto) |
-| **Prioridad inmediata** | Merge → idea #5 chrome primer uso (o #6 README) |
+| **Rama de trabajo** | `cursor/chrome-primer-uso-9b67` |
+| **Commit base** | `main` @ #109 merged |
+| **PR actual** | (este) — silenciar chrome primer uso |
+| **`main` remoto** | + #109 (UX-1c) |
+| **Prioridad inmediata** | Merge → idea #6 README / Cómo usar |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Idea #4 UX-1c ≤3 Copiar JSON
+### Sesión reciente (Cursor, 2026-08-13) — Idea #5 chrome primer uso
+
+**Pedido:** Merge y #5.
+
+**Hecho:**
+- [#109](https://github.com/oscarkleinkopf/influ-json/pull/109) → `main`
+- «Más tarde» PIN: sin barra + sin toast; hint en Ajustes → Perfiles
+- Offline: chip sidebar (`#offlineModeChip`); eliminada `#offlineModeBar`
+- Git / Ajustes / Sync en `<details id="sidebarStudioTools">` colapsado
+- Siguiente: idea #6 alinear README / Cómo usar
+
+### Sesión previa (Cursor, 2026-08-13) — Idea #4 UX-1c ≤3 Copiar JSON
 
 **Pedido:** Continua (tras #108).
 

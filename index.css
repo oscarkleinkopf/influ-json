@@ -219,8 +219,8 @@ body {
   flex-grow: 1;
   min-height: 100vh;
   padding: 40px;
-  /* UX-0c: espacio bajo #offlineModeBar (fixed, ~36px, always on) */
-  padding-top: 76px;
+  /* Idea #5: sin #offlineModeBar fija — padding normal */
+  padding-top: 40px;
   max-width: 1400px;
 }
 
@@ -3156,7 +3156,7 @@ input:checked + .slider:before {
 
   body {
     padding-bottom: 64px; /* Space for bottom nav */
-    padding-top: 92px;    /* mobile-header 56px + offlineModeBar ~36px */
+    padding-top: 56px;    /* mobile-header only (offline = chip en sidebar) */
   }
 
   /* Mobile Top Header Bar */
@@ -3684,6 +3684,94 @@ input:checked + .slider:before {
 
 .queue-status-chip.cooling .queue-status-dot {
   background: var(--danger);
+}
+
+/* Idea #5 — offline como chip (sidebar), no barra fija */
+.offline-mode-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.08);
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.offline-mode-chip input {
+  margin: 0;
+  accent-color: #94a3b8;
+}
+
+.offline-mode-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #64748b;
+  flex-shrink: 0;
+}
+
+.offline-mode-chip.is-on {
+  border-color: rgba(148, 163, 184, 0.55);
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--text-primary);
+}
+
+.offline-mode-chip.is-on .offline-mode-chip-dot {
+  background: #94a3b8;
+}
+
+.sidebar-studio-tools {
+  width: 100%;
+  margin-top: 4px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-sm);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0 8px 8px;
+}
+
+.sidebar-studio-tools > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.sidebar-studio-tools > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sidebar-studio-tools[open] > summary {
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 8px;
+}
+
+.sidebar-studio-tools .git-status {
+  margin-bottom: 8px;
+}
+
+.pin-default-settings-hint {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pin-default-settings-hint code {
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 @keyframes queuePulse {
@@ -4562,13 +4650,9 @@ button.is-queue-locked:disabled {
   flex-shrink: 0;
 }
 
-/* UX-0c: fixed — sticky como hijo de body{display:flex} robaba ~300px de ancho a .app-container */
+/* UX-0c legacy: #offlineModeBar eliminada (idea #5 → chip). Reglas no-op por si queda markup viejo. */
 .offline-mode-bar {
-  position: fixed;
-  top: 0;
-  left: var(--sidebar-width);
-  right: 0;
-  z-index: 90;
+  display: none !important;
 }
 
 .offline-pack-highlight {
@@ -4591,8 +4675,7 @@ button.is-queue-locked:disabled {
 
 @media (max-width: 768px) {
   .offline-mode-bar {
-    left: 0;
-    top: 56px; /* debajo del mobile-header */
+    display: none !important;
   }
 }
 
