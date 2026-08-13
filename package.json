@@ -7,6 +7,8 @@
     "start": "node server.js",
     "start:minimal": "node server-minimal.js",
     "dev": "node --watch server.js",
+    "doctor": "node scripts/doctor.js",
+    "support-bundle": "node scripts/support-bundle.js",
     "build:index": "node scripts/build-index.js",
     "test": "node scripts/run-tests.js",
     "test:raw": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 node --test --test-concurrency=1 test/*.test.js",

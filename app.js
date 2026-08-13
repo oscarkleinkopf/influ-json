@@ -1217,7 +1217,7 @@ async function refreshBackupsSettingsList() {
     list.querySelectorAll('[data-restore-backup]').forEach(btn => {
       btn.addEventListener('click', async () => {
         const filename = btn.getAttribute('data-restore-backup');
-        if (!confirm(`¿Restaurar ${filename}?\nSe crea un backup de seguridad antes. Luego reinicia el servidor (npm start).`)) return;
+        if (!confirm(`¿Programar restore de ${filename}?\nSe valida con quick_check, se crea un backup de seguridad y se aplica al reiniciar el servidor (npm start / start-studio). La DB actual no se sobrescribe hasta entonces.`)) return;
         const res2 = await authFetch('/api/backups/restore', {
           method: 'POST',
           body: JSON.stringify({ filename })

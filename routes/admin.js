@@ -262,10 +262,33 @@ function registerAdminRoutes(app, deps) {
       res.json({
         success: true,
         ...result,
-        message: result.message || 'Backup restaurado. Reinicia el servidor (npm start).'
+        message: result.message || 'Restore programado. Reinicia el servidor para aplicarlo.'
       });
     } catch (err) {
       res.status(400).json({ success: false, message: err.message });
+    }
+  });
+
+  app.get('/api/doctor', requireAdmin, (req, res) => {
+    try {
+      const { runDoctor } = require('../studio-doctor');
+      const includeAudit = String(req.query.audit || '') === '1';
+      const report = runDoctor({ includeAudit });
+      res.json({ success: true, doctor: report });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
+  app.get('/api/support-bundle', requireAdmin, async (req, res) => {
+    try {
+      const { writeSupportBundle } = require('../support-bundle');
+      const { zipPath } = await writeSupportBundle({
+        includeAudit: String(req.query.audit || '') === '1'
+      });
+      res.download(zipPath, path.basename(zipPath));
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
     }
   });
 
