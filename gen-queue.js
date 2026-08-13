@@ -17,6 +17,8 @@ let lastJobFinishedAt = 0;
 let lastRateLimitedAt = 0;
 let queueLength = 0;
 let currentLabel = null;
+/** Contador monotónico de jobs finalizados (éxito o error) — queue-poller / UX. */
+let completedCount = 0;
 
 /** W8 — ola actual: tamaño al encolar + índice del job en curso (1-based). */
 let waveSize = 0;
@@ -50,6 +52,7 @@ function getStatus() {
     busy,
     queueLength,
     currentLabel,
+    completedCount,
     minGapMs,
     rateLimitCooldownMs: cooldownMs,
     lastRateLimitedAt: lastRateLimitedAt || null,
@@ -147,6 +150,7 @@ function enqueue(label, jobFn) {
       busy = false;
       currentLabel = null;
       lastJobFinishedAt = Date.now();
+      completedCount += 1;
       console.log(`[gen-queue] END (took ${lastJobFinishedAt - lastJobStartedAt}ms)`);
       if (queueLength === 0) {
         waveActive = false;
@@ -167,6 +171,7 @@ function _resetForTests() {
   busy = false;
   queueLength = 0;
   currentLabel = null;
+  completedCount = 0;
   waveSize = 0;
   wavePosition = 0;
   waveActive = false;
@@ -174,7 +179,6 @@ function _resetForTests() {
   lastJobFinishedAt = 0;
   lastRateLimitedAt = 0;
 }
-
 module.exports = {
   enqueue,
   getStatus,

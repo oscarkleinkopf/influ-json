@@ -6516,9 +6516,8 @@ Este certificado avala que los derechos comerciales de explotación de imagen, n
         btnStartBulk.disabled = true;
         btnStartBulk.innerHTML = '⏳ Encolando lote...';
 
-        const res = await fetch('/api/ads/bulk-generate', {
+        const res = await authFetch('/api/ads/bulk-generate', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ personaId: p.id, productIds: selectedProductIds })
         });
         const data = await res.json();
@@ -6579,14 +6578,18 @@ function startBulkAdBatchPolling(batchId) {
 
   activeBulkPollingInterval = setInterval(async () => {
     try {
-      const res = await fetch(`/api/ads/batch-status/${batchId}`);
+      const res = await authFetch(`/api/ads/batch-status/${batchId}`);
       const data = await res.json();
       if (!data.success) return;
 
       const b = data.batch;
-      const pct = Math.round((b.completed / b.total) * 100);
+      const done = (b.completed || 0) + (b.failed || 0);
+      const pct = b.total ? Math.round((done / b.total) * 100) : 0;
 
-      if (progressText) progressText.textContent = `${b.completed} / ${b.total} (${pct}%)`;
+      if (progressText) {
+        const failHint = b.failed ? ` · ${b.failed} fallidos` : '';
+        progressText.textContent = `${done} / ${b.total} (${pct}%)${failHint}`;
+      }
       if (progressBar) progressBar.style.width = `${pct}%`;
 
       // Render new images as they complete

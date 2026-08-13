@@ -25,14 +25,27 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/analisis-mejoras-2026-9b67` |
-| **Commit base** | `main` @ #116 merged |
-| **PR actual** | [#117](https://github.com/oscarkleinkopf/influ-json/pull/117) — análisis proyecto + ideas priorizadas |
-| **`main` remoto** | + #115/#116 (CSRF + handoff) |
-| **Prioridad inmediata** | Corte A/B: batch ads + dependency audit + SSRF/env hardening |
+| **Rama de trabajo** | `cursor/corte-a-baseline-9b67` |
+| **Commit base** | `main` @ #117 merged |
+| **PR actual** | [#118](https://github.com/oscarkleinkopf/influ-json/pull/118) — Corte A baseline |
+| **`main` remoto** | + #117 (`docs/ANALISIS_PROYECTO_2026-08.md`) |
+| **Prioridad inmediata** | Terminar Corte A; luego Corte B (SSRF / .env / scope stats) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Análisis integral post-CSRF
+### Sesión reciente (Cursor, 2026-08-13) — Integrar análisis + Corte A
+
+**Pedido:** Integrar el análisis y decidir cómo seguir.
+
+**Hecho:**
+- [#117](https://github.com/oscarkleinkopf/influ-json/pull/117) → `main` (análisis + roadmap por cortes)
+- Arranque **Corte A** (P0 del análisis):
+  - Batch ads: `authFetch` + `enqueue(label, jobFn)` + ownership `batch-status`
+  - `brace-expansion` → 5.0.9; CI `npm audit --omit=dev --audit-level=high`
+  - Gate estático `csrf-fetch-gate`; `completedCount` en `gen-queue`
+  - Tests `bulk-ads` + gen-queue completedCount
+- Siguiente tras A: **Corte B** (SSRF IPv4-mapped/DNS, CR/LF `.env`, scope stats/sync)
+
+### Sesión previa (Cursor, 2026-08-13) — Análisis integral post-CSRF
 
 **Pedido:** Revisar el proyecto y documentar ideas de funcionamiento, usabilidad y seguridad.
 

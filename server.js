@@ -753,11 +753,17 @@ app.post('/api/ads/bulk-generate', authService.apiRateLimit('heavy'), async (req
       .filter(Boolean);
     if (products.length === 0) return res.status(404).json({ success: false, error: 'Productos no encontrados.' });
 
+    // BULK_ADS_TEST_MATRIX=1 → 1 hook × 2 formats (2 tareas/producto) para tests offline.
+    const hooks = process.env.BULK_ADS_TEST_MATRIX === '1'
+      ? AD_CONVERSION_HOOKS.slice(0, 1)
+      : AD_CONVERSION_HOOKS;
+    const formats = AD_FORMATS;
     const batchId = `batch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const totalTasks = products.length * AD_CONVERSION_HOOKS.length * AD_FORMATS.length; // 10 per product
+    const totalTasks = products.length * hooks.length * formats.length; // 10 per product (2 in test matrix)
 
     activeAdBatches[batchId] = {
       batchId,
+      profileId,
       personaName: persona.name,
       total: totalTasks,
       completed: 0,
@@ -767,11 +773,12 @@ app.post('/api/ads/bulk-generate', authService.apiRateLimit('heavy'), async (req
       created_at: new Date().toISOString()
     };
 
-    // Enqueue tasks into genQueue
+    // Enqueue tasks into genQueue (label, jobFn) — never enqueue(fn) alone.
     for (const prod of products) {
-      for (const hookText of AD_CONVERSION_HOOKS) {
-        for (const format of AD_FORMATS) {
-          genQueue.enqueue(async () => {
+      for (const hookText of hooks) {
+        for (const format of formats) {
+          const label = `bulk-ad:${prod.name}:${format}`;
+          genQueue.enqueue(label, async () => {
             try {
               const masterPrompt = aiService.buildUnifiedMasterPrompt({
                 name: persona.name,
@@ -815,8 +822,9 @@ app.post('/api/ads/bulk-generate', authService.apiRateLimit('heavy'), async (req
               console.error(`Error in bulk ad generation task:`, err.message);
               activeAdBatches[batchId].failed++;
             } finally {
-              if (activeAdBatches[batchId].completed + activeAdBatches[batchId].failed >= activeAdBatches[batchId].total) {
-                activeAdBatches[batchId].status = 'completed';
+              const b = activeAdBatches[batchId];
+              if (b && b.completed + b.failed >= b.total) {
+                b.status = 'completed';
               }
             }
           });
@@ -833,7 +841,13 @@ app.post('/api/ads/bulk-generate', authService.apiRateLimit('heavy'), async (req
 app.get('/api/ads/batch-status/:batchId', (req, res) => {
   const batch = activeAdBatches[req.params.batchId];
   if (!batch) return res.status(404).json({ success: false, error: 'Lote no encontrado.' });
-  res.json({ success: true, batch });
+  const profileId = req.session.profileId || resolveSessionProfile(req);
+  if (batch.profileId && profileId && batch.profileId !== profileId) {
+    return res.status(404).json({ success: false, error: 'Lote no encontrado.' });
+  }
+  // No filtrar profileId interno al cliente.
+  const { profileId: _pid, ...publicBatch } = batch;
+  res.json({ success: true, batch: publicBatch });
 });
 
 // Campaigns endpoints
