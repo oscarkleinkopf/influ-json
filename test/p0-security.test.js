@@ -121,9 +121,13 @@ test('member no puede borrar generation ni generar imagen de persona ajena', asy
         generation_type: 'portrait'
       });
 
+      const memberCsrf = redeemed.csrfToken;
       const delRes = await fetch(`${base}/api/generations/${genId}`, {
         method: 'DELETE',
-        headers: { Cookie: memberCookie }
+        headers: {
+          Cookie: memberCookie,
+          ...(memberCsrf ? { 'X-CSRF-Token': memberCsrf } : {})
+        }
       });
       assert.equal(delRes.status, 404);
 
@@ -134,7 +138,8 @@ test('member no puede borrar generation ni generar imagen de persona ajena', asy
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Cookie: memberCookie
+          Cookie: memberCookie,
+          ...(memberCsrf ? { 'X-CSRF-Token': memberCsrf } : {})
         },
         body: JSON.stringify({
           prompt: 'hijack',

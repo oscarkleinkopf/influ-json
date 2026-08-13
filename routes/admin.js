@@ -53,7 +53,8 @@ function registerInviteRedeemRoute(app, deps) {
           success: true,
           message: 'Invitación aceptada. Tu espacio está vacío y aislado del resto.',
           profile: publicProfileDTO(result.profile),
-          pinIsDefault: false
+          pinIsDefault: false,
+          csrfToken: authService.ensureCsrfToken(req.session)
         });
       });
     } catch (err) {

@@ -151,11 +151,13 @@ test('GET /assets/references and /generated require auth; guides stay public', a
   }
 });
 
-test('app.js cookie-first: no sessionStorage studioPin; authFetch omits Bearer', () => {
+test('app.js cookie-first: no sessionStorage studioPin; authFetch omits Bearer; CSRF header', () => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   assert.match(src, /sessionStorage\.removeItem\(['"]studioPin['"]\)/);
   assert.doesNotMatch(src, /sessionStorage\.setItem\(\s*['"]studioPin['"]/);
   assert.doesNotMatch(src, /Authorization['"]\s*\]\s*=\s*`Bearer/);
   assert.doesNotMatch(src, /Authorization['"]\s*\]\s*=\s*['"]Bearer/);
   assert.match(src, /options\.credentials\s*=\s*options\.credentials\s*\|\|\s*['"]same-origin['"]/);
+  assert.match(src, /X-CSRF-Token/);
+  assert.match(src, /rememberCsrfToken/);
 });

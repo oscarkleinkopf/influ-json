@@ -135,16 +135,12 @@ test('API rescore guarda consistency_* en variantes', async () => {
   const base = `http://127.0.0.1:${server.address().port}`;
 
   try {
-    const login = await fetch(`${base}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: process.env.STUDIO_PIN || '1234' })
-    });
-    const cookie = (login.headers.getSetCookie?.()?.[0] || login.headers.get('set-cookie') || '').split(';')[0];
+    const { loginSession } = require('./helpers/session');
+    const session = await loginSession(base);
 
     const res = await fetch(`${base}/api/personas/${persona.id}/consistency/rescore`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      headers: session.jsonHeaders(),
       body: JSON.stringify({})
     });
     const data = await res.json();

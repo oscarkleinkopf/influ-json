@@ -25,14 +25,24 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #113 merged |
-| **PR actual** | — |
-| **`main` remoto** | + #113 (seguridad mercado) |
-| **Prioridad inmediata** | Empaquetado / CSRF-HSTS si TLS / o #99 si se pide |
+| **Rama de trabajo** | `cursor/sec-csrf-9b67` |
+| **Commit base** | `main` @ #114 merged |
+| **PR actual** | (este) — CSRF synchronizer |
+| **`main` remoto** | + #113/#114 (seguridad mercado + handoff) |
+| **Prioridad inmediata** | Merge CSRF → empaquetado / HSTS si TLS / o #99 si se pide |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Merge #113 seguridad mercado
+### Sesión reciente (Cursor, 2026-08-13) — CSRF mutaciones cookie
+
+**Pedido:** Seguir con CSRF tras #113.
+
+**Hecho:**
+- `auth.csrfProtection` + token en login / status / me / redeem / change-pin
+- Front `authFetch` envía `X-CSRF-Token`; Bearer/CLI exento
+- Tests `sec-csrf` + helpers de sesión; docs SECURITY_MARKET
+- `CSRF_PROTECTION=0` para apagar
+
+### Sesión previa (Cursor, 2026-08-13) — Merge #113 seguridad mercado
 
 **Pedido:** CI verde en #113.
 

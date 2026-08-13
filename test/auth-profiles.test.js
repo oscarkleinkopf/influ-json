@@ -122,15 +122,9 @@ test('db+API: admin invites create isolated member profiles', async () => {
   db.deleteStudioProfile(redeemed.profile.id);
 
   await withServer(async (base) => {
-    const loginRes = await fetch(`${base}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: process.env.STUDIO_PIN || '1234' })
-    });
-    const cookie = loginRes.headers.getSetCookie?.()?.[0] || loginRes.headers.get('set-cookie');
-    const authHdr = cookie
-      ? { Cookie: cookie.split(';')[0], 'Content-Type': 'application/json' }
-      : { ...authHeaders({ 'Content-Type': 'application/json' }) };
+    const { loginSession, cookieFrom } = require('./helpers/session');
+    const admin = await loginSession(base);
+    const authHdr = admin.jsonHeaders();
 
     const createRes = await fetch(`${base}/api/invites`, {
       method: 'POST',
@@ -155,12 +149,13 @@ test('db+API: admin invites create isolated member profiles', async () => {
     assert.equal(redeemedApi.profile.role, 'member');
 
     // Member cannot create invites
-    const memberCookie = redeemRes.headers.getSetCookie?.()?.[0] || redeemRes.headers.get('set-cookie');
+    const memberCookie = cookieFrom(redeemRes);
+    const memberCsrf = redeemedApi.csrfToken;
     const forbid = await fetch(`${base}/api/invites`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(memberCookie ? { Cookie: memberCookie.split(';')[0] } : {})
+        ...(memberCookie ? { Cookie: memberCookie, 'X-CSRF-Token': memberCsrf } : {})
       },
       body: JSON.stringify({ note: 'should-fail' })
     });
@@ -171,7 +166,7 @@ test('db+API: admin invites create isolated member profiles', async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(memberCookie ? { Cookie: memberCookie.split(';')[0] } : {})
+        ...(memberCookie ? { Cookie: memberCookie, 'X-CSRF-Token': memberCsrf } : {})
       },
       body: JSON.stringify({
         name: `MemberProd_${Date.now()}`,
@@ -208,23 +203,17 @@ test('API: login + profiles + status pinIsDefault', async () => {
     const profiles = await profilesRes.json();
     assert.ok(profiles.profiles.length >= 1);
 
-    const loginRes = await fetch(`${base}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: '1234' })
-    });
-    const login = await loginRes.json();
-    assert.equal(login.success, true);
-    assert.ok(login.profile?.id);
+    const { loginSession } = require('./helpers/session');
+    const session = await loginSession(base, { pin: '1234' });
+    assert.equal(session.data.success, true);
+    assert.ok(session.data.profile?.id);
 
     // Create second profile via authenticated fetch (cookie from login)
-    const cookie = loginRes.headers.getSetCookie?.()?.[0] || loginRes.headers.get('set-cookie');
     const createRes = await fetch(`${base}/api/profiles`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(cookie ? { Cookie: cookie.split(';')[0] } : authHeaders())
-      },
+      headers: session.csrf
+        ? session.jsonHeaders()
+        : authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ name: `ApiProfile_${Date.now()}`, pin: '4321' })
     });
     const created = await createRes.json();
@@ -241,7 +230,7 @@ test('API: login + profiles + status pinIsDefault', async () => {
     // Cleanup
     await fetch(`${base}/api/profiles/${created.profile.id}`, {
       method: 'DELETE',
-      headers: cookie ? { Cookie: cookie.split(';')[0] } : authHeaders()
+      headers: session.csrf ? session.headers() : authHeaders()
     });
   });
 });
