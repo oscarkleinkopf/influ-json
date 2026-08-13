@@ -197,6 +197,7 @@
 | 2026-08-10 | **Skills activation** Use when + expected output | 3 SKILL.md + skills-activation.test.js |
 | 2026-08-07 | **Pack resilience** + PIN skip localhost | `normalizePersonaForPack`; CLI export-pack; wizard «Más tarde» |
 | 2026-08-06 | **UX free** JSON primary + pollen→Ajustes | Fullbody CTA; banner dual; authFetch pollen-safe; gen auth→402 |
+| 2026-08-13 | **Sec market** checklist + slim status + queue auth | `docs/SECURITY_MARKET.md`; `/api/status` sin paths; queue-status gated |
 | 2026-08-06 | **Sec #5** Permissions-Policy + COOP/CORP | Headers en `securityHeaders` tras CSP |
 | 2026-08-06 | **Sec #4** API abuse rate-limit | Sliding window heavy/default; `auth.apiRateLimit`; generate/upload/analyze |
 | 2026-08-06 | **Fase R R0–R4** face-lock Replicate opt-in | `ENABLE_PAID_FACE_LOCK`; InstantID/PuLID; UI toggle off; fallback Pollinations; métricas |

@@ -25,14 +25,27 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/walkthrough-import-ritual-9b67` |
-| **Commit base** | `main` @ #111 merged |
-| **PR actual** | (este) — walkthrough import foto→Copiar JSON |
-| **`main` remoto** | + #111 (README / Cómo usar) |
-| **Prioridad inmediata** | Merge → seguridad mercado / empaquetado / o #99 si se pide |
+| **Rama de trabajo** | `cursor/sec-market-checklist-9b67` |
+| **Commit base** | `main` @ #112 merged |
+| **PR actual** | [#113](https://github.com/oscarkleinkopf/influ-json/pull/113) — seguridad de mercado checklist |
+| **`main` remoto** | + #112 (walkthrough import ritual) |
+| **Prioridad inmediata** | Merge este PR → CSRF/HSTS solo si se publica con TLS / o #99 si se pide |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Walkthrough ritual import P0
+### Sesión reciente (Cursor, 2026-08-13) — Seguridad de mercado
+
+**Pedido:** Tras #112, checklist seguridad mercado (docs + hardening alto valor).
+
+**Hecho:**
+- [#112](https://github.com/oscarkleinkopf/influ-json/pull/112) → `main` (walkthrough import P0)
+- `docs/SECURITY_MARKET.md` — threat model, checklist LAN/VPS, runbook, mapa de tests
+- `/api/status` sin auth: sin `dataDir`/`dbPath`/URLs internas; flags free/face-lock OK
+- `/api/queue-status` detrás de `requireAuth`
+- Warn arranque: guía + TRUST_PROXY sin `COOKIE_SECURE`
+- Tests `sec-market` + fix `api-queue`; links README / AGENTS / `.env.example`
+- Fuera de alcance: CSRF completo, HSTS, quitar CSP `'unsafe-inline'`, #99
+
+### Sesión previa (Cursor, 2026-08-13) — Walkthrough ritual import P0
 
 **Pedido:** Merge #111 + walkthrough import al nivel de crear desde cero.
 

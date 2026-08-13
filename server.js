@@ -423,7 +423,41 @@ app.get('/api/auth/profiles', (req, res) => {
   });
 });
 
-// API Connection Status
+/** Quita URLs / paths internos del payload de providers (recon sin auth). */
+function publicSafeImageProviders(caps) {
+  if (!caps || typeof caps !== 'object') return null;
+  const pick = (block, extra = {}) => {
+    if (!block || typeof block !== 'object') return undefined;
+    return {
+      available: !!block.available,
+      configured: block.configured != null ? !!block.configured : undefined,
+      cost: block.cost,
+      faceLock: block.faceLock,
+      ...extra
+    };
+  };
+  return {
+    active: caps.active,
+    freePathAlwaysOn: !!caps.freePathAlwaysOn,
+    pollinations: pick(caps.pollinations),
+    replicate: pick(caps.replicate, { model: caps.replicate?.model || null }),
+    paidFaceLock: pick(caps.paidFaceLock, { model: caps.paidFaceLock?.model || null }),
+    comfyui: pick(caps.comfyui),
+    localGpu: caps.localGpu
+      ? {
+          available: !!caps.localGpu.available,
+          configured: !!caps.localGpu.configured,
+          preferLocal: !!caps.localGpu.preferLocal,
+          comfyui: !!caps.localGpu.comfyui,
+          a1111: !!caps.localGpu.a1111
+        }
+      : undefined,
+    lora: pick(caps.lora),
+    paidLora: pick(caps.paidLora)
+  };
+}
+
+// API Connection Status (sin auth: sin dataDir/dbPath/URLs internas — docs/SECURITY_MARKET.md)
 app.get('/api/status', (req, res) => {
   let imageProviders = null;
   try {
@@ -438,7 +472,8 @@ app.get('/api/status', (req, res) => {
   };
   const publicBindUnsafe = firstRun.shouldBlockPublicInsecureAuth(gateOpts);
   const publicBindBlockReason = firstRun.getPublicBindBlockReason(gateOpts);
-  res.json({
+  const authenticated = !!(req.session && req.session.authenticated);
+  const body = {
     success: true,
     apiConnected: aiService.isApiConnected(),
     gitLinked: fs.existsSync(path.join(__dirname, '.git')),
@@ -450,19 +485,24 @@ app.get('/api/status', (req, res) => {
     publicBindUnsafe,
     publicBindBlockReason,
     authEnabled,
-    authenticated: !!(req.session && req.session.authenticated),
+    authenticated,
     profile: req.session?.profileId
       ? { id: req.session.profileId, name: req.session.profileName, role: req.session.profileRole }
       : null,
-    dataDir: dbService.getDataDir ? dbService.getDataDir() : DATA_DIR,
-    dbPath: dbService.getDbPath ? dbService.getDbPath() : null,
-    imageProviders,
+    imageProviders: authenticated
+      ? imageProviders
+      : publicSafeImageProviders(imageProviders),
     freeTier: {
       imageGen: 'pollinations',
       characterIntegrity: 'json_character_lock + free_chatbots',
       paidFaceLock: 'optional_opt_in_replicate'
     }
-  });
+  };
+  if (authenticated) {
+    body.dataDir = dbService.getDataDir ? dbService.getDataDir() : DATA_DIR;
+    body.dbPath = dbService.getDbPath ? dbService.getDbPath() : null;
+  }
+  res.json(body);
 });
 
 /**
@@ -521,14 +561,6 @@ app.post('/api/setup/change-pin', requireAuth, requireAdmin, (req, res) => {
   }
 });
 
-// Image Generation Queue Status Endpoint
-app.get('/api/queue-status', (req, res) => {
-  res.json({
-    success: true,
-    queue: genQueue.getStatus()
-  });
-});
-
 // Invites redeem (público — antes de requireAuth)
 registerInviteRedeemRoute(app, {
   dbService,
@@ -541,6 +573,14 @@ registerInviteRedeemRoute(app, {
 // =============================================
 
 app.use('/api', requireAuth);
+
+// Cola: solo con sesión (o auth off en localhost). Evita recon de currentTaskInfo.
+app.get('/api/queue-status', (req, res) => {
+  res.json({
+    success: true,
+    queue: genQueue.getStatus()
+  });
+});
 
 registerLocalGpuRoutes(app);
 
@@ -995,8 +1035,16 @@ function startHttpServer(port = PORT, host = LISTEN_HOST) {
       console.warn('║  La API quedará en 503 hasta que cambies el PIN en el asistente. ║');
     }
     console.warn('║  Recomendado: HOST=127.0.0.1 (default) o STUDIO_PIN fuerte.      ║');
+    console.warn('║  Guía: docs/SECURITY_MARKET.md                                   ║');
     console.warn('╚══════════════════════════════════════════════════════════════════╝');
     console.warn('');
+  } else if (
+    firstRun.isPublicBind(firstRun.resolveListenHost())
+    && authService.isTrustProxyEnabled
+    && authService.isTrustProxyEnabled()
+    && process.env.COOKIE_SECURE !== '1'
+  ) {
+    console.warn('[security] HOST público + TRUST_PROXY sin COOKIE_SECURE=1 — si hay HTTPS, activa COOKIE_SECURE (docs/SECURITY_MARKET.md).');
   }
 
   const server = app.listen(port, host, () => {
