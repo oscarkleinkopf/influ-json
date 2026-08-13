@@ -151,6 +151,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-13 | **UX-2 DoD** Avanzado único + alturas | create ≤1800; Copiar JSON above-fold; LoRA/A-B/lock en un details |
+| 2026-08-13 | **Merge #102** + Identidad compacta | crear: sin muro/Biblia; ≤40 controles; layout-smoke create-compact |
 | 2026-08-12 | **Smoke visual** layout + walk | pasos Persona + Negocio; CI artifacts multi-PNG; layout-smoke-report |
 | 2026-08-12 | **Merge #101** + empty/UX-2 | campañas/historial 1 CTA; Identidad must_match + Avanzado plegado |
 | 2026-08-12 | **UX honesty + Negocio walk** (#101) | sin Glow Serum default; Licensing=chip; campaña pre-check; 362 tests |

@@ -25,14 +25,35 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux-empty-persona-steps-9b67` |
-| **Commit base** | `main` @ #101 merged |
-| **PR actual** | [#102](https://github.com/oscarkleinkopf/influ-json/pull/102) — empty states + UX-2 + smoke visual |
-| **`main` remoto** | + #101 (chip activo + honesty producto) |
+| **Rama de trabajo** | `cursor/ux2-identidad-compact-9b67` |
+| **Commit base** | `main` @ #102 merged |
+| **PR actual** | [#103](https://github.com/oscarkleinkopf/influ-json/pull/103) — UX-2 DoD estricto |
+| **`main` remoto** | + #102 |
 | **Prioridad inmediata** | Free path / UX operatividad |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-12) — Smoke visual Negocio + Persona pasos
+### Sesión reciente (Cursor, 2026-08-13) — UX-2 DoD estricto (Avanzado único + alturas)
+
+**Pedido:** Terminar lo pendiente de UX-2/UX-3.
+
+**Hecho (PR #103):**
+- Un solo `#personaAdvancedTools`: A/B + versiones personaje + character_lock + LoRA
+- Crear Identidad ≤1800px (smoke 1712) y ≤40 controles
+- Paso 2: pack/Copiar JSON arriba de la ficha (above-fold); check `persona-step-2-fit`
+- UX-3 ya estaba cerrado; sin cambios comerciales
+
+### Sesión previa (Cursor, 2026-08-13) — Merge #102 + Identidad compacta
+
+**Pedido:** Continuar con #102 y UX.
+
+**Hecho:**
+- [#102](https://github.com/oscarkleinkopf/influ-json/pull/102) → `main`
+- Paso 1 crear: oculta muro Crear + Biblia; Archivar/Eliminar solo en edición; edad/vibe y boceto en details
+- `data-form-open` / `data-creating`; panel derecho y prompt compilado solo en paso 2
+- layout-smoke: check `persona-create-compact`; expone `window.state`/`selectPersona` para evaluate
+- Comercial sigue aparcado
+
+### Sesión previa (Cursor, 2026-08-12) — Smoke visual Negocio + Persona pasos
 
 **Pedido:** Seguir con smoke visual.
 

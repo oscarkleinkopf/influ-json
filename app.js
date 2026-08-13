@@ -1726,7 +1726,8 @@ function setPersonaStep(step, { scroll = true } = {}) {
   const form = document.getElementById('personaForm');
   const sheet = document.getElementById('personaProfileSheet');
   if (n === 1 && form && state.isCreatingNewPersona) {
-    form.style.display = '';
+    form.classList.remove('u-hidden');
+    form.style.display = 'flex';
     if (sheet) sheet.style.display = 'none';
   }
   if (n === 2 && sheet && state.selectedPersona && !state.isCreatingNewPersona) {
@@ -1746,9 +1747,17 @@ function setPersonaStep(step, { scroll = true } = {}) {
     }
   }
 
+  // UX-2: form abierto en paso 1 → ocultar muro Crear; creando → ocultar Archivar/Eliminar
+  const formVisible = !!(form
+    && !form.classList.contains('u-hidden')
+    && form.style.display !== 'none'
+    && getComputedStyle(form).display !== 'none');
+  root.setAttribute('data-form-open', (n === 1 && (formVisible || state.isCreatingNewPersona)) ? '1' : '0');
+  root.setAttribute('data-creating', state.isCreatingNewPersona ? '1' : '0');
+
   // UX-2: Avanzado / detalles opcionales siempre plegados al cambiar de paso
   document.querySelectorAll(
-    '#persona-engine details.persona-identity-details, #personaAdvancedTools, #loraAdvancedPanel, #personaIdentityExtraTraits'
+    '#persona-engine details.persona-identity-details, #personaAdvancedTools, #loraAdvancedPanel, #personaIdentityExtraTraits, #personaIdentityProfileDetails, #personaIdentityGenDetails'
   ).forEach((d) => {
     try { d.open = false; } catch (_) {}
   });
@@ -3196,6 +3205,13 @@ function resetPersonaFormForNew() {
   if (editorLayout) {
     editorLayout.scrollIntoView({ behavior: 'smooth' });
   }
+
+  // UX-2: sincronizar paso 1 + data-form-open / data-creating
+  if (personaForm) {
+    personaForm.classList.remove('u-hidden');
+    personaForm.style.display = 'flex';
+  }
+  if (typeof setPersonaStep === 'function') setPersonaStep(1, { scroll: false });
 }
 
 // Select Persona
@@ -7457,4 +7473,15 @@ window.getFilteredPortfolioPersonas = getFilteredPortfolioPersonas;
 window.setHistoryFilter = setHistoryFilter;
 window.loadCharacterBible = loadCharacterBible;
 window.initImportModal = initImportModal;
+
+// Exponer para smoke/walkthrough (page.evaluate) — let state no está en window
+window.state = state;
+window.selectPersona = selectPersona;
+window.setPersonaStep = setPersonaStep;
+window.navigateToTab = navigateToTab;
+window.populateActiveUgcData = populateActiveUgcData;
+window.updateActivePersonaChip = updateActivePersonaChip;
+window.renderCampaigns = renderCampaigns;
+window.startCreateScratchFlow = startCreateScratchFlow;
+window.resetPersonaFormForNew = resetPersonaFormForNew;
 
