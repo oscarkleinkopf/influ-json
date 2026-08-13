@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-13 | **Walkthrough import P0** | foto→confirmar lock→guardar→Copiar JSON (+ capturas 08*) |
 | 2026-08-13 | **README / Cómo usar** | vocab Influencers·Ficha·Copiar JSON; sin Persona Engine/(recomendado) |
 | 2026-08-13 | **Chrome primer uso** | PIN sin barra/toast; offline chip; Studio/Git en `<details>` |
 | 2026-08-13 | **UX-1c estricto** ≤3 «Copiar JSON» | header + primary + happy-path; UGC/guía/pollen renombrados |

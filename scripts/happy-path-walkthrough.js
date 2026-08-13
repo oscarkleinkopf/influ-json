@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Walkthrough happy path free + Produce declutter (capturas).
- * Login → crear en UI (Guardar) → aparece en roster → Copiar JSON → Producir sin Galería → Ver galería.
+ * Login → crear en UI (Guardar) → Copiar JSON → … → inspirar desde foto
+ *   (subir → confirmar tez/ojos/pelo → Guardar → Copiar JSON).
  *
  * Uso: node scripts/happy-path-walkthrough.js
  * Env: STUDIO_PIN, CHROME_PATH, WALK_SHOT_DIR
@@ -14,6 +15,7 @@ const http = require('http');
 const os = require('os');
 
 const root = path.join(__dirname, '..');
+const { makeTestJpegBuffer } = require(path.join(root, 'image-validation'));
 
 function findChrome() {
   if (process.env.CHROME_PATH && fs.existsSync(process.env.CHROME_PATH)) {
@@ -66,12 +68,52 @@ async function main() {
   process.env.STUDIO_PIN = process.env.STUDIO_PIN || '1234';
   process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'happy-path-walk-secret';
   process.env.HOST = '127.0.0.1';
+  process.env.GEN_MIN_GAP_MS = process.env.GEN_MIN_GAP_MS || '10';
+  process.env.GEN_429_COOLDOWN_MS = process.env.GEN_429_COOLDOWN_MS || '50';
 
   Object.keys(require.cache).forEach((k) => {
-    if (k.includes(`${path.sep}paths.js`) || k.includes(`${path.sep}db.js`) || k.includes(`${path.sep}server.js`)) {
+    if (
+      k.includes(`${path.sep}paths.js`)
+      || k.includes(`${path.sep}db.js`)
+      || k.includes(`${path.sep}server.js`)
+      || k.includes(`${path.sep}ai-service.js`)
+      || k.includes(`${path.sep}routes${path.sep}`)
+    ) {
       delete require.cache[k];
     }
   });
+
+  // Stub análisis/gen para el ritual import (sin Gemini ni Pollinations reales)
+  const aiService = require(path.join(root, 'ai-service.js'));
+  aiService.generateWithGeminiMulti = async () => ({
+    identity: {
+      name: 'Walk Import Ref',
+      gender: 'Female',
+      apparent_age: '24 años',
+      ethnicity_appearance: 'Latina'
+    },
+    body: { body_type: 'Atlética', height_apparent: 'media' },
+    facial_features: {
+      face_shape: 'ovalada',
+      skin_tone: 'piel clara natural',
+      skin_tone_hex: '#f0d5c0',
+      eye_color: 'marrón cálido'
+    },
+    hair: { length: 'largo', texture: 'ondulado', color: 'Castaño', style: 'ondas suaves' },
+    aesthetic: { overall_vibe: 'Casual UGC' },
+    photography: { background_setting: 'Estudio', lighting_type: 'soft', camera_lens: '50mm' },
+    clothing: { type: 'Top' },
+    character_lock: {
+      must_match_every_image: {
+        name: 'Walk Import Ref',
+        skin_tone: 'piel clara natural',
+        eyes: 'marrón cálido',
+        hair: 'Castaño, largo, ondas suaves'
+      }
+    }
+  });
+  aiService.generateUgcVideoScripts = async () => [];
+  aiService.generateInfluencerImage = async () => 'assets/references/mock_variant.jpg';
 
   const app = require(path.join(root, 'server.js'));
   const server = http.createServer(app);
@@ -568,16 +610,20 @@ async function main() {
     report.steps.push({ step: 'negocio-campaign-precheck', pass: campOk, campaignPrecheck });
     if (!campOk) report.ok = false;
 
-    // Idea #3 — ritual inspirar desde foto (UI): modal + traits + CTA
+    // P0 — ritual inspirar desde foto: subir → confirmar → Guardar → Copiar JSON
+    await dismissOverlays();
+    const importName = `Walk Import ${Date.now().toString(36).slice(-4)}`;
+    const jpegPath = path.join(dataDir, 'walk-import-ref.jpg');
+    fs.writeFileSync(jpegPath, await makeTestJpegBuffer({ background: '#e8c4a8', width: 64, height: 64 }));
+
     await page.evaluate(() => {
+      if (typeof navigateToTab === 'function') navigateToTab('persona-engine');
       document.getElementById('btnCloseImportModal')?.click();
-      const open = document.getElementById('btnOpenImportModal');
-      if (open) open.click();
-      else if (typeof window.InfluImportFlow?.initImportModal === 'function') {
-        /* already inited */
-      }
     });
+    await new Promise((r) => setTimeout(r, 300));
+    await page.evaluate(() => document.getElementById('btnOpenImportModal')?.click());
     await new Promise((r) => setTimeout(r, 400));
+
     const importRitual = await page.evaluate(() => {
       const modal = document.getElementById('importInfluencerModal');
       const display = modal ? getComputedStyle(modal).display : null;
@@ -595,16 +641,169 @@ async function main() {
     });
     await page.screenshot({ path: shot('08-import-ritual.png'), fullPage: false });
     report.shots.push(shot('08-import-ritual.png'));
-    const importOk = importRitual.display === 'flex'
+    const importUiOk = importRitual.display === 'flex'
       && /Inspirar desde foto/i.test(importRitual.title)
       && importRitual.hasSkin
       && importRitual.hasEyes
       && importRitual.hasHair
       && /Copiar JSON/i.test(importRitual.cta)
       && importRitual.step1Active;
-    report.steps.push({ step: 'import-ritual-ui', pass: importOk, importRitual });
-    if (!importOk) report.ok = false;
-    await page.evaluate(() => document.getElementById('btnCloseImportModal')?.click());
+    report.steps.push({ step: 'import-ritual-ui', pass: importUiOk, importRitual });
+    if (!importUiOk) report.ok = false;
+
+    const fileInput = await page.$('#importImages');
+    if (!fileInput) throw new Error('importImages no encontrado');
+    await fileInput.uploadFile(jpegPath);
+    await page.evaluate((name) => {
+      const nameEl = document.getElementById('importName');
+      if (nameEl) nameEl.value = name;
+    }, importName);
+    await page.evaluate(() => document.getElementById('btnAnalyzeInfluencer')?.click());
+
+    try {
+      await page.waitForFunction(() => {
+        const preview = document.getElementById('importPreview');
+        if (!preview) return false;
+        const shown = getComputedStyle(preview).display !== 'none' && !preview.classList.contains('u-hidden');
+        const step2 = document.querySelector('[data-import-ritual="2"]')?.classList.contains('is-active');
+        return shown && !!step2;
+      }, { timeout: 25000 });
+    } catch (err) {
+      throw new Error(`Import analyze no llegó a confirmar: ${err.message}`);
+    }
+
+    const confirmFill = await page.evaluate((name) => {
+      const suggested = document.getElementById('importSuggestedName');
+      if (suggested) suggested.value = name;
+      const skin = document.getElementById('importConfirmSkin');
+      const eyes = document.getElementById('importConfirmEyes');
+      const hair = document.getElementById('importConfirmHair');
+      const eth = document.getElementById('importConfirmEthnicity');
+      if (skin && !String(skin.value || '').trim()) skin.value = 'piel clara natural';
+      if (eyes && !String(eyes.value || '').trim()) eyes.value = 'marrón cálido';
+      if (hair && !String(hair.value || '').trim()) hair.value = 'Castaño, largo, ondas suaves';
+      if (eth) eth.value = 'Latina de tez clara';
+      return {
+        name: suggested?.value || '',
+        skin: skin?.value || '',
+        eyes: eyes?.value || '',
+        hair: hair?.value || '',
+        ethnicity: eth?.value || '',
+        ritual2: !!document.querySelector('[data-import-ritual="2"]')?.classList.contains('is-active')
+      };
+    }, importName);
+    await page.screenshot({ path: shot('08b-import-confirm.png'), fullPage: false });
+    report.shots.push(shot('08b-import-confirm.png'));
+    const confirmUiOk = confirmFill.ritual2
+      && confirmFill.name === importName
+      && !!confirmFill.skin
+      && !!confirmFill.eyes
+      && !!confirmFill.hair;
+    report.steps.push({ step: 'import-ritual-confirm', pass: confirmUiOk, confirmFill });
+    if (!confirmUiOk) report.ok = false;
+
+    await page.evaluate(() => document.getElementById('btnConfirmImport')?.click());
+    try {
+      await page.waitForFunction(
+        (name) => {
+          const sel = window.state?.selectedPersona;
+          const root = document.getElementById('persona-engine');
+          const step = root?.getAttribute('data-active-step');
+          const focus = root?.getAttribute('data-step2-focus');
+          const modal = document.getElementById('importInfluencerModal');
+          const modalClosed = !modal || getComputedStyle(modal).display === 'none';
+          return sel
+            && sel.name === name
+            && step === '2'
+            && focus === '1'
+            && modalClosed
+            && !!document.getElementById('btnCopyPackFullbodyPrimary');
+        },
+        { timeout: 30000 },
+        importName
+      );
+    } catch (err) {
+      const dbg = await page.evaluate(() => ({
+        selected: window.state?.selectedPersona?.name || null,
+        step: document.getElementById('persona-engine')?.getAttribute('data-active-step'),
+        focus: document.getElementById('persona-engine')?.getAttribute('data-step2-focus'),
+        modal: document.getElementById('importInfluencerModal')
+          ? getComputedStyle(document.getElementById('importInfluencerModal')).display
+          : null
+      }));
+      throw new Error(`Import guardar no llegó a paso 2 foco: ${err.message} dbg=${JSON.stringify(dbg)}`);
+    }
+
+    const afterImport = await page.evaluate((name) => {
+      const inState = (window.state?.personas || []).some((p) => p.name === name);
+      const sel = window.state?.selectedPersona;
+      const root = document.getElementById('persona-engine');
+      const must = sel?.detailedJSON?.character_lock?.must_match_every_image
+        || sel?.character_lock?.must_match_every_image
+        || {};
+      return {
+        inState,
+        selectedName: sel?.name || null,
+        step: root?.getAttribute('data-active-step'),
+        focus: root?.getAttribute('data-step2-focus'),
+        focusState: !!window.state?.step2FocusMode,
+        hasCopy: !!document.getElementById('btnCopyPackFullbodyPrimary'),
+        skin: must.skin_tone || sel?.detailedJSON?.facial_features?.skin_tone || '',
+        eyes: must.eyes || sel?.detailedJSON?.facial_features?.eye_color || '',
+        ethnicity: sel?.ethnicity || sel?.detailedJSON?.identity?.ethnicity_appearance || ''
+      };
+    }, importName);
+    await page.screenshot({ path: shot('08c-import-tras-guardar.png'), fullPage: false });
+    report.shots.push(shot('08c-import-tras-guardar.png'));
+    const importSaveOk = afterImport.inState
+      && afterImport.selectedName === importName
+      && afterImport.step === '2'
+      && afterImport.focus === '1'
+      && afterImport.hasCopy
+      && /clara/i.test(afterImport.skin || afterImport.ethnicity || '');
+    report.steps.push({ step: 'import-ritual-save', pass: importSaveOk, afterImport });
+    if (!importSaveOk) report.ok = false;
+
+    await page.evaluate(() => {
+      window.__lastClipboard = '';
+      const mock = {
+        writeText: async (t) => {
+          window.__lastClipboard = String(t || '');
+          return undefined;
+        },
+        readText: async () => window.__lastClipboard || ''
+      };
+      try {
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          writable: true,
+          value: mock
+        });
+      } catch (_) {
+        try { navigator.clipboard.writeText = mock.writeText; } catch (__) {}
+      }
+    });
+    await page.evaluate(async () => {
+      if (typeof window.copyFreeChatbotPack === 'function') {
+        await window.copyFreeChatbotPack('fullbody');
+      } else {
+        document.getElementById('btnCopyPackFullbodyPrimary')?.click();
+      }
+    });
+    await new Promise((r) => setTimeout(r, 400));
+    const importCopied = await page.evaluate(() => window.__lastClipboard || '');
+    const importCopyOk = importCopied.length > 40
+      && /character_lock|must_match/i.test(importCopied)
+      && (importCopied.includes(importName) || /piel clara|marrón|Castaño/i.test(importCopied));
+    await page.screenshot({ path: shot('08d-import-copiar-json.png'), fullPage: false });
+    report.shots.push(shot('08d-import-copiar-json.png'));
+    report.steps.push({
+      step: 'import-ritual-copiar-json',
+      pass: importCopyOk,
+      clipboardChars: importCopied.length,
+      hasLock: /character_lock|must_match/i.test(importCopied)
+    });
+    if (!importCopyOk) report.ok = false;
 
     const reportPath = path.join(shotDir, 'walkthrough-report.json');
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
