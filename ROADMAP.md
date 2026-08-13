@@ -151,6 +151,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-13 | **Corte C (en curso)** | doctor + support-bundle + restore 2 fases + start-studio launchers |
+| 2026-08-13 | **Corte B → main (#119)** | SSRF IPv4-mapped/DNS; CR/LF `.env`; stats/sync/GPU/import |
 | 2026-08-13 | **Corte B (en curso)** | SSRF IPv4-mapped/DNS; CR/LF `.env`; stats/sync/GPU/import |
 | 2026-08-13 | **Corte A → main (#118)** | batch ads CSRF+enqueue; brace-expansion; CI audit; fetch gate; completedCount |
 | 2026-08-13 | **Corte A (en curso)** | batch ads CSRF+enqueue; brace-expansion 5.0.9; CI audit high; fetch gate; completedCount |

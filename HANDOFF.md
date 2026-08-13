@@ -25,14 +25,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/corte-b-hardening-9b67` |
-| **Commit base** | `main` @ #118 merged |
-| **PR actual** | [#119](https://github.com/oscarkleinkopf/influ-json/pull/119) — Corte B hardening |
-| **`main` remoto** | + #118 (Corte A baseline) |
-| **Prioridad inmediata** | Terminar Corte B; luego Corte C (Doctor/launcher) |
+| **Rama de trabajo** | `cursor/corte-c-ops-9b67` |
+| **Commit base** | `main` @ #119 merged |
+| **PR actual** | Corte C — doctor / support bundle / restore 2 fases / launcher |
+| **`main` remoto** | + #119 (Corte B hardening) |
+| **Prioridad inmediata** | Terminar Corte C; luego Corte D (schema influ-persona/v1) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Merge #118 + Corte B
+### Sesión reciente (Cursor, 2026-08-13) — Merge #119 + Corte C
+
+**Pedido:** Tests de #119 OK → integrar y seguir.
+
+**Hecho:**
+- [#119](https://github.com/oscarkleinkopf/influ-json/pull/119) → `main` (Corte B)
+- Arranque **Corte C**: `npm run doctor`, support-bundle, restore 2 fases + `quick_check`, `start-studio.sh`/`.cmd`
+
+### Sesión previa (Cursor, 2026-08-13) — Merge #118 + Corte B
 
 **Pedido:** Tests de #118 pasaron → integrar y seguir.
 

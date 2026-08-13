@@ -706,7 +706,7 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 
 ### Corte B — Hardening de datos/red
 
-> **Estado 2026-08-13:** en implementación (`cursor/corte-b-hardening-9b67`).
+> **Estado 2026-08-13:** ✅ en `main` (#119).
 
 1. SSRF IPv4-mapped + resolución DNS segura.
 2. Rechazar CR/LF en `.env`; escritura atómica/permisos.
@@ -714,6 +714,8 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 4. Rate-limit del import.
 
 ### Corte C — Operación en otra máquina
+
+> **Estado 2026-08-13:** en implementación (`cursor/corte-c-ops-9b67`).
 
 1. `npm run doctor`.
 2. Support bundle redactado.

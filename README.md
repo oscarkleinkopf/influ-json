@@ -26,7 +26,16 @@ npm install
 npm start
 ```
 
+En Windows / sin terminal: doble clic en `start-studio.cmd` (o `./start-studio.sh` en Linux/macOS). El launcher instala deps si faltan, corre `npm run doctor` y arranca el Studio.
+
 Abrir `http://localhost:3000` (PIN por defecto: `1234`, configurable en `.env` como `STUDIO_PIN`).
+
+Diagnóstico local (sin secretos):
+
+```bash
+npm run doctor
+npm run support-bundle   # ZIP redactado en data/backups/
+```
 
 ### GitHub Pages
 
@@ -38,7 +47,9 @@ Landing alternativa (opcional): [`docs/index.html`](./docs/index.html) — no ha
 
 | Comando | Qué arranca |
 |---------|-------------|
-| `npm start` | **Studio completo** (`server.js` + SQLite) |
+| `npm start` / `start-studio.sh` / `.cmd` | **Studio completo** (`server.js` + SQLite) |
+| `npm run doctor` | Diagnóstico local (Node, DB, bind, backups…) |
+| `npm run support-bundle` | ZIP redactado para soporte (sin `.env`/tokens) |
 | `npm run build:index` | Regenera `index.html` desde `views/` (tras editar parciales; Pages usa ese archivo) |
 | `npm run start:minimal` | Demo offline (sin SQLite; **no** usar para trabajo real) |
 | `npm test` | Tests con `DATA_DIR` temporal (`scripts/run-tests.js`; no ensucia `data/` ni `assets/references`) |

@@ -10,9 +10,21 @@ const {
   ensureDir
 } = require('./paths');
 const { runMigrations, getSchemaVersion } = require('./migrations');
+const { applyPendingRestoreIfAny, schedulePendingRestore } = require('./pending-restore');
 
 // Portable DB: ./data/influ.sqlite (or DATA_DIR) — migrates from legacy paths once
 ensureDataLayout();
+// Corte C: aplicar restore programado ANTES de abrir el handle singleton
+try {
+  const applied = applyPendingRestoreIfAny(DATA_DIR, resolveDatabasePath());
+  if (applied?.applied) {
+    console.log('[db] Pending restore aplicado al arrancar.');
+  } else if (applied && applied.applied === false && applied.reason) {
+    console.warn(`[db] Pending restore no aplicado: ${applied.reason}`);
+  }
+} catch (err) {
+  console.error('[db] Error aplicando pending restore:', err.message);
+}
 const ACTIVE_DB_PATH = resolveDatabasePath();
 const db = new Database(ACTIVE_DB_PATH);
 // SQLite FK checks are off by default — required for ON DELETE CASCADE to fire.
@@ -1726,9 +1738,8 @@ module.exports = {
   },
 
   /**
-   * Restaura desde un .sqlite bajo data/backups/ (o path absoluto permitido).
-   * Cierra el handle actual no es trivial con better-sqlite3 singleton —
-   * copiamos encima tras checkpoint y el proceso debe reiniciar el proceso.
+   * Restaura desde un .sqlite bajo data/backups/ (dos fases / Corte C):
+   * - Valida quick_check + candidato; safety snapshot; NO toca DB activa hasta reinicio.
    */
   restoreBackupFromFile(absPath) {
     const resolved = path.resolve(absPath);
@@ -1738,17 +1749,37 @@ module.exports = {
     }
     if (!fs.existsSync(resolved)) throw new Error('Archivo de backup no encontrado.');
 
-    // Safety snapshot first
+    // 1–2: candidato + quick_check ANTES del snapshot (el prune del snapshot no debe borrar el origen)
+    const scheduled = schedulePendingRestore({
+      dataDir: DATA_DIR,
+      sourceAbs: resolved,
+      safetyBackupAbs: null,
+      sourceFilename: path.basename(resolved)
+    });
+
+    // 3: safety snapshot de la DB viva actual
     const safety = this.createBackupSnapshot('pre_restore');
     try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch (_) {}
-    fs.copyFileSync(resolved, ACTIVE_DB_PATH);
-    syncDbToWorkspace();
+
+    // Actualizar marcador con ruta del safety backup
+    try {
+      const { pendingPath } = require('./pending-restore');
+      const p = pendingPath(DATA_DIR);
+      if (fs.existsSync(p)) {
+        const meta = JSON.parse(fs.readFileSync(p, 'utf8'));
+        meta.safetyBackup = safety.dbPath;
+        fs.writeFileSync(p, JSON.stringify(meta, null, 2), 'utf8');
+      }
+    } catch (_) {}
+
     return {
       ok: true,
+      pending: true,
       restoredFrom: resolved,
       safetyBackup: safety.dbPath,
+      candidate: scheduled.candidate,
       restartRequired: true,
-      message: 'Backup restaurado. Reinicia el servidor (npm start) para recargar SQLite.'
+      message: scheduled.message
     };
   }
 };
