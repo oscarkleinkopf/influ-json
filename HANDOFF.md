@@ -25,14 +25,21 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/sec-csrf-9b67` |
-| **Commit base** | `main` @ #114 merged |
-| **PR actual** | [#115](https://github.com/oscarkleinkopf/influ-json/pull/115) — CSRF synchronizer |
-| **`main` remoto** | + #113/#114 (seguridad mercado + handoff) |
-| **Prioridad inmediata** | Merge CSRF → empaquetado / HSTS si TLS / o #99 si se pide |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ #115 merged |
+| **PR actual** | — |
+| **`main` remoto** | + #115 (CSRF cookie mutations) |
+| **Prioridad inmediata** | Empaquetado local / HSTS si TLS / o #99 si se pide |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — CSRF mutaciones cookie
+### Sesión reciente (Cursor, 2026-08-13) — Merge #115 CSRF
+
+**Pedido:** CI verde en #115 (Test & smoke #240).
+
+**Hecho:**
+- [#115](https://github.com/oscarkleinkopf/influ-json/pull/115) → `main` (CSRF synchronizer + fixes smoke/layout-smoke)
+
+### Sesión previa (Cursor, 2026-08-13) — CSRF mutaciones cookie
 
 **Pedido:** Seguir con CSRF tras #113.
 
