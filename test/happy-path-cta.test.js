@@ -69,12 +69,15 @@ test('UX: pollen/401 CTA + LoRA demoted fuera del pack card verde', () => {
   assert.match(html, /id="btnCopyPackFullbodyPrimary"|Copiar JSON · cuerpo entero \(recomendado\)|Copiar pack cuerpo entero \(recomendado\)/);
   assert.match(html, /Copiar estructura JSON/);
   assert.match(html, /id="loraAdvancedPanel"/);
-  assert.match(html, /Avanzado · LoRA/);
+  assert.match(html, /Avanzado · A\/B, versiones, character_lock y LoRA|LoRA \(opt-in/);
   assert.match(html, /Exportar dataset LoRA/);
   // Pack card cierra antes del panel LoRA (LoRA no dentro del card verde primario)
   const packIdx = html.indexOf('pack-library-card');
   const loraIdx = html.indexOf('id="loraAdvancedPanel"');
   assert.ok(packIdx >= 0 && loraIdx > packIdx);
+  // LoRA vive dentro del único Avanzado
+  const advIdx = html.indexOf('id="personaAdvancedTools"');
+  assert.ok(advIdx >= 0 && loraIdx > advIdx);
   assert.match(html, /Ajustes → POLLINATIONS_TOKEN|Ajustes · token/i);
   assert.match(ai, /Ajustes → POLLINATIONS_TOKEN/);
   assert.match(personas, /paymentRequired/);

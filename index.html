@@ -517,90 +517,6 @@
           </div>
         </div>
         
-        <!-- UX-2 Avanzado: A/B + versiones (plegado) -->
-        <details id="personaAdvancedTools" data-persona-step="advanced" class="persona-advanced-block u-mb-20">
-          <summary class="u-details-summary">Avanzado · Comparador A/B y versiones del personaje</summary>
-          <div class="u-flex-gap-12">
-          <button type="button" class="btn btn-secondary btn-sm u-btn-icon-sm" id="btnToggleAB" >
-            ⚖️ Comparador A/B Split
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm u-btn-icon-sm" id="btnToggleHistory" >
-            ⏳ Historial de Versiones
-          </button>
-          </div>
-        </details>
-
-        <!-- Hidden A/B Split-View Comparator -->
-        <div id="abComparatorContainer" data-persona-step="advanced" class="u-hidden-mb-28">
-          <div class="glass-card">
-            <h2 class="u-title-ab">⚖️ Comparador A/B de Personas</h2>
-            <p class="u-lead-ab">Configura y compara dos variaciones de prompt en paralelo para evaluar la consistencia de identidad.</p>
-            <div class="ab-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-              <!-- Left Side A -->
-              <div class="ab-column" style="border-right: 1px solid var(--glass-border); padding-right: 24px;">
-                <h3 style="color: var(--accent-primary); margin-bottom: 12px;">Variación A</h3>
-                <div class="editor-form-group">
-                  <div>
-                    <label for="abA_setting">Fondo / Setting</label>
-                    <input type="text" id="abA_setting" value="Sala de estar moderna y neutral">
-                  </div>
-                  <div class="u-mt-10">
-                    <label for="abA_clothing">Ropa</label>
-                    <input type="text" id="abA_clothing" value="Suéter de punto color crema">
-                  </div>
-                  <div class="u-mt-10">
-                    <label for="abA_lighting">Iluminación</label>
-                    <select id="abA_lighting">
-                      <option value="Casual daylight from bedroom window">Luz natural de ventana casual</option>
-                      <option value="Warm natural sunset flare, outdoor">Luz cálida de atardecer, exterior</option>
-                      <option value="Harsh direct smartphone camera flash">Flash directo de cámara de celular</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="prompt-console u-mt-16" >
-                  <span class="analysis-field-label">Prompt A Compilado</span>
-                  <div class="prompt-text u-scroll-80" id="promptPreviewA" >Generando...</div>
-                </div>
-              </div>
-
-              <!-- Right Side B -->
-              <div class="ab-column">
-                <h3 style="color: var(--accent-secondary); margin-bottom: 12px;">Variación B</h3>
-                <div class="editor-form-group">
-                  <div>
-                    <label for="abB_setting">Fondo / Setting</label>
-                    <input type="text" id="abB_setting" value="Cafetería al aire libre con luces desenfocadas">
-                  </div>
-                  <div class="u-mt-10">
-                    <label for="abB_clothing">Ropa</label>
-                    <input type="text" id="abB_clothing" value="Chaqueta vaquera casual">
-                  </div>
-                  <div class="u-mt-10">
-                    <label for="abB_lighting">Iluminación</label>
-                    <select id="abB_lighting">
-                      <option value="Warm natural sunset flare, outdoor" selected>Luz cálida de atardecer, exterior</option>
-                      <option value="Casual daylight from bedroom window">Luz natural de ventana casual</option>
-                      <option value="Harsh direct smartphone camera flash">Flash directo de cámara de celular</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="prompt-console u-mt-16" >
-                  <span class="analysis-field-label">Prompt B Compilado</span>
-                  <div class="prompt-text u-scroll-80" id="promptPreviewB" >Generando...</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Hidden Version History Timeline Container -->
-        <div id="historyTimelineContainer" data-persona-step="advanced"  class="glass-card u-hidden-mb-28">
-          <h2 class="u-title-ab">⏳ Historial de Versiones</h2>
-          <div class="version-timeline-list" id="versionTimelineList" style="display: flex; flex-direction: column; gap: 12px;">
-            <!-- Dynamically populated timeline -->
-          </div>
-        </div>
-
         <div class="editor-layout" data-persona-step="1-2" id="personaEditorLayout">
           <div class="glass-card">
             <h2 id="editorHeaderTitle" class="u-card-title">Configuración del Personaje</h2>
@@ -636,43 +552,6 @@
                     <button type="button" class="btn btn-sm btn-secondary" id="btnSheetDelete" style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 11px; color: #ff6b6b; background: rgba(220, 53, 69, 0.1); border-color: rgba(220, 53, 69, 0.2);">🗑️ Eliminar</button>
                   </div>
                 </div>
-              </div>
-
-              <!-- Identity Details (Ficha Editorial) -->
-              <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: var(--border-radius-md); padding: 16px; margin-bottom: 20px;">
-                <h3 style="font-family: var(--font-display); font-size: 12px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 12px; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">✨ Identidad Visual & Look</h3>
-                
-                <div style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">Rostro & estilo</div>
-                <div class="u-grid-2-11">
-                  <div><strong>Piel / Tez:</strong> <span id="sheetSkinTone" class="u-color-white">Cargando...</span></div>
-                  <div><strong>Textura:</strong> <span id="sheetSkinTexture" class="u-color-white">Cargando...</span></div>
-                  <div><strong>Ojos / Cejas:</strong> <span id="sheetEyes" class="u-color-white">Cargando...</span></div>
-                  <div><strong>Cabello:</strong> <span id="sheetHairDetails" class="u-color-white">Cargando...</span></div>
-                  <div><strong>Estilo / Vibe:</strong> <span id="sheetStyle" class="u-color-white">Cargando...</span></div>
-                  <div><strong>Cámara / Lente:</strong> <span id="sheetCamera" class="u-color-white">Cargando...</span></div>
-                  <div><strong>Iluminación:</strong> <span id="sheetLighting" class="u-color-white">Cargando...</span></div>
-                  <div><strong>Ubicación / Fondo:</strong> <span id="sheetSetting" class="u-color-white">Cargando...</span></div>
-                </div>
-
-                <div style="font-size: 10px; text-transform: uppercase; color: #34d399; margin: 16px 0 8px; font-weight: 700; letter-spacing: 0.4px;">🧍 Cuerpo completo</div>
-                <div class="u-grid-2-11">
-                  <div><strong>Complexión / silueta:</strong> <span id="sheetBodyType" class="u-color-white">—</span></div>
-                  <div><strong>Estatura aparente:</strong> <span id="sheetHeight" class="u-color-white">—</span></div>
-                  <div class="u-span-full"><strong>Proporciones:</strong> <span id="sheetProportions" class="u-color-white">—</span></div>
-                  <div><strong>Postura:</strong> <span id="sheetPosture" class="u-color-white">—</span></div>
-                  <div><strong>Tono / fitness:</strong> <span id="sheetFitness" class="u-color-white">—</span></div>
-                  <div class="u-span-full"><strong>Piel corporal:</strong> <span id="sheetBodySkin" class="u-color-white">—</span></div>
-                  <div class="u-span-full"><strong>Encuadre corporal:</strong> <span id="sheetBodyFraming" class="u-color-white">—</span></div>
-                </div>
-              </div>
-
-              <!-- Versión de Ficha Compilada -->
-              <div class="prompt-console" style="margin-top: 0; margin-bottom: 0;">
-                <div class="u-flex-between">
-                  <h4 class="u-amber-eyebrow">📋 Prompt de Generación Compilado</h4>
-                  <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopySheetPrompt">Copiar</button>
-                </div>
-                <div class="prompt-text" id="sheetPromptPreview" style="font-size: 11px; max-height: 80px; overflow-y: auto; line-height: 1.5; color: #ccc;">Cargando...</div>
               </div>
 
               <!-- F5/W13/W15: Free chatbot packs (zero cost) — UX-1c: un canónico + Packs ▾ -->
@@ -737,75 +616,43 @@
                 </div>
               </div>
 
-              <!-- LoRA L1–L3: avanzado / opt-in — fuera del card verde de Copiar JSON -->
-              <details id="loraAdvancedPanel" data-persona-step="advanced" style="margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
-                <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); font-weight: 600;">
-                  Avanzado · LoRA (opt-in, no es el path free)
-                </summary>
-                <p style="font-size: 10px; color: var(--text-muted); margin: 10px 0 8px; line-height: 1.4;">
-                  Consistencia “dura” con pesos. El emprendedor free no necesita esto: usa <strong>Copiar JSON</strong> arriba.
-                </p>
-                <button type="button" class="btn btn-secondary btn-sm" id="btnExportLoraPackSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;" title="Dataset + captions para entrenar una LoRA (Colab gratis). Guía: docs/lora/L1_COLAB.md">🧬 Exportar dataset LoRA (.zip) — no es el pack chatbot</button>
-                <p class="u-hint-10">
-                  L1 Colab gratis: <code class="u-fs-10">docs/lora/influ_json_lora_train.ipynb</code>
-                  · <code class="u-fs-10">docs/lora/L1_COLAB.md</code>
-                </p>
-                <div id="loraInferencePanel" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
-                  <div id="localGpuStatusPanel" style="margin-bottom: 12px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);">
-                    <p class="u-field-title">GPU local (L4)</p>
-                    <p class="u-hint-muted-sm">
-                      Opt-in · equipo con NVIDIA/self-host. El path free sigue siendo <strong>Copiar JSON</strong>.
-                    </p>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
-                      <span id="localGpuChipComfy" style="font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);">ComfyUI —</span>
-                      <span id="localGpuChipA1111" style="font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);">A1111/Forge —</span>
-                    </div>
-                    <p id="localGpuStatusText" style="font-size: 10px; color: var(--text-muted); margin: 0 0 6px; line-height: 1.4;">Estado: —</p>
-                    <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshLocalGpu" style="font-size: 10px; padding: 6px 8px;">Actualizar GPU local</button>
-                    <p class="u-hint-10">
-                      Guía: <code class="u-fs-10">docs/lora/L4_LOCAL_GPU.md</code>
-                    </p>
-                  </div>
-                  <p class="u-field-title">L2 · Registrar LoRA (ComfyUI / A1111)</p>
-                  <p id="loraInferenceStatus" class="u-hint-muted-sm">Estado: —</p>
-                  <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px;">Subir .safetensors (tras Colab)</label>
-                  <input type="file" id="loraWeightsFile" accept=".safetensors,.pt,.ckpt" style="font-size: 10px; width: 100%; margin-bottom: 6px;" />
-                  <input type="text" id="loraTriggerInput" placeholder="trigger (ohwx_…)" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-bottom: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
-                  <div class="u-gap-wrap">
-                    <button type="button" class="btn btn-secondary btn-sm" id="btnRegisterLora" style="flex: 1; font-size: 11px; padding: 8px 10px;">Registrar LoRA</button>
-                    <button type="button" class="btn btn-sm u-btn-sm-pad-tight" id="btnClearLora" >Quitar</button>
-                  </div>
-                  <p class="u-hint-10">
-                    Guías: <code class="u-fs-10">docs/lora/L2_COMFYUI.md</code>
-                    · <code class="u-fs-10">docs/lora/L4_LOCAL_GPU.md</code>
-                  </p>
-                  <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
-                    <p class="u-field-title">L5 · Train local (GPU propia, opt-in)</p>
-                    <p class="u-hint-muted-sm">
-                      Requiere <code class="u-fs-10">ENABLE_LOCAL_LORA_TRAIN=1</code>. Materializa el pack L0; con
-                      <code class="u-fs-10">AI_TOOLKIT_DIR</code> / <code class="u-fs-10">LOCAL_LORA_TRAIN_CMD</code> lanza el trainer.
-                      Sin GPU: usá <strong>Colab L1</strong>. Guía: <code class="u-fs-10">docs/lora/L5_LOCAL_TRAIN.md</code>.
-                    </p>
-                    <div class="u-gap-wrap">
-                      <button type="button" class="btn btn-sm" id="btnTrainLoraLocal" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4);">Preparar / entrenar local</button>
-                      <button type="button" class="btn btn-secondary btn-sm u-btn-sm-pad-tight" id="btnSyncLoraLocal" >Sincronizar train local</button>
-                    </div>
-                  </div>
-                  <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
-                    <p class="u-field-title">L3 · Replicate (pago, opt-in)</p>
-                    <p class="u-hint-muted-sm">
-                      Requiere <code class="u-fs-10">ENABLE_PAID_LORA=1</code>. Preferí Colab (L1) si puedes.
-                      Guía: <code class="u-fs-10">docs/lora/L3_PAID.md</code>.
-                    </p>
-                    <div class="u-gap-wrap">
-                      <button type="button" class="btn btn-sm" id="btnTrainLoraPaid" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(251, 146, 60, 0.25); border: 1px solid rgba(251, 146, 60, 0.45);">Entrenar en Replicate (pago)</button>
-                      <button type="button" class="btn btn-secondary btn-sm u-btn-sm-pad-tight" id="btnSyncLoraPaid" >Sincronizar estado</button>
-                    </div>
-                    <input type="text" id="loraReplicateModelInput" placeholder="o pega owner/model:version ya entrenado" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-top: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
-                    <button type="button" class="btn btn-secondary btn-sm" id="btnLinkLoraPaid" style="width: 100%; margin-top: 6px; font-size: 11px; padding: 8px 10px;">Vincular modelo Replicate</button>
-                  </div>
+
+              <!-- Identity Details (Ficha Editorial) -->
+              <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: var(--border-radius-md); padding: 16px; margin-bottom: 20px;">
+                <h3 style="font-family: var(--font-display); font-size: 12px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 12px; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">✨ Identidad Visual & Look</h3>
+                
+                <div style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">Rostro & estilo</div>
+                <div class="u-grid-2-11">
+                  <div><strong>Piel / Tez:</strong> <span id="sheetSkinTone" class="u-color-white">Cargando...</span></div>
+                  <div><strong>Textura:</strong> <span id="sheetSkinTexture" class="u-color-white">Cargando...</span></div>
+                  <div><strong>Ojos / Cejas:</strong> <span id="sheetEyes" class="u-color-white">Cargando...</span></div>
+                  <div><strong>Cabello:</strong> <span id="sheetHairDetails" class="u-color-white">Cargando...</span></div>
+                  <div><strong>Estilo / Vibe:</strong> <span id="sheetStyle" class="u-color-white">Cargando...</span></div>
+                  <div><strong>Cámara / Lente:</strong> <span id="sheetCamera" class="u-color-white">Cargando...</span></div>
+                  <div><strong>Iluminación:</strong> <span id="sheetLighting" class="u-color-white">Cargando...</span></div>
+                  <div><strong>Ubicación / Fondo:</strong> <span id="sheetSetting" class="u-color-white">Cargando...</span></div>
                 </div>
-              </details>
+
+                <div style="font-size: 10px; text-transform: uppercase; color: #34d399; margin: 16px 0 8px; font-weight: 700; letter-spacing: 0.4px;">🧍 Cuerpo completo</div>
+                <div class="u-grid-2-11">
+                  <div><strong>Complexión / silueta:</strong> <span id="sheetBodyType" class="u-color-white">—</span></div>
+                  <div><strong>Estatura aparente:</strong> <span id="sheetHeight" class="u-color-white">—</span></div>
+                  <div class="u-span-full"><strong>Proporciones:</strong> <span id="sheetProportions" class="u-color-white">—</span></div>
+                  <div><strong>Postura:</strong> <span id="sheetPosture" class="u-color-white">—</span></div>
+                  <div><strong>Tono / fitness:</strong> <span id="sheetFitness" class="u-color-white">—</span></div>
+                  <div class="u-span-full"><strong>Piel corporal:</strong> <span id="sheetBodySkin" class="u-color-white">—</span></div>
+                  <div class="u-span-full"><strong>Encuadre corporal:</strong> <span id="sheetBodyFraming" class="u-color-white">—</span></div>
+                </div>
+              </div>
+
+              <!-- Versión de Ficha Compilada -->
+              <div class="prompt-console" style="margin-top: 0; margin-bottom: 0;">
+                <div class="u-flex-between">
+                  <h4 class="u-amber-eyebrow">📋 Prompt de Generación Compilado</h4>
+                  <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopySheetPrompt">Copiar</button>
+                </div>
+                <div class="prompt-text" id="sheetPromptPreview" style="font-size: 11px; max-height: 80px; overflow-y: auto; line-height: 1.5; color: #ccc;">Cargando...</div>
+              </div>
 
               <!-- Matriz QA consistencia (gratis, a ojo + dHash local) -->
               <div id="qaMatrixPanel" class="qa-matrix-panel u-hidden" data-persona-step="3">
@@ -948,6 +795,19 @@
                 </div>
                 <div class="form-row u-mt-10">
                   <div>
+                    <label for="pDistinctiveMarks">Marcas distintivas</label>
+                    <input type="text" id="pDistinctiveMarks" value="Peca sutil en el pómulo izquierdo, pequeño lunar natural en el cuello" placeholder="Ej: Peca en pómulo, lunar en cuello">
+                  </div>
+                  <div>
+                    <label for="pFacialAsymmetry">Asimetría facial (ancla anti-CGI)</label>
+                    <input type="text" id="pFacialAsymmetry" value="Ojo izquierdo ~2% más pequeño, mandíbula izquierda ligeramente más suave" placeholder="Ej: Ojo izquierdo 2% más pequeño">
+                  </div>
+                </div>
+
+                <details id="personaIdentityExtraTraits" class="persona-identity-details" style="margin-top:12px;">
+                  <summary>Más rasgos (cuerpo, textura, labios) — opcional</summary>
+                <div class="form-row" style="margin-top:10px;">
+                  <div>
                     <label for="pBodyType">Complexión / silueta</label>
                     <input type="text" id="pBodyType" value="Atlético y proporcionado" placeholder="Ej: Curvilíneo, esbelto, fit...">
                   </div>
@@ -956,10 +816,7 @@
                     <input type="text" id="pHeight" value="Estatura media (~1.65 m)" placeholder="Ej: Alta, media, petite">
                   </div>
                 </div>
-
-                <details id="personaIdentityExtraTraits" class="persona-identity-details" style="margin-top:12px;">
-                  <summary>Más rasgos (textura, labios, proporciones) — opcional</summary>
-                <div class="form-row" style="margin-top:10px;">
+                <div class="form-row u-mt-10">
                   <div>
                     <label for="pSkinTexture">Textura de la Piel</label>
                     <input type="text" id="pSkinTexture" value="Piel suave con poros y pecas muy sutiles">
@@ -1022,25 +879,9 @@
                 </details>
               </div>
 
-              <!-- Personalidad y Reglas de Marca -->
-              <div class="glass-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); margin-top: 14px; padding: 14px; border-radius: var(--border-radius-md);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                  <h4 style="font-size: 11px; text-transform: uppercase; color: #ec4899; margin: 0; font-family: var(--font-display);">🧠 Anclas visuales (marcas + asimetría)</h4>
-                </div>
-                
-                <div class="form-row">
-                  <div>
-                    <label for="pDistinctiveMarks">Marcas Distintivas y Señas Físicas</label>
-                    <input type="text" id="pDistinctiveMarks" value="Peca sutil en el pómulo izquierdo, pequeño lunar natural en el cuello" placeholder="Ej: Peca en pómulo, pequeño lunar en cuello, tatuaje en muñeca">
-                  </div>
-                  <div>
-                    <label for="pFacialAsymmetry">Asimetría facial (ancla anti-CGI)</label>
-                    <input type="text" id="pFacialAsymmetry" value="Ojo izquierdo ~2% más pequeño, mandíbula izquierda ligeramente más suave" placeholder="Ej: Ojo izquierdo 2% más pequeño, mandíbula izquierda un poco más suave">
-                  </div>
-                </div>
-
-                <details id="personaIdentityBrandDetails" class="persona-identity-details" style="margin-top:12px;">
-                  <summary>Personalidad y reglas de marca (MBTI, tono, tabúes) — opcional</summary>
+              <!-- Personalidad (opcional) -->
+              <details id="personaIdentityBrandDetails" class="persona-identity-details" style="margin-top:12px;">
+                <summary>Personalidad y reglas de marca (MBTI, tono, tabúes) — opcional</summary>
                 <div class="form-row u-mt-10">
                   <div>
                     <label for="pMbti">Arquetipo Psicológico (MBTI)</label>
@@ -1067,14 +908,13 @@
                     <input type="text" id="pTaboos" value="No promociona fast fashion, No usa lenguaje agresivo, No habla de política" placeholder="Ej: No fast fashion, No lenguaje agresivo, No política">
                   </div>
                 </div>
-                </details>
-              </div>
+              </details>
               
               <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
                 <button type="button" class="btn" id="btnSavePersona" style="flex: 2; min-width: 160px;">
                   Guardar personaje
                 </button>
-                <button type="button" class="btn btn-secondary" id="btnCancelEditPersona" style="flex: 1.5; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
+                <button type="button" class="btn btn-secondary" id="btnCancelEditPersona" data-persona-edit-only style="flex: 1.5; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
                   👁️ Ver Ficha
                 </button>
                 <button type="button" class="btn btn-secondary" id="btnArchivePersona" data-persona-edit-only style="flex: 1.2; background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3);">
@@ -1245,15 +1085,6 @@
                 </div>
               </div>
               <div id="lockHealthPanel" data-persona-step="2" class="lock-health u-hidden"></div>
-              <div id="lockRevisionsPanel" data-persona-step="advanced" class="lock-revisions u-hidden">
-                <div class="lock-revisions-head">
-                  <strong>Versiones del character_lock</strong>
-                  <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshLockRevisions" style="padding:4px 8px;font-size:10px;">Actualizar</button>
-                </div>
-                <p class="lock-revisions-hint">Historial local (máx. 20). Restaura si tocaste el JSON y perdiste cara/tez/pelo.</p>
-                <div id="lockRevisionsList" class="lock-revisions-list"></div>
-                <pre id="lockRevisionDiff" class="lock-revision-diff u-hidden"></pre>
-              </div>
               <div class="prompt-text" id="promptPreview">Cargando prompt...</div>
               <div class="pack-library-inline" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
                 <p style="font-size: 11px; color: var(--text-muted); margin: 0; line-height: 1.45;">
@@ -1412,6 +1243,177 @@
             <!-- Dynamic selection grid -->
           </div>
         </div>
+
+        <!-- UX-2: un solo Avanzado (A/B · versiones · character_lock · LoRA) -->
+        <details id="personaAdvancedTools" data-persona-step="advanced" class="persona-advanced-block u-mb-20">
+          <summary class="u-details-summary">Avanzado · A/B, versiones, character_lock y LoRA</summary>
+          <p class="u-hint-muted-sm" style="margin: 8px 0 12px;">Opcional. El path free es Copiar JSON en Lock &amp; Packs — esto no hace falta para empezar.</p>
+
+          <div class="persona-advanced-section">
+            <h4 class="persona-advanced-section-title">Comparador A/B y versiones del personaje</h4>
+            <div class="u-flex-gap-12">
+          <button type="button" class="btn btn-secondary btn-sm u-btn-icon-sm" id="btnToggleAB" >
+            ⚖️ Comparador A/B Split
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm u-btn-icon-sm" id="btnToggleHistory" >
+            ⏳ Historial de Versiones
+          </button>
+            </div>
+<div id="abComparatorContainer" data-persona-step="advanced" class="u-hidden-mb-28">
+          <div class="glass-card">
+            <h2 class="u-title-ab">⚖️ Comparador A/B de Personas</h2>
+            <p class="u-lead-ab">Configura y compara dos variaciones de prompt en paralelo para evaluar la consistencia de identidad.</p>
+            <div class="ab-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+              <!-- Left Side A -->
+              <div class="ab-column" style="border-right: 1px solid var(--glass-border); padding-right: 24px;">
+                <h3 style="color: var(--accent-primary); margin-bottom: 12px;">Variación A</h3>
+                <div class="editor-form-group">
+                  <div>
+                    <label for="abA_setting">Fondo / Setting</label>
+                    <input type="text" id="abA_setting" value="Sala de estar moderna y neutral">
+                  </div>
+                  <div class="u-mt-10">
+                    <label for="abA_clothing">Ropa</label>
+                    <input type="text" id="abA_clothing" value="Suéter de punto color crema">
+                  </div>
+                  <div class="u-mt-10">
+                    <label for="abA_lighting">Iluminación</label>
+                    <select id="abA_lighting">
+                      <option value="Casual daylight from bedroom window">Luz natural de ventana casual</option>
+                      <option value="Warm natural sunset flare, outdoor">Luz cálida de atardecer, exterior</option>
+                      <option value="Harsh direct smartphone camera flash">Flash directo de cámara de celular</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="prompt-console u-mt-16" >
+                  <span class="analysis-field-label">Prompt A Compilado</span>
+                  <div class="prompt-text u-scroll-80" id="promptPreviewA" >Generando...</div>
+                </div>
+              </div>
+
+              <!-- Right Side B -->
+              <div class="ab-column">
+                <h3 style="color: var(--accent-secondary); margin-bottom: 12px;">Variación B</h3>
+                <div class="editor-form-group">
+                  <div>
+                    <label for="abB_setting">Fondo / Setting</label>
+                    <input type="text" id="abB_setting" value="Cafetería al aire libre con luces desenfocadas">
+                  </div>
+                  <div class="u-mt-10">
+                    <label for="abB_clothing">Ropa</label>
+                    <input type="text" id="abB_clothing" value="Chaqueta vaquera casual">
+                  </div>
+                  <div class="u-mt-10">
+                    <label for="abB_lighting">Iluminación</label>
+                    <select id="abB_lighting">
+                      <option value="Warm natural sunset flare, outdoor" selected>Luz cálida de atardecer, exterior</option>
+                      <option value="Casual daylight from bedroom window">Luz natural de ventana casual</option>
+                      <option value="Harsh direct smartphone camera flash">Flash directo de cámara de celular</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="prompt-console u-mt-16" >
+                  <span class="analysis-field-label">Prompt B Compilado</span>
+                  <div class="prompt-text u-scroll-80" id="promptPreviewB" >Generando...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden Version History Timeline Container -->
+        <div id="historyTimelineContainer" data-persona-step="advanced"  class="glass-card u-hidden-mb-28">
+          <h2 class="u-title-ab">⏳ Historial de Versiones</h2>
+          <div class="version-timeline-list" id="versionTimelineList" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Dynamically populated timeline -->
+          </div>
+        </div>
+
+          </div>
+
+          <div class="persona-advanced-section">
+            <h4 class="persona-advanced-section-title">Versiones del character_lock</h4>
+<div id="lockRevisionsPanel" data-persona-step="advanced" class="lock-revisions u-hidden">
+                <div class="lock-revisions-head">
+                  <strong>Versiones del character_lock</strong>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshLockRevisions" style="padding:4px 8px;font-size:10px;">Actualizar</button>
+                </div>
+                <p class="lock-revisions-hint">Historial local (máx. 20). Restaura si tocaste el JSON y perdiste cara/tez/pelo.</p>
+                <div id="lockRevisionsList" class="lock-revisions-list"></div>
+                <pre id="lockRevisionDiff" class="lock-revision-diff u-hidden"></pre>
+              </div>
+                        </div>
+
+              <!-- LoRA L1–L3: avanzado / opt-in — fuera del card verde de Copiar JSON -->
+              <div id="loraAdvancedPanel" class="persona-advanced-section">
+                <h4 class="persona-advanced-section-title">LoRA (opt-in, no es el path free)</h4>
+                <p style="font-size: 10px; color: var(--text-muted); margin: 10px 0 8px; line-height: 1.4;">
+                  Consistencia “dura” con pesos. El emprendedor free no necesita esto: usa <strong>Copiar JSON</strong> arriba.
+                </p>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnExportLoraPackSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;" title="Dataset + captions para entrenar una LoRA (Colab gratis). Guía: docs/lora/L1_COLAB.md">🧬 Exportar dataset LoRA (.zip) — no es el pack chatbot</button>
+                <p class="u-hint-10">
+                  L1 Colab gratis: <code class="u-fs-10">docs/lora/influ_json_lora_train.ipynb</code>
+                  · <code class="u-fs-10">docs/lora/L1_COLAB.md</code>
+                </p>
+                <div id="loraInferencePanel" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
+                  <div id="localGpuStatusPanel" style="margin-bottom: 12px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);">
+                    <p class="u-field-title">GPU local (L4)</p>
+                    <p class="u-hint-muted-sm">
+                      Opt-in · equipo con NVIDIA/self-host. El path free sigue siendo <strong>Copiar JSON</strong>.
+                    </p>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
+                      <span id="localGpuChipComfy" style="font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);">ComfyUI —</span>
+                      <span id="localGpuChipA1111" style="font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);">A1111/Forge —</span>
+                    </div>
+                    <p id="localGpuStatusText" style="font-size: 10px; color: var(--text-muted); margin: 0 0 6px; line-height: 1.4;">Estado: —</p>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshLocalGpu" style="font-size: 10px; padding: 6px 8px;">Actualizar GPU local</button>
+                    <p class="u-hint-10">
+                      Guía: <code class="u-fs-10">docs/lora/L4_LOCAL_GPU.md</code>
+                    </p>
+                  </div>
+                  <p class="u-field-title">L2 · Registrar LoRA (ComfyUI / A1111)</p>
+                  <p id="loraInferenceStatus" class="u-hint-muted-sm">Estado: —</p>
+                  <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px;">Subir .safetensors (tras Colab)</label>
+                  <input type="file" id="loraWeightsFile" accept=".safetensors,.pt,.ckpt" style="font-size: 10px; width: 100%; margin-bottom: 6px;" />
+                  <input type="text" id="loraTriggerInput" placeholder="trigger (ohwx_…)" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-bottom: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
+                  <div class="u-gap-wrap">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnRegisterLora" style="flex: 1; font-size: 11px; padding: 8px 10px;">Registrar LoRA</button>
+                    <button type="button" class="btn btn-sm u-btn-sm-pad-tight" id="btnClearLora" >Quitar</button>
+                  </div>
+                  <p class="u-hint-10">
+                    Guías: <code class="u-fs-10">docs/lora/L2_COMFYUI.md</code>
+                    · <code class="u-fs-10">docs/lora/L4_LOCAL_GPU.md</code>
+                  </p>
+                  <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
+                    <p class="u-field-title">L5 · Train local (GPU propia, opt-in)</p>
+                    <p class="u-hint-muted-sm">
+                      Requiere <code class="u-fs-10">ENABLE_LOCAL_LORA_TRAIN=1</code>. Materializa el pack L0; con
+                      <code class="u-fs-10">AI_TOOLKIT_DIR</code> / <code class="u-fs-10">LOCAL_LORA_TRAIN_CMD</code> lanza el trainer.
+                      Sin GPU: usá <strong>Colab L1</strong>. Guía: <code class="u-fs-10">docs/lora/L5_LOCAL_TRAIN.md</code>.
+                    </p>
+                    <div class="u-gap-wrap">
+                      <button type="button" class="btn btn-sm" id="btnTrainLoraLocal" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4);">Preparar / entrenar local</button>
+                      <button type="button" class="btn btn-secondary btn-sm u-btn-sm-pad-tight" id="btnSyncLoraLocal" >Sincronizar train local</button>
+                    </div>
+                  </div>
+                  <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
+                    <p class="u-field-title">L3 · Replicate (pago, opt-in)</p>
+                    <p class="u-hint-muted-sm">
+                      Requiere <code class="u-fs-10">ENABLE_PAID_LORA=1</code>. Preferí Colab (L1) si puedes.
+                      Guía: <code class="u-fs-10">docs/lora/L3_PAID.md</code>.
+                    </p>
+                    <div class="u-gap-wrap">
+                      <button type="button" class="btn btn-sm" id="btnTrainLoraPaid" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(251, 146, 60, 0.25); border: 1px solid rgba(251, 146, 60, 0.45);">Entrenar en Replicate (pago)</button>
+                      <button type="button" class="btn btn-secondary btn-sm u-btn-sm-pad-tight" id="btnSyncLoraPaid" >Sincronizar estado</button>
+                    </div>
+                    <input type="text" id="loraReplicateModelInput" placeholder="o pega owner/model:version ya entrenado" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-top: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnLinkLoraPaid" style="width: 100%; margin-top: 6px; font-size: 11px; padding: 8px 10px;">Vincular modelo Replicate</button>
+                  </div>
+                </div>
+              </div>
+
+
+        </details>
 
         <!-- Influencer Variant Vault & Pose Manager -->
         <div class="glass-card u-mt-28"  id="variantManagerSection" data-persona-step="3">

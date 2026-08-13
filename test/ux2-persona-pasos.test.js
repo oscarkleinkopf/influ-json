@@ -49,14 +49,17 @@ test('UX-2: identidad pliega escena y marca; avanzado pliega A/B y LoRA', () => 
   assert.match(pe, /id="personaIdentityProfileDetails"/);
   assert.match(pe, /id="personaCreateOptionsCard"/);
   assert.match(pe, /id="personaAdvancedTools"/);
-  assert.match(pe, /id="loraAdvancedPanel"[^>]*data-persona-step="advanced"/);
-  assert.match(pe, /id="abComparatorContainer"[^>]*data-persona-step="advanced"/);
+  // Un solo Avanzado contiene LoRA + A/B + lock revisions
+  assert.match(pe, /id="personaAdvancedTools"[\s\S]*id="loraAdvancedPanel"/);
+  assert.match(pe, /id="personaAdvancedTools"[\s\S]*id="abComparatorContainer"/);
+  assert.match(pe, /id="personaAdvancedTools"[\s\S]*id="lockRevisionsPanel"/);
+  assert.equal((pe.match(/id="loraAdvancedPanel"/g) || []).length, 1);
+  assert.doesNotMatch(pe, /id="loraAdvancedPanel"[^>]*data-persona-step="advanced"/); // ahora sección interna
+  assert.match(pe, /id="abComparatorContainer"[^>]*data-persona-step="advanced"|data-persona-step="advanced"[^>]*id="abComparatorContainer"/);
   assert.match(pe, /id="personaRightPanel"[^>]*data-persona-step="2"|data-persona-step="2"[^>]*id="personaRightPanel"/);
   assert.match(pe, /id="personaCompiledPromptConsole"[^>]*data-persona-step="2"|data-persona-step="2"[^>]*id="personaCompiledPromptConsole"/);
-  // Details de identidad no nacen abiertos
   assert.doesNotMatch(pe, /id="personaIdentityExtraTraits"[^>]*\sopen[\s>]/);
   assert.doesNotMatch(pe, /id="personaAdvancedTools"[^>]*\sopen[\s>]/);
-  assert.doesNotMatch(pe, /id="loraAdvancedPanel"[^>]*\sopen[\s>]/);
 });
 
 test('UX-2: CSS oculta pasos inactivos; crear → paso 1, select → paso 2', () => {

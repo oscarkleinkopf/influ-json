@@ -531,6 +531,37 @@ body {
   display: none !important;
 }
 
+/* Compactar crear: cabecera/título menos ruido; banner corto */
+#persona-engine[data-form-open="1"] .content-header .content-title p,
+#persona-engine[data-form-open="1"] #editorHeaderTitle {
+  display: none !important;
+}
+#persona-engine[data-form-open="1"] #createModeBanner {
+  padding: 6px 10px !important;
+  font-size: 11px !important;
+  margin-bottom: 8px !important;
+}
+#persona-engine[data-form-open="1"] #personaForm > .glass-card {
+  padding: 10px 12px !important;
+  margin-top: 8px !important;
+}
+#persona-engine[data-form-open="1"][data-creating="1"] #personaIdentityGenDetails {
+  display: none !important;
+}
+
+.persona-advanced-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.persona-advanced-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+}
+
 /* Avanzado: oculto en el flujo principal salvo details abiertas por el usuario en paso 2 */
 #persona-engine[data-active-step="1"] [data-persona-step="advanced"],
 #persona-engine[data-active-step="3"] [data-persona-step="advanced"] {

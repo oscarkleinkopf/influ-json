@@ -245,7 +245,7 @@ async function main() {
       && createMetrics.createCardHidden
       && createMetrics.rightPanelHidden
       && createMetrics.archiveHidden
-      && createMetrics.peScrollHeight <= 2200
+      && createMetrics.peScrollHeight <= 1800
       && createMetrics.visibleControls <= 40;
     report.checks.push({ check: 'persona-create-compact', pass: createPass, createMetrics });
     if (!createPass) report.ok = false;
@@ -302,6 +302,28 @@ async function main() {
       if (!stepPass) report.ok = false;
       await page.screenshot({ path: shot(`0${step + 1}-persona-step-${step}.png`), fullPage: false });
       report.shots.push(shot(`0${step + 1}-persona-step-${step}.png`));
+
+      if (step === 2) {
+        const step2Fit = await page.evaluate(() => {
+          const copy = document.getElementById('btnCopyPackFullbodyPrimary');
+          const adv = document.getElementById('personaAdvancedTools');
+          const r = copy?.getBoundingClientRect();
+          const hasLora = !!document.querySelector('#personaAdvancedTools #loraAdvancedPanel');
+          const hasAb = !!document.querySelector('#personaAdvancedTools #abComparatorContainer');
+          const hasLockRev = !!document.querySelector('#personaAdvancedTools #lockRevisionsPanel');
+          return {
+            copyAboveFold: !!(r && r.bottom > 0 && r.bottom <= window.innerHeight),
+            copyBottom: r ? r.bottom : null,
+            viewport: window.innerHeight,
+            advExists: !!adv,
+            advOpen: !!adv?.open,
+            unifiedAdvanced: hasLora && hasAb && hasLockRev
+          };
+        });
+        const fitPass = step2Fit.copyAboveFold && step2Fit.unifiedAdvanced && step2Fit.advOpen === false;
+        report.checks.push({ check: 'persona-step-2-fit', pass: fitPass, step2Fit });
+        if (!fitPass) report.ok = false;
+      }
     }
 
     // Negocio: Licensing
