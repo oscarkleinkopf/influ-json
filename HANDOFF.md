@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/corte-a-baseline-9b67` |
 | **Commit base** | `main` @ #117 merged |
-| **PR actual** | Corte A — baseline confiable (batch ads + audit + gates) |
+| **PR actual** | [#118](https://github.com/oscarkleinkopf/influ-json/pull/118) — Corte A baseline |
 | **`main` remoto** | + #117 (`docs/ANALISIS_PROYECTO_2026-08.md`) |
 | **Prioridad inmediata** | Terminar Corte A; luego Corte B (SSRF / .env / scope stats) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
