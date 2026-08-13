@@ -124,3 +124,10 @@ test('layout-smoke incluye pass móvil 414', () => {
   assert.match(smoke, /414,\s*896|width:\s*414/);
   assert.match(smoke, /08-mobile-414/);
 });
+
+test('server.js sirve influ-persona + persona-draft + studio-dialogs', () => {
+  const serverJs = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
+  assert.match(serverJs, /['"]\/influ-persona\.js['"]/);
+  assert.match(serverJs, /['"]\/persona-draft\.js['"]/);
+  assert.match(serverJs, /['"]\/studio-dialogs\.js['"]/);
+});
