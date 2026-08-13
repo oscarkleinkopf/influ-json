@@ -251,4 +251,8 @@ test('free-path: walkthrough exige clipboard con lock (source)', () => {
   assert.match(walk, /startCreateScratchFlow|resetPersonaFormForNew/);
   assert.match(walk, /btnSavePersona|savePersona\(\{\s*withPortrait:\s*false\s*\}\)/);
   assert.match(walk, /founderWelcomeModal/);
+  // P0: inspirar desde foto al mismo nivel
+  assert.match(walk, /import-ritual-save/);
+  assert.match(walk, /import-ritual-copiar-json/);
+  assert.match(walk, /btnConfirmImport/);
 });

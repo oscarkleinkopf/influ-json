@@ -204,6 +204,21 @@ test('UX-1d: walkthrough cubre hub Negocio (Licensing + Campañas)', () => {
   assert.match(walk, /personaIdentityExtraTraits/);
 });
 
+test('walkthrough: ritual import subir → confirmar → guardar → Copiar JSON', () => {
+  const walk = fs.readFileSync(path.join(root, 'scripts/happy-path-walkthrough.js'), 'utf8');
+  assert.match(walk, /makeTestJpegBuffer/);
+  assert.match(walk, /generateWithGeminiMulti/);
+  assert.match(walk, /uploadFile/);
+  assert.match(walk, /import-ritual-ui/);
+  assert.match(walk, /import-ritual-confirm/);
+  assert.match(walk, /import-ritual-save/);
+  assert.match(walk, /import-ritual-copiar-json/);
+  assert.match(walk, /08c-import-tras-guardar/);
+  assert.match(walk, /08d-import-copiar-json/);
+  assert.match(walk, /data-step2-focus/);
+  assert.match(walk, /Latina de tez clara/);
+});
+
 test('UX visual: layout-smoke cubre Persona pasos + Negocio', () => {
   const smoke = fs.readFileSync(path.join(root, 'scripts/layout-smoke.js'), 'utf8');
   assert.match(smoke, /persona-step-\$\{step\}|persona-step-/);

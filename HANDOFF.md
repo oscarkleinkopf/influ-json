@@ -25,14 +25,24 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/readme-como-usar-9b67` |
-| **Commit base** | `main` @ #110 merged |
-| **PR actual** | (este) — README / Cómo usar alineados |
-| **`main` remoto** | + #110 (chrome primer uso) |
-| **Prioridad inmediata** | Merge → backlog vacío §12 (o comercial #99 si se pide) |
+| **Rama de trabajo** | `cursor/walkthrough-import-ritual-9b67` |
+| **Commit base** | `main` @ #111 merged |
+| **PR actual** | (este) — walkthrough import foto→Copiar JSON |
+| **`main` remoto** | + #111 (README / Cómo usar) |
+| **Prioridad inmediata** | Merge → seguridad mercado / empaquetado / o #99 si se pide |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Idea #6 README / Cómo usar
+### Sesión reciente (Cursor, 2026-08-13) — Walkthrough ritual import P0
+
+**Pedido:** Merge #111 + walkthrough import al nivel de crear desde cero.
+
+**Hecho:**
+- [#111](https://github.com/oscarkleinkopf/influ-json/pull/111) → `main` (cierra §12 idea #6)
+- Walkthrough: subir JPEG → confirmar tez/ojos/pelo → Guardar → `data-step2-focus` → Copiar JSON
+- Stub Gemini/Pollinations en el script; capturas `08`–`08d`
+- §12 backlog cerrado + free path «inspirados» paridad P0
+
+### Sesión previa (Cursor, 2026-08-13) — Idea #6 README / Cómo usar
 
 **Pedido:** Continúa con 5 y después 6.
 
@@ -41,7 +51,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - README: hubs reales (Influencers / Producir / Negocio), Copiar JSON, Offline chip
 - Cómo usar: mapa de UI + flujo Ficha → Portafolio → Copiar JSON
 - Checklist Portafolio: sin «Persona Engine»
-- Siguiente: §12 backlog cerrado; comercial sigue aparcado
+- Siguiente: walkthrough import ritual
 
 ### Sesión previa (Cursor, 2026-08-13) — Idea #5 chrome primer uso
 
