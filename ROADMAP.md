@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-13 | **Análisis integral post-CSRF** | P0 batch ads + advisory high; roadmap operación/schema/UX/LAN en `docs/ANALISIS_PROYECTO_2026-08.md` |
 | 2026-08-13 | **Walkthrough import P0** | foto→confirmar lock→guardar→Copiar JSON (+ capturas 08*) |
 | 2026-08-13 | **README / Cómo usar** | vocab Influencers·Ficha·Copiar JSON; sin Persona Engine/(recomendado) |
 | 2026-08-13 | **Chrome primer uso** | PIN sin barra/toast; offline chip; Studio/Git en `<details>` |

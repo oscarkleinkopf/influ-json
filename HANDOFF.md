@@ -25,14 +25,24 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #115 merged |
-| **PR actual** | — |
-| **`main` remoto** | + #115 (CSRF cookie mutations) |
-| **Prioridad inmediata** | Empaquetado local / HSTS si TLS / o #99 si se pide |
+| **Rama de trabajo** | `cursor/analisis-mejoras-2026-9b67` |
+| **Commit base** | `main` @ #116 merged |
+| **PR actual** | (este) — análisis proyecto + ideas priorizadas |
+| **`main` remoto** | + #115/#116 (CSRF + handoff) |
+| **Prioridad inmediata** | Corte A: batch ads + dependency audit + gates CI |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Merge #115 CSRF
+### Sesión reciente (Cursor, 2026-08-13) — Análisis integral post-CSRF
+
+**Pedido:** Revisar el proyecto y documentar ideas de funcionamiento, usabilidad y seguridad.
+
+**Hecho:**
+- `docs/ANALISIS_PROYECTO_2026-08.md` — auditoría + roadmap por cortes
+- P0 encontrado: batch ads usa `fetch` sin CSRF y firma incorrecta de `genQueue.enqueue`
+- P0 supply-chain: advisory high transitivo `brace-expansion@5.0.7`
+- Siguiente recomendado: reparar P0 → Doctor/launcher → schema portable v1
+
+### Sesión previa (Cursor, 2026-08-13) — Merge #115 CSRF
 
 **Pedido:** CI verde en #115 (Test & smoke #240).
 
