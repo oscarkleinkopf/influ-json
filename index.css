@@ -4499,6 +4499,39 @@ button.is-queue-locked:disabled {
   border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
+.import-ritual-steps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 18px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.import-ritual-steps [data-import-ritual] {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.import-ritual-steps [data-import-ritual].is-active {
+  color: #ecfdf5;
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.18);
+  font-weight: 700;
+}
+
+.import-ritual-steps [data-import-ritual].is-done {
+  color: #86efac;
+  border-color: rgba(52, 211, 153, 0.25);
+}
+
+.import-confirm-traits .form-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .import-lock-health.is-weak {
   color: #fca5a5 !important;
 }

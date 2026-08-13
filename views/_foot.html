@@ -22,8 +22,15 @@
     <div class="glass-card" style="width: 100%; max-width: 650px; padding: 32px; position: relative; border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow-y: auto; max-height: 90vh;">
       <button type="button" class="history-modal-close" id="btnCloseImportModal" style="position: absolute; top: 16px; right: 16px; border: none; background: transparent; font-size: 24px; color: var(--text-secondary); cursor: pointer;">&times;</button>
       
-      <h2 style="font-family: var(--font-display); margin-bottom: 8px; font-size: 20px; color: #fff; display: flex; align-items: center; gap: 10px;">📥 Importar Influencer Real</h2>
-      <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 24px;">Sube fotos o indica un enlace de referencia para crear un influencer consistente con guiones de video UGC.</p>
+      <h2 style="font-family: var(--font-display); margin-bottom: 8px; font-size: 20px; color: #fff; display: flex; align-items: center; gap: 10px;">📥 Inspirar desde foto</h2>
+      <p id="importRitualLead" style="color: var(--text-secondary); font-size: 12px; margin-bottom: 12px; line-height: 1.45;">
+        Ritual free: <strong>1 · Subir</strong> → <strong>2 · Confirmar tez / ojos / pelo</strong> → <strong>3 · Guardar → Copiar JSON</strong>.
+      </p>
+      <p class="import-ritual-steps" id="importRitualSteps" aria-hidden="true">
+        <span data-import-ritual="1" class="is-active">1 Subir</span>
+        <span data-import-ritual="2">2 Confirmar</span>
+        <span data-import-ritual="3">3 Guardar</span>
+      </p>
 
       <!-- Paso 1: Formulario de Carga -->
       <div id="importStep1">
@@ -58,16 +65,19 @@
               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
           </div>
 
-          <div class="u-mb-20">
-            <label for="importScriptTopic" class="u-label-block">📦 Producto / Nicho para Guiones UGC (Opcional)</label>
-            <input type="text" id="importScriptTopic" placeholder="Ej: Crema hidratante antiedad" 
-              style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
-          </div>
+          <details class="u-mb-20" id="importOptionalDetails">
+            <summary style="cursor:pointer; font-size:12px; color:var(--text-secondary);">Opcional: producto / nicho para guiones UGC</summary>
+            <div style="margin-top:10px;">
+              <label for="importScriptTopic" class="u-label-block">📦 Producto / Nicho</label>
+              <input type="text" id="importScriptTopic" placeholder="Ej: Crema hidratante antiedad" 
+                style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
+            </div>
+          </details>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
           <button type="button" class="btn btn-secondary u-pad-10-24" id="btnCancelImportStep1" >Cancelar</button>
-          <button type="button" class="btn" id="btnAnalyzeInfluencer" style="padding: 10px 24px; background: var(--accent-primary);">Analizar Influencer</button>
+          <button type="button" class="btn" id="btnAnalyzeInfluencer" style="padding: 10px 24px; background: var(--accent-primary);">Analizar y continuar</button>
         </div>
       </div>
 
@@ -75,50 +85,102 @@
       <div id="importLoading" style="display: none; padding: 40px 0; text-align: center; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
         <div class="analysis-spinner" style="width: 48px; height: 48px; border-width: 4px; border-color: rgba(99, 102, 241, 0.1); border-top-color: var(--accent-primary);"></div>
         <div>
-          <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 6px;">Analizando imágenes con IA...</h3>
-          <p style="color: var(--text-secondary); font-size: 12px;">Extrayendo rasgos visuales consistentes y redactando guiones UGC para video. Esto puede tomar unos segundos.</p>
+          <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 6px;">Analizando imágenes…</h3>
+          <p style="color: var(--text-secondary); font-size: 12px;">Extrayendo tez, ojos y pelo para el character_lock. Sin guardar aún.</p>
         </div>
       </div>
 
-      <!-- Paso 3: Vista Previa y Confirmación (1.2 — aún no en portafolio) -->
+      <!-- Paso 3: Confirmar tez / ojos / pelo → Guardar -->
       <div id="importPreview" class="u-hidden">
-        <h3 style="font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">📋 Perfil Analizado</h3>
+        <h3 style="font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">2 · Confirmar identidad</h3>
         <p id="importConfirmHint" class="import-confirm-hint" style="display:none; font-size: 12px; color: #fde68a; margin: 0 0 14px; line-height: 1.4;">
-          Aún no está en tu portafolio. Revisa y confirma, o descarta.
+          Aún no está en el portafolio. Corrige tez / ojos / pelo si hace falta, luego guarda.
         </p>
         
-        <div class="editor-form-group u-mb-20">
+        <div class="editor-form-group u-mb-16">
           <div>
-            <label for="importSuggestedName" style="display: block; margin-bottom: 6px; font-size: 11px;">Nombre Sugerido (Editable)</label>
+            <label for="importSuggestedName" style="display: block; margin-bottom: 6px; font-size: 11px;">Nombre (editable)</label>
             <input type="text" id="importSuggestedName" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px;">
           </div>
         </div>
 
-        <!-- Visual Summary -->
+        <div id="importConfirmTraits" class="import-confirm-traits editor-form-group u-mb-16">
+          <p style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 10px; font-weight: 700; letter-spacing: 0.4px;">Rasgos must_match (corrígelos aquí)</p>
+          <div class="form-row" style="gap:10px;">
+            <div style="flex:1; min-width:140px;">
+              <label for="importConfirmSkin" style="display:block; margin-bottom:4px; font-size:11px;">Tez</label>
+              <input type="text" id="importConfirmSkin" list="dlImportSkin" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--glass-border); background:rgba(0,0,0,0.3); color:var(--text-primary); font-size:12px;">
+            </div>
+            <div style="flex:1; min-width:140px;">
+              <label for="importConfirmEyes" style="display:block; margin-bottom:4px; font-size:11px;">Ojos</label>
+              <input type="text" id="importConfirmEyes" list="dlImportEyes" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--glass-border); background:rgba(0,0,0,0.3); color:var(--text-primary); font-size:12px;">
+            </div>
+          </div>
+          <div class="form-row u-mt-10" style="gap:10px;">
+            <div style="flex:1; min-width:140px;">
+              <label for="importConfirmHair" style="display:block; margin-bottom:4px; font-size:11px;">Pelo</label>
+              <input type="text" id="importConfirmHair" list="dlImportHair" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--glass-border); background:rgba(0,0,0,0.3); color:var(--text-primary); font-size:12px;">
+            </div>
+            <div style="flex:1; min-width:140px;">
+              <label for="importConfirmEthnicity" style="display:block; margin-bottom:4px; font-size:11px;">Origen / apariencia</label>
+              <input type="text" id="importConfirmEthnicity" list="dlImportEthnicity" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--glass-border); background:rgba(0,0,0,0.3); color:var(--text-primary); font-size:12px;">
+            </div>
+          </div>
+          <datalist id="dlImportSkin">
+            <option value="piel clara natural"></option>
+            <option value="Claro / porcelana"></option>
+            <option value="Claro cálido / beige rosado"></option>
+            <option value="Medio cálido / arena dorada"></option>
+            <option value="Medio oliva / canela"></option>
+            <option value="Moreno cálido / bronce"></option>
+          </datalist>
+          <datalist id="dlImportEyes">
+            <option value="Marrón cálido con destellos ámbar"></option>
+            <option value="Marrón oscuro profundo"></option>
+            <option value="Verde oliva / avellana"></option>
+            <option value="Azul cristalino / grisáceo"></option>
+            <option value="Miel / ámbar claro"></option>
+          </datalist>
+          <datalist id="dlImportHair">
+            <option value="Castaño medio natural"></option>
+            <option value="Castaño oscuro chocolate"></option>
+            <option value="Rubio dorado claro"></option>
+            <option value="Negro azabache profundo"></option>
+            <option value="Pelirrojo cobrizo"></option>
+          </datalist>
+          <datalist id="dlImportEthnicity">
+            <option value="Latina de tez clara"></option>
+            <option value="Latina / Mediterránea"></option>
+            <option value="Caucásica / Nórdica"></option>
+            <option value="Afrodescendiente / Mixta"></option>
+            <option value="Asiática / Oriental"></option>
+            <option value="Mixta / Universal"></option>
+          </datalist>
+        </div>
+
+        <!-- Visual Summary (compact) -->
         <div class="prompt-console" style="margin-top: 0; margin-bottom: 12px;">
-          <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px;">Resumen del Look y Facciones</span>
-          <div id="importSummaryText" style="font-size: 11px; max-height: 100px; overflow-y: auto; color: var(--text-secondary); padding: 8px 12px; line-height: 1.6;">Cargando resumen...</div>
+          <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px;">Resumen detectado</span>
+          <div id="importSummaryText" style="font-size: 11px; max-height: 72px; overflow-y: auto; color: var(--text-secondary); padding: 8px 12px; line-height: 1.6;">Cargando resumen...</div>
         </div>
         <p id="importLockHealth" class="import-lock-health" style="display:none; font-size: 11px; color: #86efac; margin: 0 0 16px;"></p>
 
-        <!-- JSON Output Preview -->
-        <div class="prompt-console" style="margin-top: 0; margin-bottom: 20px; background: rgba(0,0,0,0.3);">
-          <div class="u-flex-between">
-            <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase;">Estructura influ-JSON Detectada</span>
-            <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyImportJSON">Copiar estructura</button>
+        <details id="importAdvancedPreview" style="margin-bottom:16px;">
+          <summary style="cursor:pointer; font-size:12px; color:var(--text-secondary);">Avanzado: JSON detectado + guiones UGC</summary>
+          <div class="prompt-console" style="margin-top: 10px; margin-bottom: 12px; background: rgba(0,0,0,0.3);">
+            <div class="u-flex-between">
+              <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase;">Estructura influ-JSON</span>
+              <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyImportJSON">Copiar estructura</button>
+            </div>
+            <textarea id="importJsonOutput" readonly style="width: 100%; height: 90px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; padding: 8px; color: #a7f3d0; font-family: var(--font-mono); font-size: 10px; resize: none; outline: none;"></textarea>
           </div>
-          <textarea id="importJsonOutput" readonly style="width: 100%; height: 110px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; padding: 8px; color: #a7f3d0; font-family: var(--font-mono); font-size: 10px; resize: none; outline: none;"></textarea>
-        </div>
-
-        <!-- Video Scripts -->
-        <h3 style="font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: #fbbf24; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🎬 Guiones UGC (texto · video es opcional/demo)</h3>
-        <div id="importVideoPrompts" style="display: flex; flex-direction: column; gap: 12px; max-height: 200px; overflow-y: auto; margin-bottom: 24px; padding-right: 4px;">
-          <!-- Dynamically populated scripts -->
-        </div>
+          <h3 style="font-family: var(--font-display); font-size: 12px; text-transform: uppercase; color: #fbbf24; margin: 8px 0 8px;">Guiones UGC (opcional)</h3>
+          <div id="importVideoPrompts" style="display: flex; flex-direction: column; gap: 12px; max-height: 160px; overflow-y: auto; margin-bottom: 8px; padding-right: 4px;"></div>
+        </details>
 
         <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
           <button type="button" class="btn btn-secondary u-pad-10-24" id="btnCancelImportPreview" >Descartar</button>
-          <button type="button" class="btn" id="btnConfirmImport" style="padding: 10px 24px; background: #10b981;">Crear Persona y Guardar</button>
+          <button type="button" class="btn" id="btnConfirmImport" style="padding: 10px 24px; background: #10b981;">Guardar → Copiar JSON</button>
         </div>
       </div>
 

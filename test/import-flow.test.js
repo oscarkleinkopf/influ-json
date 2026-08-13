@@ -12,6 +12,9 @@ const {
   buildConfirmPersonaPayload,
   collectDiscardPaths,
   buildSummaryHtml,
+  getImportPreviewTraits,
+  applyImportConfirmTraits,
+  setImportRitualStep,
   initImportModal
 } = require('../import-flow');
 
@@ -117,12 +120,87 @@ test('initImportModal está exportado', () => {
   assert.equal(typeof initImportModal, 'function');
 });
 
+test('getImportPreviewTraits lee detailedJSON (skin/eyes/hair)', () => {
+  const traits = getImportPreviewTraits({
+    ethnicity: 'Latina',
+    detailedJSON: {
+      identity: { ethnicity_appearance: 'Latina de tez clara' },
+      facial_features: { skin_tone: 'piel clara natural', eye_color: 'marrón cálido' },
+      hair: { color: 'Castaño', length: 'largo', texture: 'ondulado' }
+    }
+  });
+  assert.equal(traits.skin, 'piel clara natural');
+  assert.equal(traits.eyes, 'marrón cálido');
+  assert.match(traits.hair, /Castaño/);
+  assert.equal(traits.ethnicity, 'Latina de tez clara');
+});
+
+test('applyImportConfirmTraits actualiza must_match y detailedJSON', () => {
+  const base = {
+    name: 'Luna',
+    detailedJSON: {
+      identity: { ethnicity_appearance: 'Latina' },
+      facial_features: { skin_tone: 'medio', eye_color: 'verde' },
+      hair: { color: 'negro', length: 'corto' }
+    }
+  };
+  const next = applyImportConfirmTraits(base, {
+    skin: 'piel clara natural',
+    eyes: 'marrón oscuro',
+    hair: 'Castaño, largo, ondas suaves',
+    ethnicity: 'Latina de tez clara'
+  });
+  assert.equal(next.detailedJSON.facial_features.skin_tone, 'piel clara natural');
+  assert.equal(next.detailedJSON.facial_features.eye_color, 'marrón oscuro');
+  assert.equal(next.detailedJSON.identity.ethnicity_appearance, 'Latina de tez clara');
+  assert.equal(next.ethnicity, 'Latina de tez clara');
+  assert.equal(next.detailedJSON.hair.color, 'Castaño');
+  assert.equal(next.detailedJSON.character_lock.must_match_every_image.skin_tone, 'piel clara natural');
+  assert.equal(next.detailedJSON.character_lock.must_match_every_image.eyes, 'marrón oscuro');
+  assert.match(next.detailedJSON.character_lock.must_match_every_image.hair, /Castaño/);
+  assert.equal(next.character_lock.must_match_every_image.name, 'Luna');
+});
+
+test('setImportRitualStep marca paso activo', () => {
+  const els = [1, 2, 3].map((n) => {
+    const toggles = [];
+    return {
+      getAttribute: () => String(n),
+      classList: { toggle: (cls, on) => toggles.push([cls, !!on]) },
+      toggles
+    };
+  });
+  setImportRitualStep({ querySelectorAll: () => els }, 2);
+  assert.deepEqual(els[0].toggles, [['is-active', false], ['is-done', true]]);
+  assert.deepEqual(els[1].toggles, [['is-active', true], ['is-done', false]]);
+  assert.deepEqual(els[2].toggles, [['is-active', false], ['is-done', false]]);
+});
+
+test('modal ritual: confirmar tez/ojos/pelo + CTA Copiar JSON', () => {
+  const foot = fs.readFileSync(path.join(__dirname, '..', 'views/_foot.html'), 'utf8');
+  assert.match(foot, /Inspirar desde foto/);
+  assert.match(foot, /id="importConfirmSkin"/);
+  assert.match(foot, /id="importConfirmEyes"/);
+  assert.match(foot, /id="importConfirmHair"/);
+  assert.match(foot, /Guardar → Copiar JSON/);
+  assert.match(foot, /data-import-ritual="1"/);
+});
+
+test('app.js inyecta setStep2Focus / Copiar JSON en import', () => {
+  const js = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  assert.match(js, /setStep2Focus,/);
+  assert.match(js, /copyFreeChatbotPack/);
+  assert.match(js, /api\.initImportModal\(/);
+});
+
 test('index.html carga import-flow.js antes de app.js', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   const iFlow = html.indexOf('import-flow.js');
   const iApp = html.indexOf('app.js?v=');
   assert.ok(iFlow > 0);
   assert.ok(iApp > iFlow);
+  assert.match(html, /Inspirar desde foto/);
+  assert.match(html, /id="importConfirmSkin"/);
 });
 
 test('app.js delega initImportModal a InfluImportFlow', () => {
