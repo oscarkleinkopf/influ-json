@@ -257,8 +257,9 @@ async function main() {
     await page.screenshot({ path: shot('01b-persona-create.png'), fullPage: false });
     report.shots.push(shot('01b-persona-create.png'));
 
-    // Re-select seeded persona for remaining steps (exit create mode)
+    // Re-select seeded persona for remaining steps (exit create + primer-JSON focus)
     await page.evaluate((name) => {
+      if (typeof window.clearStep2Focus === 'function') window.clearStep2Focus();
       const p = (window.state?.personas || []).find((x) => x.name === name);
       if (p && typeof window.selectPersona === 'function') window.selectPersona(p);
       if (typeof updateActivePersonaChip === 'function') updateActivePersonaChip();
@@ -269,14 +270,57 @@ async function main() {
     const reselected = await page.evaluate(() => ({
       name: window.state?.selectedPersona?.name || null,
       creating: !!window.state?.isCreatingNewPersona,
+      focus: document.getElementById('persona-engine')?.getAttribute('data-step2-focus'),
       chip: (document.getElementById('activePersonaChipName')?.textContent || '').trim()
     }));
     report.checks.push({
       check: 'reselect-after-create',
-      pass: reselected.name === 'Layout Smoke Luna' && !reselected.creating,
+      pass: reselected.name === 'Layout Smoke Luna' && !reselected.creating && reselected.focus !== '1',
       reselected
     });
     if (reselected.name !== 'Layout Smoke Luna' || reselected.creating) report.ok = false;
+
+    // Modo primer JSON: activar y comprobar que Biblia/pose desaparecen; Copiar JSON queda
+    await page.evaluate(() => {
+      if (typeof window.setStep2Focus === 'function') window.setStep2Focus(true);
+      if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: false });
+    });
+    await new Promise((r) => setTimeout(r, 300));
+    const focusInfo = await page.evaluate(() => {
+      const root = document.getElementById('persona-engine');
+      const copy = document.getElementById('btnCopyPackFullbodyPrimary');
+      const right = document.getElementById('personaRightPanel');
+      const pose = document.getElementById('btnSheetPose');
+      const poseWrap = pose?.closest('[data-step2-secondary]');
+      const banner = document.getElementById('personaStep2FocusBanner');
+      const r = copy?.getBoundingClientRect();
+      const isGone = (el) => !el
+        || getComputedStyle(el).display === 'none'
+        || el.offsetParent === null
+        || (el.getClientRects?.().length === 0);
+      return {
+        focus: root?.getAttribute('data-step2-focus'),
+        copyVisible: !!(copy && getComputedStyle(copy).display !== 'none' && copy.getClientRects().length),
+        copyAboveFold: !!(r && r.bottom > 0 && r.bottom <= window.innerHeight),
+        rightHidden: isGone(right),
+        poseHidden: isGone(poseWrap) || isGone(pose),
+        bannerVisible: !!(banner && !banner.hidden && getComputedStyle(banner).display !== 'none')
+      };
+    });
+    const focusPass = focusInfo.focus === '1'
+      && focusInfo.copyVisible
+      && focusInfo.copyAboveFold
+      && focusInfo.rightHidden
+      && focusInfo.poseHidden
+      && focusInfo.bannerVisible;
+    report.checks.push({ check: 'persona-step-2-primer-json', pass: focusPass, focusInfo });
+    if (!focusPass) report.ok = false;
+    await page.screenshot({ path: shot('02b-persona-step-2-focus.png'), fullPage: false });
+    report.shots.push(shot('02b-persona-step-2-focus.png'));
+    await page.evaluate(() => {
+      if (typeof window.clearStep2Focus === 'function') window.clearStep2Focus();
+    });
+    await new Promise((r) => setTimeout(r, 200));
 
     for (const step of [1, 2, 3]) {
       await page.evaluate((n) => {

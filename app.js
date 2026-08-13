@@ -6,6 +6,8 @@ let state = {
   selectedPersona: null,
   /** When true, save always creates a NEW persona (never renames/updates another by id or name). */
   isCreatingNewPersona: false,
+  /** Paso 2: tras crear, foco en Copiar JSON (oculta Biblia/pose/UGC secundarios). */
+  step2FocusMode: false,
   selectedProduct: null,
   selectedCampaign: null,
   scripts: [],
@@ -1693,9 +1695,30 @@ const PERSONA_STEP_HINTS = {
   3: 'Variantes, face pack, QA e historial — opcionales; no bloquean el free path.'
 };
 
+const PERSONA_STEP2_FOCUS_HINT =
+  'Primer JSON: copia el pack free. Biblia, poses y UGC están en «Ver herramientas completas».';
+
 function getPersonaStep() {
   const n = Number(document.getElementById('persona-engine')?.getAttribute('data-active-step') || 1);
   return [1, 2, 3].includes(n) ? n : 1;
+}
+
+function setStep2Focus(on, { updateHint = true } = {}) {
+  state.step2FocusMode = !!on;
+  const root = document.getElementById('persona-engine');
+  if (root) root.setAttribute('data-step2-focus', on ? '1' : '0');
+  const banner = document.getElementById('personaStep2FocusBanner');
+  if (banner) banner.hidden = !on;
+  if (updateHint && getPersonaStep() === 2) {
+    const hint = document.getElementById('personaStepHint');
+    if (hint) {
+      hint.textContent = on ? PERSONA_STEP2_FOCUS_HINT : (PERSONA_STEP_HINTS[2] || '');
+    }
+  }
+}
+
+function clearStep2Focus() {
+  setStep2Focus(false);
 }
 
 function setPersonaStep(step, { scroll = true } = {}) {
@@ -1705,13 +1728,21 @@ function setPersonaStep(step, { scroll = true } = {}) {
   if (!root) return;
   root.setAttribute('data-active-step', String(n));
   state.personaStep = n;
+  if (!root.hasAttribute('data-step2-focus')) {
+    root.setAttribute('data-step2-focus', state.step2FocusMode ? '1' : '0');
+  } else {
+    root.setAttribute('data-step2-focus', state.step2FocusMode ? '1' : '0');
+  }
 
   document.querySelectorAll('.persona-step-btn').forEach((btn) => {
     btn.classList.toggle('is-active', Number(btn.getAttribute('data-persona-goto')) === n);
   });
 
   const hint = document.getElementById('personaStepHint');
-  if (hint) hint.textContent = PERSONA_STEP_HINTS[n] || '';
+  if (hint) {
+    if (n === 2 && state.step2FocusMode) hint.textContent = PERSONA_STEP2_FOCUS_HINT;
+    else hint.textContent = PERSONA_STEP_HINTS[n] || '';
+  }
 
   const prev = document.getElementById('btnPersonaStepPrev');
   const next = document.getElementById('btnPersonaStepNext');
@@ -1735,6 +1766,8 @@ function setPersonaStep(step, { scroll = true } = {}) {
     if (form) form.style.display = 'none';
   }
   if (n === 3) {
+    // Al ir a Variaciones, salir del foco primer-JSON (herramientas completas)
+    if (state.step2FocusMode) setStep2Focus(false, { updateHint: false });
     const face = document.getElementById('facePackPanel');
     const qa = document.getElementById('qaMatrixPanel');
     if (face && state.selectedPersona) face.style.display = '';
@@ -1793,6 +1826,9 @@ function setupPersonaSteps() {
     if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: true });
     const copy = document.getElementById('btnCopyPackFullbodyPrimary') || document.getElementById('btnContextCopyJson');
     copy?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  document.getElementById('btnStep2FocusExit')?.addEventListener('click', () => {
+    clearStep2Focus();
   });
   setPersonaStep(state.personaStep || 1, { scroll: false });
 }
@@ -3079,6 +3115,7 @@ function resetPersonaFormForNew() {
   state.selectedPersona = null;
   state.scratchExtendedTraits = null;
   state.activeNicheId = null;
+  if (typeof setStep2Focus === 'function') setStep2Focus(false, { updateHint: false });
   setUploadedImagePath(null);
 
   // Clear selection highlight on portfolio / select grids
@@ -3217,9 +3254,14 @@ function resetPersonaFormForNew() {
 // Select Persona
 function selectPersona(persona) {
   if (!persona) return;
+  const prevId = state.selectedPersona?.id;
   // Selecting an existing persona always exits pure "create new" mode
   state.isCreatingNewPersona = false;
   state.selectedPersona = persona;
+  // Cambiar de influencer sale del modo «primer JSON»
+  if (state.step2FocusMode && prevId && persona.id && String(prevId) !== String(persona.id)) {
+    setStep2Focus(false, { updateHint: false });
+  }
   setUploadedImagePath(null); // Clear upload session when selecting another persona
   state.activeNicheId = null;
   try {
@@ -5446,6 +5488,7 @@ async function savePersona(opts = {}) {
       
       // W14 — tras primer save: CTA único = copiar pack (no generar imagen)
       if (creatingNew) {
+        if (typeof setStep2Focus === 'function') setStep2Focus(true, { updateHint: false });
         if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: false });
         toastSuccess(`«${name}» guardado. Siguiente: Copiar JSON — pack fullbody, sin gen.`, {
           actionLabel: 'Copiar JSON',
@@ -7478,6 +7521,8 @@ window.initImportModal = initImportModal;
 window.state = state;
 window.selectPersona = selectPersona;
 window.setPersonaStep = setPersonaStep;
+window.setStep2Focus = setStep2Focus;
+window.clearStep2Focus = clearStep2Focus;
 window.navigateToTab = navigateToTab;
 window.populateActiveUgcData = populateActiveUgcData;
 window.updateActivePersonaChip = updateActivePersonaChip;

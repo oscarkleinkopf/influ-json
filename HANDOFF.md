@@ -25,24 +25,25 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` (limpio tras #104) |
-| **Commit base** | `main` @ #104 merged |
-| **PR actual** | — |
-| **`main` remoto** | + #103 (UX-2) + #104 (walkthrough UI P0) |
-| **Prioridad inmediata** | Elegir siguiente corte (ver abajo) |
+| **Rama de trabajo** | `cursor/paso2-primer-json-9b67` |
+| **Commit base** | `main` @ #105 |
+| **PR actual** | (este) — paso 2 modo primer JSON |
+| **`main` remoto** | + #103–#105 |
+| **Prioridad inmediata** | Merge primer JSON → idea #2 lock Identidad |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Cómo seguir (propuesta)
+### Sesión reciente (Cursor, 2026-08-13) — Paso 2 · primer JSON
 
-PLAN-UX esencial cerrado (0–5 + free path walkthrough UI). Candidatos ordenados por valor/riesgo:
+**Pedido:** Actualizar doc con ideas e implementar empezando por #1.
 
-1. **Pulido free path fino** — paso 2 sigue ruidoso (Biblia / Nueva Pose / Crear UGC compiten con Copiar JSON); recortar o plegar lo que no es pack.
-2. **UX-1c estricto** — inventariar botones «Copiar JSON» y dejar ≤3 destinos canónicos (header + pack primary + empty CTAs).
-3. **Seguridad mínima residual** — solo si entra segundo usuario / bind público; el stack Sec #1–#5 ya está en `main`.
-4. **Uso real** — crear un influencer a mano, pegar en chatbot free, anotar fricción (sin código hasta que duela).
-5. **No ahora:** #99 Google/SaaS, Replicate, video, Windows.
+**Hecho:**
+- [PLAN-UX.md §12](./PLAN-UX.md) backlog post-UX (6 ideas)
+- Tras **Crear influencer**: `data-step2-focus=1` — oculta Biblia, pose/UGC, chips cámara, identidad detalle, panel derecho
+- Banner «Primer JSON» + «Ver herramientas completas»
+- Walkthrough + layout-smoke comprueban foco
+- Siguiente: idea #2 lock honesto en Identidad
 
-### Sesión reciente (Cursor, 2026-08-13) — Merge #104
+### Sesión previa (Cursor, 2026-08-13) — Merge #104
 
 **Pedido:** Marca listo, mergea y veamos cómo seguimos.
 

@@ -521,6 +521,43 @@ body {
   display: none !important;
 }
 
+/* Paso 2 · modo «primer JSON»: solo ficha mínima + Copiar JSON */
+.persona-step2-focus-banner {
+  display: none;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.1);
+}
+.persona-step2-focus-lead {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.persona-step2-focus-lead strong {
+  color: #6ee7b7;
+}
+#persona-engine[data-step2-focus="1"][data-active-step="2"] .persona-step2-focus-banner {
+  display: block;
+}
+#persona-engine[data-step2-focus="1"][data-active-step="2"] #personaStep2FocusBanner {
+  display: block;
+}
+#persona-engine[data-step2-focus="1"][data-active-step="2"] [data-step2-secondary] {
+  display: none !important;
+}
+#persona-engine[data-step2-focus="1"][data-active-step="2"] #btnOpenImportModal {
+  display: none !important;
+}
+#persona-engine[data-step2-focus="1"][data-active-step="2"] .editor-layout {
+  grid-template-columns: 1fr;
+}
+#persona-engine[data-step2-focus="1"][data-active-step="2"] .persona-step-hint {
+  color: #6ee7b7;
+}
+
 /* Paso 1 con formulario abierto: foco en Identidad (sin muro Crear + Biblia) */
 #persona-engine[data-active-step="1"][data-form-open="1"] #personaCreateOptionsCard,
 #persona-engine[data-active-step="1"][data-form-open="1"] #nichePresetsBar {

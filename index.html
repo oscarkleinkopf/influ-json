@@ -544,8 +544,8 @@
                     <span id="sheetEthnicityBadge" class="badge u-bg-soft" >Latina</span>
                   </div>
 
-                  <!-- Quick Action Buttons -->
-                  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <!-- Quick Action Buttons (ocultos en modo primer JSON) -->
+                  <div data-step2-secondary style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button type="button" class="btn btn-sm" id="btnSheetPose" style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 11px;">📸 Nueva Pose</button>
                     <button type="button" class="btn btn-sm btn-secondary" id="btnSheetUgc" style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3);">🎬 Crear UGC</button>
                     <button type="button" class="btn btn-sm btn-secondary" id="btnSheetArchive" style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 11px; color: #ffc107; background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.2);">📦 Archivar</button>
@@ -556,11 +556,17 @@
 
               <!-- F5/W13/W15: Free chatbot packs (zero cost) — UX-1c: un canónico + Packs ▾ -->
               <div class="glass-card pack-library-card" data-persona-step="2" style="margin-top: 16px; padding: 14px; background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.2);">
+                <div id="personaStep2FocusBanner" class="persona-step2-focus-banner" hidden>
+                  <p class="persona-step2-focus-lead">
+                    <strong>Primer JSON.</strong> Copia el pack y pégalo en ChatGPT / Gemini / Claude free. El resto (Biblia, poses, UGC) puede esperar.
+                  </p>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnStep2FocusExit">Ver herramientas completas</button>
+                </div>
                 <h4 style="font-size: 11px; text-transform: uppercase; color: #34d399; margin: 0 0 6px; letter-spacing: 0.4px;">Pack free para chatbot</h4>
                 <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.45;">
                   Pégalo en ChatGPT, Gemini, Claude o Meta (gratis). Pollinations es solo un boceto opt-in.
                 </p>
-                <div id="ugcCameraChips" style="margin-bottom: 10px;">
+                <div id="ugcCameraChips" data-step2-secondary style="margin-bottom: 10px;">
                   <p style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 6px; font-weight: 700; letter-spacing: 0.4px;">Cámara UGC (Layer 4)</p>
                   <div style="display: flex; flex-wrap: wrap; gap: 6px;" data-ugc-camera-chips>
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-camera="selfie">Selfie front</button>
@@ -569,7 +575,7 @@
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-camera="overhead">Overhead</button>
                   </div>
                 </div>
-                <div id="ugcShotTypeChips" class="u-mb-12">
+                <div id="ugcShotTypeChips" data-step2-secondary class="u-mb-12">
                   <p style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 6px; font-weight: 700; letter-spacing: 0.4px;">Formato UGC</p>
                   <div style="display: flex; flex-wrap: wrap; gap: 6px;" data-ugc-shot-chips>
                     <button type="button" class="btn btn-secondary btn-sm ugc-chip u-btn-xs" data-ugc-shot="testimonial">Testimonial</button>
@@ -596,20 +602,20 @@
                   </div>
                 </details>
                 <p class="pack-last-status" data-last-pack-status style="font-size: 10px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.4;"></p>
-                <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnRecopyLastPack" data-offline-highlight="pack"  disabled>
+                <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnRecopyLastPack" data-offline-highlight="pack" data-step2-secondary disabled>
                   Volver a copiar último pack
                 </button>
                 <button type="button" class="btn btn-sm" id="btnChatbotSessionCheck" data-offline-highlight="pack" style="width: 100%; margin-top: 10px; font-size: 11px; padding: 10px 12px; background: rgba(52, 211, 153, 0.2); border: 1px solid rgba(52, 211, 153, 0.45); color: #fff;">
                   Probar en chatbot (3 prompts)
                 </button>
-                <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnOpenChatbotChecklist" >
+                <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnOpenChatbotChecklist" data-step2-secondary>
                   Abrir checklist de sesión
                 </button>
-                <p id="chatbotSessionSheetStatus" class="u-hint-muted-block"></p>
+                <p id="chatbotSessionSheetStatus" class="u-hint-muted-block" data-step2-secondary></p>
                 <p class="u-hint-10">
                   Copia un bloque con lock + retrato + cuerpo + producto. Valida identidad en ChatGPT free sin pagar face-lock.
                 </p>
-                <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                <div data-step2-secondary style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
                   <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px;">Descargas (opcional, no sustituyen el pack free)</p>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
                   <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnExportBrandKitSheet" >🎁 Descargar kit marca (packs + guión)</button>
@@ -618,7 +624,7 @@
 
 
               <!-- Identity Details (Ficha Editorial) -->
-              <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: var(--border-radius-md); padding: 16px; margin-bottom: 20px;">
+              <div data-step2-secondary style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: var(--border-radius-md); padding: 16px; margin-bottom: 20px;">
                 <h3 style="font-family: var(--font-display); font-size: 12px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 12px; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">✨ Identidad Visual & Look</h3>
                 
                 <div style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">Rostro & estilo</div>
@@ -1075,7 +1081,7 @@
               </datalist>
             </form>
             
-            <div class="prompt-console" data-persona-step="2" id="personaCompiledPromptConsole">
+            <div class="prompt-console" data-persona-step="2" data-step2-secondary id="personaCompiledPromptConsole">
               <div class="u-flex-between-mb8">
                 <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin: 0;">Prompt de Generación Compilado</h4>
                 <div class="u-flex-gap-8">
@@ -1096,7 +1102,7 @@
             </div>
           </div>
           
-          <div class="right-panel-tabbed-container" data-persona-step="2" id="personaRightPanel">
+          <div class="right-panel-tabbed-container" data-persona-step="2" data-step2-secondary id="personaRightPanel">
             <!-- Tabs Switcher Header -->
             <div class="right-panel-tabs">
               <button type="button" class="panel-tab-btn active" id="btnTabBible">📋 Biblia de Personaje</button>
