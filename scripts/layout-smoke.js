@@ -448,6 +448,59 @@ async function main() {
     await page.screenshot({ path: shot('07-campaigns-precheck.png'), fullPage: false });
     report.shots.push(shot('07-campaigns-precheck.png'));
 
+    // Corte E — smoke móvil 414×896 (borde derecho + overflow + logo)
+    await page.setViewport({ width: 414, height: 896 });
+    await page.evaluate(() => {
+      // Cerrar modal de campaña si quedó abierto
+      const campModal = document.getElementById('campaignModal')
+        || document.querySelector('.campaign-modal, [id*="Campaign"][class*="modal"]');
+      if (campModal) {
+        campModal.style.display = 'none';
+        campModal.classList.add('u-hidden');
+      }
+      document.querySelectorAll('.login-modal-overlay').forEach((el) => {
+        if (el.id === 'loginModal') return;
+        if (getComputedStyle(el).display !== 'none') {
+          el.style.display = 'none';
+          el.classList.add('u-hidden');
+        }
+      });
+      if (typeof navigateToTab === 'function') navigateToTab('dashboard');
+    });
+    await dismissOverlays(page);
+    await new Promise((r) => setTimeout(r, 450));
+    const mobileMetrics = await page.evaluate(() => {
+      const main = document.querySelector('.main-content');
+      const r = main ? main.getBoundingClientRect() : null;
+      const mobileLogo = document.querySelector('.mobile-logo .logo-text, .mobile-logo');
+      const deskLogo = document.querySelector('.logo-container .logo-text, .logo-container');
+      const logo = (mobileLogo && getComputedStyle(mobileLogo).display !== 'none')
+        ? mobileLogo
+        : deskLogo;
+      const logoR = logo ? logo.getBoundingClientRect() : null;
+      const overflowX = Math.max(
+        document.documentElement.scrollWidth,
+        document.body.scrollWidth
+      ) > window.innerWidth + 2;
+      return {
+        viewport: window.innerWidth,
+        mainRight: r ? r.right : null,
+        mainWidth: r ? r.width : 0,
+        overflowX,
+        logoRight: logoR ? logoR.right : null,
+        logoCut: !!(logoR && logoR.right > window.innerWidth + 2)
+      };
+    });
+    const mobilePass = mobileMetrics.mainRight != null
+      && mobileMetrics.mainRight <= mobileMetrics.viewport + 1
+      && mobileMetrics.mainWidth > 200
+      && !mobileMetrics.overflowX
+      && !mobileMetrics.logoCut;
+    report.checks.push({ check: 'mobile-414', pass: mobilePass, mobileMetrics });
+    if (!mobilePass) report.ok = false;
+    await page.screenshot({ path: shot('08-mobile-414-dashboard.png'), fullPage: false });
+    report.shots.push(shot('08-mobile-414-dashboard.png'));
+
     const reportPath = path.join(shotDir, 'layout-smoke-report.json');
     fs.writeFileSync(reportPath, JSON.stringify({ ...report, metrics }, null, 2));
     console.log('[layout-smoke] report →', reportPath);

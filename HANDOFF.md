@@ -25,21 +25,33 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/corte-d-persona-schema-9b67` |
-| **Commit base** | `main` @ #120 merged |
-| **PR actual** | [#121](https://github.com/oscarkleinkopf/influ-json/pull/121) — Corte D influ-persona/v1 |
-| **`main` remoto** | + #120 (Corte C ops) |
-| **Prioridad inmediata** | Terminar Corte D; luego Corte E (UX resistente) o F si LAN |
+| **Rama de trabajo** | `cursor/corte-e-ux-resistente-9b67` |
+| **Commit base** | `main` @ #121 merged |
+| **PR actual** | Corte E UX resistente (este branch) |
+| **`main` remoto** | + #121 (Corte D persona schema) |
+| **Prioridad inmediata** | Terminar Corte E → CI verde → merge; luego F solo si LAN/VPS, si no G |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — CI autónomo + Corte D
+### Sesión reciente (Cursor, 2026-08-13) — Corte E UX resistente
+
+**Pedido:** Continuemos con corte E.
+
+**Hecho:**
+- `persona-draft.js` — autosave localStorage + banner Continuar/Descartar
+- `studio-dialogs.js` — Escape / foco / `role=dialog` + `diffMustMatch`
+- `authFetch` — un retry CSRF vía `/api/auth/me` o `/api/status` + `notifyApiError` con CTA
+- `savePersona` — confirm si cambia `must_match`
+- `layout-smoke` — pass `mobile-414` (414×896)
+- Scripts en `views/_foot.html` (+ `build:index`)
+
+### Sesión previa (Cursor, 2026-08-13) — CI autónomo + Corte D
 
 **Pedido:** ¿Puedo revisar los tests en GitHub yo mismo?
 
 **Hecho:**
 - Sí — `gh pr checks` / `gh pr view` (sin esperar aviso manual)
 - [#120](https://github.com/oscarkleinkopf/influ-json/pull/120) CI verde → mergeado a `main`
-- Arranque **Corte D**: `schemas/influ-persona-v1.schema.json` + `influ-persona.js` (normalize/migrate/validate/canonicalize)
+- [#121](https://github.com/oscarkleinkopf/influ-json/pull/121) Corte D → `main`
 
 ### Sesión previa (Cursor, 2026-08-13) — Merge #119 + Corte C
 

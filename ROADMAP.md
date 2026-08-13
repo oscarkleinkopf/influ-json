@@ -151,6 +151,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-13 | **Corte E (en curso)** | borradores localStorage; CSRF recovery; must_match diff; dialogs a11y; mobile-414 smoke |
+| 2026-08-13 | **Corte D → main (#121)** | schema `influ-persona/v1` + migrate/validate/canonicalize + packs |
 | 2026-08-13 | **Corte D (en curso)** | schema `influ-persona/v1` + migrate/validate/canonicalize + round-trip |
 | 2026-08-13 | **Corte C → main (#120)** | doctor + support-bundle + restore 2 fases + start-studio |
 | 2026-08-13 | **Corte C (en curso)** | doctor + support-bundle + restore 2 fases + start-studio launchers |
