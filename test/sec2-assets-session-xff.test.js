@@ -157,7 +157,9 @@ test('app.js cookie-first: no sessionStorage studioPin; authFetch omits Bearer; 
   assert.doesNotMatch(src, /sessionStorage\.setItem\(\s*['"]studioPin['"]/);
   assert.doesNotMatch(src, /Authorization['"]\s*\]\s*=\s*`Bearer/);
   assert.doesNotMatch(src, /Authorization['"]\s*\]\s*=\s*['"]Bearer/);
-  assert.match(src, /options\.credentials\s*=\s*options\.credentials\s*\|\|\s*['"]same-origin['"]/);
+  // authFetch copia options → opts y fuerza same-origin (Corte E / CSRF retry)
+  assert.match(src, /opts\.credentials\s*=\s*opts\.credentials\s*\|\|\s*['"]same-origin['"]/);
   assert.match(src, /X-CSRF-Token/);
   assert.match(src, /rememberCsrfToken/);
+  assert.match(src, /_csrfRetried/);
 });
