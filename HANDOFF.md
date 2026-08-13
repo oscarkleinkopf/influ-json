@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/corte-d-persona-schema-9b67` |
 | **Commit base** | `main` @ #120 merged |
-| **PR actual** | Corte D — schema influ-persona/v1 |
+| **PR actual** | [#121](https://github.com/oscarkleinkopf/influ-json/pull/121) — Corte D influ-persona/v1 |
 | **`main` remoto** | + #120 (Corte C ops) |
 | **Prioridad inmediata** | Terminar Corte D; luego Corte E (UX resistente) o F si LAN |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
