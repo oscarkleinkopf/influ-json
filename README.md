@@ -122,5 +122,6 @@ Consistencia más fuerte que el prompt solo — **sin romper el free path**:
 - [PLAN-UX.md](./PLAN-UX.md) — plan de usabilidad
 - [AGENTS.md](./AGENTS.md) — reglas para agentes
 - [docs/SECURITY_MARKET.md](./docs/SECURITY_MARKET.md) — checklist seguridad antes de LAN / VPS
+- [docs/ANALISIS_PROYECTO_2026-08.md](./docs/ANALISIS_PROYECTO_2026-08.md) — auditoría actual + mejoras priorizadas
 - [SKILLS_MANUAL.md](./SKILLS_MANUAL.md) — skills de agentes
 
