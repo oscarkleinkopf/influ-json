@@ -138,6 +138,41 @@ test('UX-1c: vocab unificado — sin «Copiar JSON (recomendado)» en botones', 
   assert.doesNotMatch(html, /id="btnCopyImportJSON"[^>]*>\s*Copiar JSON\s*</);
 });
 
+test('UX-1c estricto: ≤3 botones exactos «Copiar JSON» (header + primary + happy-path)', () => {
+  const buttonRe = /<button\b([^>]*)>([\s\S]*?)<\/button>/gi;
+  const hits = [];
+  let m;
+  while ((m = buttonRe.exec(html))) {
+    const attrs = m[1] || '';
+    const text = m[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (text !== 'Copiar JSON') continue;
+    const idMatch = attrs.match(/\bid="([^"]+)"/);
+    const dataAction = attrs.match(/\bdata-happy-action="([^"]+)"/);
+    hits.push({
+      id: idMatch ? idMatch[1] : null,
+      happyAction: dataAction ? dataAction[1] : null,
+      attrs: attrs.slice(0, 120)
+    });
+  }
+  assert.ok(
+    hits.length <= 3,
+    `esperado ≤3 botones «Copiar JSON», hay ${hits.length}: ${JSON.stringify(hits)}`
+  );
+  const ids = hits.map((h) => h.id).filter(Boolean);
+  assert.ok(ids.includes('btnContextCopyJson'), 'header chip');
+  assert.ok(ids.includes('btnCopyPackFullbodyPrimary'), 'pack primary ficha');
+  assert.ok(
+    hits.some((h) => h.happyAction === 'copy-pack'),
+    'happy-path dashboard copy-pack'
+  );
+  // UGC / pollen / guía no deben ser «Copiar JSON»
+  assert.match(html, /id="btnExportUgcChatbot"[^>]*>\s*Copiar pack producto\s*</);
+  assert.match(html, /id="btnPollenCopyJson"[^>]*>\s*Usar path free\s*</);
+  assert.match(html, /data-guide-action="packs"[^>]*>\s*Ir a Lock &amp; Packs\s*</);
+  assert.doesNotMatch(appJs, /data-happy-next="copy-pack"[^>]*>\s*Copiar JSON\s*</);
+  assert.doesNotMatch(appJs, /data-qa-pack="[^"]*"[^>]*>\s*Copiar JSON\s*</);
+});
+
 test('UX-1c: Persona Engine sin Sofia de placeholder', () => {
   assert.doesNotMatch(html, /id="sheetName"[^>]*>\s*Sofia\s*</);
   assert.doesNotMatch(html, /id="pName"[^>]*value="Sofia"/);

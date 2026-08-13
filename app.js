@@ -2359,7 +2359,7 @@ function renderHappyPathNextCta() {
       <p class="happy-path-next-title">Copia el JSON fullbody de «${String(name).replace(/[<>&"]/g, '')}»</p>
       <p class="happy-path-next-hint">Pégalo en ChatGPT / Gemini / Claude free. Gen local no hace falta.</p>
       <div class="empty-roster-actions">
-        <button type="button" class="btn btn-sm" data-happy-next="copy-pack" data-offline-highlight="pack">Copiar JSON</button>
+        <button type="button" class="btn btn-sm" data-happy-next="copy-pack" data-offline-highlight="pack">Copiar pack fullbody</button>
       </div>
     `;
   } else {
@@ -2576,7 +2576,7 @@ async function renderQaMatrix() {
         </div>`;
     }
     const packBtn = def.pack
-      ? `<button type="button" class="btn btn-secondary btn-sm" data-qa-pack="${def.pack}" style="font-size:10px;padding:6px 8px;">Copiar JSON</button>`
+      ? `<button type="button" class="btn btn-secondary btn-sm" data-qa-pack="${def.pack}" style="font-size:10px;padding:6px 8px;">Copiar pack</button>`
       : `<button type="button" class="btn btn-secondary btn-sm" data-qa-goto-gen style="font-size:10px;padding:6px 8px;">Generar variante</button>`;
     return `
       <div class="qa-slot">
