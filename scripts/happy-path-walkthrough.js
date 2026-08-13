@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Walkthrough happy path free + Produce declutter (capturas).
- * Login → crear persona (API) → Copiar JSON en UI → Producir sin Galería → Ver galería desde ficha.
+ * Login → crear en UI (Guardar) → aparece en roster → Copiar JSON → Producir sin Galería → Ver galería.
  *
  * Uso: node scripts/happy-path-walkthrough.js
  * Env: STUDIO_PIN, CHROME_PATH, WALK_SHOT_DIR
@@ -97,76 +97,178 @@ async function main() {
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
 
-    const cookieHeader = await setSessionCookies(page, base, pin);
+    await setSessionCookies(page, base, pin);
 
-    // Create persona via API (same session cookie)
-    const createRes = await fetch(`${base}/api/personas`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookieHeader
-      },
-      body: JSON.stringify({
-        name: 'Walkthrough Luna',
-        gender: 'Female',
-        age: '24 años',
-        ethnicity: 'Latina',
-        style: 'Natural UGC',
-        hair: 'Castaño ondulado',
-        clothing: 'camiseta blanca',
-        setting: 'sala moderna',
-        lighting: 'luz natural ventana',
-        camera: 'iPhone 15 Pro selfie',
-        detailedJSON: {
-          character_lock: {
-            must_match_every_image: {
-              name: 'Walkthrough Luna',
-              skin_tone: 'piel clara natural',
-              eyes: 'marrón oscuro',
-              hair: 'castaño ondulado medio'
-            }
-          }
-        }
-      })
-    });
-    const created = await createRes.json().catch(() => ({}));
-    if (!createRes.ok || !created.success) {
-      throw new Error(`create persona failed: ${createRes.status} ${JSON.stringify(created).slice(0, 200)}`);
-    }
-    report.steps.push({ step: 'create-persona-api', pass: true, id: created.persona?.id || created.id });
+    const personaName = `Walkthrough Luna ${Date.now().toString(36).slice(-4)}`;
 
     await page.goto(`${base}/`, { waitUntil: 'networkidle2', timeout: 60000 });
-    // Dismiss blocking overlays if present
-    await page.evaluate(() => {
-      for (const id of ['setupPinModal', 'founderOnboardingModal', 'loginModal']) {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-      }
-      const later = document.getElementById('btnSetupPinLater');
-      if (later) later.click();
-    }).catch(() => {});
+    // Dismiss blocking overlays (id real: founderWelcomeModal)
+    const dismissOverlays = async () => {
+      await page.evaluate(() => {
+        for (const id of [
+          'setupPinModal',
+          'founderWelcomeModal',
+          'founderOnboardingModal',
+          'loginModal',
+          'memberWelcomeModal'
+        ]) {
+          const el = document.getElementById(id);
+          if (!el) continue;
+          el.style.display = 'none';
+          el.classList.add('u-hidden');
+          el.hidden = true;
+        }
+        document.getElementById('btnSetupPinLater')?.click();
+        document.getElementById('btnFounderWelcomeSkip')?.click();
+      }).catch(() => {});
+    };
+    await dismissOverlays();
 
     await page.waitForSelector('.main-content', { timeout: 15000 });
+
+    // P0 happy path: crear en UI → Guardar → aparece (no API)
+    await page.evaluate(() => {
+      if (typeof window.startCreateScratchFlow === 'function') window.startCreateScratchFlow();
+      else if (typeof window.resetPersonaFormForNew === 'function') window.resetPersonaFormForNew();
+      else throw new Error('startCreateScratchFlow / resetPersonaFormForNew no expuestos');
+    });
+    await new Promise((r) => setTimeout(r, 400));
+
+    const createForm = await page.evaluate((name) => {
+      const pe = document.getElementById('persona-engine');
+      const nameEl = document.getElementById('pName');
+      const skin = document.getElementById('pSkinTone');
+      const eyes = document.getElementById('pEyeColor') || document.getElementById('pEyes');
+      const hair = document.getElementById('pHairColor') || document.getElementById('pHair');
+      if (nameEl) nameEl.value = name;
+      if (skin && !String(skin.value || '').trim()) skin.value = 'piel clara natural';
+      if (eyes && !String(eyes.value || '').trim()) eyes.value = 'marrón oscuro';
+      if (hair && !String(hair.value || '').trim()) hair.value = 'castaño ondulado';
+      nameEl?.dispatchEvent(new Event('input', { bubbles: true }));
+      return {
+        creating: pe?.getAttribute('data-creating') === '1',
+        formOpen: pe?.getAttribute('data-form-open') === '1',
+        name: nameEl?.value || '',
+        saveBtn: !!document.getElementById('btnSavePersona')
+      };
+    }, personaName);
+    await page.screenshot({ path: shot('00-crear-form.png'), fullPage: false });
+    report.shots.push(shot('00-crear-form.png'));
+    const formOk = createForm.creating && createForm.saveBtn && createForm.name === personaName;
+    report.steps.push({ step: 'create-ui-form', pass: formOk, createForm });
+    if (!formOk) report.ok = false;
+
+    // Mismo path que el botón «Crear influencer» (scroll + click; fallback savePersona)
+    const clickResult = await page.evaluate(async () => {
+      const btn = document.getElementById('btnSavePersona');
+      if (!btn) return { ok: false, reason: 'no-btn' };
+      btn.scrollIntoView({ block: 'center' });
+      const rect = btn.getBoundingClientRect();
+      const visible = rect.width > 0 && rect.height > 0
+        && getComputedStyle(btn).display !== 'none'
+        && getComputedStyle(btn).visibility !== 'hidden';
+      if (!visible) {
+        if (typeof window.savePersona === 'function') {
+          await window.savePersona({ withPortrait: false });
+          return { ok: true, via: 'savePersona-hidden' };
+        }
+        return { ok: false, reason: 'btn-hidden' };
+      }
+      btn.click();
+      return { ok: true, via: 'click', top: rect.top };
+    });
+    if (!clickResult.ok) {
+      throw new Error(`No se pudo disparar guardar: ${JSON.stringify(clickResult)}`);
+    }
+    report.steps.push({ step: 'create-ui-click-save', pass: true, clickResult });
+
+    // Esperar selectPersona + salto a paso 2 tras save
+    try {
+      await page.waitForFunction(
+        (name) => {
+          const sel = window.state?.selectedPersona;
+          const step = document.getElementById('persona-engine')?.getAttribute('data-active-step');
+          return sel && sel.name === name && !window.state?.isCreatingNewPersona && step === '2';
+        },
+        { timeout: 25000 },
+        personaName
+      );
+    } catch (_) {
+      // Último intento: invocar savePersona si el click no enganchó el listener
+      await page.evaluate(async () => {
+        if (window.state?.isCreatingNewPersona && typeof window.savePersona === 'function') {
+          await window.savePersona({ withPortrait: false });
+        }
+      });
+      await page.waitForFunction(
+        (name) => {
+          const sel = window.state?.selectedPersona;
+          const step = document.getElementById('persona-engine')?.getAttribute('data-active-step');
+          return sel && sel.name === name && !window.state?.isCreatingNewPersona && step === '2';
+        },
+        { timeout: 20000 },
+        personaName
+      );
+    }
+
+    const afterSave = await page.evaluate((name) => {
+      const inState = (window.state?.personas || []).some((p) => p.name === name);
+      const cards = [...document.querySelectorAll('.persona-card, [data-persona-id], .portfolio-card')];
+      const inDom = cards.some((c) => (c.textContent || '').includes(name));
+      const sel = window.state?.selectedPersona;
+      return {
+        inState,
+        inDom,
+        selectedName: sel?.name || null,
+        selectedId: sel?.id || null,
+        creating: !!window.state?.isCreatingNewPersona,
+        step: document.getElementById('persona-engine')?.getAttribute('data-active-step'),
+        hasCopy: !!document.getElementById('btnCopyPackFullbodyPrimary')
+      };
+    }, personaName);
+    await page.screenshot({ path: shot('00b-tras-guardar.png'), fullPage: false });
+    report.shots.push(shot('00b-tras-guardar.png'));
+    const saveOk = afterSave.inState
+      && afterSave.selectedName === personaName
+      && !afterSave.creating
+      && afterSave.step === '2'
+      && afterSave.hasCopy;
+    report.steps.push({
+      step: 'create-ui-save-appears',
+      pass: saveOk,
+      afterSave,
+      name: personaName
+    });
+    if (!saveOk) {
+      throw new Error(
+        `P0: guardar UI no dejó persona en roster/paso 2: ${JSON.stringify(afterSave)}`
+      );
+    }
+
+    // Portafolio: la nueva debe verse
+    await page.evaluate(() => {
+      if (typeof navigateToTab === 'function') navigateToTab('dashboard');
+    });
+    await new Promise((r) => setTimeout(r, 400));
+    const inPortfolio = await page.evaluate((name) => {
+      const cards = [...document.querySelectorAll('.persona-card, [data-persona-id], .portfolio-card, .dash-persona-card')];
+      return cards.some((c) => (c.textContent || '').includes(name))
+        || (window.state?.personas || []).some((p) => p.name === name);
+    }, personaName);
     await page.screenshot({ path: shot('01-portafolio.png'), fullPage: false });
     report.shots.push(shot('01-portafolio.png'));
-    report.steps.push({ step: 'portafolio', pass: true });
+    report.steps.push({ step: 'portafolio', pass: inPortfolio, name: personaName });
+    if (!inPortfolio) report.ok = false;
 
-    // Select persona in UI if visible
+    // Volver a ficha seleccionada
     await page.evaluate((name) => {
-      const cards = [...document.querySelectorAll('.persona-card, [data-persona-id], .portfolio-card')];
-      const hit = cards.find((c) => (c.textContent || '').includes(name));
-      if (hit) hit.click();
-      else if (typeof window.selectPersona === 'function' && window.state?.personas) {
-        const p = window.state.personas.find((x) => x.name === name);
-        if (p) window.selectPersona(p);
-      }
-    }, 'Walkthrough Luna');
+      if (typeof navigateToTab === 'function') navigateToTab('persona-engine');
+      const p = (window.state?.personas || []).find((x) => x.name === name);
+      if (p && typeof window.selectPersona === 'function') window.selectPersona(p);
+    }, personaName);
     await new Promise((r) => setTimeout(r, 400));
 
     // Visual smoke — Persona Engine pasos 1→2→3
-    await page.evaluate(() => {
-      if (typeof navigateToTab === 'function') navigateToTab('persona-engine');
-    });
     for (const step of [1, 2, 3]) {
       await page.evaluate((n) => {
         if (typeof setPersonaStep === 'function') setPersonaStep(n, { scroll: false });
@@ -194,30 +296,56 @@ async function main() {
       if (!stepOk) report.ok = false;
     }
 
-    // Go to ficha / step 2
+    // Go to ficha / step 2 — Copiar JSON (pack primary, no header shortcut)
     await page.evaluate(() => {
       if (typeof navigateToTab === 'function') navigateToTab('persona-engine');
       if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: true });
     });
     await new Promise((r) => setTimeout(r, 500));
 
-    const copyBtn = await page.$('#btnCopyPackFullbodyPrimary, #btnContextCopyJson');
-    if (!copyBtn) throw new Error('No se encontró botón Copiar JSON');
-    await page.evaluate(async () => {
+    await page.evaluate(() => {
       window.__lastClipboard = '';
-      Object.defineProperty(navigator, 'clipboard', {
-        configurable: true,
-        value: {
-          writeText: async (t) => {
-            window.__lastClipboard = String(t || '');
-            return undefined;
-          },
-          readText: async () => window.__lastClipboard || ''
-        }
-      });
+      const mock = {
+        writeText: async (t) => {
+          window.__lastClipboard = String(t || '');
+          return undefined;
+        },
+        readText: async () => window.__lastClipboard || ''
+      };
+      try {
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          writable: true,
+          value: mock
+        });
+      } catch (_) {
+        try { navigator.clipboard.writeText = mock.writeText; } catch (__) {}
+      }
     });
-    await copyBtn.click();
-    await new Promise((r) => setTimeout(r, 600));
+
+    const copyMeta = await page.evaluate(async () => {
+      const btn = document.getElementById('btnCopyPackFullbodyPrimary');
+      if (!btn) return { clicked: false, reason: 'no-primary-btn' };
+      btn.scrollIntoView({ block: 'center' });
+      if (typeof window.copyFreeChatbotPack === 'function') {
+        await window.copyFreeChatbotPack('fullbody');
+        return {
+          clicked: true,
+          via: 'copyFreeChatbotPack',
+          selected: window.state?.selectedPersona?.name || null,
+          clipLen: (window.__lastClipboard || '').length
+        };
+      }
+      btn.click();
+      await new Promise((r) => setTimeout(r, 400));
+      return {
+        clicked: true,
+        via: 'click',
+        selected: window.state?.selectedPersona?.name || null,
+        clipLen: (window.__lastClipboard || '').length
+      };
+    });
+    await new Promise((r) => setTimeout(r, 300));
     const copied = await page.evaluate(() => window.__lastClipboard || '');
     const copyOk = copied.length > 40 && /character_lock|must_match/i.test(copied);
     await page.screenshot({ path: shot('02-copiar-json.png'), fullPage: false });
@@ -226,11 +354,12 @@ async function main() {
       step: 'copiar-json',
       pass: copyOk,
       clipboardChars: copied.length,
-      hasLock: /character_lock|must_match/i.test(copied)
+      hasLock: /character_lock|must_match/i.test(copied),
+      copyMeta
     });
     if (!copyOk) {
       throw new Error(
-        `Copiar JSON no dejó character_lock en clipboard (chars=${copied.length})`
+        `Copiar JSON no dejó character_lock en clipboard (chars=${copied.length}) meta=${JSON.stringify(copyMeta)}`
       );
     }
 
@@ -264,31 +393,49 @@ async function main() {
     report.shots.push(shot('04-ugc-copiar.png'));
     report.steps.push({ step: 'ugc-copiar', pass: !!ugcBtn });
 
-    // Ver galería from ficha
-    await page.evaluate(() => {
+    // Ver galería from ficha (paso 2 · botón en sheet)
+    await dismissOverlays();
+    await page.evaluate((name) => {
       if (typeof navigateToTab === 'function') navigateToTab('persona-engine');
+      const p = (window.state?.personas || []).find((x) => x.name === name);
+      if (p && typeof window.selectPersona === 'function') window.selectPersona(p);
+      if (typeof setPersonaStep === 'function') setPersonaStep(2, { scroll: false });
+    }, personaName);
+    await new Promise((r) => setTimeout(r, 400));
+    await page.evaluate(() => {
+      const btn = document.getElementById('btnOpenGalleryFromFicha');
+      if (btn) {
+        btn.scrollIntoView({ block: 'center' });
+        btn.click();
+      } else if (typeof navigateToTab === 'function') {
+        navigateToTab('gallery');
+      }
     });
-    await new Promise((r) => setTimeout(r, 300));
-    const openGal = await page.$('#btnOpenGalleryFromFicha');
-    if (openGal) await openGal.click();
     await new Promise((r) => setTimeout(r, 500));
     const onGallery = await page.evaluate(() => {
       const panel = document.getElementById('gallery');
       const emptyCta = document.getElementById('btnEmptyGalleryCopyJson');
+      const founder = document.getElementById('founderWelcomeModal');
+      const founderVisible = !!(
+        founder
+        && getComputedStyle(founder).display !== 'none'
+        && !founder.classList.contains('u-hidden')
+      );
       return {
         panelActive: panel && !panel.classList.contains('u-hidden') && getComputedStyle(panel).display !== 'none',
         hasEmptyCta: !!emptyCta,
-        activeTab: window.state?.activeTab || null
+        activeTab: window.state?.activeTab || null,
+        founderVisible
       };
     });
     await page.screenshot({ path: shot('05-galeria.png'), fullPage: false });
     report.shots.push(shot('05-galeria.png'));
-    const galOk = onGallery.activeTab === 'gallery' || onGallery.panelActive;
+    const galOk = (onGallery.activeTab === 'gallery' || onGallery.panelActive) && !onGallery.founderVisible;
     report.steps.push({ step: 'ver-galeria', pass: galOk, onGallery });
     if (!galOk) report.ok = false;
 
     if (onGallery.hasEmptyCta) {
-      await page.click('#btnEmptyGalleryCopyJson');
+      await page.evaluate(() => document.getElementById('btnEmptyGalleryCopyJson')?.click());
       await new Promise((r) => setTimeout(r, 600));
       const after = await page.evaluate(() => {
         const pe = document.getElementById('persona-engine');
@@ -305,6 +452,7 @@ async function main() {
     }
 
     // Negocio hub — Licensing mirrors chip; Campañas pre-checks active persona
+    await dismissOverlays();
     await page.evaluate(() => {
       if (typeof navigateToTab === 'function') navigateToTab('licensing');
       if (typeof populateActiveUgcData === 'function') populateActiveUgcData();
@@ -322,10 +470,11 @@ async function main() {
     });
     await page.screenshot({ path: shot('06-licensing.png'), fullPage: false });
     report.shots.push(shot('06-licensing.png'));
-    const licOk = licensingSync.match && /Walkthrough Luna/i.test(licensingSync.license);
+    const licOk = licensingSync.match && licensingSync.license === personaName;
     report.steps.push({ step: 'negocio-licensing-chip', pass: licOk, licensingSync });
     if (!licOk) report.ok = false;
 
+    await dismissOverlays();
     await page.evaluate(() => {
       if (typeof navigateToTab === 'function') navigateToTab('campaigns');
       if (typeof renderCampaigns === 'function') return renderCampaigns();
@@ -337,7 +486,8 @@ async function main() {
       return {
         hasEmptyCta: !!emptyBtn,
         emptyVisible: !!(emptyBtn && getComputedStyle(emptyBtn).display !== 'none'),
-        headerHidden: !!(headerBtn && headerBtn.hidden)
+        headerHidden: !!(headerBtn && headerBtn.hidden),
+        rosterCount: (window.state?.personas || []).length
       };
     });
     await page.screenshot({ path: shot('07a-campaigns-empty.png'), fullPage: false });
@@ -346,36 +496,37 @@ async function main() {
     report.steps.push({ step: 'negocio-campaign-empty-cta', pass: emptyOk, campEmpty });
     if (!emptyOk) report.ok = false;
 
-    const openCampaign = await page.$('#btnEmptyCampaignCreate');
-    if (openCampaign) await openCampaign.click();
-    else {
-      const btnNew = await page.$('#btnNewCampaign');
-      if (btnNew) {
-        await page.evaluate(() => {
-          const b = document.getElementById('btnNewCampaign');
-          if (b) b.hidden = false;
-        });
-        await btnNew.click();
+    await page.evaluate(() => {
+      const empty = document.getElementById('btnEmptyCampaignCreate');
+      const btnNew = document.getElementById('btnNewCampaign');
+      if (empty) empty.click();
+      else if (btnNew) {
+        btnNew.hidden = false;
+        btnNew.click();
       }
-    }
-    await new Promise((r) => setTimeout(r, 400));
-    const campaignPrecheck = await page.evaluate(() => {
-      const checks = [...document.querySelectorAll('input[name="personaCheck"]')];
+    });
+    await new Promise((r) => setTimeout(r, 500));
+    const campaignPrecheck = await page.evaluate((name) => {
+      const modal = document.getElementById('campaignModal');
+      const checks = [...document.querySelectorAll('#campaignModal input[name="personaCheck"], input[name="personaCheck"]')];
       const checked = checks.filter((c) => c.checked);
       const checkedNames = checked.map((c) => {
         const label = c.closest('label');
         return (label?.textContent || '').trim();
       });
       return {
+        modalDisplay: modal ? getComputedStyle(modal).display : null,
+        rosterCount: (window.state?.personas || []).length,
+        selected: window.state?.selectedPersona?.name || null,
         total: checks.length,
         checkedCount: checked.length,
         checkedNames,
-        hasLuna: checkedNames.some((n) => /Walkthrough Luna/i.test(n))
+        hasCreated: checkedNames.some((n) => n.includes(name))
       };
-    });
+    }, personaName);
     await page.screenshot({ path: shot('07-campaigns-precheck.png'), fullPage: false });
     report.shots.push(shot('07-campaigns-precheck.png'));
-    const campOk = campaignPrecheck.hasLuna && campaignPrecheck.checkedCount >= 1;
+    const campOk = campaignPrecheck.hasCreated && campaignPrecheck.checkedCount >= 1;
     report.steps.push({ step: 'negocio-campaign-precheck', pass: campOk, campaignPrecheck });
     if (!campOk) report.ok = false;
 

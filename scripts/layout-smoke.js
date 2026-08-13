@@ -56,11 +56,16 @@ async function setSessionCookies(page, base, pin) {
 
 async function dismissOverlays(page) {
   await page.evaluate(() => {
-    for (const id of ['setupPinModal', 'founderOnboardingModal', 'loginModal']) {
+    for (const id of ['setupPinModal', 'founderWelcomeModal', 'founderOnboardingModal', 'loginModal', 'memberWelcomeModal']) {
       const el = document.getElementById(id);
-      if (el) el.style.display = 'none';
+      if (el) {
+        el.style.display = 'none';
+        el.classList.add('u-hidden');
+        el.hidden = true;
+      }
     }
     document.getElementById('btnSetupPinLater')?.click();
+    document.getElementById('btnFounderWelcomeSkip')?.click();
   }).catch(() => {});
 }
 
