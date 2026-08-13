@@ -25,14 +25,33 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/happy-path-validate-9b67` |
-| **Commit base** | `main` @ #103 merged |
-| **PR actual** | (este) — walkthrough UI create → Copiar JSON |
-| **`main` remoto** | + #103 (UX-2 DoD) |
-| **Prioridad inmediata** | Free path / fricción real si aparece |
+| **Rama de trabajo** | `main` (limpio tras #104) |
+| **Commit base** | `main` @ #104 merged |
+| **PR actual** | — |
+| **`main` remoto** | + #103 (UX-2) + #104 (walkthrough UI P0) |
+| **Prioridad inmediata** | Elegir siguiente corte (ver abajo) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Merge #103 + happy path UI
+### Cómo seguir (propuesta)
+
+PLAN-UX esencial cerrado (0–5 + free path walkthrough UI). Candidatos ordenados por valor/riesgo:
+
+1. **Pulido free path fino** — paso 2 sigue ruidoso (Biblia / Nueva Pose / Crear UGC compiten con Copiar JSON); recortar o plegar lo que no es pack.
+2. **UX-1c estricto** — inventariar botones «Copiar JSON» y dejar ≤3 destinos canónicos (header + pack primary + empty CTAs).
+3. **Seguridad mínima residual** — solo si entra segundo usuario / bind público; el stack Sec #1–#5 ya está en `main`.
+4. **Uso real** — crear un influencer a mano, pegar en chatbot free, anotar fricción (sin código hasta que duela).
+5. **No ahora:** #99 Google/SaaS, Replicate, video, Windows.
+
+### Sesión reciente (Cursor, 2026-08-13) — Merge #104
+
+**Pedido:** Marca listo, mergea y veamos cómo seguimos.
+
+**Hecho:**
+- [#104](https://github.com/oscarkleinkopf/influ-json/pull/104) → `main` (CI verde)
+- Happy path UI create→guardar→Copiar JSON en `main`
+- Comercial sigue aparcado
+
+### Sesión previa (Cursor, 2026-08-13) — Merge #103 + happy path UI
 
 **Pedido:** Dale con merge, happy path.
 
