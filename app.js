@@ -757,18 +757,22 @@ function updateActiveProfileChip() {
 }
 
 function maybeShowPinDefaultBanner() {
+  // Idea #5: sin barra superior — el aviso vive en Ajustes → Perfiles
   const banner = document.getElementById('pinDefaultBanner');
-  if (!banner) return;
-  // Si el modal de setup está visible, no hace falta el banner
-  const setupOpen = document.getElementById('setupPinModal')?.style.display === 'flex';
-  if (setupOpen) {
+  if (banner) {
     banner.style.display = 'none';
-    return;
+    banner.hidden = true;
   }
-  let dismissed = false;
-  try { dismissed = sessionStorage.getItem('influ_pin_banner_dismissed') === '1'; } catch (e) {}
-  if (state.pinIsDefault && !dismissed) banner.style.display = 'flex';
-  else banner.style.display = 'none';
+  updatePinDefaultSettingsHint();
+}
+
+function updatePinDefaultSettingsHint() {
+  const hint = document.getElementById('pinDefaultSettingsHint');
+  if (!hint) return;
+  const show = !!state.pinIsDefault;
+  hint.classList.toggle('u-hidden', !show);
+  hint.hidden = !show;
+  hint.style.display = show ? 'block' : 'none';
 }
 
 function showSetupPinModal() {
@@ -790,6 +794,7 @@ function hideSetupPinModal() {
 function maybeShowSetupPinWizard() {
   if (!state.pinIsDefault) {
     hideSetupPinModal();
+    updatePinDefaultSettingsHint();
     return;
   }
   // Solo Administración debe cambiar STUDIO_PIN global; members usan su propio PIN
@@ -807,10 +812,10 @@ function setupPinWizard() {
   if (!form || form.dataset.bound === '1') return;
   form.dataset.bound = '1';
   document.getElementById('btnSetupPinLater')?.addEventListener('click', () => {
-    // Solo localhost: permite seguir el happy path; el banner PIN default sigue visible.
+    // Idea #5: sin barra + toast — PIN se cambia en Ajustes
     hideSetupPinModal();
+    try { sessionStorage.setItem('influ_pin_banner_dismissed', '1'); } catch (e) {}
     maybeShowPinDefaultBanner();
-    toastInfo('PIN por defecto activo. Cámbialo en Ajustes cuando puedas — no expongas el Studio a la red.');
   });
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -867,6 +872,7 @@ function setupPinDefaultBanner() {
 async function refreshProfilesSettingsList() {
   const list = document.getElementById('profilesList');
   if (!list) return;
+  updatePinDefaultSettingsHint();
   try {
     const res = await authFetch('/api/profiles');
     const data = await res.json();
@@ -2854,13 +2860,20 @@ function applyOfflineModeUi() {
   const on = isStudioOfflineMode();
   const toggle = document.getElementById('offlineModeToggle');
   const toggleBar = document.getElementById('offlineModeToggleBar');
+  const chip = document.getElementById('offlineModeChip');
+  const chipText = document.getElementById('offlineModeChipText');
   if (toggle) toggle.checked = on;
   if (toggleBar) toggleBar.checked = on;
+  if (chip) chip.classList.toggle('is-on', on);
+  if (chipText) chipText.textContent = on ? 'Offline · on' : 'Offline';
   const banner = document.getElementById('offlineBanner');
+  // Idea #5: el modo offline es chip; el banner solo para red/API caídos
   if (on) {
-    setOfflineBanner(true, 'Modo offline activo — generación pausada. Usa Copiar JSON en chatbots gratis.');
-    if (banner) banner.dataset.source = 'mode';
-  } else if (!navigator.onLine) {
+    if (banner && banner.dataset.source === 'mode') {
+      setOfflineBanner(false);
+      banner.dataset.source = '';
+    }
+  } else if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     setOfflineBanner(true, 'Navegador offline — puedes copiar JSON ya cargado; generación Pollinations pausada.');
     if (banner) banner.dataset.source = 'network';
   } else if (banner && banner.dataset.source === 'mode') {

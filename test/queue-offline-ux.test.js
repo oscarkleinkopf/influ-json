@@ -42,7 +42,9 @@ test('UI: modo offline + chip posición en app/index', () => {
   assert.match(app, /#\$\{pos\} de \$\{total\}/);
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   assert.match(html, /offlineModeToggleBar/);
-  assert.match(html, /Modo offline/);
+  assert.match(html, /id="offlineModeChip"/);
+  assert.match(html, /Modo offline|Offline/);
+  assert.doesNotMatch(html, /id="offlineModeBar"/);
 });
 
 test('W15: offline-first labels + 429 sugiere offline + empty vault', () => {

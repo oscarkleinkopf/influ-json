@@ -254,9 +254,9 @@ npm start</pre>
     </div>
   </div>
 
-  <!-- Banner PIN por defecto (seguridad) -->
-  <div id="pinDefaultBanner" class="pin-default-banner u-hidden" role="status">
-    <span>Tu PIN sigue siendo el valor por defecto (<code>1234</code>). Cámbialo en el asistente o en Ajustes → Perfiles.</span>
+  <!-- Banner PIN por defecto: legacy oculto — el aviso vive en Ajustes (idea #5) -->
+  <div id="pinDefaultBanner" class="pin-default-banner u-hidden" role="status" hidden aria-hidden="true">
+    <span>Tu PIN sigue siendo el valor por defecto (<code>1234</code>). Cámbialo en Ajustes → Perfiles.</span>
     <button type="button" class="btn btn-secondary btn-sm" id="btnPinBannerSettings">Abrir perfiles</button>
     <button type="button" class="btn btn-secondary btn-sm" id="btnPinBannerDismiss" aria-label="Cerrar">✕</button>
   </div>
@@ -278,7 +278,7 @@ npm start</pre>
         <p id="setupPinError" class="u-err-inline"></p>
         <button type="submit" class="btn u-input-pad-12" id="btnSetupPinSubmit" >Guardar PIN y continuar</button>
         <button type="button" id="btnSetupPinLater" style="width:100%; margin-top:10px; background:transparent; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:8px;">
-          Más tarde — solo localhost (banner de aviso)
+          Más tarde — solo localhost (cámbialo en Ajustes)
         </button>
       </form>
     </div>
@@ -305,19 +305,13 @@ npm start</pre>
     </button>
   </div>
 
-  <!-- Banner offline: JSON-first sigue disponible + toggle modo offline (W8) -->
+  <!-- Banner offline: solo red/API caídos — el toggle vive en chip del sidebar (#offlineModeChip) -->
   <div id="offlineBanner" class="offline-banner u-hidden" role="status" aria-live="polite">
     <span class="offline-dot" aria-hidden="true"></span>
     <span id="offlineBannerText">Sin conexión al Studio — puedes copiar JSON ya cargado; generación Pollinations pausada.</span>
     <label class="offline-mode-toggle" style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; white-space:nowrap;">
       <input type="checkbox" id="offlineModeToggle" />
       Modo offline
-    </label>
-  </div>
-  <div id="offlineModeBar" class="offline-mode-bar" style="display:flex; align-items:center; gap:10px; padding:6px 14px; background:rgba(0,0,0,0.35); border-bottom:1px solid var(--glass-border); font-size:12px; color:var(--text-secondary);">
-    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
-      <input type="checkbox" id="offlineModeToggleBar" />
-      <span><strong class="u-color-white">Modo offline</strong> — Studio útil sin gen: prioriza <em>Copiar JSON</em></span>
     </label>
   </div>
 
@@ -451,6 +445,9 @@ npm start</pre>
 
         <div id="settingsPanelPerfiles" class="settings-panel" role="tabpanel" data-settings-panel="perfiles" hidden>
           <div id="profilesSettingsSection">
+            <div id="pinDefaultSettingsHint" class="pin-default-settings-hint u-hidden" role="status">
+              <strong>PIN por defecto (<code>1234</code>)</strong> — cámbialo aquí (Cambiar PIN) antes de exponer el Studio a la red.
+            </div>
             <h3 id="profilesSettingsHeading" class="u-section-title">Perfiles de usuario (local)</h3>
             <p id="profilesSettingsLead" class="u-section-lead">
               Varios emprendedores en el mismo Studio, cada uno con su PIN y su roster. Sin nube ni OAuth. Las filas no abren otra pantalla: renombrar, cambiar PIN o eliminar.

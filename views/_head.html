@@ -51,10 +51,6 @@
       </nav>
       
       <div class="sidebar-footer">
-        <div class="git-status">
-          <div class="git-indicator" id="gitIndicator"></div>
-          <span id="gitStatusText">Repositorio sincronizado</span>
-        </div>
         <div id="activeProfileChip" class="active-profile-chip u-hidden">
           <span class="active-profile-label">Perfil</span>
           <strong id="activeProfileName">—</strong>
@@ -63,15 +59,27 @@
           <span class="queue-status-dot"></span>
           <span id="queueStatusChipText">Cola libre</span>
         </div>
+        <label id="offlineModeChip" class="offline-mode-chip" title="Prioriza Copiar JSON; pausa generación Pollinations">
+          <input type="checkbox" id="offlineModeToggleBar" />
+          <span class="offline-mode-chip-dot" aria-hidden="true"></span>
+          <span id="offlineModeChipText">Offline</span>
+        </label>
         <button type="button" class="btn btn-secondary btn-sm u-sidebar-full" id="btnOpenComoUsar" title="Ayuda / Cómo usar" >
           ? Cómo usar
         </button>
-        <button class="btn btn-secondary btn-sm" id="btnOpenSettings" style="width: 100%; margin-bottom: 8px; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--accent-primary); color: #fff;">
-          ⚙️ Ajustes & Claves API
-        </button>
-        <button class="btn btn-secondary btn-sm u-w-full" id="btnSyncNow" >
-          Sincronizar Git
-        </button>
+        <details id="sidebarStudioTools" class="sidebar-studio-tools">
+          <summary>Studio / Git</summary>
+          <div class="git-status">
+            <div class="git-indicator" id="gitIndicator"></div>
+            <span id="gitStatusText">Repositorio sincronizado</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btnOpenSettings" style="width: 100%; margin-bottom: 8px; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--accent-primary); color: #fff;">
+            ⚙️ Ajustes & Claves API
+          </button>
+          <button class="btn btn-secondary btn-sm u-w-full" id="btnSyncNow" >
+            Sincronizar Git
+          </button>
+        </details>
       </div>
     </aside>
     
