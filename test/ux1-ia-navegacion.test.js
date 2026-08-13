@@ -168,7 +168,7 @@ test('UX-1c estricto: ≤3 botones exactos «Copiar JSON» (header + primary + h
   // UGC / pollen / guía no deben ser «Copiar JSON»
   assert.match(html, /id="btnExportUgcChatbot"[^>]*>\s*Copiar pack producto\s*</);
   assert.match(html, /id="btnPollenCopyJson"[^>]*>\s*Usar path free\s*</);
-  assert.match(html, /data-guide-action="packs"[^>]*>\s*Ir a Lock &amp; Packs\s*</);
+  assert.match(html, /data-guide-action="packs"[^>]*>\s*Ir a Copiar JSON\s*</);
   assert.doesNotMatch(appJs, /data-happy-next="copy-pack"[^>]*>\s*Copiar JSON\s*</);
   assert.doesNotMatch(appJs, /data-qa-pack="[^"]*"[^>]*>\s*Copiar JSON\s*</);
 });

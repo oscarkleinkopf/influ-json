@@ -25,14 +25,25 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/chrome-primer-uso-9b67` |
-| **Commit base** | `main` @ #109 merged |
-| **PR actual** | (este) — silenciar chrome primer uso |
-| **`main` remoto** | + #109 (UX-1c) |
-| **Prioridad inmediata** | Merge → idea #6 README / Cómo usar |
+| **Rama de trabajo** | `cursor/readme-como-usar-9b67` |
+| **Commit base** | `main` @ #110 merged |
+| **PR actual** | (este) — README / Cómo usar alineados |
+| **`main` remoto** | + #110 (chrome primer uso) |
+| **Prioridad inmediata** | Merge → backlog vacío §12 (o comercial #99 si se pide) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Idea #5 chrome primer uso
+### Sesión reciente (Cursor, 2026-08-13) — Idea #6 README / Cómo usar
+
+**Pedido:** Continúa con 5 y después 6.
+
+**Hecho:**
+- [#110](https://github.com/oscarkleinkopf/influ-json/pull/110) → `main` (cierra #5)
+- README: hubs reales (Influencers / Producir / Negocio), Copiar JSON, Offline chip
+- Cómo usar: mapa de UI + flujo Ficha → Portafolio → Copiar JSON
+- Checklist Portafolio: sin «Persona Engine»
+- Siguiente: §12 backlog cerrado; comercial sigue aparcado
+
+### Sesión previa (Cursor, 2026-08-13) — Idea #5 chrome primer uso
 
 **Pedido:** Merge y #5.
 

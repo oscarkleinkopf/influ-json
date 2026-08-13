@@ -220,8 +220,8 @@ Tras cerrar UX-0…5 + walkthrough UI (#104), el Studio **funciona** en el loop 
 | **2** | **Lock honesto en Identidad** — si origen=Latina + tez clara, sugerir «Latina de tez clara» *antes* de guardar; score visible en paso 1 | Guardar no deja el toast como único aviso | ✅ `#107` |
 | **3** | **Ritual «inspirar desde foto»** — subir → confirmar tez/ojos/pelo → guardar → Copiar JSON (+ walkthrough) | Mismo P0 que crear desde cero | ✅ `#108` |
 | **4** | **UX-1c estricto** — ≤3 destinos «Copiar JSON» (header + pack primary + empty CTAs); resto = Copiar prompt / estructura / pack X | Inventario HTML ≤3 | ✅ `#109` |
-| **5** | **Silenciar chrome primer uso** — PIN en Ajustes (no barra+toast); offline = chip; Git/Ajustes colapsados | Primer viewport sin doble aviso PIN | ✅ esta rama |
-| **6** | **Alinear README / Cómo usar** a botones reales (Influencers · Ficha · Copiar JSON) | Novato no ve «Persona Engine» | pendiente |
+| **5** | **Silenciar chrome primer uso** — PIN en Ajustes (no barra+toast); offline = chip; Git/Ajustes colapsados | Primer viewport sin doble aviso PIN | ✅ `#110` |
+| **6** | **Alinear README / Cómo usar** a botones reales (Influencers · Ficha · Copiar JSON) | Novato no ve «Persona Engine» | ✅ esta rama |
 
 ### No ahora (sin cambio)
 

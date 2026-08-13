@@ -96,7 +96,7 @@
           </button>
           <div class="active-persona-menu" id="activePersonaMenu" role="listbox" hidden></div>
         </div>
-        <button type="button" class="btn btn-sm studio-context-copy" id="btnContextCopyJson" title="Copia el pack free recomendado (character_lock)">
+        <button type="button" class="btn btn-sm studio-context-copy" id="btnContextCopyJson" title="Copia el pack free (character_lock) — cuerpo entero">
           Copiar JSON
         </button>
       </div>
@@ -193,7 +193,7 @@
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
                 <strong>1. Crear o importar</strong>
-                <p>Abre Persona Engine y usa «Crear desde Cero» o importa una foto.</p>
+                <p>En <strong>Influencers → Ficha / Editor</strong>: «Crear influencer» o «Importar referencia» / Inspirar desde foto.</p>
                 <div style="display:flex; flex-wrap:wrap; gap:8px;">
                   <button type="button" class="btn btn-secondary btn-sm" data-happy-action="create">Ir a crear</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-happy-action="import">Importar foto</button>
@@ -273,13 +273,24 @@
             <div class="como-usar-hero-copy">
               <p class="como-usar-brand">influ-JSON</p>
               <h1>Cómo usar el Studio</h1>
-              <p class="como-usar-lead">Crea influencers consistentes sin pagar face-lock. El JSON es tu ancla; Pollinations es opcional e inestable. Los chatbots gratis hacen el resto.</p>
+              <p class="como-usar-lead">Crea influencers consistentes sin pagar face-lock. El JSON es tu ancla; Pollinations es opcional. Los chatbots gratis hacen el resto.</p>
               <div class="como-usar-cta-row">
-                <button type="button" class="btn" data-guide-action="packs">Ir a Lock &amp; Packs</button>
-                <button type="button" class="btn btn-secondary" data-guide-action="create">Empezar a crear</button>
+                <button type="button" class="btn" data-guide-action="packs">Ir a Copiar JSON</button>
+                <button type="button" class="btn btn-secondary" data-guide-action="create">Empezar en Ficha</button>
               </div>
             </div>
           </header>
+
+          <section class="como-usar-section" aria-labelledby="guide-map-title">
+            <h2 id="guide-map-title">Dónde está cada cosa</h2>
+            <p class="como-usar-section-lead">Sidebar = hubs. Usa los nombres de abajo — no busques pestañas antiguas del editor.</p>
+            <ul class="como-usar-rule-list">
+              <li><span>Influencers</span> Portafolio + Ficha / Editor (Identidad → Lock &amp; Packs → Variaciones)</li>
+              <li><span>Producir</span> UGC + Guiones</li>
+              <li><span>Negocio</span> Campañas + Licensing</li>
+              <li><span>Copiar JSON</span> Header + Lock &amp; Packs + checklist del Portafolio</li>
+            </ul>
+          </section>
 
           <section class="como-usar-section" aria-labelledby="guide-flow-title">
             <h2 id="guide-flow-title">El flujo en cuatro movimientos</h2>
@@ -289,32 +300,32 @@
               <li class="como-usar-step" style="--step-accent: #34d399;">
                 <span class="como-usar-step-index">01</span>
                 <div class="como-usar-step-body">
-                  <h3>Elige nicho y crea</h3>
-                  <p>Beauty, Fitness o Moda. El preset rellena tez, cuerpo y voz para que el <code>character_lock</code> nazca fuerte.</p>
-                  <button type="button" class="btn btn-secondary btn-sm" data-guide-action="create">Ir a crear</button>
+                  <h3>Influencers → crear o inspirar</h3>
+                  <p>En <strong>Ficha / Editor</strong>: «Crear influencer» o «Importar referencia» / Inspirar desde foto. Presets Beauty / Fitness / Moda refuerzan el <code>character_lock</code>.</p>
+                  <button type="button" class="btn btn-secondary btn-sm" data-guide-action="create">Ir a Ficha</button>
                 </div>
               </li>
               <li class="como-usar-step" style="--step-accent: #fbbf24;">
                 <span class="como-usar-step-index">02</span>
                 <div class="como-usar-step-body">
-                  <h3>Guarda en tu portafolio</h3>
-                  <p>Al guardar, el influencer queda en SQLite bajo tu perfil. Nadie más mezcla tus creaciones.</p>
-                  <button type="button" class="btn btn-secondary btn-sm" data-guide-action="portfolio">Ver portafolio</button>
+                  <h3>Guardar → aparece en Portafolio</h3>
+                  <p>Al guardar, el influencer queda en SQLite bajo tu perfil. Vuelve a <strong>Influencers → Portafolio</strong> para verlo.</p>
+                  <button type="button" class="btn btn-secondary btn-sm" data-guide-action="portfolio">Ver Portafolio</button>
                 </div>
               </li>
               <li class="como-usar-step" style="--step-accent: #38bdf8;">
                 <span class="como-usar-step-index">03</span>
                 <div class="como-usar-step-body">
-                  <h3>Copia el JSON a un chatbot free</h3>
-                  <p>Pégalo en ChatGPT, Gemini o Claude free. Misma cara en retrato, cuerpo entero, bikini o producto. Sin red de imagen también sirve.</p>
-                  <button type="button" class="btn btn-sm" data-guide-action="packs" data-offline-highlight="pack">Ir a Lock &amp; Packs</button>
+                  <h3>Lock &amp; Packs → Copiar JSON</h3>
+                  <p>El botón verde <strong>Copiar JSON</strong> pega el pack cuerpo entero. Otras tomas viven en <strong>Packs ▾</strong>. Pégalo en ChatGPT / Gemini / Claude free.</p>
+                  <button type="button" class="btn btn-sm" data-guide-action="packs" data-offline-highlight="pack">Ir a Copiar JSON</button>
                 </div>
               </li>
               <li class="como-usar-step" style="--step-accent: #a3e635;">
                 <span class="como-usar-step-index">04</span>
                 <div class="como-usar-step-body">
-                  <h3>Boceto local o kit marca</h3>
-                  <p>Pollinations = boceto <em>opt-in</em> (suele pedir token / pollen). Si falla (401/402) o hay 429: <strong>Modo offline</strong> + Copiar JSON. El kit ZIP lleva lock + 4 packs + guión.</p>
+                  <h3>Boceto opt-in o kit marca</h3>
+                  <p>Pollinations = boceto <em>opt-in</em> (token / pollen). Si falla (401/402) o hay 429: chip <strong>Offline</strong> en el sidebar + Copiar JSON. El kit ZIP lleva lock + packs + guión.</p>
                   <button type="button" class="btn btn-secondary btn-sm" data-guide-action="kit">Descargar kit</button>
                 </div>
               </li>
@@ -327,8 +338,8 @@
             <ul class="como-usar-rule-list">
               <li><span>Fijo</span> cara, tez, pelo base, proporciones</li>
               <li><span>Variable</span> pose, ropa, fondo, producto</li>
-              <li><span>Recomendado</span> Copiar JSON / packs → chatbot free</li>
-              <li><span>Opcional</span> Generar boceto (opt-in · token) — si falla, Copiar JSON / Modo offline</li>
+              <li><span>Canónico</span> Copiar JSON → chatbot free</li>
+              <li><span>Opcional</span> Generar boceto (opt-in · token) — si falla, Copiar JSON / Offline</li>
             </ul>
           </section>
 
