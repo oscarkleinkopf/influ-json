@@ -66,7 +66,10 @@ test('assertSafeRemoteImageUrl bloquea localhost y metadata cloud', () => {
     'http://169.254.169.254/latest/meta-data/',
     'http://192.168.1.10/img.jpg',
     'http://10.0.0.5/a',
-    'file:///etc/passwd'
+    'file:///etc/passwd',
+    'http://[::ffff:127.0.0.1]/secret',
+    'http://[::ffff:7f00:1]/x',
+    'https://cdn.example.com:8080/a.jpg'
   ]) {
     assert.throws(
       () => assertSafeRemoteImageUrl(bad),
@@ -76,11 +79,29 @@ test('assertSafeRemoteImageUrl bloquea localhost y metadata cloud', () => {
   }
 });
 
-test('isPrivateOrLocalHost detecta rangos privados', () => {
+test('isPrivateOrLocalHost detecta rangos privados e IPv4-mapped', () => {
   assert.equal(isPrivateOrLocalHost('127.0.0.1'), true);
   assert.equal(isPrivateOrLocalHost('10.1.2.3'), true);
   assert.equal(isPrivateOrLocalHost('172.16.0.1'), true);
   assert.equal(isPrivateOrLocalHost('192.168.0.1'), true);
+  assert.equal(isPrivateOrLocalHost('::ffff:127.0.0.1'), true);
+  assert.equal(isPrivateOrLocalHost('::ffff:7f00:1'), true);
   assert.equal(isPrivateOrLocalHost('8.8.8.8'), false);
   assert.equal(isPrivateOrLocalHost('cdn.example.com'), false);
+});
+
+test('assertSafeRemoteImageUrlResolved rechaza DNS a loopback (lookup mock)', async () => {
+  const { assertSafeRemoteImageUrlResolved } = require('../safe-paths');
+  await assert.rejects(
+    () =>
+      assertSafeRemoteImageUrlResolved('https://evil.example/img.jpg', {
+        lookup: async () => [{ address: '127.0.0.1', family: 4 }]
+      }),
+    (err) => err && err.code === UNSAFE_URL
+  );
+  await assert.doesNotReject(() =>
+    assertSafeRemoteImageUrlResolved('https://cdn.example.com/a.jpg', {
+      lookup: async () => [{ address: '93.184.216.34', family: 4 }]
+    })
+  );
 });

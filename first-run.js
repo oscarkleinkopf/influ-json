@@ -20,7 +20,20 @@ function getEnvPath() {
 /**
  * Upsert KEY=value in .env without rewriting unrelated lines.
  * Creates the file if missing. Also sets process.env[key].
+ * Rechaza CR/LF/NUL; escritura temporal + rename; chmod 0600 en POSIX.
  */
+function assertSafeEnvValue(val, keyLabel) {
+  const value = String(val);
+  if (/[\r\n\0]/.test(value)) {
+    const err = new Error(
+      `Valor de ${keyLabel || 'variable'} inválido: no se permiten saltos de línea ni NUL.`
+    );
+    err.code = 'ENV_VALUE_UNSAFE';
+    throw err;
+  }
+  return value;
+}
+
 function upsertEnvVar(key, val, envPath = getEnvPath()) {
   const safeKey = String(key || '').trim();
   if (!/^[A-Z][A-Z0-9_]*$/.test(safeKey)) {
@@ -29,7 +42,7 @@ function upsertEnvVar(key, val, envPath = getEnvPath()) {
   if (val === undefined || val === null) {
     throw new Error(`Valor requerido para ${safeKey}`);
   }
-  const value = String(val);
+  const value = assertSafeEnvValue(val, safeKey);
   let content = '';
   if (fs.existsSync(envPath)) {
     content = fs.readFileSync(envPath, 'utf8');
@@ -46,7 +59,14 @@ function upsertEnvVar(key, val, envPath = getEnvPath()) {
     const trimmed = content.replace(/\s*$/, '');
     content = trimmed ? `${trimmed}\n${line}\n` : `${line}\n`;
   }
-  fs.writeFileSync(envPath, content.endsWith('\n') ? content : `${content}\n`, 'utf8');
+  const finalContent = content.endsWith('\n') ? content : `${content}\n`;
+  const dir = path.dirname(envPath);
+  const tmp = path.join(dir, `.env.${process.pid}.${Date.now()}.tmp`);
+  fs.writeFileSync(tmp, finalContent, { encoding: 'utf8', mode: 0o600 });
+  fs.renameSync(tmp, envPath);
+  try {
+    if (process.platform !== 'win32') fs.chmodSync(envPath, 0o600);
+  } catch (_) { /* ignore chmod failures on exotic FS */ }
   process.env[safeKey] = value;
   return envPath;
 }
@@ -164,6 +184,11 @@ function publicBindBlockMessage(reason) {
 function validateNewStudioPin(pin, confirmPin) {
   const next = String(pin || '').trim();
   const confirm = confirmPin != null ? String(confirmPin).trim() : next;
+  if (/[\r\n\0]/.test(String(pin || '')) || /[\r\n\0]/.test(String(confirmPin || ''))) {
+    const err = new Error('El PIN no puede contener saltos de línea.');
+    err.code = 'PIN_UNSAFE_CHARS';
+    throw err;
+  }
   if (next.length < MIN_SETUP_PIN_LENGTH) {
     const err = new Error(`El PIN debe tener al menos ${MIN_SETUP_PIN_LENGTH} caracteres.`);
     err.code = 'PIN_TOO_SHORT';
@@ -187,6 +212,7 @@ module.exports = {
   DEFAULT_LISTEN_HOST,
   getEnvPath,
   upsertEnvVar,
+  assertSafeEnvValue,
   ensureSessionSecret,
   resolveListenHost,
   isPublicBind,

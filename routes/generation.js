@@ -41,7 +41,8 @@ function registerGenerationRoutes(app, deps) {
 
   app.get('/api/stats/generations', (req, res) => {
     try {
-      const stats = dbService.getGenerationStats();
+      const profileId = req.session.profileId || resolveSessionProfile(req);
+      const stats = dbService.getGenerationStats(profileId);
       res.json({ success: true, stats });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });

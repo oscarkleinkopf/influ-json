@@ -695,7 +695,7 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 
 ### Corte A — Baseline confiable
 
-> **Estado 2026-08-13:** en implementación (`cursor/corte-a-baseline-9b67`).
+> **Estado 2026-08-13:** ✅ en `main` (#118).
 
 1. Reparar batch ads (CSRF + firma de cola + ownership).
 2. Resolver advisory high de `brace-expansion`.
@@ -705,6 +705,8 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 6. Corregir `completedCount` fantasma de la cola.
 
 ### Corte B — Hardening de datos/red
+
+> **Estado 2026-08-13:** en implementación (`cursor/corte-b-hardening-9b67`).
 
 1. SSRF IPv4-mapped + resolución DNS segura.
 2. Rechazar CR/LF en `.env`; escritura atómica/permisos.

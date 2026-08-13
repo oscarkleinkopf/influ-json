@@ -25,14 +25,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/corte-a-baseline-9b67` |
-| **Commit base** | `main` @ #117 merged |
-| **PR actual** | [#118](https://github.com/oscarkleinkopf/influ-json/pull/118) — Corte A baseline |
-| **`main` remoto** | + #117 (`docs/ANALISIS_PROYECTO_2026-08.md`) |
-| **Prioridad inmediata** | Terminar Corte A; luego Corte B (SSRF / .env / scope stats) |
+| **Rama de trabajo** | `cursor/corte-b-hardening-9b67` |
+| **Commit base** | `main` @ #118 merged |
+| **PR actual** | Corte B — hardening SSRF / .env / scope |
+| **`main` remoto** | + #118 (Corte A baseline) |
+| **Prioridad inmediata** | Terminar Corte B; luego Corte C (Doctor/launcher) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Integrar análisis + Corte A
+### Sesión reciente (Cursor, 2026-08-13) — Merge #118 + Corte B
+
+**Pedido:** Tests de #118 pasaron → integrar y seguir.
+
+**Hecho:**
+- [#118](https://github.com/oscarkleinkopf/influ-json/pull/118) → `main` (Corte A)
+- Arranque **Corte B**: SSRF IPv4-mapped + DNS resolve, CR/LF `.env`, stats scoped, sync admin, GPU URLs masked, import heavy rate-limit
+
+### Sesión previa (Cursor, 2026-08-13) — Integrar análisis + Corte A
 
 **Pedido:** Integrar el análisis y decidir cómo seguir.
 
