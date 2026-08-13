@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/sec-market-checklist-9b67` |
 | **Commit base** | `main` @ #112 merged |
-| **PR actual** | (este) — seguridad de mercado checklist |
+| **PR actual** | [#113](https://github.com/oscarkleinkopf/influ-json/pull/113) — seguridad de mercado checklist |
 | **`main` remoto** | + #112 (walkthrough import ritual) |
 | **Prioridad inmediata** | Merge este PR → CSRF/HSTS solo si se publica con TLS / o #99 si se pide |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
