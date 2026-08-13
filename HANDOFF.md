@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/sec-csrf-9b67` |
 | **Commit base** | `main` @ #114 merged |
-| **PR actual** | (este) — CSRF synchronizer |
+| **PR actual** | [#115](https://github.com/oscarkleinkopf/influ-json/pull/115) — CSRF synchronizer |
 | **`main` remoto** | + #113/#114 (seguridad mercado + handoff) |
 | **Prioridad inmediata** | Merge CSRF → empaquetado / HSTS si TLS / o #99 si se pide |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
