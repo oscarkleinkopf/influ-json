@@ -11,17 +11,18 @@ const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const appJs = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
 
-test('Free Path: UGC pone Copiar JSON antes del boceto', () => {
+test('Free Path: UGC pone pack producto antes del boceto (UX-1c)', () => {
   const ugcStart = html.indexOf('id="ugc-studio"');
   const ugcEnd = html.indexOf('id="licensing"');
   assert.ok(ugcStart >= 0 && ugcEnd > ugcStart);
   const ugc = html.slice(ugcStart, ugcEnd);
   const copyIdx = ugc.indexOf('id="btnExportUgcChatbot"');
   const bocetoIdx = ugc.indexOf('id="btnGenerateUgcImage"');
-  assert.ok(copyIdx >= 0 && bocetoIdx > copyIdx, 'Copiar JSON debe ir antes del boceto');
-  assert.match(ugc, /Free path: pack de la ficha|Free path: Copiar JSON/);
+  assert.ok(copyIdx >= 0 && bocetoIdx > copyIdx, 'pack producto debe ir antes del boceto');
+  assert.match(ugc, /Free path: pack producto|Free path: pack de la ficha|Free path: Copiar JSON/);
   assert.match(ugc, /id="btnExportUgcChatbot"/);
-  assert.match(ugc, /Copiar JSON/);
+  assert.match(ugc, /Copiar pack producto/);
+  assert.doesNotMatch(ugc, /id="btnExportUgcChatbot"[\s\S]{0,160}>\s*Copiar JSON\s*</);
   assert.doesNotMatch(ugc, /id="btnExportUgcChatbot"[\s\S]{0,120}Copiar JSON \(recomendado\)/);
   assert.match(ugc, /ugcAdvancedAdsDetails/);
   assert.match(ugc, /ugcDownloadsDetails/);
@@ -29,7 +30,7 @@ test('Free Path: UGC pone Copiar JSON antes del boceto', () => {
   assert.match(ugc, /Sin influencer/);
 });
 
-test('Free Path: UGC Copiar JSON llama copyFreeChatbotPack (no solo navega)', () => {
+test('Free Path: UGC pack producto llama copyFreeChatbotPack (no solo navega)', () => {
   assert.match(
     appJs,
     /btnExportUgcChatbot[\s\S]{0,500}copyFreeChatbotPack\(['"]product['"]\)/

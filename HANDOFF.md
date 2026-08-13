@@ -25,14 +25,25 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/import-ritual-foto-9b67` |
-| **Commit base** | `main` @ #107 merged |
-| **PR actual** | (este) — ritual inspirar desde foto |
-| **`main` remoto** | + #107 (lock Identidad) |
-| **Prioridad inmediata** | Merge → idea #4 UX-1c ≤3 Copiar JSON (o #6 README) |
+| **Rama de trabajo** | `cursor/ux1c-copiar-json-9b67` |
+| **Commit base** | `main` @ #108 merged |
+| **PR actual** | (este) — UX-1c ≤3 Copiar JSON |
+| **`main` remoto** | + #108 (ritual foto) |
+| **Prioridad inmediata** | Merge → idea #5 chrome primer uso (o #6 README) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Idea #3 ritual inspirar desde foto
+### Sesión reciente (Cursor, 2026-08-13) — Idea #4 UX-1c ≤3 Copiar JSON
+
+**Pedido:** Continua (tras #108).
+
+**Hecho:**
+- [#108](https://github.com/oscarkleinkopf/influ-json/pull/108) → `main`
+- Solo 3 botones exactos «Copiar JSON»: header · pack primary · happy-path dashboard
+- UGC → «Copiar pack producto»; Cómo usar → «Ir a Lock & Packs»; pollen → «Usar path free»
+- Test estricto en `test/ux1-ia-navegacion.test.js`
+- Siguiente: idea #5 silenciar chrome / #6 README
+
+### Sesión previa (Cursor, 2026-08-13) — Idea #3 ritual inspirar desde foto
 
 **Pedido:** Mergea #107 y seguimos.
 
