@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/analisis-mejoras-2026-9b67` |
 | **Commit base** | `main` @ #116 merged |
-| **PR actual** | (este) — análisis proyecto + ideas priorizadas |
+| **PR actual** | [#117](https://github.com/oscarkleinkopf/influ-json/pull/117) — análisis proyecto + ideas priorizadas |
 | **`main` remoto** | + #115/#116 (CSRF + handoff) |
 | **Prioridad inmediata** | Corte A: batch ads + dependency audit + gates CI |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
