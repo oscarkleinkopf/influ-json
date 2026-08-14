@@ -25,20 +25,20 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/corte-i2-brief-checklist-9b67` |
-| **Commit base** | `main` @ #125 |
-| **PR actual** | I2 brief → checklist (este branch) |
-| **`main` remoto** | + #124 Corte G · #125 handoff |
-| **Prioridad inmediata** | Terminar I2 (anti-pérdida producción) → CI → merge |
-| **Aparcado** | Corte F (LAN/VPS) · U1 launcher · I4 plantillas · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ #126 (I2 brief→checklist) |
+| **PR actual** | — |
+| **`main` remoto** | + #126 «Qué producir ahora» |
+| **Prioridad inmediata** | I4 plantillas · U1 launcher · o F si LAN |
+| **Aparcado** | Corte F (LAN/VPS) · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-14) — I2 brief → checklist
+### Sesión reciente (Cursor, 2026-08-14) — I2 → main
 
 **Pedido:** Se pierden (qué producir).
 
 **Hecho:**
-- `production-brief.js` — brief corto → tareas con CTAs
-- Card «Qué producir ahora» en dashboard (hooks, pack, shots, campaña, licencia, identidad)
+- [#126](https://github.com/oscarkleinkopf/influ-json/pull/126) → `main`
+- Card **Qué producir ahora**: brief → checklist + CTAs (sin IA extra)
 
 ### Sesión previa (Cursor, 2026-08-14) — Corte G → main
 

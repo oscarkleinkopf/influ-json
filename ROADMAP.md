@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-14 | **I2 → main (#126)** | «Qué producir ahora» — brief→checklist + CTAs |
 | 2026-08-14 | **I2 brief→checklist (en curso)** | «Qué producir ahora» — hooks/pack/shots/campaña/licencia |
 | 2026-08-14 | **Corte G → main (#124)** | activación 5/5; prueba identidad; lock lab A/B; recetas producción |
 | 2026-08-14 | **Corte G (en curso)** | activación 5/5; prueba identidad; lock lab A/B; recetas producción |
