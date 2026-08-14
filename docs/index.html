@@ -190,18 +190,20 @@
     </section>
 
     <section class="panel" aria-labelledby="runTitle">
-      <h2 id="runTitle">Arranque en 4 líneas</h2>
-      <p>Necesitas Node.js. El PIN por defecto es <strong style="color:#fff;font-weight:600;">1234</strong>.</p>
+      <h2 id="runTitle">Arranque de un clic</h2>
+      <p>Necesitas <strong style="color:#fff;font-weight:600;">Node.js 18+</strong> (LTS). PIN por defecto: <strong style="color:#fff;font-weight:600;">1234</strong>.</p>
       <pre id="cmds">git clone https://github.com/oscarkleinkopf/influ-json.git
 cd influ-json
-npm install
-npm start</pre>
+# Windows: doble clic start-studio.cmd
+# Linux/macOS:
+./start-studio.sh</pre>
     </section>
 
     <p class="note">
-      Luego abre <code>http://127.0.0.1:3000</code>.
+      El launcher instala deps si faltan y abre <code>http://127.0.0.1:3000</code>.
       GitHub Pages publica la rama <code>main</code> (raíz del repo): esa URL es informativa;
-      el Studio completo solo corre en local con <code>npm start</code>.
+      el Studio completo solo corre en local (<code>start-studio</code> / <code>npm start</code>).
+      ZIP de distribución: <code>npm run pack:release</code> (sin <code>.env</code> ni datos).
     </p>
   </main>
   <script>

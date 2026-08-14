@@ -208,10 +208,12 @@
       </p>
       <pre id="staticHostCmd" style="margin:0 0 14px; padding:12px 14px; background:rgba(0,0,0,0.45); border:1px solid var(--glass-border); border-radius:var(--border-radius-sm); color:var(--text-primary); font-family:var(--font-mono); font-size:12px; line-height:1.55; overflow-x:auto; white-space:pre-wrap;">git clone https://github.com/oscarkleinkopf/influ-json.git
 cd influ-json
-npm install
-npm start</pre>
+# Windows: doble clic start-studio.cmd
+# Linux/macOS:
+./start-studio.sh</pre>
       <p style="color: var(--text-muted); font-size: 12px; margin: 0 0 18px; line-height: 1.45;">
-        Luego abre <code>http://127.0.0.1:3000</code> · PIN por defecto <code>1234</code>.
+        Necesitas <strong style="color:#fff;font-weight:600;">Node 18+</strong>. El launcher instala deps, abre el navegador en <code>http://127.0.0.1:3000</code> · PIN <code>1234</code>.
+        Alternativa: <code>npm install &amp;&amp; npm start</code>.
       </p>
       <div style="display:flex; flex-wrap:wrap; gap:10px;">
         <button type="button" class="btn" id="btnStaticHostCopy" style="flex:1; min-width:140px; padding:12px;">Copiar comandos</button>
