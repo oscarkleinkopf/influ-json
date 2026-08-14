@@ -24,3 +24,4 @@ scratch/**/*.sqlite-*
 
 # Layout smoke screenshots (CI artifact; local scratch)
 artifacts/
+dist

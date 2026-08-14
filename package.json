@@ -9,12 +9,16 @@
     "dev": "node --watch server.js",
     "doctor": "node scripts/doctor.js",
     "support-bundle": "node scripts/support-bundle.js",
+    "pack:release": "node scripts/pack-release.js",
     "build:index": "node scripts/build-index.js",
     "test": "node scripts/run-tests.js",
     "test:raw": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 node --test --test-concurrency=1 test/*.test.js",
     "smoke": "DISABLE_GIT_BACKUP=1 ENABLE_GIT_BACKUP= INFLU_SKIP_ENV_PERSIST=1 INFLU_SKIP_DB_MIGRATE=1 node scripts/run-smoke.js",
     "layout-smoke": "node scripts/layout-smoke.js",
     "walkthrough": "node scripts/happy-path-walkthrough.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "keywords": [
     "ugc",
