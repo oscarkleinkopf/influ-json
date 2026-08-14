@@ -25,27 +25,21 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/corte-e-ux-resistente-9b67` |
-| **Commit base** | `main` @ #121 merged |
-| **PR actual** | [#122](https://github.com/oscarkleinkopf/influ-json/pull/122) — Corte E UX resistente |
-| **`main` remoto** | + #121 (Corte D persona schema) |
-| **Prioridad inmediata** | CI verde #122 → merge; luego F solo si LAN/VPS, si no G |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ #122 merged (Corte E) |
+| **PR actual** | — |
+| **`main` remoto** | + #122 (Corte E UX resistente) |
+| **Prioridad inmediata** | Corte F solo si LAN/VPS; si no → Corte G (medir valor) |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-13) — Corte E UX resistente
+### Sesión reciente (Cursor, 2026-08-14) — Corte E → main
 
 **Pedido:** Continuemos con corte E.
 
 **Hecho:**
-- `persona-draft.js` — autosave localStorage + banner Continuar/Descartar
-- `studio-dialogs.js` — Escape / foco / `role=dialog` + `diffMustMatch`
-- `authFetch` — un retry CSRF vía `/api/auth/me` o `/api/status` + `notifyApiError` con CTA
-- `savePersona` — confirm si cambia `must_match`
-- `layout-smoke` — pass `mobile-414` (414×896)
-- Scripts en `views/_foot.html` (+ `build:index`)
-- Rutas Express para `influ-persona.js` / `persona-draft.js` / `studio-dialogs.js`
-- `resetPersonaFormForNew` ofrece el banner de borrador al abrir Crear
-- PR [#122](https://github.com/oscarkleinkopf/influ-json/pull/122)
+- [#122](https://github.com/oscarkleinkopf/influ-json/pull/122) CI verde → mergeado a `main`
+- Autosave borradores, CSRF recovery, must_match diff, dialogs a11y, mobile-414 smoke
+- Rutas Express + banner al abrir Crear
 
 ### Sesión previa (Cursor, 2026-08-13) — CI autónomo + Corte D
 
