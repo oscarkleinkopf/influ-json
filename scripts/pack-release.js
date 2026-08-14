@@ -39,6 +39,8 @@ const EXCLUDE_NAMES = new Set([
   'coverage',
   '.cursor',
   '.agents',
+  '.grok',
+  'artifacts',
   'influ.sqlite',
   'influ.sqlite-wal',
   'influ.sqlite-shm',
@@ -47,7 +49,9 @@ const EXCLUDE_NAMES = new Set([
 ]);
 
 const EXCLUDE_PREFIXES = [
-  'assets/references/ref_'
+  'assets/references/ref_',
+  'assets/generated/',
+  'tmp/'
 ];
 
 const EXCLUDE_SUFFIXES = [

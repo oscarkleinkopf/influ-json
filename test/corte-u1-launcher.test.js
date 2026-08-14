@@ -41,6 +41,8 @@ describe('Corte U1 — launcher + ZIP release', () => {
     assert.equal(pack.shouldExclude('influ.sqlite'), true);
     assert.equal(pack.shouldExclude('personas.json'), true);
     assert.equal(pack.shouldExclude('assets/references/ref_123.jpg'), true);
+    assert.equal(pack.shouldExclude('assets/generated/gen_flux_1.jpg'), true);
+    assert.equal(pack.shouldExclude('artifacts/layout-smoke-dashboard.png'), true);
     assert.equal(pack.shouldExclude('community-templates.js'), false);
     assert.equal(pack.shouldExclude('start-studio.sh'), false);
   });
