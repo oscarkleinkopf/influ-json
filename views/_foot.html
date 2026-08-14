@@ -223,10 +223,10 @@ cd influ-json
   </div>
 
   <!-- Login Screen Modal Overlay -->
-  <div id="loginModal" class="login-modal-overlay u-hidden">
+  <div id="loginModal" class="login-modal-overlay u-hidden" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle" aria-hidden="true">
     <div class="glass-card login-card" style="width: 100%; max-width: 400px; text-align: center; padding: 40px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
       <div class="logo-icon" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center;">I</div>
-      <h2 style="font-family: var(--font-display); font-size: 22px; margin-bottom: 6px; color: #fff;">influ-JSON Studio</h2>
+      <h2 id="loginModalTitle" style="font-family: var(--font-display); font-size: 22px; margin-bottom: 6px; color: #fff;">influ-JSON Studio</h2>
       <p class="u-lead-secondary">Elige tu perfil e introduce el PIN.</p>
       
       <form id="loginForm">

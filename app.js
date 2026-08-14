@@ -397,12 +397,28 @@ function checkAuthAndInit() {
 function showLoginScreen() {
   const staticModal = document.getElementById('staticHostModal');
   if (staticModal) staticModal.style.display = 'none';
-  document.getElementById('loginModal').style.display = 'flex';
+  const login = document.getElementById('loginModal');
+  if (!login) return;
+  const dialogs = typeof InfluDialogs !== 'undefined' ? InfluDialogs : null;
+  if (dialogs && typeof dialogs.openDialog === 'function') {
+    dialogs.openDialog(login, { display: 'flex', focusSelector: '#loginPinInput' });
+  } else {
+    login.style.display = 'flex';
+    login.removeAttribute('aria-hidden');
+  }
   loadLoginProfiles();
 }
 
 function hideLoginScreen() {
-  document.getElementById('loginModal').style.display = 'none';
+  const login = document.getElementById('loginModal');
+  if (!login) return;
+  const dialogs = typeof InfluDialogs !== 'undefined' ? InfluDialogs : null;
+  if (dialogs && typeof dialogs.closeDialog === 'function') {
+    dialogs.closeDialog(login);
+  } else {
+    login.style.display = 'none';
+    login.setAttribute('aria-hidden', 'true');
+  }
 }
 
 async function loadLoginProfiles() {
@@ -1843,7 +1859,13 @@ function setupActivePersonaChip() {
 
   copyBtn?.addEventListener('click', () => {
     if (!state.selectedPersona) {
-      toastInfo('Elige un influencer primero (chip «Trabajando con»).');
+      toastInfo('Elige un influencer primero (chip «Trabajando con»).', {
+        actionLabel: 'Ir a Influencers',
+        onAction: () => {
+          navigateToTab('dashboard');
+          document.getElementById('btnActivePersona')?.focus?.();
+        }
+      });
       return;
     }
     if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
@@ -2215,10 +2237,44 @@ function clearPortfolioSearch() {
   updateDashboardStats();
 }
 
+/** Polish: oculta plantillas/brief hasta que haya al menos 1 influencer (happy path primero). */
+function syncDashboardRosterPolish() {
+  const hasRoster = Array.isArray(state.personas) && state.personas.some((p) => !isArchivedPersona(p));
+  document.querySelectorAll('[data-require-roster="1"]').forEach((el) => {
+    el.classList.toggle('u-hidden', !hasRoster);
+    el.hidden = !hasRoster;
+  });
+  const act = document.getElementById('studioActivationCard');
+  if (act) {
+    act.classList.toggle('is-roster-empty', !hasRoster);
+    const list = document.getElementById('studioActivationList');
+    if (list) list.style.display = hasRoster ? '' : 'none';
+  }
+}
+
+/** Feedback inline en botones canónicos de Copiar JSON (además del toast). */
+function flashCopySuccessButtons() {
+  const ids = ['btnCopyPackFullbodyPrimary', 'btnContextCopyJson', 'btnExportUgcChatbot'];
+  ids.forEach((id) => {
+    const btn = document.getElementById(id);
+    if (!btn || btn.dataset.copyFlash === '1') return;
+    const prev = btn.textContent;
+    btn.dataset.copyFlash = '1';
+    btn.classList.add('is-copied');
+    btn.textContent = '¡Copiado!';
+    setTimeout(() => {
+      btn.textContent = prev;
+      btn.classList.remove('is-copied');
+      delete btn.dataset.copyFlash;
+    }, 1800);
+  });
+}
+
 // Dashboard Update
 function updateDashboardStats() {
   // F6 — refrescar checklist aunque el portafolio esté vacío
   renderHappyPathChecklist();
+  syncDashboardRosterPolish();
 
   const all = Array.isArray(state.personas) ? state.personas : [];
   const activeTotal = all.filter(p => !isArchivedPersona(p)).length;
@@ -4056,7 +4112,10 @@ function refreshLastPackStatus() {
 async function copyFreeChatbotPack(packId) {
   try {
     if (!state.selectedPersona && !document.getElementById('pName')?.value) {
-      toastInfo('Selecciona o crea un influencer antes de copiar un pack.');
+      toastInfo('Selecciona o crea un influencer antes de copiar un pack.', {
+        actionLabel: 'Ir a Influencers',
+        onAction: () => navigateToTab('dashboard')
+      });
       return;
     }
     const text = buildFreeChatbotPack(packId);
@@ -4066,6 +4125,7 @@ async function copyFreeChatbotPack(packId) {
     if (personaId) saveLastCopiedPack(personaId, packId);
     markHappyPathCopied();
     refreshLastPackStatus();
+    flashCopySuccessButtons();
     const toastOpts = {
       actionLabel: 'Volver a copiar último pack',
       onAction: () => { copyFreeChatbotPack(packId); },
@@ -4078,7 +4138,10 @@ async function copyFreeChatbotPack(packId) {
     );
   } catch (err) {
     console.error(err);
-    toastError('No se pudo copiar el pack: ' + (err.message || 'error'));
+    toastError('No se pudo copiar el pack: ' + (err.message || 'error'), {
+      actionLabel: 'Reintentar',
+      onAction: () => { copyFreeChatbotPack(packId); }
+    });
   }
 }
 
@@ -7249,7 +7312,7 @@ function setupUgcStudio() {
   // Free path: el CTA verde debe COPIAR el pack (no solo navegar a la ficha).
   document.getElementById('btnExportUgcChatbot').addEventListener('click', async () => {
     if (!state.selectedPersona && !document.getElementById('pName')?.value) {
-      toastInfo('Elegí un influencer (chip del header o Influencers) antes de copiar el pack UGC.', {
+      toastInfo('Elige un influencer (chip del header o Influencers) antes de copiar el pack UGC.', {
         actionLabel: 'Ir a Influencers',
         onAction: () => navigateToTab('persona-engine')
       });
@@ -7675,13 +7738,13 @@ function populateActiveUgcData() {
   if (!hasPersona) {
     setSrc('ugcActiveAvatar', 'assets/influencer_female.png');
     setText('ugcActiveName', 'Sin influencer');
-    setText('ugcActiveMeta', 'Elegí uno en el chip del header o en Influencers');
+    setText('ugcActiveMeta', 'Elige uno en el chip del header o en Influencers');
     setSrc('scriptActiveAvatar', 'assets/influencer_female.png');
     setText('scriptActivePersonaName', 'Sin influencer');
-    setText('scriptActivePersonaMeta', 'Elegí uno en el chip del header o en Influencers');
+    setText('scriptActivePersonaMeta', 'Elige uno en el chip del header o en Influencers');
     setSrc('licenseActiveAvatar', 'assets/influencer_female.png');
     setText('licenseActivePersonaName', 'Sin influencer');
-    setText('licenseActivePersonaMeta', 'Elegí uno en el chip del header o en Influencers');
+    setText('licenseActivePersonaMeta', 'Elige uno en el chip del header o en Influencers');
   } else {
     setSrc('ugcActiveAvatar', creator.image || 'assets/influencer_female.png');
     setText('ugcActiveName', creator.name || 'Influencer');
@@ -7845,7 +7908,10 @@ INVERSIÓN TOTAL: ${totalText} USD
 
 function copyLicensingProposal() {
   if (!state.selectedPersona) {
-    toastInfo('Elegí un influencer en el chip del header antes de copiar la propuesta.');
+    toastInfo('Elige un influencer en el chip del header antes de copiar la propuesta.', {
+      actionLabel: 'Ir a Influencers',
+      onAction: () => navigateToTab('dashboard')
+    });
     return;
   }
   navigator.clipboard.writeText(buildLicensingProposalText());
@@ -7855,7 +7921,10 @@ function copyLicensingProposal() {
 /** UX-3b — descarga .txt en lugar del alert stub «Enviar Propuesta». */
 function downloadLicensingProposal() {
   if (!state.selectedPersona) {
-    toastInfo('Elegí un influencer en el chip del header antes de descargar la propuesta.');
+    toastInfo('Elige un influencer en el chip del header antes de descargar la propuesta.', {
+      actionLabel: 'Ir a Influencers',
+      onAction: () => navigateToTab('dashboard')
+    });
     return;
   }
   const text = buildLicensingProposalText();

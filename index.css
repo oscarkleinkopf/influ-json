@@ -351,6 +351,13 @@ body {
   white-space: nowrap;
 }
 
+.studio-context-copy.is-copied,
+.btn.is-copied {
+  background: rgba(52, 211, 153, 0.4) !important;
+  border-color: rgba(110, 231, 183, 0.75) !important;
+  color: #a7f3d0 !important;
+}
+
 .studio-context-copy:disabled {
   opacity: 0.45;
   cursor: not-allowed;
