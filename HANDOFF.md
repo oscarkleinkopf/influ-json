@@ -25,14 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #129 (U1 launcher) |
-| **PR actual** | — |
-| **`main` remoto** | + #128 I4 · #129 U1 |
-| **Prioridad inmediata** | Polish / Pages honesto · F solo si LAN/VPS |
+| **Rama de trabajo** | `cursor/polish-fino-9b67` |
+| **Commit base** | `main` @ #130 (handoff post-U1) |
+| **PR actual** | Polish fino (en curso) |
+| **`main` remoto** | + #128 I4 · #129 U1 · #130 handoff |
+| **Prioridad inmediata** | Merge polish → F solo si LAN/VPS |
 | **Aparcado** | Corte F (LAN/VPS) · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-14) — I4 + U1 → main
+### Sesión reciente (Cursor, 2026-08-14) — Polish fino
+
+**Pedido:** Polish fino.
+
+**Hecho:**
+- Dashboard: plantillas/brief ocultos si roster vacío
+- Copiar JSON sin persona / fallo clipboard → toast + CTA; feedback «¡Copiado!»
+- Tuteo ES (Elige); UGC título en español; `loginModal` dialog a11y
+
+### Sesión previa (Cursor, 2026-08-14) — I4 + U1 → main
 
 **Pedido:** Merge y continua (tras IR plantillas).
 

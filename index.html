@@ -238,8 +238,8 @@
           </div>
         </div>
 
-        <!-- I4 — Plantillas comunitarias (sin must_match / fotos) -->
-        <div class="glass-card" id="communityTemplatesCard" style="margin-top: 24px;">
+        <!-- I4 — Plantillas (se ocultan si roster vacío — polish fino) -->
+        <div class="glass-card" id="communityTemplatesCard" data-require-roster="1" style="margin-top: 24px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
             <div>
               <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Plantillas de producción</h2>
@@ -260,8 +260,8 @@
           <p id="communityTemplateStatus" style="font-size:12px;color:var(--text-muted);margin:10px 0 0;line-height:1.4;"></p>
         </div>
 
-        <!-- I2 — Brief → checklist de producción (anti-pérdida) -->
-        <div class="glass-card" id="prodBriefCard" style="margin-top: 24px;">
+        <!-- I2 — Brief (se oculta si roster vacío — polish fino) -->
+        <div class="glass-card" id="prodBriefCard" data-require-roster="1" style="margin-top: 24px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
             <div>
               <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Qué producir ahora</h2>
@@ -1751,7 +1751,7 @@
             <img id="scriptActiveAvatar" src="assets/influencer_female.png" alt="" width="44" height="44" class="active-context-avatar">
             <div>
               <h4 id="scriptActivePersonaName" class="u-font-display-600">Sin influencer</h4>
-              <p id="scriptActivePersonaMeta" class="u-fs-11-sec">Elegí uno en el chip del header o en Influencers</p>
+              <p id="scriptActivePersonaMeta" class="u-fs-11-sec">Elige uno en el chip del header o en Influencers</p>
             </div>
           </div>
         </div>
@@ -1817,7 +1817,7 @@
       <section id="ugc-studio" class="tab-panel">
         <div class="content-header">
           <div class="content-title">
-            <h1>UGC Studio (Product in Hand)</h1>
+            <h1>Producir · UGC (producto en mano)</h1>
             <p>Empareja el ancla de identidad del influencer con el producto y el guión publicitario.</p>
           </div>
         </div>
@@ -1833,7 +1833,7 @@
                   <img id="ugcActiveAvatar" src="assets/influencer_female.png" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
                   <div>
                     <h4 id="ugcActiveName" class="u-font-display-600">Sin influencer</h4>
-                    <p id="ugcActiveMeta" class="u-fs-11-sec">Elegí uno en el chip del header o en Influencers</p>
+                    <p id="ugcActiveMeta" class="u-fs-11-sec">Elige uno en el chip del header o en Influencers</p>
                   </div>
                 </div>
               </div>
@@ -2038,7 +2038,7 @@
                     <span class="creator-handle" id="mockupHandle">@sofia_ai_ugc</span>
                   </div>
                   <div class="mockup-caption">
-                    <span id="mockupCaptionText">Elegí influencer y producto — el caption se arma al copiar JSON o generar boceto.</span>
+                    <span id="mockupCaptionText">Elige influencer y producto — el caption se arma al copiar JSON o generar boceto.</span>
                     <div class="mockup-disclosure-tag" id="ftcTags">#Ad #AIEndorsement</div>
                   </div>
                 </div>
@@ -2078,7 +2078,7 @@
             <img id="licenseActiveAvatar" src="assets/influencer_female.png" alt="" width="44" height="44" class="active-context-avatar">
             <div>
               <h4 id="licenseActivePersonaName" class="u-font-display-600">Sin influencer</h4>
-              <p id="licenseActivePersonaMeta" class="u-fs-11-sec">Elegí uno en el chip del header o en Influencers</p>
+              <p id="licenseActivePersonaMeta" class="u-fs-11-sec">Elige uno en el chip del header o en Influencers</p>
             </div>
           </div>
         </div>
@@ -2444,10 +2444,10 @@ cd influ-json
   </div>
 
   <!-- Login Screen Modal Overlay -->
-  <div id="loginModal" class="login-modal-overlay u-hidden">
+  <div id="loginModal" class="login-modal-overlay u-hidden" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle" aria-hidden="true">
     <div class="glass-card login-card" style="width: 100%; max-width: 400px; text-align: center; padding: 40px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
       <div class="logo-icon" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center;">I</div>
-      <h2 style="font-family: var(--font-display); font-size: 22px; margin-bottom: 6px; color: #fff;">influ-JSON Studio</h2>
+      <h2 id="loginModalTitle" style="font-family: var(--font-display); font-size: 22px; margin-bottom: 6px; color: #fff;">influ-JSON Studio</h2>
       <p class="u-lead-secondary">Elige tu perfil e introduce el PIN.</p>
       
       <form id="loginForm">

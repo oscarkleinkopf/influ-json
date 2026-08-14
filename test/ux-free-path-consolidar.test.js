@@ -40,7 +40,7 @@ test('Free Path: UGC pack producto llama copyFreeChatbotPack (no solo navega)', 
     /btnExportUgcChatbot[\s\S]{0,400}navigateToTab\(['"]persona-engine['"]\)[\s\S]{0,200}toastInfo\(['"]Pack free está en la ficha/
   );
   assert.match(appJs, /Sin influencer/);
-  assert.match(appJs, /Elegí uno en el chip del header/);
+  assert.match(appJs, /Elige uno en el chip del header/);
 });
 test('Free Path: sin claims falsos GPT-5.6 / Meta Ads live / Producción AI', () => {
   assert.doesNotMatch(html, /GPT-5\.6/);
