@@ -301,6 +301,9 @@ app.get('/production-recipe.js', (req, res) => {
 app.get('/production-brief.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'production-brief.js'));
 });
+app.get('/community-templates.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'community-templates.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });

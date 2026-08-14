@@ -669,6 +669,8 @@ Usa historial y QA existentes; no necesita API de scoring.
 
 ### I4 · Plantillas comunitarias sin datos personales
 
+> **Estado 2026-08-14:** ✅ implementado (`community-templates.js` + card Dashboard: aplicar / copiar JSON / import seguro). Merge pendiente.
+
 Compartir solo:
 
 - estructura de pack;

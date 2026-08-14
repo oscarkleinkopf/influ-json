@@ -118,6 +118,28 @@
           </div>
         </div>
 
+        <!-- I4 — Plantillas comunitarias (sin must_match / fotos) -->
+        <div class="glass-card" id="communityTemplatesCard" style="margin-top: 24px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+            <div>
+              <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Plantillas de producción</h2>
+              <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+                Pack + shot + cámara + hooks. <strong style="color:#fff;font-weight:600;">Sin cara ni must_match</strong> — seguras para compartir.
+              </p>
+            </div>
+          </div>
+          <div id="communityTemplatesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:12px;"></div>
+          <details id="communityTemplateImport" style="margin-top:4px;">
+            <summary style="cursor:pointer;font-size:12px;color:var(--text-secondary);">Importar JSON de plantilla (sin identidad)</summary>
+            <textarea id="communityTemplateImportText" rows="4" placeholder='{"schema_id":"influ-community-template/v1","title":"…"}' style="width:100%;margin-top:8px;padding:10px;background:rgba(0,0,0,0.35);border:1px solid var(--glass-border);border-radius:8px;color:#a7f3d0;font-family:var(--font-mono);font-size:11px;resize:vertical;"></textarea>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <button type="button" class="btn btn-sm" id="btnImportCommunityTemplate">Aplicar import</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnClearCommunityImport">Limpiar</button>
+            </div>
+          </details>
+          <p id="communityTemplateStatus" style="font-size:12px;color:var(--text-muted);margin:10px 0 0;line-height:1.4;"></p>
+        </div>
+
         <!-- I2 — Brief → checklist de producción (anti-pérdida) -->
         <div class="glass-card" id="prodBriefCard" style="margin-top: 24px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">

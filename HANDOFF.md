@@ -25,14 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #126 (I2 brief→checklist) |
-| **PR actual** | — |
-| **`main` remoto** | + #126 «Qué producir ahora» |
-| **Prioridad inmediata** | I4 plantillas · U1 launcher · o F si LAN |
+| **Rama de trabajo** | `cursor/corte-i4-plantillas-9b67` |
+| **Commit base** | `main` @ #127 (handoff post-I2) |
+| **PR actual** | I4 plantillas (en curso) |
+| **`main` remoto** | + #126 I2 · #127 handoff |
+| **Prioridad inmediata** | Merge I4 → U1 launcher · o F si LAN |
 | **Aparcado** | Corte F (LAN/VPS) · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-14) — I2 → main
+### Sesión reciente (Cursor, 2026-08-14) — I4 plantillas
+
+**Pedido:** IR plantillas (I4).
+
+**Hecho:**
+- `community-templates.js` — 4 nichos curados; validación sin `must_match`/fotos
+- Dashboard: card **Plantillas de producción** (aplicar → brief I2 + shot/cámara; copiar JSON; import seguro)
+- Tests: `test/corte-i4-community-templates.test.js`
+
+### Sesión previa (Cursor, 2026-08-14) — I2 → main
 
 **Pedido:** Se pierden (qué producir).
 
