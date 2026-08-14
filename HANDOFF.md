@@ -25,14 +25,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #124 merged (Corte G) |
-| **PR actual** | — |
-| **`main` remoto** | + #124 (Corte G medir valor) |
-| **Prioridad inmediata** | Cortes A–E+G cerrados; F solo si LAN/VPS; o ideas I2/I4 del análisis |
-| **Aparcado** | Corte F (LAN/VPS) · Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
+| **Rama de trabajo** | `cursor/corte-i2-brief-checklist-9b67` |
+| **Commit base** | `main` @ #125 |
+| **PR actual** | I2 brief → checklist (este branch) |
+| **`main` remoto** | + #124 Corte G · #125 handoff |
+| **Prioridad inmediata** | Terminar I2 (anti-pérdida producción) → CI → merge |
+| **Aparcado** | Corte F (LAN/VPS) · U1 launcher · I4 plantillas · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-14) — Corte G → main
+### Sesión reciente (Cursor, 2026-08-14) — I2 brief → checklist
+
+**Pedido:** Se pierden (qué producir).
+
+**Hecho:**
+- `production-brief.js` — brief corto → tareas con CTAs
+- Card «Qué producir ahora» en dashboard (hooks, pack, shots, campaña, licencia, identidad)
+
+### Sesión previa (Cursor, 2026-08-14) — Corte G → main
 
 **Pedido:** Corte G.
 

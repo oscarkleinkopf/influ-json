@@ -237,6 +237,46 @@
             <ol id="studioActivationList" class="happy-path-list" style="margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;"></ol>
           </div>
         </div>
+
+        <!-- I2 — Brief → checklist de producción (anti-pérdida) -->
+        <div class="glass-card" id="prodBriefCard" style="margin-top: 24px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+            <div>
+              <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Qué producir ahora</h2>
+              <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+                Escribe un brief corto → checklist con CTAs. Sin más pantallas de IA.
+              </p>
+            </div>
+            <span id="prodBriefSummary" class="happy-path-progress">0 pendientes</span>
+          </div>
+          <form id="prodBriefForm" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div>
+              <label for="prodBriefProduct" class="u-fs-10-muted">Producto / oferta</label>
+              <input id="prodBriefProduct" type="text" placeholder="Ej. crema hidratante" maxlength="120" class="settings-field-input" style="width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);border-radius:6px;color:#fff;font-size:13px;">
+            </div>
+            <div>
+              <label for="prodBriefBrand" class="u-fs-10-muted">Marca / cliente (opcional)</label>
+              <input id="prodBriefBrand" type="text" placeholder="Ej. Organics Labs" maxlength="80" class="settings-field-input" style="width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);border-radius:6px;color:#fff;font-size:13px;">
+            </div>
+            <div>
+              <label for="prodBriefHooks" class="u-fs-10-muted">Hooks / guiones</label>
+              <input id="prodBriefHooks" type="number" min="0" max="10" value="3" style="width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);border-radius:6px;color:#fff;font-size:13px;">
+            </div>
+            <div>
+              <label for="prodBriefShots" class="u-fs-10-muted">Shots verticales 9:16</label>
+              <input id="prodBriefShots" type="number" min="0" max="10" value="2" style="width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);border-radius:6px;color:#fff;font-size:13px;">
+            </div>
+            <div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:12px;color:var(--text-secondary);">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="prodBriefWantPack" checked> Pack producto</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="prodBriefWantCampaign" checked> Campaña</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="prodBriefWantLicense"> Licencia</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="prodBriefWantIdentity" checked> Prueba identidad</label>
+              <button type="submit" class="btn btn-sm" style="margin-left:auto;">Actualizar checklist</button>
+            </div>
+          </form>
+          <div id="prodBriefNextCta" class="happy-path-next-cta" style="display:none;margin-bottom:12px;" role="status"></div>
+          <ul id="prodBriefChecklist" style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;"></ul>
+        </div>
         
         <!-- Portfolio Search & Filter -->
         <div class="glass-card" style="margin-top: 24px;">
@@ -2780,6 +2820,7 @@ npm start</pre>
   <script src="identity-trial.js?v=1.0.0"></script>
   <script src="lock-lab.js?v=1.0.0"></script>
   <script src="production-recipe.js?v=1.0.0"></script>
+  <script src="production-brief.js?v=1.0.0"></script>
   <script src="app.js?v=1.14.1"></script>
 </body>
 </html>
