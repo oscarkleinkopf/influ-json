@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-14 | **Corte G → main (#124)** | activación 5/5; prueba identidad; lock lab A/B; recetas producción |
 | 2026-08-14 | **Corte G (en curso)** | activación 5/5; prueba identidad; lock lab A/B; recetas producción |
 | 2026-08-14 | **Corte E → main (#122)** | borradores; CSRF recovery; must_match diff; dialogs a11y; mobile-414 |
 | 2026-08-13 | **Corte E (en curso)** | borradores localStorage; CSRF recovery; must_match diff; dialogs a11y; mobile-414 smoke |
