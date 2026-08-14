@@ -151,6 +151,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-14 | **U1 launcher (en curso)** | Node 18+ · abre browser · `pack:release` ZIP sin secretos |
+| 2026-08-14 | **I4 → main (#128)** | Plantillas comunitarias sin must_match/fotos |
 | 2026-08-14 | **I4 plantillas (en curso)** | Pack/shot/hooks sin must_match — Dashboard + import seguro |
 | 2026-08-14 | **I2 → main (#126)** | «Qué producir ahora» — brief→checklist + CTAs |
 | 2026-08-14 | **I2 brief→checklist (en curso)** | «Qué producir ahora» — hooks/pack/shots/campaña/licencia |

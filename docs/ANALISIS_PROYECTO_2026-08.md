@@ -336,16 +336,18 @@ En status/UI, separar:
 
 ### U1 · Instalación local de un clic
 
+> **Estado 2026-08-14:** ✅ implementado — `start-studio.{sh,cmd}` (Node 18+, doctor, abre navegador) + `npm run pack:release` (ZIP sin `.env`/`data`/`node_modules` + `LEEME.txt`). Merge pendiente.
+
 Es el mayor hueco entre “producto usable” y “producto entregable”. Hoy GitHub Pages explica honestamente que hace falta clonar, instalar Node y usar terminal.
 
 **Secuencia recomendada:**
 
-1. `scripts/start-studio.{cmd,sh}`:
-   - comprueba Node;
+1. `start-studio.{cmd,sh}`:
+   - comprueba Node 18+;
    - instala solo si falta `node_modules`;
    - arranca;
-   - abre `http://127.0.0.1:3000`.
-2. ZIP de release que no incluya datos ni `.env`.
+   - abre `http://127.0.0.1:3000` (`OPEN_BROWSER=0` para desactivar).
+2. ZIP de release (`npm run pack:release`) que no incluya datos ni `.env`.
 3. Más adelante, instalador Windows/launcher nativo, sin convertirlo en requisito del desarrollo.
 
 **Criterio de hecho:** una persona no técnica abre el Studio desde un ZIP con una acción y recibe un error accionable si falta Node.

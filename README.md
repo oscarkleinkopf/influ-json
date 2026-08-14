@@ -21,21 +21,27 @@ Estudio local para **crear prompts y JSON de influencers virtuales** consistente
 
 ## Inicio rápido
 
+**Un clic (recomendado):**
+
+- Windows: doble clic en `start-studio.cmd`
+- Linux / macOS: `./start-studio.sh`
+
+El launcher comprueba Node 18+, instala deps si faltan, corre `npm run doctor`, arranca el Studio y abre `http://127.0.0.1:3000` (desactivar con `OPEN_BROWSER=0`). PIN por defecto: `1234`.
+
 ```bash
 npm install
 npm start
 ```
-
-En Windows / sin terminal: doble clic en `start-studio.cmd` (o `./start-studio.sh` en Linux/macOS). El launcher instala deps si faltan, corre `npm run doctor` y arranca el Studio.
-
-Abrir `http://localhost:3000` (PIN por defecto: `1234`, configurable en `.env` como `STUDIO_PIN`).
 
 Diagnóstico local (sin secretos):
 
 ```bash
 npm run doctor
 npm run support-bundle   # ZIP redactado en data/backups/
+npm run pack:release     # ZIP de distribución (sin .env / data / node_modules)
 ```
+
+ZIP de release: incluye `LEEME.txt` + launchers. No incluye secretos ni tu base local.
 
 ### GitHub Pages
 

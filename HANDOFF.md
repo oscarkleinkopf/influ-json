@@ -25,22 +25,29 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/corte-i4-plantillas-9b67` |
-| **Commit base** | `main` @ #127 (handoff post-I2) |
-| **PR actual** | I4 plantillas (en curso) |
-| **`main` remoto** | + #126 I2 · #127 handoff |
-| **Prioridad inmediata** | Merge I4 → U1 launcher · o F si LAN |
+| **Rama de trabajo** | `cursor/corte-u1-launcher-9b67` |
+| **Commit base** | `main` @ #128 (I4 plantillas) |
+| **PR actual** | U1 launcher (en curso) |
+| **`main` remoto** | + #128 I4 plantillas |
+| **Prioridad inmediata** | Merge U1 → polish / F si LAN |
 | **Aparcado** | Corte F (LAN/VPS) · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-14) — I4 plantillas
+### Sesión reciente (Cursor, 2026-08-14) — I4 → main · U1 en curso
+
+**Pedido:** Merge y continua.
+
+**Hecho:**
+- [#128](https://github.com/oscarkleinkopf/influ-json/pull/128) I4 → `main`
+- U1: launchers abren navegador + Node 18+ + `npm run pack:release` (ZIP sin secretos)
+
+### Sesión previa (Cursor, 2026-08-14) — I4 plantillas
 
 **Pedido:** IR plantillas (I4).
 
 **Hecho:**
 - `community-templates.js` — 4 nichos curados; validación sin `must_match`/fotos
-- Dashboard: card **Plantillas de producción** (aplicar → brief I2 + shot/cámara; copiar JSON; import seguro)
+- Dashboard: card **Plantillas de producción**
 - Tests: `test/corte-i4-community-templates.test.js`
-
 ### Sesión previa (Cursor, 2026-08-14) — I2 → main
 
 **Pedido:** Se pierden (qué producir).
