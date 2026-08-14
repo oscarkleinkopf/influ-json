@@ -286,6 +286,18 @@ app.get('/persona-draft.js', (req, res) => {
 app.get('/studio-dialogs.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'studio-dialogs.js'));
 });
+app.get('/studio-activation.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'studio-activation.js'));
+});
+app.get('/identity-trial.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'identity-trial.js'));
+});
+app.get('/lock-lab.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'lock-lab.js'));
+});
+app.get('/production-recipe.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'production-recipe.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });

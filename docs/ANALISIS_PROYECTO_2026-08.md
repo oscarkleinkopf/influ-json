@@ -750,10 +750,10 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 
 ### Corte G — Medir el valor
 
-1. Prueba de identidad guiada.
-2. Lock lab A/B.
-3. Métrica local de activación.
-4. Recetas de producción.
+1. Prueba de identidad guiada. ✅ `identity-trial.js` + silueta + 3 prompts
+2. Lock lab A/B. ✅ `lock-lab.js` + panel en avanzado
+3. Métrica local de activación. ✅ `studio-activation.js` · “Tu Studio está listo X/5”
+4. Recetas de producción. ✅ `production-recipe.js` · copiar JSON sin must_match
 
 ---
 
