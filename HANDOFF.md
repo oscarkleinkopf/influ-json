@@ -25,23 +25,20 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/corte-g-medir-valor-9b67` |
-| **Commit base** | `main` @ #123 (post Corte E) |
-| **PR actual** | Corte G medir valor (este branch) |
-| **`main` remoto** | + #122 Corte E · #123 handoff |
-| **Prioridad inmediata** | Terminar Corte G → CI → merge |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ #124 merged (Corte G) |
+| **PR actual** | — |
+| **`main` remoto** | + #124 (Corte G medir valor) |
+| **Prioridad inmediata** | Cortes A–E+G cerrados; F solo si LAN/VPS; o ideas I2/I4 del análisis |
 | **Aparcado** | Corte F (LAN/VPS) · Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-14) — Corte G medir valor
+### Sesión reciente (Cursor, 2026-08-14) — Corte G → main
 
 **Pedido:** Corte G.
 
 **Hecho:**
-- `studio-activation.js` — métrica local 5 pasos (“Tu Studio está listo X/5”)
-- `identity-trial.js` — prueba guiada (3 prompts + cara/tez/pelo/silueta)
-- `lock-lab.js` — A/B de revisiones con recomendación keep A/B
-- `production-recipe.js` — receta portable sin must_match
-- UI dashboard + Lock lab + Copiar receta; rutas Express
+- [#124](https://github.com/oscarkleinkopf/influ-json/pull/124) CI verde → mergeado a `main`
+- Activación local 5/5, prueba de identidad, Lock lab A/B, recetas de producción
 
 ### Sesión previa (Cursor, 2026-08-14) — Corte E → main
 
