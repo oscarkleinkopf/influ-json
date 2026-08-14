@@ -94,26 +94,108 @@ function setOfflineBanner(visible, message) {
   banner.style.display = visible ? 'flex' : 'none';
 }
 
+async function refreshCsrfToken() {
+  try {
+    const me = await fetch('/api/auth/me', { credentials: 'same-origin' });
+    if (me.ok) {
+      const data = await me.json().catch(() => ({}));
+      if (data.csrfToken) {
+        state.csrfToken = data.csrfToken;
+        return true;
+      }
+    }
+  } catch (_) { /* fall through */ }
+  try {
+    const st = await fetch('/api/status', { credentials: 'same-origin' });
+    if (st.ok) {
+      const data = await st.json().catch(() => ({}));
+      rememberCsrfToken(data);
+      return !!state.csrfToken;
+    }
+  } catch (_) {}
+  return false;
+}
+
+/**
+ * Toast + CTA según código de error API (Corte E / U4).
+ */
+function notifyApiError(data, fallbackMessage) {
+  const code = data?.code || data?.errorCode || null;
+  const msg = data?.message || data?.error || fallbackMessage || 'Error de servidor.';
+  if (code === 'CSRF') {
+    toastError('Sesión desactualizada (CSRF). Recarga la sesión sin perder el borrador.', {
+      actionLabel: 'Recargar sesión',
+      onAction: () => {
+        refreshCsrfToken().then((ok) => {
+          if (ok) toastSuccess('Sesión renovada — vuelve a intentar.');
+          else showLoginScreen();
+        });
+      },
+      duration: 10000
+    });
+    return;
+  }
+  if (code === 'RATE_LIMIT' || /429/.test(String(msg))) {
+    toastInfo(msg, {
+      actionLabel: 'Modo offline',
+      onAction: () => {
+        if (typeof setStudioOfflineMode === 'function') setStudioOfflineMode(true);
+      }
+    });
+    return;
+  }
+  if (data?.paymentRequired || data?.authRequired || /pollen|402|insufficient/i.test(String(msg))) {
+    toastInfo(msg, {
+      actionLabel: 'Copiar JSON',
+      onAction: () => {
+        if (typeof copyFreeChatbotPack === 'function') copyFreeChatbotPack('fullbody');
+      }
+    });
+    return;
+  }
+  toastError(msg);
+}
+
 async function authFetch(url, options = {}) {
-  options.headers = options.headers || {};
-  options.credentials = options.credentials || 'same-origin';
-  if (!(options.body instanceof FormData)) {
-    options.headers['Content-Type'] = 'application/json';
+  const opts = { ...options };
+  opts.headers = { ...(options.headers || {}) };
+  opts.credentials = opts.credentials || 'same-origin';
+  if (!(opts.body instanceof FormData)) {
+    opts.headers['Content-Type'] = opts.headers['Content-Type'] || 'application/json';
   }
   // Cookie session (influ.sid) — no Bearer/PIN in JS storage.
   // Server still accepts Authorization: Bearer for tests/CLI.
-  const method = String(options.method || 'GET').toUpperCase();
+  const method = String(opts.method || 'GET').toUpperCase();
   if (state.csrfToken && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
-    options.headers['X-CSRF-Token'] = state.csrfToken;
+    opts.headers['X-CSRF-Token'] = state.csrfToken;
   }
 
+  const alreadyRetried = opts._csrfRetried === true;
+
   try {
-    const res = await fetch(url, options);
+    const res = await fetch(url, opts);
     setOfflineBanner(false);
     try {
       const peekCsrf = res.headers.get('x-csrf-token');
       if (peekCsrf) state.csrfToken = peekCsrf;
     } catch (_) { /* ignore */ }
+
+    if (res.status === 403 && !alreadyRetried && method !== 'GET' && method !== 'HEAD') {
+      let csrfFail = false;
+      try {
+        const peek = await res.clone().json();
+        csrfFail = peek?.code === 'CSRF';
+      } catch (_) { /* not JSON */ }
+      if (csrfFail) {
+        const refreshed = await refreshCsrfToken();
+        if (refreshed) {
+          const retryOpts = { ...opts, _csrfRetried: true, headers: { ...opts.headers } };
+          if (state.csrfToken) retryOpts.headers['X-CSRF-Token'] = state.csrfToken;
+          return authFetch(url, retryOpts);
+        }
+        notifyApiError({ code: 'CSRF', message: 'Token CSRF inválido o expirado.' });
+      }
+    }
 
     if (res.status === 401) {
       // Pollinations auth/pollen can surface as 401 — no cerrar sesión Studio.
@@ -215,6 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupFacePack', fn: setupFacePack },
     { name: 'setupOfflineBanner', fn: setupOfflineBanner },
     { name: 'setupSettings', fn: setupSettings },
+    { name: 'setupAccessibleDialogs', fn: setupAccessibleDialogs },
     { name: 'setupPinWizard', fn: setupPinWizard },
     { name: 'setupMemberOnboarding', fn: setupMemberOnboarding },
     { name: 'initImportModal', fn: initImportModal }
@@ -1274,6 +1357,50 @@ function openPollinationsSettings() {
 }
 window.openPollinationsSettings = openPollinationsSettings;
 
+function setupAccessibleDialogs() {
+  const dialogs = getDialogsApi();
+  if (!dialogs) return;
+  dialogs.installGlobalHandlers(document);
+
+  const wire = (modalId, openBtnId, closeBtnId) => {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    const openBtn = openBtnId ? document.getElementById(openBtnId) : null;
+    const closeBtn = closeBtnId ? document.getElementById(closeBtnId) : null;
+    if (openBtn) {
+      openBtn.addEventListener('click', () => {
+        dialogs.openDialog(modal, { display: 'flex' });
+      }, true);
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => dialogs.closeDialog(modal), true);
+    }
+    // Click backdrop (modal itself as overlay)
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) dialogs.closeDialog(modal);
+    });
+  };
+
+  // settings has its own open handler — only enhance Escape/close via capture on close btn
+  const settings = document.getElementById('settingsModal');
+  if (settings) {
+    settings.setAttribute('role', 'dialog');
+    settings.setAttribute('aria-modal', 'true');
+    document.getElementById('btnCloseSettings')?.addEventListener('click', () => {
+      dialogs.closeDialog(settings);
+    }, true);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && settings.style.display === 'flex') {
+        dialogs.closeDialog(settings);
+      }
+    });
+  }
+
+  wire('importInfluencerModal', null, 'btnCloseImportModal');
+  wire('historyModal', null, 'btnCloseHistory');
+  wire('chatbotSessionModal', null, 'btnCloseChatbotSession');
+}
+
 function setupSettings() {
   const modal = document.getElementById('settingsModal');
   const btnOpen = document.getElementById('btnOpenSettings');
@@ -1298,7 +1425,9 @@ function setupSettings() {
   if (btnOpen) {
     btnOpen.addEventListener('click', () => {
       applyRoleBasedSettingsUi();
-      if (modal) modal.style.display = 'flex';
+      const dialogs = getDialogsApi();
+      if (modal && dialogs) dialogs.openDialog(modal, { display: 'flex' });
+      else if (modal) modal.style.display = 'flex';
       refreshProfilesSettingsList();
       if (isCurrentUserAdmin()) {
         refreshGenMetricsSettings();
@@ -1310,7 +1439,9 @@ function setupSettings() {
 
   if (btnClose) {
     btnClose.addEventListener('click', () => {
-      if (modal) modal.style.display = 'none';
+      const dialogs = getDialogsApi();
+      if (modal && dialogs) dialogs.closeDialog(modal);
+      else if (modal) modal.style.display = 'none';
     });
   }
 
@@ -3288,6 +3419,9 @@ function resetPersonaFormForNew() {
     personaForm.style.display = 'flex';
   }
   if (typeof setPersonaStep === 'function') setPersonaStep(1, { scroll: false });
+
+  // Corte E — ofrecer borrador tras abrir el formulario (perfil ya conocido)
+  try { maybeOfferPersonaDraft(); } catch (_) {}
 }
 
 // Select Persona
@@ -4806,16 +4940,116 @@ function resolveSkinForPrompt(detailedLive, persona) {
 }
 
 // Persona Engine Tab Logic
+function getPersonaDraftApi() {
+  return (typeof InfluPersonaDraft !== 'undefined' ? InfluPersonaDraft : null)
+    || (typeof window !== 'undefined' ? window.InfluPersonaDraft : null);
+}
+
+function getDialogsApi() {
+  return (typeof InfluDialogs !== 'undefined' ? InfluDialogs : null)
+    || (typeof window !== 'undefined' ? window.InfluDialogs : null);
+}
+
+function currentDraftProfileId() {
+  return state.currentProfile?.id || state.profileId || 'anon';
+}
+
+function currentDraftMode() {
+  return state.isCreatingNewPersona ? 'create' : (state.selectedPersona?.id ? 'create' : 'create');
+}
+
+function hidePersonaDraftBanner() {
+  const el = document.getElementById('personaDraftBanner');
+  if (el) el.style.display = 'none';
+}
+
+function showPersonaDraftBanner(draft) {
+  const api = getPersonaDraftApi();
+  if (!api || !draft) return;
+  let el = document.getElementById('personaDraftBanner');
+  const personaForm = document.getElementById('personaForm');
+  if (!el && personaForm?.parentElement) {
+    el = document.createElement('div');
+    el.id = 'personaDraftBanner';
+    el.setAttribute('role', 'status');
+    el.style.cssText = 'display:none;margin:0 0 12px 0;padding:10px 14px;border-radius:10px;border:1px solid rgba(234,179,8,0.35);background:rgba(234,179,8,0.12);color:#fde68a;font-size:12px;line-height:1.4;';
+    personaForm.parentElement.insertBefore(el, personaForm);
+  }
+  if (!el) return;
+  el.style.display = 'flex';
+  el.style.flexWrap = 'wrap';
+  el.style.gap = '8px';
+  el.style.alignItems = 'center';
+  el.innerHTML = '';
+  const text = document.createElement('span');
+  text.textContent = api.bannerText(draft);
+  el.appendChild(text);
+  const btnKeep = document.createElement('button');
+  btnKeep.type = 'button';
+  btnKeep.className = 'btn btn-sm';
+  btnKeep.textContent = 'Continuar';
+  btnKeep.addEventListener('click', () => {
+    api.applyDraftToForm(draft);
+    try { compilePromptAndJSON(); } catch (_) {}
+    hidePersonaDraftBanner();
+    toastSuccess('Borrador restaurado');
+  });
+  const btnDiscard = document.createElement('button');
+  btnDiscard.type = 'button';
+  btnDiscard.className = 'btn btn-secondary btn-sm';
+  btnDiscard.textContent = 'Descartar';
+  btnDiscard.addEventListener('click', () => {
+    api.clearDraft(currentDraftProfileId(), draft.mode || 'create');
+    hidePersonaDraftBanner();
+    toastInfo('Borrador descartado');
+  });
+  el.appendChild(btnKeep);
+  el.appendChild(btnDiscard);
+}
+
+function schedulePersonaDraftSave() {
+  const api = getPersonaDraftApi();
+  if (!api) return;
+  if (state._personaDraftTimer) clearTimeout(state._personaDraftTimer);
+  state._personaDraftTimer = setTimeout(() => {
+    try {
+      const formApi = (typeof InfluPersonaForm !== 'undefined' ? InfluPersonaForm : window.InfluPersonaForm);
+      if (!formApi?.readPersonaForm) return;
+      const form = formApi.readPersonaForm();
+      if (!form?.name && !form?.skinTone && !form?.eyeColor) return;
+      api.saveDraft({
+        profileId: currentDraftProfileId(),
+        mode: 'create',
+        form
+      });
+    } catch (_) { /* ignore */ }
+  }, 600);
+}
+
+function maybeOfferPersonaDraft() {
+  const api = getPersonaDraftApi();
+  if (!api) return;
+  const draft = api.loadDraft(currentDraftProfileId(), 'create');
+  if (!draft?.form) return;
+  const hasContent = Object.values(draft.form).some((v) => String(v || '').trim());
+  if (!hasContent) return;
+  showPersonaDraftBanner(draft);
+}
+
 function setupPersonaEngine() {
   const formInputs = document.querySelectorAll('#personaForm input, #personaForm select');
   formInputs.forEach(input => {
-    input.addEventListener('input', compilePromptAndJSON);
+    input.addEventListener('input', () => {
+      compilePromptAndJSON();
+      schedulePersonaDraftSave();
+    });
   });
   
   // Update clothing select whenever gender select changes
   document.getElementById('pGender').addEventListener('change', () => {
     updateClothingDropdown();
     compilePromptAndJSON();
+    schedulePersonaDraftSave();
   });
 
   // Init clothing + setting lists (includes beach / swimwear)
@@ -4828,6 +5062,8 @@ function setupPersonaEngine() {
     applyLatinaTezClaraSuggestion();
   });
   document.getElementById('btnDeletePersona').addEventListener('click', deletePersonaAction);
+
+  maybeOfferPersonaDraft();
 
   // Sync color picker ↔ hex text
   const hexText = document.getElementById('pSkinToneHex');
@@ -5475,6 +5711,36 @@ async function savePersona(opts = {}) {
     return;
   }
 
+  // Create mode is sticky until selectPersona / successful create selects the new one
+  const creatingNew = state.isCreatingNewPersona === true || !state.selectedPersona?.id;
+
+  // Corte E / U6 — diff must_match antes de sobrescribir identidad
+  if (!creatingNew && state.selectedPersona?.id && !opts._skipMustMatchConfirm) {
+    try {
+      const dialogs = getDialogsApi();
+      let prevMust = {};
+      const stored = parseDetailedJSON(state.selectedPersona.detailedJSON);
+      if (stored?.character_lock?.must_match_every_image) {
+        prevMust = stored.character_lock.must_match_every_image;
+      }
+      const nextJson = getFullPersonaJSON();
+      const nextMust = nextJson?.character_lock?.must_match_every_image || {};
+      const changes = dialogs
+        ? dialogs.diffMustMatch(prevMust, nextMust)
+        : [];
+      if (changes.length) {
+        const text = dialogs.formatMustMatchDiff(changes);
+        const ok = window.confirm(
+          `Cambios de identidad (must_match):\n\n${text}\n\nEsto puede cambiar la persona en futuras imágenes.\n\n¿Guardar nueva identidad?`
+        );
+        if (!ok) {
+          toastInfo('Guardado cancelado — se mantiene el lock anterior.');
+          return;
+        }
+      }
+    } catch (_) { /* no bloquear save si falla el diff */ }
+  }
+
   // Idea #2 — soft nudge (no bloquea): Latina + tez clara sin corrección
   if (typeof CharacterLockValidator !== 'undefined' && CharacterLockValidator.suggestLatinaLightSkinFix) {
     const tone = document.getElementById('pSkinTone')?.value || '';
@@ -5490,9 +5756,6 @@ async function savePersona(opts = {}) {
     }
   }
 
-  // Create mode is sticky until selectPersona / successful create selects the new one
-  const creatingNew = state.isCreatingNewPersona === true || !state.selectedPersona?.id;
-  
   const promptText = document.getElementById('promptPreview').textContent;
   const influencerName = name || 'Influencer';
   toastLoading(creatingNew
@@ -5565,6 +5828,11 @@ async function savePersona(opts = {}) {
       state.personas = Array.isArray(data.personas) ? data.personas : state.personas;
       setUploadedImagePath(null);
       state.isCreatingNewPersona = false;
+      try {
+        const draftApi = getPersonaDraftApi();
+        draftApi?.clearDraft(currentDraftProfileId(), 'create');
+        hidePersonaDraftBanner();
+      } catch (_) {}
 
       const createBanner = document.getElementById('createModeBanner');
       if (createBanner) createBanner.style.display = 'none';
@@ -5630,7 +5898,7 @@ async function savePersona(opts = {}) {
       }
       renderHappyPathChecklist();
     } else {
-      toastError(data.message || 'No se pudo guardar la persona.');
+      notifyApiError(data, data.message || 'No se pudo guardar la persona.');
     }
   } catch (err) {
     toastError('Error de servidor al guardar.');

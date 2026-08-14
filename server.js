@@ -277,6 +277,15 @@ app.get('/photo-analysis.js', (req, res) => {
 app.get('/photo-upload-ui.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'photo-upload-ui.js'));
 });
+app.get('/influ-persona.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'influ-persona.js'));
+});
+app.get('/persona-draft.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'persona-draft.js'));
+});
+app.get('/studio-dialogs.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'studio-dialogs.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });

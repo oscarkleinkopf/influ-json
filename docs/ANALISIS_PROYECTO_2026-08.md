@@ -733,11 +733,11 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 
 ### Corte E — UX resistente
 
-1. Autosave de borradores.
-2. Smoke móvil en CI.
-3. Diálogos accesibles y teclado.
-4. Recovery CSRF + errores con CTA/códigos.
-5. Diff antes de cambiar `must_match`.
+1. Autosave de borradores. ✅ `persona-draft.js` + banner Continuar/Descartar
+2. Smoke móvil en CI. ✅ `layout-smoke` pass `mobile-414` (414×896)
+3. Diálogos accesibles y teclado. ✅ `studio-dialogs.js` Escape/foco/`role=dialog`
+4. Recovery CSRF + errores con CTA/códigos. ✅ `authFetch` retry + `notifyApiError`
+5. Diff antes de cambiar `must_match`. ✅ confirm pre-save en `savePersona`
 
 ### Corte F — Modo LAN/VPS (solo si se usa)
 
