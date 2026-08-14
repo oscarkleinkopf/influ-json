@@ -43,6 +43,9 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - `savePersona` — confirm si cambia `must_match`
 - `layout-smoke` — pass `mobile-414` (414×896)
 - Scripts en `views/_foot.html` (+ `build:index`)
+- Rutas Express para `influ-persona.js` / `persona-draft.js` / `studio-dialogs.js`
+- `resetPersonaFormForNew` ofrece el banner de borrador al abrir Crear
+- PR [#122](https://github.com/oscarkleinkopf/influ-json/pull/122)
 
 ### Sesión previa (Cursor, 2026-08-13) — CI autónomo + Corte D
 
