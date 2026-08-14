@@ -25,14 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/corte-u1-launcher-9b67` |
-| **Commit base** | `main` @ #128 (I4 plantillas) |
-| **PR actual** | U1 launcher (en curso) |
-| **`main` remoto** | + #128 I4 plantillas |
-| **Prioridad inmediata** | Merge U1 → polish / F si LAN |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ #129 (U1 launcher) |
+| **PR actual** | — |
+| **`main` remoto** | + #128 I4 · #129 U1 |
+| **Prioridad inmediata** | Polish / Pages honesto · F solo si LAN/VPS |
 | **Aparcado** | Corte F (LAN/VPS) · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-14) — I4 → main · U1 en curso
+### Sesión reciente (Cursor, 2026-08-14) — I4 + U1 → main
+
+**Pedido:** Merge y continua (tras IR plantillas).
+
+**Hecho:**
+- [#128](https://github.com/oscarkleinkopf/influ-json/pull/128) I4 plantillas → `main`
+- [#129](https://github.com/oscarkleinkopf/influ-json/pull/129) U1 launcher → `main` (Node 18+, abre browser, `pack:release`)
+- Pages / modal estático: arranque con `start-studio` (un clic)
+
+### Sesión previa (Cursor, 2026-08-14) — I4 → main · U1 en curso
 
 **Pedido:** Merge y continua.
 

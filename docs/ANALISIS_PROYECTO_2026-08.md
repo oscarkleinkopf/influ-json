@@ -336,7 +336,7 @@ En status/UI, separar:
 
 ### U1 · Instalación local de un clic
 
-> **Estado 2026-08-14:** ✅ implementado — `start-studio.{sh,cmd}` (Node 18+, doctor, abre navegador) + `npm run pack:release` (ZIP sin `.env`/`data`/`node_modules` + `LEEME.txt`). Merge pendiente.
+> **Estado 2026-08-14:** ✅ en `main` (#129) — `start-studio.{sh,cmd}` (Node 18+, doctor, abre navegador) + `npm run pack:release` (ZIP sin `.env`/`data`/`node_modules` + `LEEME.txt`).
 
 Es el mayor hueco entre “producto usable” y “producto entregable”. Hoy GitHub Pages explica honestamente que hace falta clonar, instalar Node y usar terminal.
 
@@ -671,7 +671,7 @@ Usa historial y QA existentes; no necesita API de scoring.
 
 ### I4 · Plantillas comunitarias sin datos personales
 
-> **Estado 2026-08-14:** ✅ implementado (`community-templates.js` + card Dashboard: aplicar / copiar JSON / import seguro). Merge pendiente.
+> **Estado 2026-08-14:** ✅ en `main` (#128) — `community-templates.js` + card Dashboard (aplicar / copiar JSON / import seguro).
 
 Compartir solo:
 

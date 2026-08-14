@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-14 | **U1 → main (#129)** | Launcher abre browser + `pack:release` ZIP sin secretos |
 | 2026-08-14 | **U1 launcher (en curso)** | Node 18+ · abre browser · `pack:release` ZIP sin secretos |
 | 2026-08-14 | **I4 → main (#128)** | Plantillas comunitarias sin must_match/fotos |
 | 2026-08-14 | **I4 plantillas (en curso)** | Pack/shot/hooks sin must_match — Dashboard + import seguro |
