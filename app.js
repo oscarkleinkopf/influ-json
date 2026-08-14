@@ -293,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupProductionRecipe', fn: setupProductionRecipe },
     { name: 'setupStudioActivation', fn: setupStudioActivation },
     { name: 'setupProductionBrief', fn: setupProductionBrief },
+    { name: 'setupCommunityTemplates', fn: setupCommunityTemplates },
     { name: 'setupHappyPathChecklist', fn: setupHappyPathChecklist },
     { name: 'setupNichePresets', fn: setupNichePresets },
     { name: 'setupComoUsarGuide', fn: setupComoUsarGuide },
@@ -5039,6 +5040,11 @@ function getBriefApi() {
     || (typeof window !== 'undefined' ? window.InfluProductionBrief : null);
 }
 
+function getCommunityTemplatesApi() {
+  return (typeof InfluCommunityTemplates !== 'undefined' ? InfluCommunityTemplates : null)
+    || (typeof window !== 'undefined' ? window.InfluCommunityTemplates : null);
+}
+
 function activationProfileId() {
   return state.currentProfile?.id || 'anon';
 }
@@ -5294,6 +5300,130 @@ function setupProductionBrief() {
     toastSuccess('Checklist de producción actualizado');
   });
   renderProductionBrief();
+}
+
+function setCommunityTemplateStatus(msg, ok = true) {
+  const el = document.getElementById('communityTemplateStatus');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.color = ok ? '#a7f3d0' : 'var(--danger)';
+}
+
+function applyCommunityTemplate(template, { copyHooks = true } = {}) {
+  const tplApi = getCommunityTemplatesApi();
+  const briefApi = getBriefApi();
+  if (!tplApi || !template) {
+    toastError('Plantilla no disponible.');
+    return;
+  }
+  const productOverride = document.getElementById('prodBriefProduct')?.value || '';
+  const briefDefaults = tplApi.toBriefDefaults(template, {
+    product: productOverride || undefined,
+    brand: document.getElementById('prodBriefBrand')?.value || undefined
+  });
+  if (briefApi && briefDefaults) {
+    const prev = briefApi.load(activationProfileId());
+    briefApi.save(activationProfileId(), { ...prev.brief, ...briefDefaults }, prev.overrides || {});
+    fillBriefForm({ ...prev.brief, ...briefDefaults });
+    renderProductionBrief();
+  }
+  // Shot / cámara UGC (sin tocar must_match)
+  try {
+    if (template.shot?.camera && typeof setUgcCamera === 'function') {
+      setUgcCamera(template.shot.camera);
+    } else if (template.shot?.camera) {
+      state.ugcCameraId = template.shot.camera;
+    }
+    if (template.shot?.type && typeof setUgcShotType === 'function') {
+      setUgcShotType(template.shot.type);
+    } else if (template.shot?.type) {
+      state.ugcShotTypeId = template.shot.type;
+    }
+  } catch (_) {}
+
+  if (copyHooks && Array.isArray(template.script_hooks) && template.script_hooks.length) {
+    const block = [
+      `PLANTILLA: ${template.title}`,
+      `Nicho: ${template.niche || '—'} · Pack: ${template.pack?.free_pack_id || '—'} · Shot: ${template.shot?.type || '—'} / ${template.shot?.camera || '—'}`,
+      '',
+      'HOOKS / GUIÓN',
+      ...template.script_hooks.map((h, i) => `${i + 1}. ${h}`),
+      '',
+      'REGLAS DE REALISMO',
+      ...(template.realism_rules || []).map((r) => `• ${r}`),
+      '',
+      'CTA: ' + (template.voice?.cta || '—')
+    ].join('\n');
+    navigator.clipboard.writeText(block).then(() => {
+      toastSuccess(`Plantilla «${template.title}» aplicada · hooks copiados`);
+    }).catch(() => {
+      toastSuccess(`Plantilla «${template.title}» aplicada al brief`);
+    });
+  } else {
+    toastSuccess(`Plantilla «${template.title}» aplicada al brief`);
+  }
+  setCommunityTemplateStatus(`Activa: ${template.title} (${template.shot?.type || 'shot'} · ${template.pack?.free_pack_id || 'pack'})`);
+  document.getElementById('prodBriefCard')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderCommunityTemplates() {
+  const api = getCommunityTemplatesApi();
+  const grid = document.getElementById('communityTemplatesGrid');
+  if (!api || !grid) return;
+  const list = api.listTemplates();
+  grid.innerHTML = list.map((t) => `
+    <div style="padding:12px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.22);display:flex;flex-direction:column;gap:8px;">
+      <div>
+        <strong style="display:block;font-size:13px;color:#fff;">${String(t.title).replace(/[<>&]/g, '')}</strong>
+        <span style="font-size:11px;color:var(--text-muted);">${String(t.short || '').replace(/[<>&]/g, '')}</span>
+      </div>
+      <p style="margin:0;font-size:10px;color:var(--text-secondary);line-height:1.35;">
+        ${t.pack || '—'} · ${t.shot || '—'} / ${t.camera || '—'}
+      </p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;">
+        <button type="button" class="btn btn-sm" data-tpl-apply="${t.id}" style="font-size:11px;flex:1;">Aplicar</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-tpl-copy="${t.id}" style="font-size:11px;" title="Copiar JSON sin identidad">JSON</button>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('[data-tpl-apply]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tpl = api.getTemplate(btn.getAttribute('data-tpl-apply'));
+      applyCommunityTemplate(tpl);
+    });
+  });
+  grid.querySelectorAll('[data-tpl-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const tpl = api.getTemplate(btn.getAttribute('data-tpl-copy'));
+      try {
+        await navigator.clipboard.writeText(api.toClipboardText(tpl));
+        toastSuccess('Plantilla JSON copiada (sin must_match)');
+      } catch (err) {
+        toastError(err.message || 'No se pudo copiar');
+      }
+    });
+  });
+}
+
+function setupCommunityTemplates() {
+  const api = getCommunityTemplatesApi();
+  if (!api) return;
+  renderCommunityTemplates();
+  document.getElementById('btnImportCommunityTemplate')?.addEventListener('click', () => {
+    const text = document.getElementById('communityTemplateImportText')?.value || '';
+    const parsed = api.parseImport(text);
+    if (!parsed.ok) {
+      setCommunityTemplateStatus(parsed.errors.join(' · '), false);
+      toastError(parsed.errors[0] || 'Import inválido');
+      return;
+    }
+    applyCommunityTemplate(parsed.template);
+  });
+  document.getElementById('btnClearCommunityImport')?.addEventListener('click', () => {
+    const ta = document.getElementById('communityTemplateImportText');
+    if (ta) ta.value = '';
+    setCommunityTemplateStatus('');
+  });
 }
 
 function setupProductionRecipe() {
