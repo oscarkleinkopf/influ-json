@@ -585,9 +585,13 @@ npm start</pre>
         <label class="chatbot-session-row u-flex-center-gap" >
           <input type="checkbox" id="chkSessionHair" data-session-check="hair"> ¿Mismo pelo (color / largo / textura)?
         </label>
+        <label class="chatbot-session-row u-flex-center-gap" >
+          <input type="checkbox" id="chkSessionSilhouette" data-session-check="silhouette"> ¿Misma silueta / proporciones en cuerpo entero?
+        </label>
       </div>
       <p id="chatbotSessionStatus" style="font-size:12px; color:var(--text-muted); margin:14px 0 0; line-height:1.4;"></p>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
+        <button type="button" id="btnCopyIdentityTrialBlock" class="btn btn-secondary btn-sm u-flex-min-input" data-offline-highlight="pack">Copiar 3 prompts</button>
         <button type="button" id="btnSaveChatbotSession" class="btn btn-sm u-flex-min-input" >Guardar checklist</button>
         <button type="button" id="btnRecopyChatbotSession" class="btn btn-secondary btn-sm u-flex-min-input" data-offline-highlight="pack" >Volver a copiar bloque</button>
       </div>
@@ -613,6 +617,10 @@ npm start</pre>
   <script src="photo-upload-ui.js?v=1.0.0"></script>
   <script src="persona-draft.js?v=1.0.0"></script>
   <script src="studio-dialogs.js?v=1.0.0"></script>
+  <script src="studio-activation.js?v=1.0.0"></script>
+  <script src="identity-trial.js?v=1.0.0"></script>
+  <script src="lock-lab.js?v=1.0.0"></script>
+  <script src="production-recipe.js?v=1.0.0"></script>
   <script src="app.js?v=1.14.1"></script>
 </body>
 </html>

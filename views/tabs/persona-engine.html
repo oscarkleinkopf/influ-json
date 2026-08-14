@@ -168,6 +168,8 @@
                 <div data-step2-secondary style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
                   <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px;">Descargas (opcional, no sustituyen el pack free)</p>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnCopyProductionRecipe" style="width: 100%; font-size: 11px; padding: 8px 10px; margin-top: 8px;" title="JSON portable sin fotos ni must_match (plantilla comunitaria)">📋 Copiar receta de producción</button>
+                  <p style="font-size:10px;color:var(--text-muted);margin:6px 0 0;line-height:1.35;">Receta = shot + cámara + CTA + pack. No incluye cara/tez (seguro para compartir).</p>
                   <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnExportBrandKitSheet" >🎁 Descargar kit marca (packs + guión)</button>
                 </div>
               </div>
@@ -904,6 +906,30 @@
                 <p class="lock-revisions-hint">Historial local (máx. 20). Restaura si tocaste el JSON y perdiste cara/tez/pelo.</p>
                 <div id="lockRevisionsList" class="lock-revisions-list"></div>
                 <pre id="lockRevisionDiff" class="lock-revision-diff u-hidden"></pre>
+              </div>
+              <div id="lockLabPanel" data-persona-step="advanced" class="lock-lab" style="margin-top:14px;padding:12px;border-radius:10px;border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.08);">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <strong style="font-size:12px;color:#ddd6fe;">Lock lab A/B</strong>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshLockLab" style="padding:4px 8px;font-size:10px;">Cargar revisiones</button>
+                </div>
+                <p style="font-size:11px;color:var(--text-secondary);margin:8px 0;line-height:1.4;">Mismos 3 prompts · evaluación manual · sin API de scoring. Compara dos versiones del lock.</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                  <div>
+                    <label for="lockLabRevA" style="font-size:10px;color:var(--text-muted);">Lock A</label>
+                    <select id="lockLabRevA" style="width:100%;padding:6px;background:rgba(0,0,0,0.35);border:1px solid var(--glass-border);border-radius:6px;color:#fff;font-size:11px;"></select>
+                    <div id="lockLabScoreA" class="lock-lab-score" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--text-secondary);"></div>
+                  </div>
+                  <div>
+                    <label for="lockLabRevB" style="font-size:10px;color:var(--text-muted);">Lock B</label>
+                    <select id="lockLabRevB" style="width:100%;padding:6px;background:rgba(0,0,0,0.35);border:1px solid var(--glass-border);border-radius:6px;color:#fff;font-size:11px;"></select>
+                    <div id="lockLabScoreB" class="lock-lab-score" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--text-secondary);"></div>
+                  </div>
+                </div>
+                <p id="lockLabRecommendation" style="font-size:12px;color:#c4b5fd;margin:10px 0 8px;line-height:1.4;"></p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnLockLabCopyPrompts" style="font-size:11px;">Copiar 3 prompts</button>
+                  <button type="button" class="btn btn-sm" id="btnLockLabSave" style="font-size:11px;">Guardar evaluación</button>
+                </div>
               </div>
                         </div>
 

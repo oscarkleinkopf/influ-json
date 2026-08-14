@@ -289,6 +289,9 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupFreeChatbotPacks', fn: setupFreeChatbotPacks },
     { name: 'setupChatbotSessionUi', fn: setupChatbotSessionUi },
     { name: 'setupLockRevisions', fn: setupLockRevisions },
+    { name: 'setupLockLab', fn: setupLockLab },
+    { name: 'setupProductionRecipe', fn: setupProductionRecipe },
+    { name: 'setupStudioActivation', fn: setupStudioActivation },
     { name: 'setupHappyPathChecklist', fn: setupHappyPathChecklist },
     { name: 'setupNichePresets', fn: setupNichePresets },
     { name: 'setupComoUsarGuide', fn: setupComoUsarGuide },
@@ -2124,6 +2127,13 @@ async function fetchData() {
     updateMemberEmptyRosterBanner();
     applyRoleBasedSettingsUi();
     renderHappyPathChecklist();
+    try {
+      if ((state.personas || []).length) {
+        markStudioActivation('create');
+        markStudioActivation('save');
+      }
+      renderStudioActivation();
+    } catch (_) {}
 
     if (state.personas.length > 0) {
       try {
@@ -2492,7 +2502,9 @@ function getHappyPathStatus() {
 
 function markHappyPathCopied() {
   try { localStorage.setItem(happyPathCopyStorageKey(), '1'); } catch (e) {}
+  try { markStudioActivation('copy'); } catch (_) {}
   renderHappyPathChecklist();
+  try { renderStudioActivation(); } catch (_) {}
 }
 
 /** W14 — CTA único según estado (vacío / post-save / listo). */
@@ -3641,6 +3653,8 @@ function selectPersona(persona) {
   }
   try { refreshChatbotSessionSheetStatus(); } catch (_) {}
   try { refreshLockRevisions(); } catch (_) {}
+  try { refreshLockLab(); } catch (_) {}
+  try { renderStudioActivation(); } catch (_) {}
   try { refreshLastPackStatus(); } catch (_) {}
 }
 
@@ -4136,31 +4150,44 @@ function openChatbotSessionChecklistModal() {
   const name = p?.name || document.getElementById('pName')?.value || 'Influencer';
   const nameEl = document.getElementById('chatbotSessionPersonaName');
   if (nameEl) nameEl.textContent = name;
-  const cl = loadChatbotSessionChecklist(p?.id);
+  const trialApi = getIdentityTrialApi();
+  const profileId = state.currentProfile?.id || 'anon';
+  const revId = p?.lockRevisionId || p?.character_lock_revision_id || 'current';
+  const trial = trialApi
+    ? trialApi.load(profileId, p?.id, revId)
+    : null;
+  const cl = trial || loadChatbotSessionChecklist(p?.id);
   const face = document.getElementById('chkSessionFace');
   const skin = document.getElementById('chkSessionSkin');
   const hair = document.getElementById('chkSessionHair');
+  const sil = document.getElementById('chkSessionSilhouette');
   if (face) face.checked = cl.face === true;
   if (skin) skin.checked = cl.skin === true;
   if (hair) hair.checked = cl.hair === true;
+  if (sil) sil.checked = cl.silhouette === true;
   updateChatbotSessionStatusLine(cl);
-  modal.style.display = 'flex';
+  const dialogs = getDialogsApi();
+  if (dialogs) dialogs.openDialog(modal, { display: 'flex' });
+  else modal.style.display = 'flex';
 }
 
 function updateChatbotSessionStatusLine(cl) {
   const el = document.getElementById('chatbotSessionStatus');
   if (!el) return;
-  const passing = typeof InfluChatbotPacks !== 'undefined' && InfluChatbotPacks.isSessionChecklistPassing
-    ? InfluChatbotPacks.isSessionChecklistPassing(cl)
-    : (cl.face && cl.skin && cl.hair);
+  const trialApi = getIdentityTrialApi();
+  const passing = trialApi
+    ? trialApi.isPassing(cl)
+    : (typeof InfluChatbotPacks !== 'undefined' && InfluChatbotPacks.isSessionChecklistPassing
+      ? InfluChatbotPacks.isSessionChecklistPassing(cl)
+      : (cl.face && cl.skin && cl.hair));
   if (passing) {
-    el.textContent = '✓ Identidad OK en chatbot free — puedes confiar en el character_lock para packs.';
+    el.textContent = '✓ Identidad OK — character_lock listo para packs free.';
     el.style.color = '#34d399';
-  } else if (cl.face === false || cl.skin === false || cl.hair === false) {
-    el.textContent = 'Hay fallos: re-pega el CHARACTER LOCK, ajusta tez/pelo en ficha y repite la sesión.';
+  } else if (trialApi?.anyFail(cl) || cl.face === false || cl.skin === false || cl.hair === false) {
+    el.textContent = 'Hay fallos: re-pega el CHARACTER LOCK, ajusta tez/pelo/silueta y repite.';
     el.style.color = 'var(--danger)';
   } else {
-    el.textContent = 'Marca las tres casillas cuando compares A / B / C en el chatbot.';
+    el.textContent = 'Marca cara / tez / pelo / silueta tras comparar A · B · C en el chatbot.';
     el.style.color = 'var(--text-muted)';
   }
 }
@@ -4171,10 +4198,17 @@ async function copyChatbotSessionCheck({ openChecklist = true } = {}) {
       toastInfo('Selecciona o crea un influencer antes de la sesión chatbot.');
       return;
     }
-    const text = buildChatbotSessionCheckText();
+    const trialApi = getIdentityTrialApi();
+    const text = trialApi
+      ? trialApi.buildTrialBlock(getFullPersonaJSON(), {
+          productData: state.selectedProduct,
+          fallbackName: state.selectedPersona?.name || document.getElementById('pName')?.value,
+          nicheLabel: getFullPersonaJSON()?.character_lock?.niche || ''
+        })
+      : buildChatbotSessionCheckText();
     await navigator.clipboard.writeText(text);
     markHappyPathCopied();
-    toastWithLockHealth('Sesión 3 prompts copiada — pégala en ChatGPT/Gemini/Claude free', getFullPersonaJSON());
+    toastWithLockHealth('Prueba de identidad (3 prompts) copiada — pégala en ChatGPT/Gemini/Claude free', getFullPersonaJSON());
     if (openChecklist) openChatbotSessionChecklistModal();
   } catch (err) {
     console.error(err);
@@ -4195,10 +4229,19 @@ function setupChatbotSessionUi() {
   });
   document.getElementById('btnCloseChatbotSession')?.addEventListener('click', () => {
     const modal = document.getElementById('chatbotSessionModal');
-    if (modal) modal.style.display = 'none';
+    const dialogs = getDialogsApi();
+    if (modal && dialogs) dialogs.closeDialog(modal);
+    else if (modal) modal.style.display = 'none';
   });
   document.getElementById('chatbotSessionModal')?.addEventListener('click', (e) => {
-    if (e.target?.id === 'chatbotSessionModal') e.target.style.display = 'none';
+    if (e.target?.id === 'chatbotSessionModal') {
+      const dialogs = getDialogsApi();
+      if (dialogs) dialogs.closeDialog(e.target);
+      else e.target.style.display = 'none';
+    }
+  });
+  document.getElementById('btnCopyIdentityTrialBlock')?.addEventListener('click', () => {
+    copyChatbotSessionCheck({ openChecklist: false });
   });
   document.getElementById('btnSaveChatbotSession')?.addEventListener('click', () => {
     const p = state.selectedPersona;
@@ -4209,26 +4252,38 @@ function setupChatbotSessionUi() {
     const checklist = {
       face: !!document.getElementById('chkSessionFace')?.checked,
       skin: !!document.getElementById('chkSessionSkin')?.checked,
-      hair: !!document.getElementById('chkSessionHair')?.checked
+      hair: !!document.getElementById('chkSessionHair')?.checked,
+      silhouette: !!document.getElementById('chkSessionSilhouette')?.checked
     };
-    const saved = saveChatbotSessionChecklist(p.id, checklist);
+    const savedLegacy = saveChatbotSessionChecklist(p.id, checklist);
+    const trialApi = getIdentityTrialApi();
+    const profileId = state.currentProfile?.id || 'anon';
+    const revId = p.lockRevisionId || p.character_lock_revision_id || 'current';
+    const saved = trialApi
+      ? trialApi.save(profileId, p.id, revId, checklist)
+      : { ...savedLegacy, silhouette: checklist.silhouette };
     updateChatbotSessionStatusLine(saved);
     refreshChatbotSessionSheetStatus();
     renderPersonaGrids();
-    const pass = isChatbotSessionPassingForPersona(p);
+    const pass = trialApi ? trialApi.isPassing(saved) : isChatbotSessionPassingForPersona(p);
+    if (pass) {
+      try { markStudioActivation('identity'); } catch (_) {}
+    }
+    try { renderStudioActivation(); } catch (_) {}
     toastSuccess(pass
-      ? `Checklist OK para «${p.name}» — badge Chatbot OK en portafolio`
+      ? `Prueba de identidad OK para «${p.name}»`
       : `Checklist guardado para «${p.name}»`);
   });
   document.getElementById('btnRecopyChatbotSession')?.addEventListener('click', () => {
     copyChatbotSessionCheck({ openChecklist: false });
   });
-  ['chkSessionFace', 'chkSessionSkin', 'chkSessionHair'].forEach((id) => {
+  ['chkSessionFace', 'chkSessionSkin', 'chkSessionHair', 'chkSessionSilhouette'].forEach((id) => {
     document.getElementById(id)?.addEventListener('change', () => {
       updateChatbotSessionStatusLine({
         face: !!document.getElementById('chkSessionFace')?.checked,
         skin: !!document.getElementById('chkSessionSkin')?.checked,
-        hair: !!document.getElementById('chkSessionHair')?.checked
+        hair: !!document.getElementById('chkSessionHair')?.checked,
+        silhouette: !!document.getElementById('chkSessionSilhouette')?.checked
       });
     });
   });
@@ -4240,19 +4295,25 @@ function refreshChatbotSessionSheetStatus() {
   if (!el) return;
   const p = state.selectedPersona;
   if (!p?.id) {
-    el.textContent = 'Guarda el influencer para registrar el checklist de sesión.';
+    el.textContent = 'Guarda el influencer para registrar la prueba de identidad.';
     el.style.color = 'var(--text-muted)';
     return;
   }
-  const cl = loadChatbotSessionChecklist(p.id);
-  if (isChatbotSessionPassingForPersona(p)) {
-    el.textContent = '✓ Sesión chatbot OK (cara + tez + pelo).';
+  const trialApi = getIdentityTrialApi();
+  const profileId = state.currentProfile?.id || 'anon';
+  const revId = p.lockRevisionId || p.character_lock_revision_id || 'current';
+  const cl = trialApi
+    ? trialApi.load(profileId, p.id, revId)
+    : loadChatbotSessionChecklist(p.id);
+  const pass = trialApi ? trialApi.isPassing(cl) : isChatbotSessionPassingForPersona(p);
+  if (pass) {
+    el.textContent = '✓ Prueba de identidad OK (cara + tez + pelo + silueta).';
     el.style.color = '#34d399';
   } else if (cl.updatedAt) {
     el.textContent = `Checklist incompleto o con fallos (última: ${String(cl.updatedAt).slice(0, 19).replace('T', ' ')}).`;
     el.style.color = 'var(--text-secondary)';
   } else {
-    el.textContent = 'Aún no hay checklist — copia la sesión, prueba en el chatbot free y marca las 3 casillas.';
+    el.textContent = 'Aún no hay prueba — copia los 3 prompts, genera en chatbot free y marca las 4 casillas.';
     el.style.color = 'var(--text-muted)';
   }
 }
@@ -4291,6 +4352,7 @@ async function exportPersonaZipPack({ kit = false } = {}) {
     a.remove();
     URL.revokeObjectURL(url);
     markHappyPathCopied();
+    try { markStudioActivation('export'); } catch (_) {}
     toastSuccess(kit ? `🎁 Kit marca descargado: ${filename}` : `📦 Pack ZIP descargado: ${filename}`);
   } catch (err) {
     console.error(err);
@@ -4948,6 +5010,250 @@ function getPersonaDraftApi() {
 function getDialogsApi() {
   return (typeof InfluDialogs !== 'undefined' ? InfluDialogs : null)
     || (typeof window !== 'undefined' ? window.InfluDialogs : null);
+}
+
+function getActivationApi() {
+  return (typeof InfluStudioActivation !== 'undefined' ? InfluStudioActivation : null)
+    || (typeof window !== 'undefined' ? window.InfluStudioActivation : null);
+}
+
+function getIdentityTrialApi() {
+  return (typeof InfluIdentityTrial !== 'undefined' ? InfluIdentityTrial : null)
+    || (typeof window !== 'undefined' ? window.InfluIdentityTrial : null);
+}
+
+function getLockLabApi() {
+  return (typeof InfluLockLab !== 'undefined' ? InfluLockLab : null)
+    || (typeof window !== 'undefined' ? window.InfluLockLab : null);
+}
+
+function getRecipeApi() {
+  return (typeof InfluProductionRecipe !== 'undefined' ? InfluProductionRecipe : null)
+    || (typeof window !== 'undefined' ? window.InfluProductionRecipe : null);
+}
+
+function activationProfileId() {
+  return state.currentProfile?.id || 'anon';
+}
+
+function markStudioActivation(stepId) {
+  const api = getActivationApi();
+  if (!api) return null;
+  const flags = api.mark(activationProfileId(), stepId);
+  renderStudioActivation();
+  return flags;
+}
+
+function liveActivationSignals() {
+  const personas = Array.isArray(state.personas) ? state.personas : [];
+  let copied = false;
+  try { copied = localStorage.getItem(happyPathCopyStorageKey()) === '1'; } catch (_) {}
+  let identityPass = false;
+  const trialApi = getIdentityTrialApi();
+  const p = state.selectedPersona || personas[0];
+  if (trialApi && p?.id) {
+    const rev = p.lockRevisionId || p.character_lock_revision_id || 'current';
+    identityPass = trialApi.isPassing(trialApi.load(activationProfileId(), p.id, rev));
+  } else if (p?.id) {
+    identityPass = isChatbotSessionPassingForPersona(p);
+  }
+  const act = getActivationApi()?.load(activationProfileId()) || {};
+  return {
+    hasPersona: personas.length > 0,
+    copiedJson: copied,
+    exportedPack: !!act.export,
+    identityPass: identityPass || !!act.identity
+  };
+}
+
+function renderStudioActivation() {
+  const api = getActivationApi();
+  const label = document.getElementById('studioActivationLabel');
+  const list = document.getElementById('studioActivationList');
+  if (!api || (!label && !list)) return;
+  const flags = api.resolve(activationProfileId(), liveActivationSignals());
+  const summary = api.summarize(flags);
+  if (label) label.textContent = summary.label;
+  if (list) {
+    list.innerHTML = summary.steps.map((s) => `
+      <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:${s.done ? '#a7f3d0' : 'var(--text-secondary)'};">
+        <span aria-hidden="true">${s.done ? '●' : '○'}</span>
+        <span>${s.label}</span>
+      </li>
+    `).join('');
+  }
+}
+
+function setupStudioActivation() {
+  document.getElementById('btnOpenIdentityTrial')?.addEventListener('click', () => {
+    if (!state.selectedPersona && state.personas?.[0]) selectPersona(state.personas[0]);
+    if (!state.selectedPersona) {
+      toastInfo('Crea o selecciona un influencer para la prueba de identidad.');
+      runHappyPathAction('create');
+      return;
+    }
+    navigateToTab('persona-engine');
+    copyChatbotSessionCheck({ openChecklist: true });
+  });
+  // Señales de roster
+  if ((state.personas || []).length) {
+    markStudioActivation('create');
+    markStudioActivation('save');
+  }
+  renderStudioActivation();
+}
+
+function setupProductionRecipe() {
+  document.getElementById('btnCopyProductionRecipe')?.addEventListener('click', async () => {
+    const api = getRecipeApi();
+    if (!api) {
+      toastError('Módulo de recetas no cargado.');
+      return;
+    }
+    const p = state.selectedPersona;
+    const json = typeof getFullPersonaJSON === 'function' ? getFullPersonaJSON() : {};
+    const recipe = api.buildRecipe({
+      title: `${p?.name || json?.identity?.name || 'Influencer'} · UGC`,
+      personaName: p?.name || json?.identity?.name || null,
+      lockRevisionId: p?.lockRevisionId || null,
+      niche: json?.character_lock?.niche || null,
+      shotType: state.ugcShotTypeId || 'testimonial',
+      camera: state.ugcCameraId || 'selfie',
+      format: '9:16',
+      product: state.selectedProduct || null,
+      tone: json?.psychology?.communication_style || 'cálido y cercano',
+      mbti: json?.psychology?.mbti || null,
+      cta: 'Pruébalo y cuéntame',
+      packId: 'fullbody',
+      character_lock: json?.character_lock
+    }, { includeIdentity: false });
+    const check = api.validateRecipe(recipe);
+    if (!check.ok) {
+      toastError(check.errors.join('; '));
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(api.toClipboardText(recipe));
+      toastSuccess('Receta de producción copiada (sin must_match — segura para compartir)');
+    } catch (err) {
+      toastError('No se pudo copiar la receta: ' + (err.message || 'error'));
+    }
+  });
+}
+
+function renderLockLabScore(containerId, side, session) {
+  const el = document.getElementById(containerId);
+  const api = getLockLabApi();
+  if (!el || !api) return;
+  const score = side === 'A' ? session.scoreA : session.scoreB;
+  const keys = [
+    { id: 'face', label: 'Cara' },
+    { id: 'skin', label: 'Tez' },
+    { id: 'hair', label: 'Pelo' },
+    { id: 'silhouette', label: 'Silueta' }
+  ];
+  el.innerHTML = keys.map((k) => {
+    const val = score?.[k.id];
+    const checked = val === true ? 'checked' : '';
+    return `<label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+      <input type="checkbox" data-lock-lab-side="${side}" data-lock-lab-key="${k.id}" ${checked}> ${k.label}
+    </label>`;
+  }).join('');
+}
+
+async function refreshLockLab() {
+  const api = getLockLabApi();
+  const selA = document.getElementById('lockLabRevA');
+  const selB = document.getElementById('lockLabRevB');
+  const recEl = document.getElementById('lockLabRecommendation');
+  if (!api || !selA || !selB) return;
+  const p = state.selectedPersona;
+  if (!p?.id) {
+    if (recEl) recEl.textContent = 'Selecciona un influencer con revisiones de lock.';
+    return;
+  }
+  let revisions = [];
+  try {
+    const res = await authFetch(`/api/personas/${p.id}/lock-revisions`);
+    const data = await res.json().catch(() => ({}));
+    revisions = Array.isArray(data.revisions) ? data.revisions : (Array.isArray(data) ? data : []);
+  } catch (_) {
+    revisions = [];
+  }
+  const opts = revisions.map((r) => {
+    const id = r.id || r.revision_id;
+    const when = r.created_at || r.createdAt || '';
+    return `<option value="${id}">${String(when).slice(0, 19) || id} · ${r.source || 'save'}</option>`;
+  }).join('');
+  selA.innerHTML = opts || '<option value="">Sin revisiones</option>';
+  selB.innerHTML = opts || '<option value="">Sin revisiones</option>';
+  const session = api.load(activationProfileId(), p.id);
+  if (session.revisionA && [...selA.options].some((o) => o.value === session.revisionA)) {
+    selA.value = session.revisionA;
+  } else if (selA.options.length > 1) {
+    selA.selectedIndex = Math.min(1, selA.options.length - 1);
+  }
+  if (session.revisionB && [...selB.options].some((o) => o.value === session.revisionB)) {
+    selB.value = session.revisionB;
+  } else if (selB.options.length) {
+    selB.selectedIndex = 0;
+  }
+  session.revisionA = selA.value || null;
+  session.revisionB = selB.value || null;
+  renderLockLabScore('lockLabScoreA', 'A', session);
+  renderLockLabScore('lockLabScoreB', 'B', session);
+  const rec = api.recommend(session);
+  if (recEl) recEl.textContent = api.recommendationLabel(rec);
+}
+
+function setupLockLab() {
+  document.getElementById('btnRefreshLockLab')?.addEventListener('click', () => refreshLockLab());
+  document.getElementById('btnLockLabCopyPrompts')?.addEventListener('click', () => {
+    copyChatbotSessionCheck({ openChecklist: false });
+  });
+  document.getElementById('btnLockLabSave')?.addEventListener('click', () => {
+    const api = getLockLabApi();
+    const p = state.selectedPersona;
+    if (!api || !p?.id) {
+      toastInfo('Selecciona un influencer primero.');
+      return;
+    }
+    const session = api.load(activationProfileId(), p.id);
+    session.revisionA = document.getElementById('lockLabRevA')?.value || null;
+    session.revisionB = document.getElementById('lockLabRevB')?.value || null;
+    session.scoreA = api.emptyScore();
+    session.scoreB = api.emptyScore();
+    document.querySelectorAll('[data-lock-lab-side]').forEach((input) => {
+      const side = input.getAttribute('data-lock-lab-side');
+      const key = input.getAttribute('data-lock-lab-key');
+      if (side === 'A') session.scoreA[key] = !!input.checked;
+      if (side === 'B') session.scoreB[key] = !!input.checked;
+    });
+    const rec = api.recommend(session);
+    session.recommendation = rec;
+    api.save(activationProfileId(), p.id, session);
+    const recEl = document.getElementById('lockLabRecommendation');
+    if (recEl) recEl.textContent = api.recommendationLabel(rec);
+    toastSuccess('Evaluación Lock lab guardada (local)');
+  });
+  document.getElementById('lockLabPanel')?.addEventListener('change', (e) => {
+    if (!e.target?.matches?.('[data-lock-lab-side]')) return;
+    const api = getLockLabApi();
+    const p = state.selectedPersona;
+    if (!api || !p?.id) return;
+    const session = api.load(activationProfileId(), p.id);
+    session.scoreA = api.emptyScore();
+    session.scoreB = api.emptyScore();
+    document.querySelectorAll('[data-lock-lab-side]').forEach((input) => {
+      const side = input.getAttribute('data-lock-lab-side');
+      const key = input.getAttribute('data-lock-lab-key');
+      if (side === 'A') session.scoreA[key] = !!input.checked;
+      if (side === 'B') session.scoreB[key] = !!input.checked;
+    });
+    const rec = api.recommend(session);
+    const recEl = document.getElementById('lockLabRecommendation');
+    if (recEl) recEl.textContent = api.recommendationLabel(rec);
+  });
 }
 
 function currentDraftProfileId() {
@@ -5897,6 +6203,12 @@ async function savePersona(opts = {}) {
         );
       }
       renderHappyPathChecklist();
+      try {
+        markStudioActivation('create');
+        markStudioActivation('save');
+        renderStudioActivation();
+        refreshLockLab();
+      } catch (_) {}
     } else {
       notifyApiError(data, data.message || 'No se pudo guardar la persona.');
     }

@@ -106,6 +106,16 @@
             </li>
           </ol>
           <p id="happyPathDoneMsg" class="happy-path-done u-hidden">Listo: ya puedes pegar el JSON en ChatGPT / Gemini / Claude free.</p>
+          <div id="studioActivationCard" class="studio-activation-card" style="margin-top:16px;padding:12px 14px;border-radius:10px;border:1px solid rgba(52,211,153,0.25);background:rgba(52,211,153,0.08);">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div>
+                <p style="margin:0;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;color:#6ee7b7;">Activación local (sin telemetría)</p>
+                <p id="studioActivationLabel" style="margin:4px 0 0;font-size:14px;color:#fff;font-weight:600;">Tu Studio está listo 0/5</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnOpenIdentityTrial" style="font-size:11px;">Prueba de identidad</button>
+            </div>
+            <ol id="studioActivationList" class="happy-path-list" style="margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;"></ol>
+          </div>
         </div>
         
         <!-- Portfolio Search & Filter -->

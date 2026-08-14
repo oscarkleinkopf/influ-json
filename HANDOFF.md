@@ -25,14 +25,25 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #122 merged (Corte E) |
-| **PR actual** | — |
-| **`main` remoto** | + #122 (Corte E UX resistente) |
-| **Prioridad inmediata** | Corte F solo si LAN/VPS; si no → Corte G (medir valor) |
-| **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
+| **Rama de trabajo** | `cursor/corte-g-medir-valor-9b67` |
+| **Commit base** | `main` @ #123 (post Corte E) |
+| **PR actual** | Corte G medir valor (este branch) |
+| **`main` remoto** | + #122 Corte E · #123 handoff |
+| **Prioridad inmediata** | Terminar Corte G → CI → merge |
+| **Aparcado** | Corte F (LAN/VPS) · Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-14) — Corte E → main
+### Sesión reciente (Cursor, 2026-08-14) — Corte G medir valor
+
+**Pedido:** Corte G.
+
+**Hecho:**
+- `studio-activation.js` — métrica local 5 pasos (“Tu Studio está listo X/5”)
+- `identity-trial.js` — prueba guiada (3 prompts + cara/tez/pelo/silueta)
+- `lock-lab.js` — A/B de revisiones con recomendación keep A/B
+- `production-recipe.js` — receta portable sin must_match
+- UI dashboard + Lock lab + Copiar receta; rutas Express
+
+### Sesión previa (Cursor, 2026-08-14) — Corte E → main
 
 **Pedido:** Continuemos con corte E.
 
