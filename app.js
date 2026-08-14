@@ -3419,6 +3419,9 @@ function resetPersonaFormForNew() {
     personaForm.style.display = 'flex';
   }
   if (typeof setPersonaStep === 'function') setPersonaStep(1, { scroll: false });
+
+  // Corte E — ofrecer borrador tras abrir el formulario (perfil ya conocido)
+  try { maybeOfferPersonaDraft(); } catch (_) {}
 }
 
 // Select Persona

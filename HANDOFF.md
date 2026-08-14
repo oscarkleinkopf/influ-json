@@ -27,9 +27,9 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/corte-e-ux-resistente-9b67` |
 | **Commit base** | `main` @ #121 merged |
-| **PR actual** | Corte E UX resistente (este branch) |
+| **PR actual** | [#122](https://github.com/oscarkleinkopf/influ-json/pull/122) — Corte E UX resistente |
 | **`main` remoto** | + #121 (Corte D persona schema) |
-| **Prioridad inmediata** | Terminar Corte E → CI verde → merge; luego F solo si LAN/VPS, si no G |
+| **Prioridad inmediata** | CI verde #122 → merge; luego F solo si LAN/VPS, si no G |
 | **Aparcado** | Comercial / SaaS · PR [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
 ### Sesión reciente (Cursor, 2026-08-13) — Corte E UX resistente

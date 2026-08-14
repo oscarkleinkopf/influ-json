@@ -106,6 +106,8 @@ test('app.js: CSRF recovery + notifyApiError + draft helpers', () => {
   assert.match(app, /showPersonaDraftBanner/);
   assert.match(app, /diffMustMatch/);
   assert.match(app, /setupAccessibleDialogs/);
+  // Banner al abrir «crear desde cero», no solo en DOMContentLoaded
+  assert.match(app, /function resetPersonaFormForNew[\s\S]*maybeOfferPersonaDraft/);
 });
 
 test('HTML foot carga persona-draft + studio-dialogs antes de app.js', () => {
