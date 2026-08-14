@@ -25,14 +25,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/polish-fino-9b67` |
-| **Commit base** | `main` @ #130 (handoff post-U1) |
-| **PR actual** | Polish fino (en curso) |
-| **`main` remoto** | + #128 I4 · #129 U1 · #130 handoff |
-| **Prioridad inmediata** | Merge polish → F solo si LAN/VPS |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ #131 (polish fino) |
+| **PR actual** | — |
+| **`main` remoto** | + #128 I4 · #129 U1 · #130 handoff · #131 polish |
+| **Prioridad inmediata** | F solo si LAN/VPS · o comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 | **Aparcado** | Corte F (LAN/VPS) · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-14) — Polish fino
+### Sesión reciente (Cursor, 2026-08-14) — Polish fino → main
+
+**Pedido:** Polish fino.
+
+**Hecho:**
+- [#131](https://github.com/oscarkleinkopf/influ-json/pull/131) → `main`
+- Declutter roster vacío · copy CTA · ¡Copiado! · ES · login a11y
+
+### Sesión previa (Cursor, 2026-08-14) — Polish fino
 
 **Pedido:** Polish fino.
 
