@@ -298,6 +298,9 @@ app.get('/lock-lab.js', (req, res) => {
 app.get('/production-recipe.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'production-recipe.js'));
 });
+app.get('/production-brief.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'production-brief.js'));
+});
 app.get('/index.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.css'));
 });

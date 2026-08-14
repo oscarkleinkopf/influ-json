@@ -643,6 +643,8 @@ Exportable como JSON pequeño, sin imágenes. Permite repetir una campaña con o
 
 ### I2 · Brief de marca → checklist de producción
 
+> **Estado 2026-08-14:** ✅ `production-brief.js` + card dashboard «Qué producir ahora».
+
 En lugar de generar más texto, transformar un brief en tareas:
 
 ```text

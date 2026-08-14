@@ -292,6 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupLockLab', fn: setupLockLab },
     { name: 'setupProductionRecipe', fn: setupProductionRecipe },
     { name: 'setupStudioActivation', fn: setupStudioActivation },
+    { name: 'setupProductionBrief', fn: setupProductionBrief },
     { name: 'setupHappyPathChecklist', fn: setupHappyPathChecklist },
     { name: 'setupNichePresets', fn: setupNichePresets },
     { name: 'setupComoUsarGuide', fn: setupComoUsarGuide },
@@ -2133,6 +2134,7 @@ async function fetchData() {
         markStudioActivation('save');
       }
       renderStudioActivation();
+      renderProductionBrief();
     } catch (_) {}
 
     if (state.personas.length > 0) {
@@ -5032,6 +5034,11 @@ function getRecipeApi() {
     || (typeof window !== 'undefined' ? window.InfluProductionRecipe : null);
 }
 
+function getBriefApi() {
+  return (typeof InfluProductionBrief !== 'undefined' ? InfluProductionBrief : null)
+    || (typeof window !== 'undefined' ? window.InfluProductionBrief : null);
+}
+
 function activationProfileId() {
   return state.currentProfile?.id || 'anon';
 }
@@ -5101,6 +5108,192 @@ function setupStudioActivation() {
     markStudioActivation('save');
   }
   renderStudioActivation();
+}
+
+function liveBriefSignals() {
+  const personas = Array.isArray(state.personas) ? state.personas : [];
+  const p = state.selectedPersona || personas.find((x) => !isArchivedPersona(x)) || personas[0];
+  let copied = false;
+  try { copied = localStorage.getItem(happyPathCopyStorageKey()) === '1'; } catch (_) {}
+  let identityPass = false;
+  const trialApi = getIdentityTrialApi();
+  if (trialApi && p?.id) {
+    const rev = p.lockRevisionId || p.character_lock_revision_id || 'current';
+    identityPass = trialApi.isPassing(trialApi.load(activationProfileId(), p.id, rev));
+  } else if (p?.id) {
+    identityPass = isChatbotSessionPassingForPersona(p);
+  }
+  const act = getActivationApi()?.load(activationProfileId()) || {};
+  return {
+    hasPersona: personas.some((x) => !isArchivedPersona(x)) || personas.length > 0,
+    personaName: p?.name || null,
+    scriptsCount: Number(state.scriptsCount) || (Array.isArray(state.scripts) ? state.scripts.length : 0) || 0,
+    campaignsCount: Array.isArray(state.campaigns) ? state.campaigns.length : 0,
+    generationsCount: Number(state.generationStats?.total) || 0,
+    copiedJson: copied || !!act.copy,
+    copiedProductPack: !!act.export || copied,
+    identityPass: identityPass || !!act.identity,
+    hasLicense: false,
+    shotsMarkedDone: false,
+    campaignMarkedDone: false
+  };
+}
+
+function readBriefForm() {
+  return {
+    product: document.getElementById('prodBriefProduct')?.value || '',
+    brand: document.getElementById('prodBriefBrand')?.value || '',
+    hooksCount: Number(document.getElementById('prodBriefHooks')?.value || 3),
+    shotsCount: Number(document.getElementById('prodBriefShots')?.value || 2),
+    wantProductPack: !!document.getElementById('prodBriefWantPack')?.checked,
+    wantCampaign: !!document.getElementById('prodBriefWantCampaign')?.checked,
+    wantLicense: !!document.getElementById('prodBriefWantLicense')?.checked,
+    wantIdentity: !!document.getElementById('prodBriefWantIdentity')?.checked,
+    goal: 'ugc'
+  };
+}
+
+function fillBriefForm(brief) {
+  if (!brief) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  const setChk = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+  set('prodBriefProduct', brief.product || '');
+  set('prodBriefBrand', brief.brand || '');
+  set('prodBriefHooks', brief.hooksCount ?? 3);
+  set('prodBriefShots', brief.shotsCount ?? 2);
+  setChk('prodBriefWantPack', brief.wantProductPack !== false);
+  setChk('prodBriefWantCampaign', brief.wantCampaign !== false);
+  setChk('prodBriefWantLicense', !!brief.wantLicense);
+  setChk('prodBriefWantIdentity', brief.wantIdentity !== false);
+}
+
+function renderProductionBrief() {
+  const api = getBriefApi();
+  const list = document.getElementById('prodBriefChecklist');
+  const summary = document.getElementById('prodBriefSummary');
+  const nextBox = document.getElementById('prodBriefNextCta');
+  if (!api || !list) return;
+
+  const stored = api.load(activationProfileId());
+  const live = { ...liveBriefSignals(), ...stored.overrides._live };
+  // Merge manual overrides for shot/campaign/license marks
+  if (stored.overrides.shotsMarkedDone) live.shotsMarkedDone = true;
+  if (stored.overrides.campaignMarkedDone) live.campaignMarkedDone = true;
+  if (stored.overrides.hasLicense) live.hasLicense = true;
+
+  let checklist = api.buildChecklist(stored.brief, live);
+  checklist = api.applyOverrides(checklist, stored.overrides);
+  if (summary) summary.textContent = checklist.summary.label;
+
+  const next = api.nextAction(checklist);
+  if (nextBox) {
+    if (next) {
+      nextBox.style.display = 'block';
+      nextBox.innerHTML = `
+        <p class="happy-path-next-label">Siguiente paso</p>
+        <p class="happy-path-next-title">${String(next.label).replace(/[<>&]/g, '')}</p>
+        <p class="happy-path-next-hint">${String(next.hint || '').replace(/[<>&]/g, '')}</p>
+        <div class="empty-roster-actions">
+          <button type="button" class="btn btn-sm" data-brief-action="${next.action}">${next.actionLabel || 'Ir'}</button>
+        </div>
+      `;
+      nextBox.querySelectorAll('[data-brief-action]').forEach((btn) => {
+        btn.addEventListener('click', () => runBriefAction(btn.getAttribute('data-brief-action')));
+      });
+    } else {
+      nextBox.style.display = 'block';
+      nextBox.innerHTML = `
+        <p class="happy-path-next-label">Listo</p>
+        <p class="happy-path-next-title">Checklist completo — publica o arma otra tanda</p>
+      `;
+    }
+  }
+
+  list.innerHTML = checklist.tasks.map((t) => `
+    <li style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid ${t.done ? 'rgba(52,211,153,0.25)' : 'var(--glass-border)'};background:${t.done ? 'rgba(52,211,153,0.08)' : 'rgba(0,0,0,0.2)'};">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;min-width:0;">
+        <input type="checkbox" data-brief-toggle="${t.id}" ${t.done ? 'checked' : ''} style="margin-top:2px;">
+        <span style="min-width:0;">
+          <strong style="display:block;font-size:13px;color:${t.done ? '#a7f3d0' : '#fff'};">${String(t.label).replace(/[<>&]/g, '')}</strong>
+          <span style="font-size:11px;color:var(--text-muted);line-height:1.35;">${String(t.hint || '').replace(/[<>&]/g, '')}</span>
+        </span>
+      </label>
+      ${t.done ? '' : `<button type="button" class="btn btn-secondary btn-sm" data-brief-action="${t.action}" style="font-size:11px;flex-shrink:0;">${t.actionLabel || 'Ir'}</button>`}
+    </li>
+  `).join('');
+
+  list.querySelectorAll('[data-brief-action]').forEach((btn) => {
+    btn.addEventListener('click', () => runBriefAction(btn.getAttribute('data-brief-action')));
+  });
+  list.querySelectorAll('[data-brief-toggle]').forEach((chk) => {
+    chk.addEventListener('change', () => {
+      const id = chk.getAttribute('data-brief-toggle');
+      const storedNow = api.load(activationProfileId());
+      const overrides = { ...storedNow.overrides };
+      overrides[id] = !!chk.checked;
+      // Special live flags for tasks derived from counts
+      if (id === 'vertical_shots') overrides.shotsMarkedDone = !!chk.checked;
+      if (id === 'campaign') overrides.campaignMarkedDone = !!chk.checked;
+      if (id === 'license') overrides.hasLicense = !!chk.checked;
+      api.save(activationProfileId(), storedNow.brief, overrides);
+      renderProductionBrief();
+    });
+  });
+}
+
+async function runBriefAction(action) {
+  if (action === 'persona') {
+    runHappyPathAction('create');
+  } else if (action === 'scripts') {
+    navigateToTab('campaigns');
+    setTimeout(() => {
+      document.getElementById('btnGenerateCampaignScripts')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
+  } else if (action === 'copy_product') {
+    try {
+      if (!state.selectedPersona && state.personas?.[0]) selectPersona(state.personas[0]);
+      if (!state.selectedPersona) {
+        toastInfo('Guarda un influencer primero.');
+        runHappyPathAction('create');
+        return;
+      }
+      navigateToTab('persona-engine');
+      await copyFreeChatbotPack('product');
+      try { markStudioActivation('copy'); } catch (_) {}
+      renderProductionBrief();
+    } catch (err) {
+      toastError('No se pudo copiar el pack producto.');
+    }
+  } else if (action === 'ugc') {
+    navigateToTab('ugc-studio');
+  } else if (action === 'campaign') {
+    navigateToTab('campaigns');
+    setTimeout(() => {
+      const empty = document.getElementById('btnEmptyCampaignCreate');
+      const neu = document.getElementById('btnNewCampaign');
+      (empty || neu)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
+  } else if (action === 'license') {
+    navigateToTab('licensing');
+  } else if (action === 'identity') {
+    document.getElementById('btnOpenIdentityTrial')?.click();
+  }
+}
+
+function setupProductionBrief() {
+  const api = getBriefApi();
+  if (!api) return;
+  const stored = api.load(activationProfileId());
+  fillBriefForm(stored.brief);
+  document.getElementById('prodBriefForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const brief = readBriefForm();
+    const prev = api.load(activationProfileId());
+    api.save(activationProfileId(), brief, prev.overrides || {});
+    renderProductionBrief();
+    toastSuccess('Checklist de producción actualizado');
+  });
+  renderProductionBrief();
 }
 
 function setupProductionRecipe() {
