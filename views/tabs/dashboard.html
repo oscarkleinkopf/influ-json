@@ -40,7 +40,7 @@
               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
             <div class="stat-info">
-              <h3>Scripts</h3>
+              <h3>Guiones</h3>
               <p id="statScriptsCount">0</p>
             </div>
           </div>
@@ -69,7 +69,7 @@
               <div>
                 <strong>1. Crear o importar</strong>
                 <p>En <strong>Influencers → Ficha / Editor</strong>: «Crear influencer» o «Importar referencia» / Inspirar desde foto.</p>
-                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                <div class="happy-path-step-actions" style="display:flex; flex-wrap:wrap; gap:8px;">
                   <button type="button" class="btn btn-secondary btn-sm" data-happy-action="create">Ir a crear</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-happy-action="import">Importar foto</button>
                 </div>
@@ -80,7 +80,7 @@
               <div>
                 <strong>2. Guardar influencer</strong>
                 <p>Completa nombre, tez y rasgos → «Guardar personaje» / «Crear influencer» (solo JSON).</p>
-                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="save">Ir a guardar</button>
+                <button type="button" class="btn btn-secondary btn-sm happy-path-step-actions" data-happy-action="save">Ir a guardar</button>
               </div>
             </li>
             <li class="happy-path-step" data-step="copy">
@@ -88,7 +88,7 @@
               <div>
                 <strong>3. Copiar JSON</strong>
                 <p>El producto es el JSON: pégalo en ChatGPT / Gemini / Claude free.</p>
-                <button type="button" class="btn btn-sm" data-happy-action="copy-pack">Copiar JSON</button>
+                <button type="button" class="btn btn-sm happy-path-step-actions" data-happy-action="copy-pack">Copiar JSON</button>
               </div>
             </li>
             <li class="happy-path-step" data-step="gen">
@@ -96,7 +96,7 @@
               <div>
                 <strong>4. Generar boceto <em style="font-weight:500;color:var(--text-muted);">(opt-in · puede pedir token)</em></strong>
                 <p>Pollinations es opcional (no cuenta para el 3/3). Si pide token: admin → Ajustes → POLLINATIONS_TOKEN (o sigue con Copiar JSON).</p>
-                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="gen">Generar boceto (opt-in · puede pedir token)</button>
+                <button type="button" class="btn btn-secondary btn-sm happy-path-step-actions" data-happy-action="gen">Generar boceto (opt-in · puede pedir token)</button>
               </div>
             </li>
           </ol>
