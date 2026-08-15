@@ -17,10 +17,10 @@ test('W14: roster vacío — panel Crear | Importar | Cómo usar', () => {
   assert.match(app, /function runHappyPathAction/);
   assert.match(app, /copyFreeChatbotPack\('fullbody'\)/);
 
-  // Member empty: mismos 3 CTAs, sin chrome admin
-  assert.match(html, /id="btnMemberEmptyCreate"/);
-  assert.match(html, /id="btnMemberEmptyImport"/);
-  assert.match(html, /id="btnMemberEmptyGuide"/);
+  // Polish-2: CTAs únicos en Portafolio; banner member sin botones duplicados
+  assert.doesNotMatch(html, /id="btnMemberEmptyCreate"/);
+  assert.match(html, /id="memberEmptyRosterBanner"/);
+  assert.match(app, /Un solo cluster de CTAs vive en #emptyRosterPanel/);
   assert.match(html, /id="btnMemberWelcomeImport"/);
 
   // Founder modal: Crear | Importar | Cómo usar (no Beauty forzado)

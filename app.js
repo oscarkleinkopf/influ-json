@@ -768,6 +768,7 @@ function setupMemberOnboarding() {
     hideMemberWelcomeModal();
     navigateToTab('como-usar');
   });
+  // Dead buttons removed from member banner (polish-2) — optional no-ops if markup returns
   document.getElementById('btnMemberEmptyCreate')?.addEventListener('click', startMemberCreateFlow);
   document.getElementById('btnMemberEmptyImport')?.addEventListener('click', startMemberImportFlow);
   document.getElementById('btnMemberEmptyGuide')?.addEventListener('click', () => {
@@ -2574,16 +2575,14 @@ function renderHappyPathNextCta() {
   const empty = !status.create;
 
   if (empty) {
+    // Un solo cluster de CTAs vive en #emptyRosterPanel del portafolio (polish-2).
     box.style.display = 'block';
     box.innerHTML = `
       <p class="happy-path-next-label">Siguiente paso</p>
       <p class="happy-path-next-title">Crea o importa tu primer influencer</p>
-      <div class="empty-roster-actions">
-        <button type="button" class="btn btn-sm" data-happy-next="create">Crear</button>
-        <button type="button" class="btn btn-secondary btn-sm" data-happy-next="import">Importar</button>
-        <button type="button" class="btn btn-secondary btn-sm" data-happy-next="guide">Cómo usar</button>
-      </div>
+      <p class="happy-path-next-hint">Usa <strong>Crear</strong> / <strong>Importar</strong> en el Portafolio más abajo — un solo lugar, sin botones duplicados.</p>
     `;
+    return;
   } else if (!status.copy) {
     box.style.display = 'block';
     const name = state.selectedPersona?.name || state.personas?.[0]?.name || 'tu influencer';
@@ -6741,13 +6740,13 @@ function setupCampaigns() {
     const prodSelect = document.getElementById('cProductSelect');
     prodSelect.innerHTML = (state.products || []).length
       ? state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')
-      : '<option value="">Sin productos — creá uno en Script Engine</option>';
+      : '<option value="">Sin productos — crea uno en Guiones</option>';
     
     const personaList = document.getElementById('cPersonaChecklist');
     const roster = (state.personas || []).filter((p) => !isArchivedPersona(p));
     const activeId = state.selectedPersona?.id;
     if (!roster.length) {
-      personaList.innerHTML = '<p class="u-fs-11-sec u-mb-0">Sin influencers — elegí o creá uno en el chip del header.</p>';
+      personaList.innerHTML = '<p class="u-fs-11-sec u-mb-0">Sin influencers — elige o crea uno en el chip del header.</p>';
     } else {
       personaList.innerHTML = roster.map(p => `
       <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer;">
@@ -6929,7 +6928,7 @@ async function renderCampaigns() {
           <p class="empty-roster-lead u-mb-12">${
             hasRoster
               ? 'Aún no hay campañas. Agrupa influencers + producto y exporta un ZIP comercial.'
-              : 'Sin influencers todavía. Creá uno, copiá el JSON, y después armá campañas.'
+              : 'Sin influencers todavía. Crea uno, copia el JSON, y después arma campañas.'
           }</p>
           <div class="empty-roster-actions">
             ${hasRoster
@@ -7767,7 +7766,7 @@ function populateActiveUgcData() {
   setSrc('ugcActiveProductImg', prodImg);
   setText('ugcActiveProduct', prod?.name || 'Sin producto');
   setText('cdProduct', prod?.name || '—');
-  setText('ugcActiveProductMeta', prod?.benefit || (prod ? 'Producto activo' : 'Añadí un producto en Script Engine o elegí plantilla'));
+  setText('ugcActiveProductMeta', prod?.benefit || (prod ? 'Producto activo' : 'Añade un producto en Guiones o elige plantilla'));
 
   // Mockup: sin persona no fingimos un UGC demo
   if (!hasPersona) {
@@ -7847,8 +7846,8 @@ function updateLicensingCalculator() {
   const prod = state.selectedProduct;
   const creatorLabel = creator?.name
     ? `${creator.name} — Modelo Virtual AI`
-    : 'Sin influencer — elegí uno en el chip';
-  const clientLabel = prod?.name || 'Sin producto — elegí uno o usá Script Engine';
+    : 'Sin influencer — elige uno en el chip';
+  const clientLabel = prod?.name || 'Sin producto — elige uno o usa Guiones';
   
   document.getElementById('pitchClientName').textContent = `Propuesta para ${clientLabel}`;
   document.getElementById('pitchInfluName').textContent = creatorLabel;
@@ -7886,7 +7885,7 @@ function buildLicensingProposalText() {
 PROPUESTA COMERCIAL - AI UGC CAMPAIGN
 ================================================
 Cliente: ${prodName || '(sin producto seleccionado)'}
-Creador Virtual: ${creatorName || '(sin influencer — elegí uno en el chip)'}
+Creador Virtual: ${creatorName || '(sin influencer — elige uno en el chip)'}
 Ángulo del Anuncio: ${activeScript.angle}
 
 DESGLOSE DE SERVICIOS:
@@ -8025,7 +8024,7 @@ function loadPromptFromGallery(prompt) {
   const tabItem = document.querySelector('[data-tab="persona-engine"]');
   tabItem.click();
   
-  toastSuccess('Prompt cargado en el Persona Engine');
+  toastSuccess('Prompt cargado en Ficha / Editor');
 }
 
 window.loadPromptFromGallery = loadPromptFromGallery;

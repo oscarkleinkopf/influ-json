@@ -53,10 +53,11 @@ test('Free Path: sin claims falsos GPT-5.6 / Meta Ads live / Producción AI', ()
   assert.doesNotMatch(appJs, /¡Campaña guardada y respaldada en GitHub!/);
 });
 
-test('Free Path: Script Engine etiqueta honestas', () => {
+test('Free Path: Guiones etiqueta honestas', () => {
   assert.match(html, /Generar 10 guiones \(plantillas locales \/ Gemini opt-in\)/);
-  assert.match(html, /<h1>Script Engine<\/h1>/);
+  assert.match(html, /<h1>Guiones<\/h1>/);
   assert.doesNotMatch(html, /Script Engine \(GPT/);
+  assert.doesNotMatch(html, /<h1>Script Engine<\/h1>/);
 });
 
 test('Free Path: consola no duplica botones data-free-pack', () => {

@@ -18,11 +18,11 @@
   </div>
 
   <!-- Import Influencer Modal (Fase 2) -->
-  <div class="history-modal-overlay" id="importInfluencerModal" style="display: none; align-items: center; justify-content: center; z-index: 3000;">
+  <div class="history-modal-overlay" id="importInfluencerModal" role="dialog" aria-modal="true" aria-labelledby="importInfluencerTitle" aria-hidden="true" style="display: none; align-items: center; justify-content: center; z-index: 3000;">
     <div class="glass-card" style="width: 100%; max-width: 650px; padding: 32px; position: relative; border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow-y: auto; max-height: 90vh;">
-      <button type="button" class="history-modal-close" id="btnCloseImportModal" style="position: absolute; top: 16px; right: 16px; border: none; background: transparent; font-size: 24px; color: var(--text-secondary); cursor: pointer;">&times;</button>
+      <button type="button" class="history-modal-close" id="btnCloseImportModal" aria-label="Cerrar importación" style="position: absolute; top: 16px; right: 16px; border: none; background: transparent; font-size: 24px; color: var(--text-secondary); cursor: pointer;">&times;</button>
       
-      <h2 style="font-family: var(--font-display); margin-bottom: 8px; font-size: 20px; color: #fff; display: flex; align-items: center; gap: 10px;">📥 Inspirar desde foto</h2>
+      <h2 id="importInfluencerTitle" style="font-family: var(--font-display); margin-bottom: 8px; font-size: 20px; color: #fff; display: flex; align-items: center; gap: 10px;">📥 Inspirar desde foto</h2>
       <p id="importRitualLead" style="color: var(--text-secondary); font-size: 12px; margin-bottom: 12px; line-height: 1.45;">
         Ritual free: <strong>1 · Subir</strong> → <strong>2 · Confirmar tez / ojos / pelo</strong> → <strong>3 · Guardar → Copiar JSON</strong>.
       </p>
@@ -384,8 +384,8 @@ cd influ-json
   </nav>
 
   <!-- Settings & API Key Modal Overlay (tabs — UX #72) -->
-  <div id="settingsModal" class="login-modal-overlay settings-modal-overlay u-hidden">
-    <div class="glass-card login-card settings-card" role="dialog" aria-labelledby="settingsModalTitle">
+  <div id="settingsModal" class="login-modal-overlay settings-modal-overlay u-hidden" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle" aria-hidden="true">
+    <div class="glass-card login-card settings-card">
       <button type="button" id="btnCloseSettings" class="settings-close-btn" aria-label="Cerrar ajustes">✕</button>
 
       <div class="settings-header">

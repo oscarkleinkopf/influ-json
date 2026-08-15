@@ -36,7 +36,7 @@ describe('Polish fino — dashboard + copy CTA + ES + login a11y', () => {
     ];
     for (const rel of views) {
       const text = fs.readFileSync(path.join(root, rel), 'utf8');
-      assert.doesNotMatch(text, /Elegí/);
+      assert.doesNotMatch(text, /\belegí\b/i);
       assert.doesNotMatch(text, /Product in Hand/);
     }
     const ugc = fs.readFileSync(path.join(root, 'views/tabs/ugc-studio.html'), 'utf8');

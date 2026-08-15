@@ -25,14 +25,24 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #131 (polish fino) |
-| **PR actual** | — |
-| **`main` remoto** | + #128 I4 · #129 U1 · #130 handoff · #131 polish |
-| **Prioridad inmediata** | F solo si LAN/VPS · o comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
+| **Rama de trabajo** | `cursor/polish-fino-2-9b67` |
+| **Commit base** | `main` @ #132 (handoff polish) |
+| **PR actual** | Polish-2 (en curso) |
+| **`main` remoto** | + #131 polish · #132 handoff |
+| **Prioridad inmediata** | Merge polish-2 → F solo si LAN |
 | **Aparcado** | Corte F (LAN/VPS) · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-14) — Polish fino → main
+### Sesión reciente (Cursor, 2026-08-15) — Polish-2
+
+**Pedido:** Otro polish.
+
+**Hecho:**
+- Cómo usar: start-studio + plantillas/brief + Licencias
+- ES: Guiones / Licencias; sin voseo residual
+- a11y: settings + import dialogs
+- Empty roster: un solo cluster de CTAs (Portafolio)
+
+### Sesión previa (Cursor, 2026-08-14) — Polish fino → main
 
 **Pedido:** Polish fino.
 

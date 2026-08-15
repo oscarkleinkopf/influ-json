@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-15 | **Polish-2 (en curso)** | Cómo usar · ES titles · settings/import a11y · CTA vacío único |
 | 2026-08-14 | **Polish fino → main (#131)** | Declutter vacío · copy CTA · ¡Copiado! · ES · login a11y |
 | 2026-08-14 | **Polish fino (en curso)** | Declutter vacío · copy CTA · ¡Copiado! · ES · login a11y |
 | 2026-08-14 | **U1 → main (#129)** | Launcher abre browser + `pack:release` ZIP sin secretos |

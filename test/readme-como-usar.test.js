@@ -31,6 +31,9 @@ test('Cómo usar: mapa de hubs + Copiar JSON (sin Persona Engine)', () => {
   assert.doesNotMatch(comoUsar, /Persona Engine/);
   assert.doesNotMatch(comoUsar, /Copiar JSON \(recomendado\)/);
   assert.match(comoUsar, /Dónde está cada cosa|guide-map-title/);
+  assert.match(comoUsar, /Campañas \+ Licencias/);
+  assert.match(comoUsar, /start-studio/);
+  assert.match(comoUsar, /Plantillas|Qué producir ahora/);
 });
 
 test('Portafolio checklist: sin Persona Engine', () => {

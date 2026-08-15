@@ -53,7 +53,7 @@ test('UX-1a: móvil usa los mismos nombres de hub (+ ?)', () => {
   assert.doesNotMatch(nav, />\s*Cómo usar\s*</);
 });
 
-test('UX-1a: hub-subnav cubre Portafolio/Ficha, UGC/Guiones, Campañas/Licensing (sin Galería)', () => {
+test('UX-1a: hub-subnav cubre Portafolio/Ficha, UGC/Guiones, Campañas/Licencias (sin Galería)', () => {
   assert.match(html, /id="hubSubnav"/);
   assert.match(html, /data-hub="influencers"[\s\S]*data-tab="dashboard"[\s\S]*data-tab="persona-engine"/);
   assert.match(html, /data-hub="produce"[\s\S]*data-tab="ugc-studio"[\s\S]*data-tab="script-engine"/);
@@ -64,6 +64,7 @@ test('UX-1a: hub-subnav cubre Portafolio/Ficha, UGC/Guiones, Campañas/Licensing
   const produceBlock = html.slice(produceStart, produceEnd);
   assert.doesNotMatch(produceBlock, /data-tab="gallery"/);
   assert.match(html, /data-hub="business"[\s\S]*data-tab="campaigns"[\s\S]*data-tab="licensing"/);
+  assert.match(html, /data-tab="licensing">Licencias</);
   assert.match(html, /id="btnOpenGalleryFromFicha"/);
   assert.match(html, /id="gallery"/);
   assert.match(appJs, /function switchStudioTab\b/);
@@ -111,7 +112,7 @@ test('UX-1b: Licensing muestra influencer activo y no usa Sofia falsa', () => {
 
 test('UX-1b: Nueva campaña pre-marca el influencer del chip', () => {
   assert.match(appJs, /selectedPersona\?\.id[\s\S]{0,500}personaCheck/);
-  assert.match(appJs, /Sin influencers — elegí/);
+  assert.match(appJs, /Sin influencers — elige/);
 });
 
 test('UX-1c: vocab unificado — sin «Copiar JSON (recomendado)» en botones', () => {

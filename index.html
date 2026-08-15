@@ -113,7 +113,7 @@
         </div>
         <div class="hub-subnav-inner" data-hub="business" hidden>
           <button type="button" class="hub-subnav-btn active" data-tab="campaigns">Campañas</button>
-          <button type="button" class="hub-subnav-btn" data-tab="licensing">Licensing</button>
+          <button type="button" class="hub-subnav-btn" data-tab="licensing">Licencias</button>
         </div>
       </div>
       
@@ -180,12 +180,7 @@
           <div id="memberEmptyRosterBanner" class="member-empty-banner u-hidden" role="status">
             <div class="member-empty-banner-copy">
               <strong>Tu portafolio está vacío.</strong>
-              <span>Solo tú verás lo que crees en este perfil. Empieza aquí — sin gen obligatoria.</span>
-            </div>
-            <div class="empty-roster-actions">
-              <button type="button" class="btn btn-sm" id="btnMemberEmptyCreate">Crear</button>
-              <button type="button" class="btn btn-secondary btn-sm" id="btnMemberEmptyImport">Importar</button>
-              <button type="button" class="btn btn-secondary btn-sm" id="btnMemberEmptyGuide">Cómo usar</button>
+              <span>Solo tú verás lo que crees en este perfil. Usa Crear / Importar en el Portafolio abajo.</span>
             </div>
           </div>
           <ol id="happyPathChecklist" class="happy-path-list">
@@ -359,8 +354,10 @@
             <ul class="como-usar-rule-list">
               <li><span>Influencers</span> Portafolio + Ficha / Editor (Identidad → Lock &amp; Packs → Variaciones)</li>
               <li><span>Producir</span> UGC + Guiones</li>
-              <li><span>Negocio</span> Campañas + Licensing</li>
+              <li><span>Negocio</span> Campañas + Licencias</li>
               <li><span>Copiar JSON</span> Header + Lock &amp; Packs + checklist del Portafolio</li>
+              <li><span>Plantillas / Brief</span> En Portafolio (cuando ya hay influencer): plantillas de producción + «Qué producir ahora»</li>
+              <li><span>Arranque local</span> <code>start-studio.cmd</code> / <code>./start-studio.sh</code> (Node 18+) — o <code>npm start</code></li>
             </ul>
           </section>
 
@@ -1519,7 +1516,7 @@
                     <p class="u-hint-muted-sm">
                       Requiere <code class="u-fs-10">ENABLE_LOCAL_LORA_TRAIN=1</code>. Materializa el pack L0; con
                       <code class="u-fs-10">AI_TOOLKIT_DIR</code> / <code class="u-fs-10">LOCAL_LORA_TRAIN_CMD</code> lanza el trainer.
-                      Sin GPU: usá <strong>Colab L1</strong>. Guía: <code class="u-fs-10">docs/lora/L5_LOCAL_TRAIN.md</code>.
+                      Sin GPU: usa <strong>Colab L1</strong>. Guía: <code class="u-fs-10">docs/lora/L5_LOCAL_TRAIN.md</code>.
                     </p>
                     <div class="u-gap-wrap">
                       <button type="button" class="btn btn-sm" id="btnTrainLoraLocal" style="flex: 1; font-size: 11px; padding: 8px 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4);">Preparar / entrenar local</button>
@@ -1740,7 +1737,7 @@
       <section id="script-engine" class="tab-panel">
         <div class="content-header">
           <div class="content-title">
-            <h1>Script Engine</h1>
+            <h1>Guiones</h1>
             <p>Genera 10 ángulos publicitarios UGC (15–25 s). Plantillas locales gratis; Gemini solo si hay clave en Ajustes.</p>
           </div>
         </div>
@@ -1844,7 +1841,7 @@
                   <img id="ugcActiveProductImg" src="assets/product_serum.png" alt="Producto" style="width: 44px; height: 44px; border-radius: var(--border-radius-sm); object-fit: cover;">
                   <div>
                     <h4 id="ugcActiveProduct" class="u-font-display-600">Sin producto</h4>
-                    <p id="ugcActiveProductMeta" class="u-fs-11-sec">Plantilla UGC o Script Engine</p>
+                    <p id="ugcActiveProductMeta" class="u-fs-11-sec">Plantilla UGC o Guiones</p>
                   </div>
                 </div>
               </div>
@@ -2067,7 +2064,7 @@
       <section id="licensing" class="tab-panel">
         <div class="content-header">
           <div class="content-title">
-            <h1>Licensing & Pitch Builder</h1>
+            <h1>Licencias y pitch</h1>
             <p>Calcula el valor comercial del uso de tus modelos AI e imágenes licenciadas y construye una cotización premium para marcas.</p>
           </div>
         </div>
@@ -2147,7 +2144,7 @@
             <div class="pitch-header">
               <div>
                 <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 4px;">Cotización de Campaña</h3>
-                <p id="pitchClientName" style="font-size: 13px; color: var(--text-secondary);">Propuesta para Sin producto — elegí uno o usá Script Engine</p>
+                <p id="pitchClientName" style="font-size: 13px; color: var(--text-secondary);">Propuesta para Sin producto — elige uno o usa Guiones</p>
               </div>
               <span class="pitch-badge">AI UGC Studio</span>
             </div>
@@ -2163,7 +2160,7 @@
                 <tr>
                   <td>
                     <strong>Creación de Activo UGC Sintético</strong><br>
-                    <span class="u-fs-12-sec" id="pitchInfluName">Sin influencer — elegí uno en el chip</span>
+                    <span class="u-fs-12-sec" id="pitchInfluName">Sin influencer — elige uno en el chip</span>
                   </td>
                   <td class="u-mono-right" id="pitchBaseFeeVal">$150.00</td>
                 </tr>
@@ -2239,11 +2236,11 @@
   </div>
 
   <!-- Import Influencer Modal (Fase 2) -->
-  <div class="history-modal-overlay" id="importInfluencerModal" style="display: none; align-items: center; justify-content: center; z-index: 3000;">
+  <div class="history-modal-overlay" id="importInfluencerModal" role="dialog" aria-modal="true" aria-labelledby="importInfluencerTitle" aria-hidden="true" style="display: none; align-items: center; justify-content: center; z-index: 3000;">
     <div class="glass-card" style="width: 100%; max-width: 650px; padding: 32px; position: relative; border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow-y: auto; max-height: 90vh;">
-      <button type="button" class="history-modal-close" id="btnCloseImportModal" style="position: absolute; top: 16px; right: 16px; border: none; background: transparent; font-size: 24px; color: var(--text-secondary); cursor: pointer;">&times;</button>
+      <button type="button" class="history-modal-close" id="btnCloseImportModal" aria-label="Cerrar importación" style="position: absolute; top: 16px; right: 16px; border: none; background: transparent; font-size: 24px; color: var(--text-secondary); cursor: pointer;">&times;</button>
       
-      <h2 style="font-family: var(--font-display); margin-bottom: 8px; font-size: 20px; color: #fff; display: flex; align-items: center; gap: 10px;">📥 Inspirar desde foto</h2>
+      <h2 id="importInfluencerTitle" style="font-family: var(--font-display); margin-bottom: 8px; font-size: 20px; color: #fff; display: flex; align-items: center; gap: 10px;">📥 Inspirar desde foto</h2>
       <p id="importRitualLead" style="color: var(--text-secondary); font-size: 12px; margin-bottom: 12px; line-height: 1.45;">
         Ritual free: <strong>1 · Subir</strong> → <strong>2 · Confirmar tez / ojos / pelo</strong> → <strong>3 · Guardar → Copiar JSON</strong>.
       </p>
@@ -2605,8 +2602,8 @@ cd influ-json
   </nav>
 
   <!-- Settings & API Key Modal Overlay (tabs — UX #72) -->
-  <div id="settingsModal" class="login-modal-overlay settings-modal-overlay u-hidden">
-    <div class="glass-card login-card settings-card" role="dialog" aria-labelledby="settingsModalTitle">
+  <div id="settingsModal" class="login-modal-overlay settings-modal-overlay u-hidden" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle" aria-hidden="true">
+    <div class="glass-card login-card settings-card">
       <button type="button" id="btnCloseSettings" class="settings-close-btn" aria-label="Cerrar ajustes">✕</button>
 
       <div class="settings-header">
