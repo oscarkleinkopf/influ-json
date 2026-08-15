@@ -944,6 +944,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-15 | Cursor | **Corte F LAN casera**: SQLite sessions, PIN≥6, allowlist, límites, audit auth | *(este PR)* |
 | 2026-08-11 | Cursor | **fix(ux-0)**: HTML nesting + móvil margin + offline bar fixed + test estructura | *(este PR)* |
 | 2026-08-10 | Cursor | **fix**: Resumen thumbs — fallback static `DATA_DIR` para references/generated | *(este PR)* |
 | 2026-08-05 | Cursor | **Happy path live**: create→JSON pack→export + boceto pollen; smoke 9/9 | *(docs)* |
