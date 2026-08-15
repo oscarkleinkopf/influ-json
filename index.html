@@ -160,7 +160,7 @@
               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
             <div class="stat-info">
-              <h3>Scripts</h3>
+              <h3>Guiones</h3>
               <p id="statScriptsCount">0</p>
             </div>
           </div>
@@ -189,7 +189,7 @@
               <div>
                 <strong>1. Crear o importar</strong>
                 <p>En <strong>Influencers → Ficha / Editor</strong>: «Crear influencer» o «Importar referencia» / Inspirar desde foto.</p>
-                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                <div class="happy-path-step-actions" style="display:flex; flex-wrap:wrap; gap:8px;">
                   <button type="button" class="btn btn-secondary btn-sm" data-happy-action="create">Ir a crear</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-happy-action="import">Importar foto</button>
                 </div>
@@ -200,7 +200,7 @@
               <div>
                 <strong>2. Guardar influencer</strong>
                 <p>Completa nombre, tez y rasgos → «Guardar personaje» / «Crear influencer» (solo JSON).</p>
-                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="save">Ir a guardar</button>
+                <button type="button" class="btn btn-secondary btn-sm happy-path-step-actions" data-happy-action="save">Ir a guardar</button>
               </div>
             </li>
             <li class="happy-path-step" data-step="copy">
@@ -208,7 +208,7 @@
               <div>
                 <strong>3. Copiar JSON</strong>
                 <p>El producto es el JSON: pégalo en ChatGPT / Gemini / Claude free.</p>
-                <button type="button" class="btn btn-sm" data-happy-action="copy-pack">Copiar JSON</button>
+                <button type="button" class="btn btn-sm happy-path-step-actions" data-happy-action="copy-pack">Copiar JSON</button>
               </div>
             </li>
             <li class="happy-path-step" data-step="gen">
@@ -216,7 +216,7 @@
               <div>
                 <strong>4. Generar boceto <em style="font-weight:500;color:var(--text-muted);">(opt-in · puede pedir token)</em></strong>
                 <p>Pollinations es opcional (no cuenta para el 3/3). Si pide token: admin → Ajustes → POLLINATIONS_TOKEN (o sigue con Copiar JSON).</p>
-                <button type="button" class="btn btn-secondary btn-sm" data-happy-action="gen">Generar boceto (opt-in · puede pedir token)</button>
+                <button type="button" class="btn btn-secondary btn-sm happy-path-step-actions" data-happy-action="gen">Generar boceto (opt-in · puede pedir token)</button>
               </div>
             </li>
           </ol>
@@ -527,7 +527,7 @@
                 <h4 style="font-size: 11px; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 8px;">Acciones de Entrega</h4>
                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                   <a href="" id="btnExportZip" class="btn" style="flex: 1; text-align: center; text-decoration: none; padding: 12px 16px;">📦 Exportar Campaña (ZIP)</a>
-                  <button class="btn btn-secondary u-flex-1" id="btnGenerateCampaignScripts" >✍️ Regenerar Scripts</button>
+                  <button class="btn btn-secondary u-flex-1" id="btnGenerateCampaignScripts" >✍️ Regenerar guiones</button>
                 </div>
               </div>
             </div>
@@ -614,7 +614,7 @@
               <div style="display: flex; gap: 24px; margin-bottom: 24px; align-items: flex-start; flex-wrap: wrap;">
                 <!-- Profile Image -->
                 <div class="profile-image-container" style="position: relative; width: 140px; height: 140px; border-radius: 20px; overflow: hidden; border: 2px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); cursor: pointer;">
-                  <img id="sheetProfileImg" src="assets/nano_banana_influencer.png" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                  <img id="sheetProfileImg" src="assets/nano_banana_influencer.png" alt="Perfil del influencer" style="width: 100%; height: 100%; object-fit: cover;">
                   <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); padding: 4px; text-align: center; font-size: 9px; text-transform: uppercase; font-weight: 700; color: var(--accent-primary);">FOTO BASE</div>
                 </div>
                 
@@ -1653,7 +1653,7 @@
 
                 <div style="display: flex; gap: 8px; margin-top: 6px;">
                   <button type="button" class="btn btn-secondary" id="btnRandomizeVariant" style="flex: 0 0 auto;" title="Elige pose, vestuario, actitud y escena al azar">🎲 Sorpréndeme</button>
-                  <button type="button" class="btn btn-secondary u-flex-1" id="btnGenerateVariant"  title="Pollinations opt-in (token/pollen) — preferí Copiar JSON">
+                  <button type="button" class="btn btn-secondary u-flex-1" id="btnGenerateVariant"  title="Pollinations opt-in (token/pollen) — prefiere Copiar JSON">
                     Generar boceto (opt-in · puede pedir token)
                   </button>
                 </div>
@@ -2027,7 +2027,7 @@
                 <div class="compliance-watermark active" id="nyWatermark">[Creador Virtual AI]</div>
                 
                 <!-- Background image of influencer holding the product -->
-                <img id="mockupImage" src="assets/influencer_female_serum.png" alt="Influencer Holding Product" class="mockup-media">
+                <img id="mockupImage" src="assets/influencer_female_serum.png" alt="Influencer con producto en mano" class="mockup-media">
                 
                 <div class="mockup-overlay-left">
                   <div class="mockup-creator-info">
@@ -2178,7 +2178,7 @@
                 </tr>
                 <tr>
                   <td>
-                    <strong>Paquete de Redacción (10 Scripts)</strong><br>
+                    <strong>Paquete de redacción (10 guiones)</strong><br>
                     <span class="u-fs-12-sec">Ángulos UGC (plantillas locales / Gemini opt-in)</span>
                   </td>
                   <td class="u-mono-right">$0.00 (Incluido)</td>
@@ -2224,7 +2224,7 @@
     <button type="button" class="history-nav-btn history-nav-prev" id="btnHistoryPrev" onclick="navigateHistoryModal(-1)" title="Anterior (Flecha izquierda)">&#8249;</button>
     <div class="history-modal-content">
       <button class="history-modal-close" onclick="closeHistoryModal()">&times;</button>
-      <img id="historyModalImage" src="" alt="Generated image">
+      <img id="historyModalImage" src="" alt="Imagen generada">
       <div class="history-modal-info">
         <span class="history-type-badge" id="historyModalType"></span>
         <p id="historyModalDate" style="color: var(--text-secondary); font-size: 12px; margin: 8px 0;"></p>

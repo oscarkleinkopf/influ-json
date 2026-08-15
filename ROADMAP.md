@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-15 | **Polish-3 (en curso)** | Checklist vacío · Guiones · alts ES · prefiere Copiar JSON |
 | 2026-08-15 | **Polish-2 → main (#133)** | Cómo usar · ES · a11y modales · CTA vacío único |
 | 2026-08-15 | **Polish-2 (en curso)** | Cómo usar · ES titles · settings/import a11y · CTA vacío único |
 | 2026-08-14 | **Polish fino → main (#131)** | Declutter vacío · copy CTA · ¡Copiado! · ES · login a11y |

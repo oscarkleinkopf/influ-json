@@ -156,7 +156,7 @@
         const dropzone = document.getElementById('uploadDropzone');
         dropzone.classList.add('has-image');
         dropzone.innerHTML = `
-      <img src="${data.filePath}" alt="Reference Photo" class="upload-preview-img">
+      <img src="${data.filePath}" alt="Foto de referencia" class="upload-preview-img">
       <div class="upload-preview-overlay">
         <div class="upload-preview-info">
           <div class="upload-preview-name">Imagen desde URL</div>
@@ -195,7 +195,7 @@
 
         dropzone.classList.add('has-image');
         dropzone.innerHTML = `
-      <img src="${imgDataUrl}" alt="Reference Photo" class="upload-preview-img">
+      <img src="${imgDataUrl}" alt="Foto de referencia" class="upload-preview-img">
       <div class="upload-preview-overlay">
         <div class="upload-preview-info">
           <div class="upload-preview-name">${file.name}</div>

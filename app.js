@@ -2662,6 +2662,7 @@ function renderHappyPathChecklist() {
   const coreSteps = ['create', 'save', 'copy'];
   const steps = [...coreSteps, 'gen'];
   let coreDone = 0;
+  const rosterEmpty = !status.create;
   steps.forEach(step => {
     const li = list.querySelector(`[data-step="${step}"]`);
     if (!li) return;
@@ -2670,6 +2671,10 @@ function renderHappyPathChecklist() {
     li.classList.toggle('done', ok);
     const check = li.querySelector('.happy-path-check');
     if (check) check.textContent = ok ? '●' : '○';
+  });
+  // Polish-3: con roster vacío los CTAs viven solo en Portafolio (evita Ir a crear duplicado).
+  list.querySelectorAll('.happy-path-step-actions').forEach((el) => {
+    el.style.display = rosterEmpty ? 'none' : '';
   });
   // Progreso = 3 pasos core (boceto no cuenta para "listo")
   if (progress) progress.textContent = `${coreDone} / 3`;
@@ -6902,7 +6907,7 @@ async function generateCampaignScriptsAction() {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = prevLabel || '✍️ Regenerar Scripts';
+      btn.textContent = prevLabel || '✍️ Regenerar guiones';
     }
   }
 }
@@ -8006,7 +8011,7 @@ function renderGalleryGrid(items) {
     const card = document.createElement('div');
     card.className = 'gallery-card';
     card.innerHTML = `
-      <img src="${item.image_path || 'assets/influencer_female_serum.png'}" class="gallery-card-img" alt="Gallery preview">
+      <img src="${item.image_path || 'assets/influencer_female_serum.png'}" class="gallery-card-img" alt="Vista previa de galería">
       <div class="gallery-card-content">
         <p class="gallery-card-prompt">${item.prompt}</p>
         <button class="btn btn-sm btn-secondary u-w-full"  onclick="loadPromptFromGallery('${item.prompt.replace(/'/g, "\\'")}')">Cargar prompt</button>
@@ -8332,7 +8337,7 @@ function renderGenerationHistory() {
     }
 
     card.innerHTML = `
-      <img src="${gen.image_path || DEFAULT_PERSONA_THUMB}" alt="Generation image" class="history-card-img" loading="lazy">
+      <img src="${gen.image_path || DEFAULT_PERSONA_THUMB}" alt="Imagen de generación" class="history-card-img" loading="lazy">
       <div class="history-card-overlay">
         <span class="history-type-badge ${typeClass}">${typeLabel}</span>
         <div class="history-card-meta">
