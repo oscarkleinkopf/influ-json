@@ -62,7 +62,7 @@ test('GET /api/stats/generations está scoped al perfil', async () => {
     const adminId = dbService.ensureDefaultStudioProfile();
     const member = dbService.createStudioProfile({
       name: `StatsMem_${Date.now()}`,
-      pin: '6677',
+      pin: '667700',
       role: 'member'
     });
     const adminPersona = dbService.savePersona({
@@ -86,7 +86,7 @@ test('GET /api/stats/generations está scoped al perfil', async () => {
       generation_type: 'portrait'
     });
 
-    const mem = await loginSession(base, { pin: '6677', profileId: member.id });
+    const mem = await loginSession(base, { pin: '667700', profileId: member.id });
     const res = await fetch(`${base}/api/stats/generations`, { headers: mem.headers() });
     assert.equal(res.status, 200);
     const body = await res.json();
@@ -100,10 +100,10 @@ test('POST /api/sync exige admin (member → 403)', async () => {
   await withServer(async (base) => {
     const member = dbService.createStudioProfile({
       name: `SyncMem_${Date.now()}`,
-      pin: '7788',
+      pin: '778800',
       role: 'member'
     });
-    const mem = await loginSession(base, { pin: '7788', profileId: member.id });
+    const mem = await loginSession(base, { pin: '778800', profileId: member.id });
     const res = await fetch(`${base}/api/sync`, {
       method: 'POST',
       headers: mem.jsonHeaders()
@@ -131,10 +131,10 @@ test('GET /api/local-gpu/status enmascara URL para member', async () => {
     await withServer(async (base) => {
       const member = dbService.createStudioProfile({
         name: `GpuMem_${Date.now()}`,
-        pin: '8899',
+        pin: '889900',
         role: 'member'
       });
-      const mem = await loginSession(base, { pin: '8899', profileId: member.id });
+      const mem = await loginSession(base, { pin: '889900', profileId: member.id });
       const res = await fetch(`${base}/api/local-gpu/status`, { headers: mem.headers() });
       assert.equal(res.status, 200);
       const body = await res.json();

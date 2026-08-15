@@ -291,6 +291,20 @@ const MIGRATIONS = [
         CREATE INDEX IF NOT EXISTS idx_persona_loras_persona ON persona_loras(persona_id);
       `);
     }
+  },
+  {
+    id: 12,
+    name: 'express_sessions',
+    up(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS sessions (
+          sid TEXT PRIMARY KEY,
+          sess TEXT NOT NULL,
+          expired INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_sessions_expired ON sessions(expired);
+      `);
+    }
   }
 ];
 

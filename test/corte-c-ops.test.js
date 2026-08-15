@@ -139,10 +139,10 @@ test('GET /api/doctor admin OK; member 403', async () => {
 
     const member = dbService.createStudioProfile({
       name: `DocMem_${Date.now()}`,
-      pin: '5566',
+      pin: '556600',
       role: 'member'
     });
-    const mem = await loginSession(base, { pin: '5566', profileId: member.id });
+    const mem = await loginSession(base, { pin: '556600', profileId: member.id });
     const forbid = await fetch(`${base}/api/doctor`, { headers: mem.headers() });
     assert.equal(forbid.status, 403);
   } finally {

@@ -49,7 +49,7 @@ test('archive escribe evento; export registra actor; member 403 al listar', asyn
   const adminId = db.ensureDefaultStudioProfile();
   const member = db.createStudioProfile({
     name: `AuditMem_${Date.now()}`,
-    pin: '6677',
+    pin: '667700',
     role: 'member'
   });
   const persona = db.savePersona({
@@ -102,7 +102,7 @@ test('archive escribe evento; export registra actor; member 403 al listar', asyn
     assert.ok(Array.isArray(adminBody.events));
     assert.ok(adminBody.events.some((e) => e.action === 'persona.archive'));
 
-    const mem = await loginSession(base, { pin: '6677', profileId: member.id });
+    const mem = await loginSession(base, { pin: '667700', profileId: member.id });
     const memRes = await fetch(`${base}/api/audit/events`, {
       headers: mem.headers()
     });

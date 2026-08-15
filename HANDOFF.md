@@ -25,14 +25,24 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #135 (polish-3) |
-| **PR actual** | — |
-| **`main` remoto** | + #133–#135 polish-2/3 |
-| **Prioridad inmediata** | Pausar polish · F si LAN · o comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
-| **Aparcado** | Corte F (LAN/VPS) · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
+| **Rama de trabajo** | `cursor/corte-f-lan-casera-9b67` |
+| **Commit base** | `main` @ #136 |
+| **PR actual** | (abrir) Corte F LAN casera |
+| **`main` remoto** | + polish-3 #135 · handoff #136 |
+| **Prioridad inmediata** | Corte F (LAN casera) → probar multi-PC; NAS potente más adelante |
+| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-15) — Polish-3 → main
+### Sesión reciente (Cursor, 2026-08-15) — Corte F LAN casera
+
+**Pedido:** Intentar LAN en casa ahora; NAS más potente más adelante.
+
+**Hecho / en curso:**
+- Sesiones SQLite si `HOST=0.0.0.0` (`session-store.js` + migración 12)
+- PIN uniforme ≥6 + anti-trivial; allowlist Host/Origin opt-in; HSTS condicional
+- Límites JSON/upload más estrictos en bind público; audit login/logout/PIN
+- Runbook **LAN casera** en `docs/SECURITY_MARKET.md`
+
+### Sesión previa (Cursor, 2026-08-15) — Polish-3 → main
 
 **Pedido:** Polish de restos.
 

@@ -1104,7 +1104,7 @@ async function refreshProfilesSettingsList() {
       });
       root.querySelectorAll('[data-repin-profile]').forEach(btn => {
         btn.addEventListener('click', async () => {
-          const pin = prompt('Nuevo PIN (mín. 4 caracteres):');
+          const pin = prompt('Nuevo PIN (mín. 6 caracteres):');
           if (!pin) return;
           const res2 = await authFetch(`/api/profiles/${btn.getAttribute('data-repin-profile')}`, {
             method: 'PATCH',

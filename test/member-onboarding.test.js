@@ -21,11 +21,11 @@ async function withServer(fn) {
 }
 
 test('settings keys: member cannot write .env; admin can', async () => {
-  const member = db.createStudioProfile({ name: `KeysMem_${Date.now()}`, pin: '6677', role: 'member' });
+  const member = db.createStudioProfile({ name: `KeysMem_${Date.now()}`, pin: '667700', role: 'member' });
 
   await withServer(async (base) => {
     const { loginSession } = require('./helpers/session');
-    const mem = await loginSession(base, { pin: '6677', profileId: member.id });
+    const mem = await loginSession(base, { pin: '667700', profileId: member.id });
     const forbid = await fetch(`${base}/api/settings/keys`, {
       method: 'POST',
       headers: mem.jsonHeaders(),
@@ -59,7 +59,7 @@ test('invite redeem returns member profile ready for empty onboarding', async ()
     const redeem = await fetch(`${base}/api/invites/redeem`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: invite.code, name, pin: '4242' })
+      body: JSON.stringify({ code: invite.code, name, pin: '424200' })
     });
     const data = await redeem.json();
     assert.equal(data.success, true, data.message || 'redeem');

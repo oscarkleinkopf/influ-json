@@ -129,7 +129,7 @@ test('bulk ads: otro perfil no ve batch-status (404)', async () => {
       const adminId = dbService.ensureDefaultStudioProfile();
       const member = dbService.createStudioProfile({
         name: `BulkMem_${Date.now()}`,
-        pin: '7788',
+        pin: '778800',
         role: 'member'
       });
 
@@ -154,7 +154,7 @@ test('bulk ads: otro perfil no ve batch-status (404)', async () => {
       const startBody = await start.json();
       assert.equal(startBody.success, true);
 
-      const mem = await loginSession(base, { pin: '7788', profileId: member.id });
+      const mem = await loginSession(base, { pin: '778800', profileId: member.id });
       const peek = await fetch(`${base}/api/ads/batch-status/${startBody.batchId}`, {
         headers: mem.headers()
       });

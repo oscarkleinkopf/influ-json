@@ -137,6 +137,51 @@ function runDoctor(opts = {}) {
     )
   );
 
+  const sessionStoreMode = (() => {
+    try {
+      return require('./session-store').resolveSessionStoreMode(env);
+    } catch (_) {
+      return 'unknown';
+    }
+  })();
+  checks.push(
+    check(
+      'session_store',
+      !(publicBind && sessionStoreMode === 'memory'),
+      publicBind
+        ? `modo=${sessionStoreMode} (en LAN/NAS preferible sqlite; SESSION_STORE=sqlite)`
+        : `modo=${sessionStoreMode}`,
+      publicBind && sessionStoreMode === 'memory' ? 'warn' : 'ok'
+    )
+  );
+
+  const allowedHosts = String(env.ALLOWED_HOSTS || '').trim();
+  const pubOrigin = String(env.PUBLIC_HTTPS_ORIGIN || '').trim();
+  checks.push(
+    check(
+      'host_allowlist',
+      true,
+      allowedHosts || pubOrigin
+        ? `activo (ALLOWED_HOSTS / PUBLIC_HTTPS_ORIGIN)`
+        : publicBind
+          ? 'off — opcional en LAN por IP; actívalo si usas hostname fijo'
+          : 'off (OK en localhost)',
+      publicBind && !allowedHosts && !pubOrigin ? 'info' : 'ok'
+    )
+  );
+
+  if (publicBind && authEnabled && !pinDefault) {
+    const pinLen = String(env.STUDIO_PIN || '').trim().length;
+    checks.push(
+      check(
+        'lan_pin_length',
+        pinLen >= 6,
+        pinLen >= 6 ? `STUDIO_PIN length=${pinLen}` : 'STUDIO_PIN corto (<6) en bind público',
+        pinLen >= 6 ? 'ok' : 'warn'
+      )
+    );
+  }
+
   const pollen = !!(env.POLLINATIONS_TOKEN || env.POLLINATIONS_API_TOKEN || '').trim();
   checks.push(
     check(

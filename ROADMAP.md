@@ -162,6 +162,7 @@
 | 2026-08-14 | **I4 → main (#128)** | Plantillas comunitarias sin must_match/fotos |
 | 2026-08-14 | **I4 plantillas (en curso)** | Pack/shot/hooks sin must_match — Dashboard + import seguro |
 | 2026-08-14 | **I2 → main (#126)** | «Qué producir ahora» — brief→checklist + CTAs |
+| 2026-08-15 | **Corte F LAN casera (en curso)** | SQLite sessions; PIN≥6; allowlist; límites; audit auth; runbook NAS |
 | 2026-08-14 | **I2 brief→checklist (en curso)** | «Qué producir ahora» — hooks/pack/shots/campaña/licencia |
 | 2026-08-14 | **Corte G → main (#124)** | activación 5/5; prueba identidad; lock lab A/B; recetas producción |
 | 2026-08-14 | **Corte G (en curso)** | activación 5/5; prueba identidad; lock lab A/B; recetas producción |

@@ -31,7 +31,7 @@ async function withServer(fn) {
 
 test('ownership: member cannot delete or export another profile persona', async () => {
   const adminId = db.ensureDefaultStudioProfile();
-  const member = db.createStudioProfile({ name: `OwnMem_${Date.now()}`, pin: '7788', role: 'member' });
+  const member = db.createStudioProfile({ name: `OwnMem_${Date.now()}`, pin: '778800', role: 'member' });
   const adminPersona = db.savePersona({
     name: `AdminP_${Date.now()}`,
     gender: 'Female',
@@ -40,7 +40,7 @@ test('ownership: member cannot delete or export another profile persona', async 
   });
 
   await withServer(async (base) => {
-    const mem = await loginSession(base, { pin: '7788', profileId: member.id });
+    const mem = await loginSession(base, { pin: '778800', profileId: member.id });
 
     const del = await fetch(`${base}/api/personas/${adminPersona.id}`, {
       method: 'DELETE',
@@ -63,7 +63,7 @@ test('ownership: member cannot delete or export another profile persona', async 
 
 test('ownership: POST update rejects foreign persona id', async () => {
   const adminId = db.ensureDefaultStudioProfile();
-  const member = db.createStudioProfile({ name: `OwnUpd_${Date.now()}`, pin: '8899', role: 'member' });
+  const member = db.createStudioProfile({ name: `OwnUpd_${Date.now()}`, pin: '889900', role: 'member' });
   const adminPersona = db.savePersona({
     name: `AdminUpd_${Date.now()}`,
     gender: 'Female',
@@ -72,7 +72,7 @@ test('ownership: POST update rejects foreign persona id', async () => {
   });
 
   await withServer(async (base) => {
-    const mem = await loginSession(base, { pin: '8899', profileId: member.id });
+    const mem = await loginSession(base, { pin: '889900', profileId: member.id });
 
     const res = await fetch(`${base}/api/personas`, {
       method: 'POST',
@@ -93,7 +93,7 @@ test('ownership: POST update rejects foreign persona id', async () => {
 });
 
 test('backups: admin can create and list; member forbidden', async () => {
-  const member = db.createStudioProfile({ name: `BakMem_${Date.now()}`, pin: '5566', role: 'member' });
+  const member = db.createStudioProfile({ name: `BakMem_${Date.now()}`, pin: '556600', role: 'member' });
 
   await withServer(async (base) => {
     const admin = await loginSession(base);
@@ -114,7 +114,7 @@ test('backups: admin can create and list; member forbidden', async () => {
     assert.equal(listed.success, true);
     assert.ok((listed.snapshots || []).some((s) => s.filename === created.snapshot.filename));
 
-    const mem = await loginSession(base, { pin: '5566', profileId: member.id });
+    const mem = await loginSession(base, { pin: '556600', profileId: member.id });
     const forbid = await fetch(`${base}/api/backups`, {
       method: 'POST',
       headers: mem.jsonHeaders(),
@@ -128,7 +128,7 @@ test('backups: admin can create and list; member forbidden', async () => {
 
 test('gallery: items scoped by profile', () => {
   const adminId = db.ensureDefaultStudioProfile();
-  const other = db.createStudioProfile({ name: `Gal_${Date.now()}`, pin: '3344', role: 'member' });
+  const other = db.createStudioProfile({ name: `Gal_${Date.now()}`, pin: '334400', role: 'member' });
   const a = db.saveToGallery('prompt-admin', 'assets/x.png', adminId);
   const b = db.saveToGallery('prompt-member', 'assets/y.png', other.id);
   const listA = db.getGalleryItems(adminId);

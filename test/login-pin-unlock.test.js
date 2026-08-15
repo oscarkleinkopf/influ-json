@@ -47,7 +47,7 @@ test('GET /api/auth/profiles (login) omite perfiles harness activos', async () =
     try {
       const p = db.createStudioProfile({
         name: `MetricsMem_${Date.now()}`,
-        pin: '9999',
+        pin: '999900',
         role: 'member'
       });
       harnessId = p.id;
