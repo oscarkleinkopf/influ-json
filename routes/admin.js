@@ -38,8 +38,16 @@ function registerInviteRedeemRoute(app, deps) {
       if (!name || !String(name).trim()) {
         return res.status(400).json({ success: false, message: 'Nombre de perfil requerido.' });
       }
-      if (!pin || String(pin).trim().length < 4) {
-        return res.status(400).json({ success: false, message: 'El PIN debe tener al menos 4 caracteres.' });
+      if (!pin || String(pin).trim().length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: 'El PIN debe tener al menos 6 caracteres.'
+        });
+      }
+      try {
+        require('../first-run').validateProfilePin(pin);
+      } catch (verr) {
+        return res.status(400).json({ success: false, message: verr.message, code: verr.code || null });
       }
       const result = dbService.redeemStudioInvite({ code, name, pin });
       authService.clearLoginFailures(req);

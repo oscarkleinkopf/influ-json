@@ -77,7 +77,7 @@ test('recordGenMetric + getGenMetricsSummary incrementan contadores', () => {
 test('API metrics: admin OK, member 403', async () => {
   const member = db.createStudioProfile({
     name: `MetricsMem_${Date.now()}`,
-    pin: '6688',
+    pin: '668800',
     role: 'member'
   });
 
@@ -101,7 +101,7 @@ test('API metrics: admin OK, member 403', async () => {
     const memLogin = await fetch(`${base}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: '6688', profileId: member.id })
+      body: JSON.stringify({ pin: '668800', profileId: member.id })
     });
     const memCookie = (memLogin.headers.getSetCookie?.()?.[0] || memLogin.headers.get('set-cookie') || '').split(';')[0];
     const memRes = await fetch(`${base}/api/metrics/generations`, {

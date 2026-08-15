@@ -26,6 +26,27 @@ firstRun.ensureSessionSecret();
 
 const dbService = require('./db');
 const authService = require('./auth');
+const sessionStore = require('./session-store');
+
+// Corte F: SQLite sessions en bind público (NAS/LAN); MemoryStore en localhost.
+(function wireSessionStore() {
+  const mode = sessionStore.resolveSessionStoreMode();
+  if (mode === 'sqlite') {
+    try {
+      const store = sessionStore.createSqliteSessionStore(dbService.db, {
+        ttlMs: 24 * 60 * 60 * 1000
+      });
+      authService.initSessionMiddleware({ store, storeKind: 'sqlite' });
+      console.log('[session] store=sqlite (sesiones sobreviven reinicios)');
+    } catch (err) {
+      console.error('[session] No se pudo abrir store SQLite; usando memoria:', err.message);
+      authService.initSessionMiddleware({ storeKind: 'memory' });
+    }
+  } else {
+    authService.initSessionMiddleware({ storeKind: 'memory' });
+  }
+})();
+
 const aiService = require('./ai-service');
 const genQueue = require('./gen-queue');
 const {
@@ -61,9 +82,11 @@ if (authService.isTrustProxyEnabled()) {
 }
 
 app.use(authService.securityHeaders);
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(authService.hostAllowlistProtection);
+app.use(express.json({ limit: firstRun.getJsonBodyLimit() }));
+app.use(express.urlencoded({ limit: firstRun.getJsonBodyLimit(), extended: true }));
 app.use(authService.sessionMiddleware);
+app.use(authService.originAllowlistProtection);
 
 /**
  * If Studio is bound publicly (0.0.0.0) with insecure auth (default PIN or auth off),
@@ -324,7 +347,10 @@ const storage = multer.diskStorage({
     cb(null, unique);
   }
 });
-const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
+const upload = multer({
+  storage,
+  limits: { fileSize: firstRun.getUploadFileSizeLimitBytes() }
+});
 
 const loraStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -340,7 +366,7 @@ const loraStorage = multer.diskStorage({
 });
 const uploadLora = multer({
   storage: loraStorage,
-  limits: { fileSize: 500 * 1024 * 1024 },
+  limits: { fileSize: firstRun.getLoraUploadFileSizeLimitBytes() },
   fileFilter: (req, file, cb) => {
     const name = (file.originalname || '').toLowerCase();
     if (name.endsWith('.safetensors') || name.endsWith('.pt') || name.endsWith('.ckpt')) {
@@ -366,6 +392,10 @@ ensureDir(SCRATCH_DIR);
 app.post('/api/auth/login', (req, res) => {
   const lock = authService.getLoginLockStatus(req);
   if (lock.locked) {
+    dbService.recordAuditEvent({
+      action: 'auth.login.lock',
+      meta: { retryAfterSec: lock.retryAfterSec }
+    });
     return res.status(429).json({
       success: false,
       message: `Demasiados intentos. Espera ${lock.retryAfterSec}s.`,
@@ -383,10 +413,23 @@ app.post('/api/auth/login', (req, res) => {
     profile = dbService.getStudioProfileById(profileId);
     if (!profile || !profile.active) {
       authService.registerLoginFailure(req);
+      dbService.recordAuditEvent({
+        action: 'auth.login.fail',
+        entity_type: 'profile',
+        entity_id: String(profileId),
+        meta: { reason: 'profile_missing' }
+      });
       return res.status(401).json({ success: false, message: 'Perfil no encontrado.' });
     }
     if (!authService.verifyPinHash(pin, profile.pin_salt, profile.pin_hash)) {
       const status = authService.registerLoginFailure(req);
+      dbService.recordAuditEvent({
+        action: status.locked ? 'auth.login.lock' : 'auth.login.fail',
+        profile_id: profile.id,
+        entity_type: 'profile',
+        entity_id: profile.id,
+        meta: { reason: 'bad_pin', locked: !!status.locked }
+      });
       return res.status(401).json({
         success: false,
         message: status.locked
@@ -402,6 +445,10 @@ app.post('/api/auth/login', (req, res) => {
     }
     if (!profile) {
       const status = authService.registerLoginFailure(req);
+      dbService.recordAuditEvent({
+        action: status.locked ? 'auth.login.lock' : 'auth.login.fail',
+        meta: { reason: 'bad_pin', locked: !!status.locked }
+      });
       return res.status(401).json({
         success: false,
         message: status.locked
@@ -418,6 +465,13 @@ app.post('/api/auth/login', (req, res) => {
       console.error('[auth/login] session regenerate', err);
       return res.status(500).json({ success: false, message: 'No se pudo crear la sesión.' });
     }
+    dbService.recordAuditEvent({
+      action: 'auth.login.ok',
+      profile_id: profile.id,
+      actor_profile_id: profile.id,
+      entity_type: 'profile',
+      entity_id: profile.id
+    });
     res.json({
       success: true,
       message: 'Sesión iniciada correctamente.',
@@ -429,7 +483,17 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 app.post('/api/auth/logout', authService.csrfProtection, (req, res) => {
+  const actorId = req.session?.profileId || null;
   req.session.destroy(() => {
+    if (actorId) {
+      dbService.recordAuditEvent({
+        action: 'auth.logout',
+        profile_id: actorId,
+        actor_profile_id: actorId,
+        entity_type: 'profile',
+        entity_id: actorId
+      });
+    }
     res.clearCookie('influ.sid');
     res.json({ success: true, message: 'Sesión cerrada.' });
   });
@@ -521,6 +585,8 @@ app.get('/api/status', (req, res) => {
     publicBindBlockReason,
     authEnabled,
     authenticated,
+    sessionStore: authService.getSessionStoreKind(),
+    jsonBodyLimit: firstRun.getJsonBodyLimit(),
     profile: req.session?.profileId
       ? { id: req.session.profileId, name: req.session.profileName, role: req.session.profileRole }
       : null,
@@ -570,6 +636,14 @@ app.post('/api/setup/change-pin', requireAuth, authService.csrfProtection, requi
             console.error('[setup/change-pin] session regenerate', err);
             return res.status(500).json({ success: false, message: 'PIN guardado pero no se pudo renovar la sesión.' });
           }
+          dbService.recordAuditEvent({
+            action: 'auth.pin.change',
+            profile_id: adminId || null,
+            actor_profile_id: adminId || null,
+            entity_type: 'profile',
+            entity_id: adminId || null,
+            meta: { via: 'setup' }
+          });
           console.log('[setup] STUDIO_PIN actualizado (ya no es el valor por defecto).');
           res.json({
             success: true,
@@ -584,6 +658,14 @@ app.post('/api/setup/change-pin', requireAuth, authService.csrfProtection, requi
     }
 
     console.log('[setup] STUDIO_PIN actualizado (ya no es el valor por defecto).');
+    dbService.recordAuditEvent({
+      action: 'auth.pin.change',
+      profile_id: adminId || null,
+      actor_profile_id: adminId || null,
+      entity_type: 'profile',
+      entity_id: adminId || null,
+      meta: { via: 'setup_no_session' }
+    });
     res.json({
       success: true,
       message: 'PIN actualizado. Guárdalo en un lugar seguro.',
@@ -592,9 +674,14 @@ app.post('/api/setup/change-pin', requireAuth, authService.csrfProtection, requi
       csrfToken: req.session ? authService.ensureCsrfToken(req.session) : null
     });
   } catch (err) {
-    const status = err.code === 'PIN_TOO_SHORT' || err.code === 'PIN_MISMATCH' || err.code === 'PIN_STILL_DEFAULT'
-      ? 400
-      : 500;
+    const status =
+      err.code === 'PIN_TOO_SHORT' ||
+      err.code === 'PIN_MISMATCH' ||
+      err.code === 'PIN_STILL_DEFAULT' ||
+      err.code === 'PIN_TRIVIAL' ||
+      err.code === 'PIN_UNSAFE_CHARS'
+        ? 400
+        : 500;
     res.status(status).json({ success: false, message: err.message, code: err.code || null });
   }
 });
@@ -1065,7 +1152,8 @@ app.use((err, req, res, next) => {
   if (err && err.name === 'MulterError') {
     let message = 'Error al procesar archivos.';
     if (err.code === 'LIMIT_FILE_SIZE') {
-      message = 'Una de las imágenes excede el límite de tamaño permitido (50MB).';
+      const mb = Math.round(firstRun.getUploadFileSizeLimitBytes() / (1024 * 1024));
+      message = `Una de las imágenes excede el límite de tamaño permitido (${mb}MB).`;
     } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
       message = 'Has excedido el límite máximo de fotos (máximo 4 fotos).';
     }
@@ -1107,6 +1195,9 @@ function startHttpServer(port = PORT, host = LISTEN_HOST) {
   const server = app.listen(port, host, () => {
     const where = host === '0.0.0.0' ? `todas las interfaces :${port}` : `${host}:${port}`;
     console.log(`Server is running at http://${host === '0.0.0.0' ? '127.0.0.1' : host}:${port} (bind ${where})`);
+    if (firstRun.isPublicBind(host)) {
+      console.log(`[session] store=${authService.getSessionStoreKind()} · LAN: docs/SECURITY_MARKET.md § LAN casera`);
+    }
     if (authService.isPinDefault()) {
       console.log('[setup] PIN por defecto activo — abre el Studio y completa el asistente de primer arranque.');
     }

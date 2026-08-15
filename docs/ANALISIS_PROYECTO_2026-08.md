@@ -747,12 +747,12 @@ Mostrar solo al usuario: “Tu Studio está listo 4/5”. Esto ayuda a mejorar o
 
 ### Corte F — Modo LAN/VPS (solo si se usa)
 
-1. Tokens API separados del PIN.
-2. Store de sesión SQLite.
-3. PIN mínimo uniforme.
-4. Límites de recursos.
-5. Origin/Host allowlist + HSTS condicional.
-6. Audit de eventos de seguridad.
+1. Tokens API separados del PIN. ⏳ aparcado (Bearer PIN OK en LAN casera; S1 después)
+2. Store de sesión SQLite. ✅ `session-store.js` (default si `HOST=0.0.0.0`)
+3. PIN mínimo uniforme. ✅ 6 + anti-trivial (`validateProfilePin`)
+4. Límites de recursos. ✅ JSON/upload más estrictos en bind público
+5. Origin/Host allowlist + HSTS condicional. ✅ opt-in `ALLOWED_*` / `PUBLIC_HTTPS_ORIGIN`
+6. Audit de eventos de seguridad. ✅ login/logout/PIN change
 
 ### Corte G — Medir el valor
 

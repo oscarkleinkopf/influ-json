@@ -57,7 +57,7 @@ test('db: default Admin profile exists and personas are scoped', () => {
   assert.ok(profiles.some(p => p.name === 'Administración' || p.name === 'Admin'));
   assert.ok(profiles.some(p => p.role === 'admin' || p.role === 'owner'));
 
-  const other = db.createStudioProfile({ name: `QA_${Date.now()}`, pin: '5678', role: 'member' });
+  const other = db.createStudioProfile({ name: `QA_${Date.now()}`, pin: '567800', role: 'member' });
   const a = db.savePersona({
     name: `ScopedA_${Date.now()}`,
     gender: 'Female',
@@ -96,7 +96,7 @@ test('db+API: admin invites create isolated member profiles', async () => {
   const redeemed = db.redeemStudioInvite({
     code: invite.code,
     name: `InviteUser_${Date.now()}`,
-    pin: '2468'
+    pin: '246800'
   });
   assert.equal(redeemed.profile.role, 'member');
   assert.equal(db.getAllPersonas(redeemed.profile.id).length, 0);
@@ -114,7 +114,7 @@ test('db+API: admin invites create isolated member profiles', async () => {
 
   // Second redeem should fail (maxUses=1)
   assert.throws(
-    () => db.redeemStudioInvite({ code: invite.code, name: `Dup_${Date.now()}`, pin: '9999' }),
+    () => db.redeemStudioInvite({ code: invite.code, name: `Dup_${Date.now()}`, pin: '999900' }),
     /ya fue usada|no válido|revocada/i
   );
 
@@ -141,7 +141,7 @@ test('db+API: admin invites create isolated member profiles', async () => {
       body: JSON.stringify({
         code: created.invite.code,
         name: `ApiInvite_${Date.now()}`,
-        pin: '1357'
+        pin: '135700'
       })
     });
     const redeemedApi = await redeemRes.json();
@@ -214,7 +214,7 @@ test('API: login + profiles + status pinIsDefault', async () => {
       headers: session.csrf
         ? session.jsonHeaders()
         : authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ name: `ApiProfile_${Date.now()}`, pin: '4321' })
+      body: JSON.stringify({ name: `ApiProfile_${Date.now()}`, pin: '432100' })
     });
     const created = await createRes.json();
     assert.equal(created.success, true, created.message || 'create profile');
@@ -238,7 +238,7 @@ test('API: login + profiles + status pinIsDefault', async () => {
 test('API: /api/data returns only current profile personas', async () => {
   await withServer(async (base) => {
     const def = db.ensureDefaultStudioProfile();
-    const other = db.createStudioProfile({ name: `DataScope_${Date.now()}`, pin: '8765' });
+    const other = db.createStudioProfile({ name: `DataScope_${Date.now()}`, pin: '876500' });
     const mine = db.savePersona({ name: `Mine_${Date.now()}`, gender: 'Female', forceCreate: true, profile_id: def });
     const theirs = db.savePersona({ name: `Theirs_${Date.now()}`, gender: 'Female', forceCreate: true, profile_id: other.id });
 

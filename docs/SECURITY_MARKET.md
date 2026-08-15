@@ -33,7 +33,12 @@ Marca cada ítem antes de poner `HOST=0.0.0.0` (o publicar un puerto).
 | 11 | `/api/status` sin auth no filtra paths/URLs internas | ✅ (esta entrega) | — |
 | 12 | `/api/queue-status` requiere sesión (auth on) | ✅ (esta entrega) | — |
 | 13 | CSRF token en mutaciones cookie | ✅ `auth.csrfProtection` | Header `X-CSRF-Token`; Bearer/CLI exento; `CSRF_PROTECTION=0` apaga |
-| 14 | HSTS | ⬜ N/A localhost | Solo si terminas TLS tú |
+| 14 | HSTS | ✅ condicional | Solo con `COOKIE_SECURE=1` + `PUBLIC_HTTPS_ORIGIN` (o `ENABLE_HSTS=1`) |
+| 15 | Sesiones SQLite en bind público | ✅ `session-store.js` | Default si `HOST=0.0.0.0`; fuerza con `SESSION_STORE=sqlite` |
+| 16 | PIN perfiles ≥6 + no triviales | ✅ `first-run.validateProfilePin` | PINs viejos cortos siguen válidos hasta que los cambies |
+| 17 | Host/Origin allowlist | ✅ opt-in | `ALLOWED_HOSTS` / `ALLOWED_ORIGINS` / `PUBLIC_HTTPS_ORIGIN` |
+| 18 | Límites JSON/upload más estrictos en LAN | ✅ `getJsonBodyLimit` etc. | Override: `JSON_BODY_LIMIT`, `UPLOAD_MAX_BYTES` |
+| 19 | Audit login / logout / cambio PIN | ✅ `auth.*` en audit | Ajustes → Audit (admin) |
 
 ## 3. Runbook operador
 
@@ -57,6 +62,37 @@ Marca cada ítem antes de poner `HOST=0.0.0.0` (o publicar un puerto).
 - **Export studio ZIP:** no incluye `.env` (tokens/PIN quedan fuera a propósito).
 - **Restaurar:** UI restore → reinicia `npm start`. Vuelve a pegar tokens en Ajustes si hace falta.
 
+### LAN casera / NAS (probar ahora; NAS más potente después)
+
+Objetivo: varios PCs en el **mismo Wi‑Fi** abren el Studio. **No** abras el puerto a Internet.
+
+1. En la máquina/NAS que hará de servidor, cambia el PIN (≥6, no `1234`) y anota la IP LAN (`ip a` / `ipconfig`).
+2. En `.env`:
+
+```bash
+HOST=0.0.0.0
+PORT=3000
+STUDIO_PIN=tu-pin-largo
+# SESSION_STORE=sqlite   # ya es default con HOST=0.0.0.0
+# Opcional si usas hostname fijo (p. ej. nas.local):
+# ALLOWED_HOSTS=nas.local,192.168.1.50
+# ALLOWED_ORIGINS=http://nas.local:3000,http://192.168.1.50:3000
+```
+
+3. `npm start` (o `./start-studio.sh`). Comprueba `GET /api/status` → `publicBind: true`, `sessionStore: "sqlite"`, `publicBindUnsafe: false`.
+4. Desde otro PC: `http://IP-DEL-NAS:3000` → login con el PIN.
+5. Firewall: permite TCP 3000 **solo en LAN**; no portes-forward al router.
+6. SQLite aguanta uso ligero multi-PC; evita generar 20 imágenes a la vez desde 4 equipos. Cuando crezca la carga → NAS con más RAM/CPU (mismo `.env` + copia de `data/`).
+
+Si más adelante pones HTTPS (Caddy/nginx en el NAS):
+
+```bash
+COOKIE_SECURE=1
+TRUST_PROXY=1
+PUBLIC_HTTPS_ORIGIN=https://studio.tudominio.local
+# HSTS se activa solo con COOKIE_SECURE + PUBLIC_HTTPS_ORIGIN (o ENABLE_HSTS=1)
+```
+
 ### LAN / VPS (solo si hace falta)
 
 ```bash
@@ -68,6 +104,7 @@ SESSION_SECRET=otro-secreto-largo-aleatorio
 # Si hay HTTPS delante:
 COOKIE_SECURE=1
 TRUST_PROXY=1
+PUBLIC_HTTPS_ORIGIN=https://studio.example.com
 ```
 
 Arranque con PIN default o auth off en bind público → **503** en `/api/*` protegido (wizard / `/api/status` siguen para poder arreglarlo).
@@ -86,8 +123,10 @@ Arranque con PIN default o auth off en bind público → **503** en `/api/*` pro
 | P0 paths / ownership | `test/p0-security.test.js`, `test/backup-ownership.test.js` |
 | Mercado (status slim + cookies + queue auth) | `test/sec-market.test.js` |
 | CSRF synchronizer | `test/sec-csrf.test.js` |
+| Corte F LAN (store, PIN, allowlist) | `test/corte-f-lan.test.js` |
 
 ## 5. Fuera de alcance (ahora)
 
 - PR #99 Google / SaaS, billing, empaquetado Windows, Replicate por defecto, rewrite React.
-- HSTS — solo si terminas TLS tú de forma habitual (no aplica en localhost).
+- Tokens API separados del PIN (S1) — siguiente endurecimiento si expones CLI/Bearer en LAN amplia.
+- Quitar CSP `'unsafe-inline'` del monolito.

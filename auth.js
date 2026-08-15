@@ -4,6 +4,7 @@
  */
 const crypto = require('crypto');
 const expressSession = require('express-session');
+const firstRun = require('./first-run');
 
 const DEFAULT_PIN_FALLBACK = '1234';
 
@@ -33,18 +34,52 @@ function getSessionSecret() {
   return crypto.createHash('sha256').update(`influ-json-session|${pin}`).digest('hex');
 }
 
-const sessionMiddleware = expressSession({
-  name: 'influ.sid',
-  secret: getSessionSecret(),
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.COOKIE_SECURE === '1'
+let _sessionMiddleware = null;
+let _sessionStoreKind = 'memory';
+
+function getSessionStoreKind() {
+  return _sessionStoreKind;
+}
+
+function buildSessionMiddleware(opts = {}) {
+  const cookieMaxAge = 24 * 60 * 60 * 1000;
+  const conf = {
+    name: 'influ.sid',
+    secret: getSessionSecret(),
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: cookieMaxAge,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.COOKIE_SECURE === '1'
+    }
+  };
+  if (opts.store) conf.store = opts.store;
+  return expressSession(conf);
+}
+
+/**
+ * Inicializa (o reinicia) el middleware de sesión.
+ * Llamar desde server.js tras decidir Memory vs SQLite store.
+ */
+function initSessionMiddleware(opts = {}) {
+  _sessionStoreKind = opts.storeKind || (opts.store ? 'sqlite' : 'memory');
+  _sessionMiddleware = buildSessionMiddleware(opts);
+  return _sessionMiddleware;
+}
+
+function getSessionMiddleware() {
+  if (!_sessionMiddleware) {
+    initSessionMiddleware();
   }
-});
+  return _sessionMiddleware;
+}
+
+/** Middleware Express que delega al store configurado (memory o SQLite). */
+function sessionMiddleware(req, res, next) {
+  return getSessionMiddleware()(req, res, next);
+}
 
 // ─── Rate limit login (memoria) ─────────────────────────────────
 const loginAttempts = new Map(); // key → { fails, lockedUntil }
@@ -404,7 +439,120 @@ function establishAuthenticatedSession(req, profile, cb) {
 /**
  * Cabeceras de seguridad mínimas (sin romper el Studio local).
  * Sec #5: Permissions-Policy + COOP/CORP (además de CSP).
+ * Corte F: HSTS solo si COOKIE_SECURE=1 y hay origen HTTPS público configurado.
  */
+function isHstsEnabled(env = process.env) {
+  if (String(env.ENABLE_HSTS || '').trim() === '1') return true;
+  if (String(env.COOKIE_SECURE || '').trim() !== '1') return false;
+  const origin = String(env.PUBLIC_HTTPS_ORIGIN || '').trim();
+  return /^https:\/\//i.test(origin);
+}
+
+function parseCsvList(raw) {
+  return String(raw || '')
+    .split(/[,;\s]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** Hostnames permitidos (sin puerto). Vacío = desactivado. */
+function getAllowedHosts(env = process.env) {
+  const fromHosts = parseCsvList(env.ALLOWED_HOSTS);
+  const fromOrigin = String(env.PUBLIC_HTTPS_ORIGIN || '').trim();
+  if (fromOrigin) {
+    try {
+      const u = new URL(fromOrigin);
+      if (u.hostname) fromHosts.push(u.hostname);
+    } catch (_) { /* ignore */ }
+  }
+  return [...new Set(fromHosts.map((h) => h.toLowerCase()))];
+}
+
+/** Orígenes permitidos (scheme://host[:port]). Vacío = desactivado. */
+function getAllowedOrigins(env = process.env) {
+  const list = parseCsvList(env.ALLOWED_ORIGINS);
+  const pub = String(env.PUBLIC_HTTPS_ORIGIN || '').trim();
+  if (pub) list.push(pub.replace(/\/$/, ''));
+  return [...new Set(list)];
+}
+
+function normalizeHostHeader(hostHeader) {
+  const raw = String(hostHeader || '').trim().toLowerCase();
+  if (!raw) return '';
+  // [ipv6]:port or host:port
+  if (raw.startsWith('[')) {
+    const end = raw.indexOf(']');
+    return end >= 0 ? raw.slice(0, end + 1) : raw;
+  }
+  return raw.split(':')[0];
+}
+
+/**
+ * Si ALLOWED_HOSTS / PUBLIC_HTTPS_ORIGIN definen hosts, rechaza Host desconocido.
+ * Off por defecto (LAN por IP ad-hoc sin config).
+ */
+function hostAllowlistProtection(req, res, next) {
+  const allowed = getAllowedHosts();
+  if (!allowed.length) return next();
+  const host = normalizeHostHeader(req.headers.host);
+  if (!host) {
+    return res.status(400).json({
+      success: false,
+      code: 'BAD_HOST',
+      message: 'Cabecera Host ausente.'
+    });
+  }
+  const ok =
+    allowed.includes(host) ||
+    allowed.includes(host.replace(/^\[|\]$/g, ''));
+  if (!ok) {
+    return res.status(421).json({
+      success: false,
+      code: 'HOST_NOT_ALLOWED',
+      message: 'Host no permitido. Revisa ALLOWED_HOSTS / PUBLIC_HTTPS_ORIGIN.'
+    });
+  }
+  return next();
+}
+
+const ORIGIN_SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+/**
+ * Si hay allowlist de orígenes, exige Origin (o Referer) en mutaciones no-Bearer.
+ * Complementa CSRF cuando el Studio se abre desde un hostname fijo en LAN/HTTPS.
+ */
+function originAllowlistProtection(req, res, next) {
+  const allowed = getAllowedOrigins();
+  if (!allowed.length) return next();
+  if (ORIGIN_SAFE_METHODS.has(String(req.method || '').toUpperCase())) return next();
+  if (hasBearerAuthorization(req)) return next();
+
+  const origin = String(req.get('origin') || '').trim();
+  let candidate = origin;
+  if (!candidate) {
+    const referer = String(req.get('referer') || '').trim();
+    if (referer) {
+      try {
+        candidate = new URL(referer).origin;
+      } catch (_) {
+        candidate = '';
+      }
+    }
+  }
+  // Navegadores a veces omiten Origin en same-origin; si no hay Origin/Referer, deja pasar a CSRF.
+  if (!candidate) return next();
+
+  const normalized = candidate.replace(/\/$/, '');
+  if (!allowed.some((a) => a.replace(/\/$/, '') === normalized)) {
+    return res.status(403).json({
+      success: false,
+      code: 'ORIGIN_NOT_ALLOWED',
+      message: 'Origen no permitido. Revisa ALLOWED_ORIGINS / PUBLIC_HTTPS_ORIGIN.'
+    });
+  }
+  return next();
+}
+
 function securityHeaders(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
@@ -422,15 +570,26 @@ function securityHeaders(req, res, next) {
     ? 'Content-Security-Policy-Report-Only'
     : 'Content-Security-Policy';
   res.setHeader(headerName, csp);
+  if (isHstsEnabled()) {
+    res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+  }
   next();
 }
 
 module.exports = {
   sessionMiddleware,
+  initSessionMiddleware,
+  getSessionMiddleware,
+  getSessionStoreKind,
   requireAuth,
   securityHeaders,
   buildContentSecurityPolicy,
   isCspReportOnly,
+  isHstsEnabled,
+  getAllowedHosts,
+  getAllowedOrigins,
+  hostAllowlistProtection,
+  originAllowlistProtection,
   establishAuthenticatedSession,
   ensureCsrfToken,
   csrfProtection,

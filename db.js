@@ -1443,12 +1443,13 @@ module.exports = {
 
   createStudioProfile({ name, pin, role = 'member' }) {
     const { v4: uuidv4 } = require('uuid');
+    const firstRun = require('./first-run');
     const cleanName = String(name || '').trim();
     if (!cleanName) throw new Error('El nombre del perfil es obligatorio.');
-    if (!pin || String(pin).trim().length < 4) throw new Error('El PIN debe tener al menos 4 caracteres.');
+    const cleanPin = firstRun.validateProfilePin(pin);
     const exists = db.prepare('SELECT id FROM studio_profiles WHERE LOWER(name) = LOWER(?)').get(cleanName);
     if (exists) throw new Error('Ya existe un perfil con ese nombre.');
-    const { salt, hash } = authCrypto.hashPin(pin);
+    const { salt, hash } = authCrypto.hashPin(cleanPin);
     const id = uuidv4();
     const normalizedRole = normalizeProfileRole(role);
     db.prepare(`
@@ -1460,6 +1461,7 @@ module.exports = {
   },
 
   updateStudioProfile(id, { name, pin, active } = {}) {
+    const firstRun = require('./first-run');
     const row = this.getStudioProfileById(id);
     if (!row) throw new Error('Perfil no encontrado.');
     const nextName = name != null ? String(name).trim() : row.name;
@@ -1471,8 +1473,8 @@ module.exports = {
     let hash = row.pin_hash;
     let salt = row.pin_salt;
     if (pin != null && String(pin).trim() !== '') {
-      if (String(pin).trim().length < 4) throw new Error('El PIN debe tener al menos 4 caracteres.');
-      const h = authCrypto.hashPin(pin);
+      const cleanPin = firstRun.validateProfilePin(pin);
+      const h = authCrypto.hashPin(cleanPin);
       hash = h.hash;
       salt = h.salt;
     }

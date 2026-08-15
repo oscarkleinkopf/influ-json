@@ -152,7 +152,7 @@ test('API lock-revisions: owner OK; member 404 en persona ajena', async () => {
   const adminId = db.ensureDefaultStudioProfile();
   const member = db.createStudioProfile({
     name: `LockMem_${Date.now()}`,
-    pin: '6677',
+    pin: '667700',
     role: 'member'
   });
   const persona = db.savePersona({
@@ -183,7 +183,7 @@ test('API lock-revisions: owner OK; member 404 en persona ajena', async () => {
     assert.ok(oneBody.revision?.lock);
     assert.ok(oneBody.diff);
 
-    const mem = await loginSession(base, { pin: '6677', profileId: member.id });
+    const mem = await loginSession(base, { pin: '667700', profileId: member.id });
 
     const forbid = await fetch(`${base}/api/personas/${persona.id}/lock-revisions`, {
       headers: mem.headers()
