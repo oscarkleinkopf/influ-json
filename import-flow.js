@@ -200,10 +200,21 @@
         return false;
       }
     };
-    if (mode === 'url') return tryFocus(els.urlInput) ? 'url' : null;
+    const tryBlur = (el) => {
+      if (!el || typeof el.blur !== 'function') return;
+      try { el.blur(); } catch (_) {}
+    };
+    if (mode === 'url') {
+      tryBlur(els.imagesInput);
+      tryBlur(els.dropzone);
+      return tryFocus(els.urlInput) ? 'url' : null;
+    }
     if (mode === 'photo') {
-      if (tryFocus(els.imagesInput)) return 'photo';
-      return tryFocus(els.dropzone) ? 'photo' : null;
+      tryBlur(els.urlInput);
+      // El file input nativo a menudo ignora focus(); el dropzone es el selector visible.
+      tryFocus(els.dropzone);
+      tryFocus(els.imagesInput);
+      return (els.imagesInput || els.dropzone) ? 'photo' : null;
     }
     return null;
   }
@@ -514,7 +525,13 @@
         title.textContent =
           mode === 'url' ? '🔗 Inspirar desde URL' : mode === 'photo' ? '📷 Inspirar desde foto' : '📥 Inspirar desde foto';
       }
-      focusImportOrigin(mode, { urlInput, imagesInput, dropzone });
+      const scheduleOriginFocus = () => focusImportOrigin(mode, { urlInput, imagesInput, dropzone });
+      scheduleOriginFocus();
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => setTimeout(scheduleOriginFocus, 0));
+      } else {
+        setTimeout(scheduleOriginFocus, 0);
+      }
     }
 
     function closeModal() {

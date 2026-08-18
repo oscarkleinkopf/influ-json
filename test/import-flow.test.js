@@ -39,18 +39,27 @@ test('applyImportOriginMode destaca url vs photo', () => {
 
 test('focusImportOrigin enfoca URL o selector de archivo', () => {
   const focused = [];
-  const makeEl = (name) => ({ focus: () => focused.push(name) });
-  assert.equal(focusImportOrigin('url', { urlInput: makeEl('url') }), 'url');
-  assert.deepEqual(focused, ['url']);
+  const blurred = [];
+  const makeEl = (name) => ({
+    focus: () => focused.push(name),
+    blur: () => blurred.push(name)
+  });
+  assert.equal(focusImportOrigin('url', { urlInput: makeEl('url'), imagesInput: makeEl('file') }), 'url');
+  assert.ok(focused.includes('url'));
+  assert.ok(blurred.includes('file'));
   focused.length = 0;
+  blurred.length = 0;
   assert.equal(focusImportOrigin('photo', {
+    urlInput: makeEl('url'),
     imagesInput: makeEl('file'),
     dropzone: makeEl('drop')
   }), 'photo');
-  assert.deepEqual(focused, ['file']);
+  assert.ok(focused.includes('file'));
+  assert.ok(focused.includes('drop'));
+  assert.ok(blurred.includes('url'));
   focused.length = 0;
   assert.equal(focusImportOrigin('photo', { dropzone: makeEl('drop') }), 'photo');
-  assert.deepEqual(focused, ['drop']);
+  assert.ok(focused.includes('drop'));
 });
 
 test('mergeEditedJsonIntoPersona reemplaza detailedJSON o rechaza inválido', () => {

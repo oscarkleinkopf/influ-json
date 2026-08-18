@@ -35,7 +35,8 @@ test('app.js cablea acciones rápidas al flujo de import/crear', () => {
   assert.match(app, /mode = 'all'/);
   assert.match(app, /window\.__importModalCtl/);
   assert.match(app, /openModal\(\{ mode \}\)/);
-  assert.match(app, /getElementById\('pName'\)\?\.focus/);
+  assert.match(app, /function startCreateScratchFlow[\s\S]*getElementById\('pName'\)/);
+  assert.match(app, /focusManualName/);
 });
 
 test('index compuesto incluye acciones rápidas y JSON review', () => {

@@ -717,13 +717,19 @@ function startCreateScratchFlow({ dismissFounder = false, dismissMember = false 
     hideMemberWelcomeModal();
   }
   navigateToTab('persona-engine');
-  setTimeout(() => {
-    if (typeof setPersonaStep === 'function') setPersonaStep(1, { scroll: false });
-    const card = document.getElementById('cardCreateScratch');
-    if (card) card.click();
-    else if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
-    try { document.getElementById('pName')?.focus(); } catch (_) {}
-  }, 80);
+  if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
+  else document.getElementById('cardCreateScratch')?.click();
+  if (typeof setPersonaStep === 'function') setPersonaStep(1, { scroll: false });
+  const focusManualName = () => {
+    const el = document.getElementById('pName');
+    if (!el) return;
+    try {
+      el.focus();
+      if (typeof el.select === 'function') el.select();
+    } catch (_) {}
+  };
+  focusManualName();
+  setTimeout(focusManualName, 50);
 }
 
 function startImportFlow({ dismissFounder = false, dismissMember = false, mode = 'all' } = {}) {
