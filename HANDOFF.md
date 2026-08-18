@@ -27,7 +27,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/ux-guided-create-9b67` |
 | **Commit base** | `main` @ #138 |
-| **PR actual** | (abrir) acciones rápidas dashboard |
+| **PR actual** | [#139](https://github.com/oscarkleinkopf/influ-json/pull/139) (draft) acciones rápidas dashboard |
 | **`main` remoto** | + #137 Corte F · #138 handoff |
 | **Prioridad inmediata** | UX guiada crear influencer (URL / foto / manual) |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
