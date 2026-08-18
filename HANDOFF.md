@@ -25,14 +25,22 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux-guided-create-9b67` |
-| **Commit base** | `main` @ #138 |
-| **PR actual** | [#139](https://github.com/oscarkleinkopf/influ-json/pull/139) (draft) acciones rápidas dashboard |
-| **`main` remoto** | + #137 Corte F · #138 handoff |
-| **Prioridad inmediata** | UX guiada crear influencer (URL / foto / manual) |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ #139 |
+| **PR actual** | — |
+| **`main` remoto** | + #139 acciones rápidas dashboard · #137 Corte F · #138 handoff |
+| **Prioridad inmediata** | Usabilidad (siguientes cortes UX); no seguridad/deploy salvo pedido |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-18) — Acciones rápidas dashboard
+### Sesión reciente (Cursor, 2026-08-18) — #139 mergeado
+
+**Pedido:** Revisar y mergear el corte de acciones rápidas.
+
+**Hecho:**
+- [#139](https://github.com/oscarkleinkopf/influ-json/pull/139) → `main` (CI Test & smoke verde)
+- Flujo guiado en Portafolio: URL / foto / a mano → analizar → JSON → editar → guardar
+
+### Sesión previa (Cursor, 2026-08-18) — Acciones rápidas dashboard
 
 **Pedido:** Flujo guiado Dashboard → origen → analizar → revisar JSON → editar → guardar.
 

@@ -151,7 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
-| 2026-08-18 | **UX acciones rápidas (#139)** | Dashboard URL/foto/manual → análisis → JSON → editor → guardar |
+| 2026-08-18 | **UX acciones rápidas → main (#139)** | Dashboard URL/foto/manual → análisis → JSON → editor → guardar |
 | 2026-08-15 | **Polish-3 → main (#135)** | Checklist vacío · Guiones · alts ES · prefiere Copiar JSON |
 | 2026-08-15 | **Polish-3 (en curso)** | Checklist vacío · Guiones · alts ES · prefiere Copiar JSON |
 | 2026-08-15 | **Polish-2 → main (#133)** | Cómo usar · ES · a11y modales · CTA vacío único |
