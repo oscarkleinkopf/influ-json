@@ -38,6 +38,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 **Hecho:**
 - `#quickCreateCard` con `btnQuickImportUrl` / `btnQuickImportPhoto` / `btnQuickManualPersona`
+- URL abre el modal y enfoca `#importUrl`; foto enfoca `#importImages`; manual abre ficha y enfoca `#pName`
 - Import: modo URL vs foto, JSON a la vista, copiar o abrir en editor
 - Endpoints existentes (`/api/import-influencer`, `/api/personas`)
 

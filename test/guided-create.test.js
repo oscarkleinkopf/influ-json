@@ -21,6 +21,7 @@ test('dashboard tiene las tres acciones rápidas con IDs pedidos', () => {
   assert.match(dash, /Crear influencer manualmente/);
   assert.match(dash, /1 Origen/);
   assert.match(dash, /5 Guardar/);
+  assert.match(dash, /Puedes pegar la URL de un perfil público o una imagen directa para generar el JSON automáticamente/);
 });
 
 test('app.js cablea acciones rápidas al flujo de import/crear', () => {
@@ -34,6 +35,7 @@ test('app.js cablea acciones rápidas al flujo de import/crear', () => {
   assert.match(app, /mode = 'all'/);
   assert.match(app, /window\.__importModalCtl/);
   assert.match(app, /openModal\(\{ mode \}\)/);
+  assert.match(app, /getElementById\('pName'\)\?\.focus/);
 });
 
 test('index compuesto incluye acciones rápidas y JSON review', () => {
@@ -43,4 +45,7 @@ test('index compuesto incluye acciones rápidas y JSON review', () => {
   assert.match(html, /id="btnQuickManualPersona"/);
   assert.match(html, /id="btnOpenImportInEditor"/);
   assert.match(html, /id="importJsonReview"/);
+  assert.match(html, /id="importUrlHint"/);
+  assert.match(html, /class="import-file-input"/);
+  assert.match(html, /id="importImages"/);
 });

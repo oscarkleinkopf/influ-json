@@ -185,6 +185,30 @@
   }
 
   /**
+   * Enfoca el origen pedido: campo URL o selector de archivo.
+   * @param {'url'|'photo'|'all'} mode
+   * @param {{ urlInput?: { focus?: Function }, imagesInput?: { focus?: Function }, dropzone?: { focus?: Function } }} els
+   * @returns {'url'|'photo'|null}
+   */
+  function focusImportOrigin(mode, els = {}) {
+    const tryFocus = (el) => {
+      if (!el || typeof el.focus !== 'function') return false;
+      try {
+        el.focus();
+        return true;
+      } catch (_) {
+        return false;
+      }
+    };
+    if (mode === 'url') return tryFocus(els.urlInput) ? 'url' : null;
+    if (mode === 'photo') {
+      if (tryFocus(els.imagesInput)) return 'photo';
+      return tryFocus(els.dropzone) ? 'photo' : null;
+    }
+    return null;
+  }
+
+  /**
    * Fusiona JSON editado en el textarea de revisión con la persona de preview.
    */
   function mergeEditedJsonIntoPersona(persona, jsonText) {
@@ -409,6 +433,13 @@
 
     if (dropzone && imagesInput) {
       dropzone.addEventListener('click', () => imagesInput.click());
+      dropzone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          imagesInput.click();
+        }
+      });
+      imagesInput.addEventListener('click', (e) => e.stopPropagation());
 
       ['dragenter', 'dragover'].forEach((evtName) => {
         dropzone.addEventListener(evtName, (e) => {
@@ -483,9 +514,7 @@
         title.textContent =
           mode === 'url' ? '🔗 Inspirar desde URL' : mode === 'photo' ? '📷 Inspirar desde foto' : '📥 Inspirar desde foto';
       }
-      if (mode === 'url' && urlInput) {
-        try { urlInput.focus(); } catch (_) {}
-      }
+      focusImportOrigin(mode, { urlInput, imagesInput, dropzone });
     }
 
     function closeModal() {
@@ -816,6 +845,7 @@
     fillImportConfirmInputs,
     applyImportConfirmTraits,
     applyImportOriginMode,
+    focusImportOrigin,
     mergeEditedJsonIntoPersona,
     setImportRitualStep,
     initImportModal

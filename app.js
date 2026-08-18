@@ -722,6 +722,7 @@ function startCreateScratchFlow({ dismissFounder = false, dismissMember = false 
     const card = document.getElementById('cardCreateScratch');
     if (card) card.click();
     else if (typeof resetPersonaFormForNew === 'function') resetPersonaFormForNew();
+    try { document.getElementById('pName')?.focus(); } catch (_) {}
   }, 80);
 }
 

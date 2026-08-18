@@ -41,11 +41,11 @@
               <span class="import-counter-badge" id="importCounterBadge">0/4 cargadas</span>
             </div>
             
-            <div class="import-dropzone" id="importDropzone">
-              <input type="file" id="importImages" multiple accept="image/*" class="u-hidden">
+            <div class="import-dropzone" id="importDropzone" tabindex="0" role="button" aria-controls="importImages" aria-label="Seleccionar fotos de referencia">
               <span class="import-dropzone-icon">📥</span>
               <p style="font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 4px 0;">Arrastra fotos aquí o haz clic para buscar</p>
-              <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Sube de 1 a 4 fotos de rostro (JPG, PNG, WEBP)</p>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 10px;">Sube de 1 a 4 fotos de rostro (JPG, PNG, WEBP)</p>
+              <input type="file" id="importImages" class="import-file-input" multiple accept="image/*" aria-label="Selector de archivo">
             </div>
 
             <!-- Dynamic Thumbnail Preview Strip -->
@@ -57,7 +57,7 @@
             <label for="importUrl" class="u-label-block">🔗 URL del perfil o foto</label>
             <input type="text" id="importUrl" placeholder="https://… (perfil público o imagen directa)" 
               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
-            <p style="margin:6px 0 0;font-size:11px;color:var(--text-muted);">También vale una URL directa a JPG/PNG/WEBP.</p>
+            <p id="importUrlHint" style="margin:6px 0 0;font-size:11px;color:var(--text-muted);">Puedes pegar la URL de un perfil público o una imagen directa para generar el JSON automáticamente.</p>
           </div>
 
           <div class="u-mb-18">
@@ -613,7 +613,7 @@ cd influ-json
   <script src="face-pack.js?v=1.0.0"></script>
   <script src="ugc-shot-composer.js?v=1.0.0"></script>
   <script src="chatbot-packs.js?v=1.4.0"></script>
-  <script src="import-flow.js?v=1.0.1"></script>
+  <script src="import-flow.js?v=1.0.2"></script>
   <script src="prompt-builder.js?v=1.1.0"></script>
   <script src="studio-toast.js?v=1.0.0"></script>
   <script src="queue-poller.js?v=1.0.0"></script>
@@ -631,6 +631,6 @@ cd influ-json
   <script src="production-recipe.js?v=1.0.0"></script>
   <script src="production-brief.js?v=1.0.0"></script>
   <script src="community-templates.js?v=1.0.0"></script>
-  <script src="app.js?v=1.14.2"></script>
+  <script src="app.js?v=1.14.3"></script>
 </body>
 </html>

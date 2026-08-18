@@ -15,6 +15,7 @@ const {
   getImportPreviewTraits,
   applyImportConfirmTraits,
   applyImportOriginMode,
+  focusImportOrigin,
   mergeEditedJsonIntoPersona,
   setImportRitualStep,
   initImportModal
@@ -34,6 +35,22 @@ test('applyImportOriginMode destaca url vs photo', () => {
   assert.equal(applyImportOriginMode(root, 'url'), 'url');
   assert.ok(classes.url.some((x) => x[0] === 'is-origin-focus' && x[1] === true));
   assert.ok(classes.photo.some((x) => x[0] === 'is-origin-muted' && x[1] === true));
+});
+
+test('focusImportOrigin enfoca URL o selector de archivo', () => {
+  const focused = [];
+  const makeEl = (name) => ({ focus: () => focused.push(name) });
+  assert.equal(focusImportOrigin('url', { urlInput: makeEl('url') }), 'url');
+  assert.deepEqual(focused, ['url']);
+  focused.length = 0;
+  assert.equal(focusImportOrigin('photo', {
+    imagesInput: makeEl('file'),
+    dropzone: makeEl('drop')
+  }), 'photo');
+  assert.deepEqual(focused, ['file']);
+  focused.length = 0;
+  assert.equal(focusImportOrigin('photo', { dropzone: makeEl('drop') }), 'photo');
+  assert.deepEqual(focused, ['drop']);
 });
 
 test('mergeEditedJsonIntoPersona reemplaza detailedJSON o rechaza inválido', () => {
@@ -214,6 +231,9 @@ test('modal ritual: confirmar tez/ojos/pelo + CTA Copiar JSON', () => {
   assert.match(foot, /id="btnOpenImportInEditor"/);
   assert.match(foot, /data-import-origin="url"/);
   assert.match(foot, /data-import-origin="photo"/);
+  assert.match(foot, /id="importUrlHint"/);
+  assert.match(foot, /class="import-file-input"/);
+  assert.match(foot, /id="importImages"/);
 });
 
 test('app.js inyecta setStep2Focus / Copiar JSON en import', () => {
