@@ -168,6 +168,83 @@
   }
 
   /**
+   * Destaca URL vs foto en el modal (acciones rápidas del dashboard).
+   * @param {ParentNode|null} root
+   * @param {'url'|'photo'|'all'} mode
+   */
+  function applyImportOriginMode(root, mode) {
+    const m = mode === 'url' || mode === 'photo' ? mode : 'all';
+    if (!root || typeof root.querySelectorAll !== 'function') return m;
+    root.querySelectorAll('[data-import-origin]').forEach((el) => {
+      const origin = el.getAttribute('data-import-origin');
+      const highlight = m === 'all' || origin === m;
+      el.classList.toggle('is-origin-focus', highlight && m !== 'all');
+      el.classList.toggle('is-origin-muted', m !== 'all' && origin !== m);
+    });
+    return m;
+  }
+
+  /**
+   * Enfoca el origen pedido: campo URL o selector de archivo.
+   * @param {'url'|'photo'|'all'} mode
+   * @param {{ urlInput?: { focus?: Function }, imagesInput?: { focus?: Function }, dropzone?: { focus?: Function } }} els
+   * @returns {'url'|'photo'|null}
+   */
+  function focusImportOrigin(mode, els = {}) {
+    const tryFocus = (el) => {
+      if (!el || typeof el.focus !== 'function') return false;
+      try {
+        el.focus();
+        return true;
+      } catch (_) {
+        return false;
+      }
+    };
+    const tryBlur = (el) => {
+      if (!el || typeof el.blur !== 'function') return;
+      try { el.blur(); } catch (_) {}
+    };
+    if (mode === 'url') {
+      tryBlur(els.imagesInput);
+      tryBlur(els.dropzone);
+      return tryFocus(els.urlInput) ? 'url' : null;
+    }
+    if (mode === 'photo') {
+      tryBlur(els.urlInput);
+      // El file input nativo a menudo ignora focus(); el dropzone es el selector visible.
+      tryFocus(els.dropzone);
+      tryFocus(els.imagesInput);
+      return (els.imagesInput || els.dropzone) ? 'photo' : null;
+    }
+    return null;
+  }
+
+  /**
+   * Fusiona JSON editado en el textarea de revisión con la persona de preview.
+   */
+  function mergeEditedJsonIntoPersona(persona, jsonText) {
+    if (!persona || typeof persona !== 'object') {
+      throw new Error('No hay análisis para fusionar.');
+    }
+    const raw = String(jsonText || '').trim();
+    if (!raw) return { ...persona };
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (_) {
+      const err = new Error('El JSON no es válido. Corrígelo o descarta los cambios.');
+      err.code = 'IMPORT_JSON_INVALID';
+      throw err;
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      const err = new Error('El JSON debe ser un objeto.');
+      err.code = 'IMPORT_JSON_INVALID';
+      throw err;
+    }
+    return { ...persona, detailedJSON: parsed };
+  }
+
+  /**
    * Merge user-confirmed tez/ojos/pelo into detailedJSON + character_lock
    * before POST /api/personas.
    */
@@ -276,6 +353,9 @@
     const setStep2Focus = deps.setStep2Focus || (() => {});
     const setPersonaStep = deps.setPersonaStep || (() => {});
     const copyFreeChatbotPack = deps.copyFreeChatbotPack || (() => {});
+    const applyAnalysisToFormFields = deps.applyAnalysisToFormFields || (() => ({}));
+    const resetPersonaFormForNew = deps.resetPersonaFormForNew || (() => {});
+    const setImportRitualStepFn = deps.setImportRitualStep || setImportRitualStep;
 
     const modal = document.getElementById('importInfluencerModal');
     const btnOpen = document.getElementById('btnOpenImportModal');
@@ -364,6 +444,13 @@
 
     if (dropzone && imagesInput) {
       dropzone.addEventListener('click', () => imagesInput.click());
+      dropzone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          imagesInput.click();
+        }
+      });
+      imagesInput.addEventListener('click', (e) => e.stopPropagation());
 
       ['dragenter', 'dragover'].forEach((evtName) => {
         dropzone.addEventListener(evtName, (e) => {
@@ -395,12 +482,14 @@
       });
     }
 
-    function openModal() {
+    function openModal(opts = {}) {
+      const mode = applyImportOriginMode(modal, opts.mode || 'all');
       modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden', 'false');
       showImportPanel(step1, true);
       showImportPanel(loading, false, 'flex');
       showImportPanel(preview, false);
-      setImportRitualStep(ritualSteps || modal, 1);
+      setImportRitualStepFn(ritualSteps || modal, 1);
 
       selectedFiles = [];
       updateImportUI();
@@ -430,10 +519,32 @@
       lastImportImagePaths = [];
       const confirmHint = document.getElementById('importConfirmHint');
       if (confirmHint) confirmHint.style.display = 'none';
+
+      const title = document.getElementById('importInfluencerTitle');
+      if (title) {
+        title.textContent =
+          mode === 'url' ? '🔗 Inspirar desde URL' : mode === 'photo' ? '📷 Inspirar desde foto' : '📥 Inspirar desde foto';
+      }
+      const scheduleOriginFocus = () => focusImportOrigin(mode, { urlInput, imagesInput, dropzone });
+      scheduleOriginFocus();
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => setTimeout(scheduleOriginFocus, 0));
+      } else {
+        setTimeout(scheduleOriginFocus, 0);
+      }
     }
 
     function closeModal() {
       modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function personaFromPreviewUi() {
+      if (!lastImportedPersona) return null;
+      const jsonEl = document.getElementById('importJsonOutput');
+      const withJson = mergeEditedJsonIntoPersona(lastImportedPersona, jsonEl ? jsonEl.value : '');
+      const confirmedTraits = readImportConfirmTraits(confirmEls);
+      return applyImportConfirmTraits(withJson, confirmedTraits);
     }
 
     async function discardImportPreview() {
@@ -488,6 +599,41 @@
       });
     }
 
+    const btnOpenImportInEditor = document.getElementById('btnOpenImportInEditor');
+    if (btnOpenImportInEditor) {
+      btnOpenImportInEditor.addEventListener('click', () => {
+        if (!lastImportedPersona) {
+          toastInfo('Analiza primero una URL o una foto.');
+          return;
+        }
+        let merged;
+        try {
+          merged = personaFromPreviewUi();
+        } catch (err) {
+          toastError(err.message || 'JSON inválido.');
+          return;
+        }
+        const finalName = suggestedNameInput
+          ? suggestedNameInput.value.trim()
+          : merged.name;
+        if (finalName) merged.name = finalName;
+        if (merged.detailedJSON?.identity) {
+          merged.detailedJSON.identity = {
+            ...merged.detailedJSON.identity,
+            name: finalName || merged.detailedJSON.identity.name
+          };
+        }
+        closeModal();
+        navigateToTab('persona-engine');
+        try { resetPersonaFormForNew(); } catch (_) {}
+        try { applyAnalysisToFormFields(merged.detailedJSON || merged); } catch (_) {}
+        const nameField = typeof document !== 'undefined' ? document.getElementById('pName') : null;
+        if (nameField && finalName) nameField.value = finalName;
+        try { setPersonaStep(1, { scroll: false }); } catch (_) {}
+        toastInfo('JSON cargado en el editor. Revisa y pulsa Guardar personaje.');
+      });
+    }
+
     if (btnAnalyze) {
       btnAnalyze.addEventListener('click', async () => {
         const imageUrl = urlInput ? urlInput.value.trim() : '';
@@ -502,7 +648,7 @@
         showImportPanel(step1, false);
         showImportPanel(loading, true, 'flex');
         showImportPanel(preview, false);
-        setImportRitualStep(ritualSteps || modal, 1);
+        setImportRitualStepFn(ritualSteps || modal, 1);
         toastLoading(
           customName
             ? `Analizando "${customName}" (sin guardar aún)...`
@@ -533,18 +679,18 @@
           importIsPreview = normalized.isPreview;
           lastImportImagePaths = normalized.imagePaths;
           toastSuccess(
-            `Análisis listo: ${lastImportedPersona?.name || 'influencer'}. Confirma tez / ojos / pelo y guarda.`
+            `Análisis listo: ${lastImportedPersona?.name || 'influencer'}. Revisa el JSON, corrige tez / ojos / pelo y guarda.`
           );
 
           showImportPanel(loading, false, 'flex');
           showImportPanel(preview, true);
-          setImportRitualStep(ritualSteps || modal, 2);
+          setImportRitualStepFn(ritualSteps || modal, 2);
 
           const confirmHint = document.getElementById('importConfirmHint');
           if (confirmHint) {
             confirmHint.style.display = 'block';
             confirmHint.textContent =
-              'Aún no está en el portafolio. Corrige tez / ojos / pelo si hace falta, luego «Guardar → Copiar JSON».';
+              'Aún no está en el portafolio. Revisa el JSON, corrige tez / ojos / pelo y luego guarda o ábrelo en el editor.';
           }
 
           if (suggestedNameInput) suggestedNameInput.value = lastImportedPersona?.name || '';
@@ -611,7 +757,7 @@
           toastError(`Error al analizar influencer: ${err.message}`);
           showImportPanel(loading, false, 'flex');
           showImportPanel(step1, true);
-          setImportRitualStep(ritualSteps || modal, 1);
+          setImportRitualStepFn(ritualSteps || modal, 1);
         }
       });
     }
@@ -623,11 +769,10 @@
         const finalName = suggestedNameInput
           ? suggestedNameInput.value.trim()
           : lastImportedPersona.name;
-        const confirmedTraits = readImportConfirmTraits(confirmEls);
         let payload;
         try {
-          const withTraits = applyImportConfirmTraits(lastImportedPersona, confirmedTraits);
-          payload = buildConfirmPersonaPayload(withTraits, finalName);
+          const merged = personaFromPreviewUi();
+          payload = buildConfirmPersonaPayload(merged, finalName);
         } catch (err) {
           toastInfo(err.message || 'Indica un nombre para el influencer.');
           return;
@@ -635,7 +780,7 @@
 
         const confirmBtn = btnConfirm;
         confirmBtn.disabled = true;
-        setImportRitualStep(ritualSteps || modal, 3);
+        setImportRitualStepFn(ritualSteps || modal, 3);
         try {
           toastLoading(`Guardando "${payload.name}" en el portafolio...`);
           QueuePoller.start();
@@ -693,7 +838,7 @@
         } catch (err) {
           console.error('Failed to confirm and save persona:', err);
           toastError(`Error al confirmar la creación: ${err.message}`);
-          setImportRitualStep(ritualSteps || modal, 2);
+          setImportRitualStepFn(ritualSteps || modal, 2);
         } finally {
           confirmBtn.disabled = false;
         }
@@ -716,6 +861,9 @@
     readImportConfirmTraits,
     fillImportConfirmInputs,
     applyImportConfirmTraits,
+    applyImportOriginMode,
+    focusImportOrigin,
+    mergeEditedJsonIntoPersona,
     setImportRitualStep,
     initImportModal
   };

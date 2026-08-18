@@ -14,9 +14,61 @@ const {
   buildSummaryHtml,
   getImportPreviewTraits,
   applyImportConfirmTraits,
+  applyImportOriginMode,
+  focusImportOrigin,
+  mergeEditedJsonIntoPersona,
   setImportRitualStep,
   initImportModal
 } = require('../import-flow');
+
+test('applyImportOriginMode destaca url vs photo', () => {
+  const classes = { photo: [], url: [] };
+  const makeEl = (origin) => ({
+    getAttribute: () => origin,
+    classList: {
+      toggle: (cls, on) => classes[origin].push([cls, !!on])
+    }
+  });
+  const root = {
+    querySelectorAll: () => [makeEl('photo'), makeEl('url')]
+  };
+  assert.equal(applyImportOriginMode(root, 'url'), 'url');
+  assert.ok(classes.url.some((x) => x[0] === 'is-origin-focus' && x[1] === true));
+  assert.ok(classes.photo.some((x) => x[0] === 'is-origin-muted' && x[1] === true));
+});
+
+test('focusImportOrigin enfoca URL o selector de archivo', () => {
+  const focused = [];
+  const blurred = [];
+  const makeEl = (name) => ({
+    focus: () => focused.push(name),
+    blur: () => blurred.push(name)
+  });
+  assert.equal(focusImportOrigin('url', { urlInput: makeEl('url'), imagesInput: makeEl('file') }), 'url');
+  assert.ok(focused.includes('url'));
+  assert.ok(blurred.includes('file'));
+  focused.length = 0;
+  blurred.length = 0;
+  assert.equal(focusImportOrigin('photo', {
+    urlInput: makeEl('url'),
+    imagesInput: makeEl('file'),
+    dropzone: makeEl('drop')
+  }), 'photo');
+  assert.ok(focused.includes('file'));
+  assert.ok(focused.includes('drop'));
+  assert.ok(blurred.includes('url'));
+  focused.length = 0;
+  assert.equal(focusImportOrigin('photo', { dropzone: makeEl('drop') }), 'photo');
+  assert.ok(focused.includes('drop'));
+});
+
+test('mergeEditedJsonIntoPersona reemplaza detailedJSON o rechaza inválido', () => {
+  const base = { name: 'Ada', detailedJSON: { identity: { name: 'Ada' } } };
+  const next = mergeEditedJsonIntoPersona(base, '{"identity":{"name":"Luna"}}');
+  assert.equal(next.detailedJSON.identity.name, 'Luna');
+  assert.equal(next.name, 'Ada');
+  assert.throws(() => mergeEditedJsonIntoPersona(base, '{nope'), /JSON/);
+});
 
 test('MAX_IMPORT_PHOTOS es 4', () => {
   assert.equal(MAX_IMPORT_PHOTOS, 4);
@@ -184,6 +236,13 @@ test('modal ritual: confirmar tez/ojos/pelo + CTA Copiar JSON', () => {
   assert.match(foot, /id="importConfirmHair"/);
   assert.match(foot, /Guardar → Copiar JSON/);
   assert.match(foot, /data-import-ritual="1"/);
+  assert.match(foot, /id="importJsonReview"/);
+  assert.match(foot, /id="btnOpenImportInEditor"/);
+  assert.match(foot, /data-import-origin="url"/);
+  assert.match(foot, /data-import-origin="photo"/);
+  assert.match(foot, /id="importUrlHint"/);
+  assert.match(foot, /class="import-file-input"/);
+  assert.match(foot, /id="importImages"/);
 });
 
 test('app.js inyecta setStep2Focus / Copiar JSON en import', () => {

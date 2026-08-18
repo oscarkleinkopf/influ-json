@@ -763,6 +763,85 @@ body {
   font-weight: 700;
 }
 
+/* Acciones rápidas — crear influencer desde el Portafolio */
+.quick-create-steps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.quick-create-steps li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+}
+.quick-create-steps li.is-active {
+  color: #ecfdf5;
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.18);
+  font-weight: 700;
+}
+.quick-create-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.quick-create-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+.quick-create-btn:hover,
+.quick-create-btn:focus-visible {
+  border-color: rgba(99, 102, 241, 0.55);
+  background: rgba(99, 102, 241, 0.12);
+  outline: none;
+}
+.quick-create-btn-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.quick-create-btn-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+.quick-create-btn-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+.import-origin-block.is-origin-focus {
+  outline: 1px solid rgba(16, 185, 129, 0.45);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+.import-origin-block.is-origin-muted {
+  opacity: 0.55;
+}
+.import-json-review textarea {
+  min-height: 120px;
+}
+@media (max-width: 768px) {
+  .quick-create-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Persona Editor Workspace */
 .editor-layout {
   display: grid;
@@ -3023,10 +3102,30 @@ input:checked + .slider:before {
 }
 
 .import-dropzone:hover,
-.import-dropzone.dragover {
+.import-dropzone.dragover,
+.import-dropzone:focus,
+.import-dropzone:focus-within {
   border-color: var(--accent-primary);
   background: rgba(99, 102, 241, 0.08);
   box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+}
+.import-dropzone:focus {
+  outline: 2px solid rgba(16, 185, 129, 0.65);
+  outline-offset: 2px;
+}
+.import-file-input {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 10px auto 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.import-file-input:focus {
+  outline: 2px solid rgba(16, 185, 129, 0.75);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 .import-dropzone-icon {
