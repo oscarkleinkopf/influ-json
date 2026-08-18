@@ -46,6 +46,42 @@
           </div>
         </div>
 
+        <!-- Acciones rápidas: Dashboard → origen → analizar → JSON → editar → guardar -->
+        <div class="glass-card" id="quickCreateCard" style="margin-top: 8px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+            <div>
+              <h2 id="quickCreateTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">Crear influencer</h2>
+              <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+                Elige origen → analizar → revisar JSON → editar → guardar. El producto es el <strong style="color:#fff;font-weight:600;">character_lock</strong> para chatbots gratis.
+              </p>
+            </div>
+          </div>
+          <ol class="quick-create-steps" aria-label="Flujo guiado">
+            <li class="is-active">1 Origen</li>
+            <li>2 Analizar</li>
+            <li>3 JSON</li>
+            <li>4 Editar</li>
+            <li>5 Guardar</li>
+          </ol>
+          <div class="quick-create-grid" role="group" aria-labelledby="quickCreateTitle">
+            <button type="button" class="quick-create-btn" id="btnQuickImportUrl">
+              <span class="quick-create-btn-icon" aria-hidden="true">🔗</span>
+              <span class="quick-create-btn-label">Analizar una URL</span>
+              <span class="quick-create-btn-hint">Perfil público o imagen directa</span>
+            </button>
+            <button type="button" class="quick-create-btn" id="btnQuickImportPhoto">
+              <span class="quick-create-btn-icon" aria-hidden="true">📷</span>
+              <span class="quick-create-btn-label">Analizar una imagen</span>
+              <span class="quick-create-btn-hint">JPG, PNG o WEBP de tu equipo</span>
+            </button>
+            <button type="button" class="quick-create-btn" id="btnQuickManualPersona">
+              <span class="quick-create-btn-icon" aria-hidden="true">✍️</span>
+              <span class="quick-create-btn-label">Crear influencer manualmente</span>
+              <span class="quick-create-btn-hint">Ficha vacía, sin análisis</span>
+            </button>
+          </div>
+        </div>
+
         <!-- F6/W14 — Happy path 60s (CTA único) -->
         <div class="glass-card" id="happyPathCard" style="margin-top: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
@@ -68,7 +104,7 @@
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
                 <strong>1. Crear o importar</strong>
-                <p>En <strong>Influencers → Ficha / Editor</strong>: «Crear influencer» o «Importar referencia» / Inspirar desde foto.</p>
+                <p>Usa las acciones rápidas del Portafolio (URL, foto o crear a mano) o <strong>Influencers → Ficha / Editor</strong>.</p>
                 <div class="happy-path-step-actions" style="display:flex; flex-wrap:wrap; gap:8px;">
                   <button type="button" class="btn btn-secondary btn-sm" data-happy-action="create">Ir a crear</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-happy-action="import">Importar foto</button>

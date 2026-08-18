@@ -134,8 +134,8 @@ test('UX-1c: vocab unificado — sin «Copiar JSON (recomendado)» en botones', 
   assert.match(html, /Packs ▾/);
   // UGC CTA copia pack product (honesty #97)
   assert.match(appJs, /btnExportUgcChatbot[\s\S]{0,500}copyFreeChatbotPack\(['"]product['"]\)/);
-  // Import copia estructura cruda — no debe decir «Copiar JSON»
-  assert.match(html, /id="btnCopyImportJSON"[^>]*>\s*Copiar estructura\s*</);
+  // Import copia estructura cruda — no debe ser el CTA «Copiar JSON» del pack
+  assert.match(html, /id="btnCopyImportJSON"[^>]*>\s*Copiar estructura JSON\s*</);
   assert.doesNotMatch(html, /id="btnCopyImportJSON"[^>]*>\s*Copiar JSON\s*</);
 });
 

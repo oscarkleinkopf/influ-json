@@ -305,7 +305,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupAccessibleDialogs', fn: setupAccessibleDialogs },
     { name: 'setupPinWizard', fn: setupPinWizard },
     { name: 'setupMemberOnboarding', fn: setupMemberOnboarding },
-    { name: 'initImportModal', fn: initImportModal }
+    { name: 'initImportModal', fn: initImportModal },
+    { name: 'setupQuickCreateActions', fn: setupQuickCreateActions }
   ];
 
   initSteps.forEach(step => {
@@ -724,7 +725,7 @@ function startCreateScratchFlow({ dismissFounder = false, dismissMember = false 
   }, 80);
 }
 
-function startImportFlow({ dismissFounder = false, dismissMember = false } = {}) {
+function startImportFlow({ dismissFounder = false, dismissMember = false, mode = 'all' } = {}) {
   if (dismissFounder) {
     dismissFounderOnboarding(state.currentProfile?.id);
     hideFounderWelcomeModal();
@@ -733,9 +734,11 @@ function startImportFlow({ dismissFounder = false, dismissMember = false } = {})
     dismissMemberOnboarding(state.currentProfile?.id);
     hideMemberWelcomeModal();
   }
-  navigateToTab('persona-engine');
+  navigateToTab('dashboard');
   setTimeout(() => {
-    document.getElementById('btnOpenImportModal')?.click();
+    const ctl = window.__importModalCtl;
+    if (ctl && typeof ctl.openModal === 'function') ctl.openModal({ mode });
+    else document.getElementById('btnOpenImportModal')?.click();
   }, 80);
 }
 
@@ -750,6 +753,18 @@ function startMemberImportFlow() {
 function startFounderCreateFlow({ importFlow = false } = {}) {
   if (importFlow) startImportFlow({ dismissFounder: true });
   else startCreateScratchFlow({ dismissFounder: true });
+}
+
+function setupQuickCreateActions() {
+  const openUrl = () => startImportFlow({ mode: 'url' });
+  const openPhoto = () => startImportFlow({ mode: 'photo' });
+  const openManual = () => {
+    if (isCurrentUserAdmin()) startFounderCreateFlow({ importFlow: false });
+    else startMemberCreateFlow();
+  };
+  document.getElementById('btnQuickImportUrl')?.addEventListener('click', openUrl);
+  document.getElementById('btnQuickImportPhoto')?.addEventListener('click', openPhoto);
+  document.getElementById('btnQuickManualPersona')?.addEventListener('click', openManual);
 }
 
 function setupMemberOnboarding() {
@@ -2580,7 +2595,7 @@ function renderHappyPathNextCta() {
     box.innerHTML = `
       <p class="happy-path-next-label">Siguiente paso</p>
       <p class="happy-path-next-title">Crea o importa tu primer influencer</p>
-      <p class="happy-path-next-hint">Usa <strong>Crear</strong> / <strong>Importar</strong> en el Portafolio más abajo — un solo lugar, sin botones duplicados.</p>
+      <p class="happy-path-next-hint">Usa <strong>Crear</strong> / <strong>Importar</strong> en el Portafolio más abajo, o las acciones rápidas (URL / foto / a mano).</p>
     `;
     return;
   } else if (!status.copy) {
@@ -8586,7 +8601,8 @@ function initImportModal() {
     console.error('[import] InfluImportFlow no cargó — revisa import-flow.js');
     return;
   }
-  api.initImportModal({
+  const formApi = window.InfluPersonaForm;
+  window.__importModalCtl = api.initImportModal({
     authFetch,
     toastInfo,
     toastSuccess,
@@ -8602,7 +8618,15 @@ function initImportModal() {
     QueuePoller,
     setStep2Focus,
     setPersonaStep,
-    copyFreeChatbotPack
+    copyFreeChatbotPack,
+    applyAnalysisToFormFields: (analysis) => {
+      if (formApi && typeof formApi.applyAnalysisToFormFields === 'function') {
+        return formApi.applyAnalysisToFormFields(analysis);
+      }
+      return {};
+    },
+    resetPersonaFormForNew:
+      typeof resetPersonaFormForNew === 'function' ? resetPersonaFormForNew : () => {}
   });
 }
 
@@ -8625,5 +8649,7 @@ window.populateActiveUgcData = populateActiveUgcData;
 window.updateActivePersonaChip = updateActivePersonaChip;
 window.renderCampaigns = renderCampaigns;
 window.startCreateScratchFlow = startCreateScratchFlow;
+window.startImportFlow = startImportFlow;
+window.setupQuickCreateActions = setupQuickCreateActions;
 window.resetPersonaFormForNew = resetPersonaFormForNew;
 

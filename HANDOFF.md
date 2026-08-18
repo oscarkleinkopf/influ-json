@@ -25,14 +25,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #137 (Corte F LAN) |
-| **PR actual** | — |
-| **`main` remoto** | + #137 Corte F |
-| **Prioridad inmediata** | Probar LAN en casa (runbook SECURITY_MARKET) · NAS potente más adelante |
+| **Rama de trabajo** | `cursor/ux-guided-create-9b67` |
+| **Commit base** | `main` @ #138 |
+| **PR actual** | (abrir) acciones rápidas dashboard |
+| **`main` remoto** | + #137 Corte F · #138 handoff |
+| **Prioridad inmediata** | UX guiada crear influencer (URL / foto / manual) |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-15) — Corte F → main
+### Sesión reciente (Cursor, 2026-08-18) — Acciones rápidas dashboard
+
+**Pedido:** Flujo guiado Dashboard → origen → analizar → revisar JSON → editar → guardar.
+
+**Hecho:**
+- `#quickCreateCard` con `btnQuickImportUrl` / `btnQuickImportPhoto` / `btnQuickManualPersona`
+- Import: modo URL vs foto, JSON a la vista, copiar o abrir en editor
+- Endpoints existentes (`/api/import-influencer`, `/api/personas`)
+
+### Sesión previa (Cursor, 2026-08-15) — Corte F → main
 
 **Pedido:** Intentar LAN en casa ahora; NAS más potente más adelante.
 

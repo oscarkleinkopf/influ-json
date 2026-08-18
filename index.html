@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.3.7">
+  <link rel="stylesheet" href="index.css?v=1.3.8">
 </head>
 <body>
   <div class="app-container">
@@ -166,6 +166,42 @@
           </div>
         </div>
 
+        <!-- Acciones rápidas: Dashboard → origen → analizar → JSON → editar → guardar -->
+        <div class="glass-card" id="quickCreateCard" style="margin-top: 8px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+            <div>
+              <h2 id="quickCreateTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">Crear influencer</h2>
+              <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+                Elige origen → analizar → revisar JSON → editar → guardar. El producto es el <strong style="color:#fff;font-weight:600;">character_lock</strong> para chatbots gratis.
+              </p>
+            </div>
+          </div>
+          <ol class="quick-create-steps" aria-label="Flujo guiado">
+            <li class="is-active">1 Origen</li>
+            <li>2 Analizar</li>
+            <li>3 JSON</li>
+            <li>4 Editar</li>
+            <li>5 Guardar</li>
+          </ol>
+          <div class="quick-create-grid" role="group" aria-labelledby="quickCreateTitle">
+            <button type="button" class="quick-create-btn" id="btnQuickImportUrl">
+              <span class="quick-create-btn-icon" aria-hidden="true">🔗</span>
+              <span class="quick-create-btn-label">Analizar una URL</span>
+              <span class="quick-create-btn-hint">Perfil público o imagen directa</span>
+            </button>
+            <button type="button" class="quick-create-btn" id="btnQuickImportPhoto">
+              <span class="quick-create-btn-icon" aria-hidden="true">📷</span>
+              <span class="quick-create-btn-label">Analizar una imagen</span>
+              <span class="quick-create-btn-hint">JPG, PNG o WEBP de tu equipo</span>
+            </button>
+            <button type="button" class="quick-create-btn" id="btnQuickManualPersona">
+              <span class="quick-create-btn-icon" aria-hidden="true">✍️</span>
+              <span class="quick-create-btn-label">Crear influencer manualmente</span>
+              <span class="quick-create-btn-hint">Ficha vacía, sin análisis</span>
+            </button>
+          </div>
+        </div>
+
         <!-- F6/W14 — Happy path 60s (CTA único) -->
         <div class="glass-card" id="happyPathCard" style="margin-top: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
@@ -188,7 +224,7 @@
               <span class="happy-path-check" aria-hidden="true">○</span>
               <div>
                 <strong>1. Crear o importar</strong>
-                <p>En <strong>Influencers → Ficha / Editor</strong>: «Crear influencer» o «Importar referencia» / Inspirar desde foto.</p>
+                <p>Usa las acciones rápidas del Portafolio (URL, foto o crear a mano) o <strong>Influencers → Ficha / Editor</strong>.</p>
                 <div class="happy-path-step-actions" style="display:flex; flex-wrap:wrap; gap:8px;">
                   <button type="button" class="btn btn-secondary btn-sm" data-happy-action="create">Ir a crear</button>
                   <button type="button" class="btn btn-secondary btn-sm" data-happy-action="import">Importar foto</button>
@@ -2245,15 +2281,15 @@
         Ritual free: <strong>1 · Subir</strong> → <strong>2 · Confirmar tez / ojos / pelo</strong> → <strong>3 · Guardar → Copiar JSON</strong>.
       </p>
       <p class="import-ritual-steps" id="importRitualSteps" aria-hidden="true">
-        <span data-import-ritual="1" class="is-active">1 Subir</span>
-        <span data-import-ritual="2">2 Confirmar</span>
+        <span data-import-ritual="1" class="is-active">1 Origen</span>
+        <span data-import-ritual="2">2 JSON</span>
         <span data-import-ritual="3">3 Guardar</span>
       </p>
 
       <!-- Paso 1: Formulario de Carga -->
       <div id="importStep1">
         <div class="editor-form-group">
-          <div class="u-mb-18">
+          <div class="u-mb-18 import-origin-block" id="importOriginPhoto" data-import-origin="photo">
             <div class="u-flex-between-mb8">
               <label style="font-weight: 600; font-size: 12px; margin: 0;">📷 Fotos de Referencia (Máximo 4)</label>
               <span class="import-counter-badge" id="importCounterBadge">0/4 cargadas</span>
@@ -2271,10 +2307,11 @@
             <div id="importFilesFeedback" style="display: none; margin-top: 6px; font-size: 11px; color: var(--accent-primary); font-weight: 500;"></div>
           </div>
 
-          <div class="u-mb-18">
-            <label for="importUrl" class="u-label-block">🔗 URL del Perfil o Foto (Opcional)</label>
-            <input type="text" id="importUrl" placeholder="Ej: https://instagram.com/p/..." 
+          <div class="u-mb-18 import-origin-block" id="importOriginUrl" data-import-origin="url">
+            <label for="importUrl" class="u-label-block">🔗 URL del perfil o foto</label>
+            <input type="text" id="importUrl" placeholder="https://… (perfil público o imagen directa)" 
               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px; outline: none;">
+            <p style="margin:6px 0 0;font-size:11px;color:var(--text-muted);">También vale una URL directa a JPG/PNG/WEBP.</p>
           </div>
 
           <div class="u-mb-18">
@@ -2383,15 +2420,20 @@
         </div>
         <p id="importLockHealth" class="import-lock-health" style="display:none; font-size: 11px; color: #86efac; margin: 0 0 16px;"></p>
 
-        <details id="importAdvancedPreview" style="margin-bottom:16px;">
-          <summary style="cursor:pointer; font-size:12px; color:var(--text-secondary);">Avanzado: JSON detectado + guiones UGC</summary>
-          <div class="prompt-console" style="margin-top: 10px; margin-bottom: 12px; background: rgba(0,0,0,0.3);">
-            <div class="u-flex-between">
-              <span class="analysis-field-label" style="font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase;">Estructura influ-JSON</span>
-              <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyImportJSON">Copiar estructura</button>
+        <div id="importJsonReview" class="import-json-review" style="margin-bottom:16px;">
+          <div class="u-flex-between" style="margin-bottom:8px;">
+              <span class="analysis-field-label" style="font-size: 11px; letter-spacing: 0.4px; text-transform: uppercase; color:#a7f3d0;">3 · Revisar JSON</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnCopyImportJSON">Copiar estructura JSON</button>
+              <button type="button" class="btn btn-secondary btn-sm u-chip-xs" id="btnOpenImportInEditor">Abrir en el editor</button>
             </div>
-            <textarea id="importJsonOutput" readonly style="width: 100%; height: 90px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; padding: 8px; color: #a7f3d0; font-family: var(--font-mono); font-size: 10px; resize: none; outline: none;"></textarea>
           </div>
+          <textarea id="importJsonOutput" spellcheck="false" style="width: 100%; height: 140px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 6px; padding: 8px; color: #a7f3d0; font-family: var(--font-mono); font-size: 10px; resize: vertical; outline: none;"></textarea>
+          <p style="margin:6px 0 0;font-size:11px;color:var(--text-muted);">Puedes editar el JSON aquí o abrirlo en la ficha. Luego confirma y guarda.</p>
+        </div>
+
+        <details id="importAdvancedPreview" style="margin-bottom:16px;">
+          <summary style="cursor:pointer; font-size:12px; color:var(--text-secondary);">Avanzado: guiones UGC</summary>
           <h3 style="font-family: var(--font-display); font-size: 12px; text-transform: uppercase; color: #fbbf24; margin: 8px 0 8px;">Guiones UGC (opcional)</h3>
           <div id="importVideoPrompts" style="display: flex; flex-direction: column; gap: 12px; max-height: 160px; overflow-y: auto; margin-bottom: 8px; padding-right: 4px;"></div>
         </details>
@@ -2825,7 +2867,7 @@ cd influ-json
   <script src="face-pack.js?v=1.0.0"></script>
   <script src="ugc-shot-composer.js?v=1.0.0"></script>
   <script src="chatbot-packs.js?v=1.4.0"></script>
-  <script src="import-flow.js?v=1.0.0"></script>
+  <script src="import-flow.js?v=1.0.1"></script>
   <script src="prompt-builder.js?v=1.1.0"></script>
   <script src="studio-toast.js?v=1.0.0"></script>
   <script src="queue-poller.js?v=1.0.0"></script>
@@ -2843,6 +2885,6 @@ cd influ-json
   <script src="production-recipe.js?v=1.0.0"></script>
   <script src="production-brief.js?v=1.0.0"></script>
   <script src="community-templates.js?v=1.0.0"></script>
-  <script src="app.js?v=1.14.1"></script>
+  <script src="app.js?v=1.14.2"></script>
 </body>
 </html>
