@@ -4,6 +4,8 @@
 
 Estudio local para **crear prompts y JSON de influencers virtuales** consistentes — desde cero o inspirados en una foto — y usarlos en **chatbots gratuitos** (ChatGPT, Gemini, Claude, Meta) sin pagar APIs de imagen.
 
+**Un router de workflow, no de GPUs:** eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free.
+
 ## Concepto central
 
 1. Definir el personaje en el Studio (roster SQLite).

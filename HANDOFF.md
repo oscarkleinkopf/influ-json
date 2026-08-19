@@ -9,6 +9,8 @@
 
 **Producto:** herramientas para **crear prompts** que generen influencers **consistentes** (desde cero o inspirados en foto/referencia), y un **JSON (`character_lock`)** que se pueda pegar en **chatbots gratuitos** para seguir desarrollando esos personajes sin pagar face-lock.
 
+**Resumen de utilidad (UI):** *Un router de workflow, no de GPUs* — eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free.
+
 **Cero costo primero.** Pollinations = bocetos locales opcionales. Replicate face-lock = opt-in (`ENABLE_PAID_FACE_LOCK`, `docs/FACELOCK_R.md`) que **nunca** rompe el free path.
 
 Happy path a proteger:
@@ -25,14 +27,23 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ #139 |
-| **PR actual** | — |
-| **`main` remoto** | + #139 acciones rápidas dashboard · #137 Corte F · #138 handoff |
+| **Rama de trabajo** | `cursor/tagline-router-workflow-d862` |
+| **Commit base** | `main` @ #140 |
+| **PR actual** | (en curso) tagline router de workflow |
+| **`main` remoto** | + #140 handoff · #139 acciones rápidas |
 | **Prioridad inmediata** | Usabilidad (siguientes cortes UX); no seguridad/deploy salvo pedido |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-18) — #139 mergeado
+### Sesión reciente (Cursor, 2026-08-19) — Tagline utilidad
+
+**Pedido:** Usar en la plataforma la frase «router de workflow, no de GPUs» como resumen de utilidad (tras investigar Aurea).
+
+**Hecho:**
+- Portafolio (`views/tabs/dashboard.html`), Cómo usar, onboarding founder, `app.js`, README, `docs/index.html`
+- `npm run build:index` · test `test/tagline-router-workflow.test.js`
+- Frase: *Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free.*
+
+### Sesión previa (Cursor, 2026-08-18) — #139 mergeado
 
 **Pedido:** Revisar y mergear el corte de acciones rápidas.
 

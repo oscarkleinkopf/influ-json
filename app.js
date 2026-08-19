@@ -597,9 +597,8 @@ function showFounderWelcomeModal() {
   const name = state.currentProfile?.name;
   const lead = document.getElementById('founderWelcomeLead');
   if (lead) {
-    lead.textContent = name
-      ? `${name}: crea prompts + JSON (character_lock) y pégalos en chatbots gratis. Pollinations es opcional.`
-      : 'Crea prompts + JSON (character_lock) y pégalos en chatbots gratis. Pollinations es opcional.';
+    const utilityLine = 'Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON (character_lock) y encadena pasos free. Pollinations es opcional.';
+    lead.textContent = name ? `${name}: ${utilityLine}` : utilityLine;
   }
   modal.style.display = 'flex';
 }
