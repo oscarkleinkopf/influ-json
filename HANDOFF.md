@@ -28,9 +28,9 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | Campo | Valor |
 |-------|--------|
 | **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ job router (pendiente push) |
+| **Commit base** | `main` @ `e79d193` (job router) |
 | **PR actual** | — |
-| **`main` remoto** | + job router · tagline router · #140 handoff |
+| **`main` remoto** | + job router mergeado · tagline router · #140 handoff |
 | **Prioridad inmediata** | Usabilidad (siguientes cortes UX); no seguridad/deploy salvo pedido |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
