@@ -34,13 +34,14 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | **Prioridad inmediata** | Usabilidad (siguientes cortes UX); no seguridad/deploy salvo pedido |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-19) — Tagline utilidad
+### Sesión reciente (Cursor, 2026-08-19) — Tagline utilidad → `main`
 
-**Pedido:** Usar en la plataforma la frase «router de workflow, no de GPUs» como resumen de utilidad (tras investigar Aurea).
+**Pedido:** Usar en la plataforma la frase «router de workflow, no de GPUs» como resumen de utilidad (tras investigar Aurea); luego merge.
 
 **Hecho:**
-- Portafolio (`views/tabs/dashboard.html`), Cómo usar, onboarding founder, `app.js`, README, `docs/index.html`
+- Portafolio, Cómo usar, onboarding founder, `app.js`, README, `docs/index.html`
 - `npm run build:index` · test `test/tagline-router-workflow.test.js`
+- Rama `cursor/tagline-router-workflow-d862` → **mergeado en `main`** (`b970edb`)
 - Frase: *Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free.*
 
 ### Sesión previa (Cursor, 2026-08-18) — #139 mergeado

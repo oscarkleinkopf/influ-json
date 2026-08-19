@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-19 | **Job router Portafolio** | Inspirar / chatbot / UGC / producto → flujos free cableados |
 | 2026-08-19 | **Tagline router de workflow** | Portafolio / Cómo usar / onboarding: «Un router de workflow, no de GPUs…» |
 | 2026-08-18 | **UX acciones rápidas → main (#139)** | Dashboard URL/foto/manual → análisis → JSON → editor → guardar |
 | 2026-08-15 | **Polish-3 → main (#135)** | Checklist vacío · Guiones · alts ES · prefiere Copiar JSON |

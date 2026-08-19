@@ -166,6 +166,38 @@
           </div>
         </div>
 
+        <!-- Job router: elegir workflow (inspirar · chatbot · UGC · producto) -->
+        <div class="glass-card job-router-card" id="jobRouterCard" style="margin-top: 8px;">
+          <div style="margin-bottom: 12px;">
+            <h2 id="jobRouterTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">¿Qué quieres hacer?</h2>
+            <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+              Elige un job — el Studio fija el <code>character_lock</code> y encadena pasos free (sin GPUs obligatorias).
+            </p>
+          </div>
+          <div class="job-router-grid" role="group" aria-labelledby="jobRouterTitle">
+            <button type="button" class="job-router-btn" id="btnJobInspirar" data-job-router="inspirar">
+              <span class="job-router-btn-icon" aria-hidden="true">💡</span>
+              <span class="job-router-btn-label">Inspirar</span>
+              <span class="job-router-btn-hint">URL, foto o ficha manual → JSON anclado</span>
+            </button>
+            <button type="button" class="job-router-btn" id="btnJobChatbot" data-job-router="chatbot">
+              <span class="job-router-btn-icon" aria-hidden="true">💬</span>
+              <span class="job-router-btn-label">Chatbot</span>
+              <span class="job-router-btn-hint">Copiar pack cuerpo entero → ChatGPT / Gemini / Claude free</span>
+            </button>
+            <button type="button" class="job-router-btn" id="btnJobUgc" data-job-router="ugc">
+              <span class="job-router-btn-icon" aria-hidden="true">🎬</span>
+              <span class="job-router-btn-label">UGC</span>
+              <span class="job-router-btn-hint">Producir vertical y guiones con el mismo personaje</span>
+            </button>
+            <button type="button" class="job-router-btn" id="btnJobProducto" data-job-router="producto">
+              <span class="job-router-btn-icon" aria-hidden="true">📦</span>
+              <span class="job-router-btn-label">Producto</span>
+              <span class="job-router-btn-hint">Pack producto en mano — listo para chatbot free</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Acciones rápidas: Dashboard → origen → analizar → JSON → editar → guardar -->
         <div class="glass-card" id="quickCreateCard" style="margin-top: 8px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
@@ -207,7 +239,7 @@
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
             <div>
               <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Arranque en 60 segundos</h2>
-              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Crear → guardar → <strong>Copiar JSON</strong> a un chatbot gratis. Gen local es opcional.</p>
+              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Elige un job arriba o este checklist — el router fija el JSON y encadena pasos free. Gen local es opcional.</p>
             </div>
             <span id="happyPathProgress" class="happy-path-progress">0 / 3</span>
           </div>
