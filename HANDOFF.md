@@ -28,19 +28,29 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 | Campo | Valor |
 |-------|--------|
 | **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ `b970edb` (tagline router) |
+| **Commit base** | `main` @ job router (pendiente push) |
 | **PR actual** | — |
-| **`main` remoto** | + tagline router · #140 handoff · #139 acciones rápidas |
+| **`main` remoto** | + job router · tagline router · #140 handoff |
 | **Prioridad inmediata** | Usabilidad (siguientes cortes UX); no seguridad/deploy salvo pedido |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-19) — Tagline utilidad
+### Sesión reciente (Cursor, 2026-08-19) — Job router Portafolio → `main`
 
-**Pedido:** Usar en la plataforma la frase «router de workflow, no de GPUs» como resumen de utilidad (tras investigar Aurea).
+**Pedido:** Implementar job router (inspirar / chatbot / UGC / producto) y merge.
 
 **Hecho:**
-- Portafolio (`views/tabs/dashboard.html`), Cómo usar, onboarding founder, `app.js`, README, `docs/index.html`
+- Card «¿Qué quieres hacer?» en Portafolio (`views/tabs/dashboard.html`) + CSS + `runJobRouterAction` en `app.js`
+- Inspirar → acciones rápidas; Chatbot → `copy-pack` fullbody; UGC → `ugc-studio`; Producto → pack producto
+- `happyPathLead` alineado · `test/job-router.test.js` · `npm run build:index`
+
+### Sesión previa (Cursor, 2026-08-19) — Tagline utilidad → `main`
+
+**Pedido:** Usar en la plataforma la frase «router de workflow, no de GPUs» como resumen de utilidad (tras investigar Aurea); luego merge.
+
+**Hecho:**
+- Portafolio, Cómo usar, onboarding founder, `app.js`, README, `docs/index.html`
 - `npm run build:index` · test `test/tagline-router-workflow.test.js`
+- Rama `cursor/tagline-router-workflow-d862` → **mergeado en `main`** (`b970edb`)
 - Frase: *Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free.*
 
 ### Sesión previa (Cursor, 2026-08-18) — #139 mergeado

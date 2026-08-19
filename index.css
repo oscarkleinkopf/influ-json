@@ -791,6 +791,47 @@ body {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
+
+/* Job router — Portafolio */
+.job-router-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.job-router-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+.job-router-btn:hover,
+.job-router-btn:focus-visible {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.1);
+  outline: none;
+}
+.job-router-btn-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.job-router-btn-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.job-router-btn-hint {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
 .quick-create-btn {
   display: flex;
   flex-direction: column;
@@ -837,7 +878,15 @@ body {
   min-height: 120px;
 }
 @media (max-width: 768px) {
+  .job-router-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .quick-create-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .job-router-grid {
     grid-template-columns: 1fr;
   }
 }

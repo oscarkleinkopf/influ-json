@@ -306,7 +306,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupPinWizard', fn: setupPinWizard },
     { name: 'setupMemberOnboarding', fn: setupMemberOnboarding },
     { name: 'initImportModal', fn: initImportModal },
-    { name: 'setupQuickCreateActions', fn: setupQuickCreateActions }
+    { name: 'setupQuickCreateActions', fn: setupQuickCreateActions },
+    { name: 'setupJobRouter', fn: setupJobRouter }
   ];
 
   initSteps.forEach(step => {
@@ -771,6 +772,53 @@ function setupQuickCreateActions() {
   document.getElementById('btnQuickImportUrl')?.addEventListener('click', openUrl);
   document.getElementById('btnQuickImportPhoto')?.addEventListener('click', openPhoto);
   document.getElementById('btnQuickManualPersona')?.addEventListener('click', openManual);
+}
+
+/** Job router — Portafolio: inspirar · chatbot · UGC · producto (free path) */
+function ensureActivePersonaForJob() {
+  const list = (state.personas || []).filter((p) => !isArchivedPersona(p));
+  if (!state.selectedPersona && list[0]) selectPersona(list[0]);
+  return state.selectedPersona;
+}
+
+function runJobRouterAction(job) {
+  const j = String(job || '').trim().toLowerCase();
+  if (!j) return;
+
+  if (j === 'inspirar') {
+    navigateToTab('dashboard');
+    setTimeout(() => {
+      document.getElementById('quickCreateCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const urlBtn = document.getElementById('btnQuickImportUrl');
+      if (urlBtn) {
+        try { urlBtn.focus(); } catch (_) {}
+      }
+    }, 80);
+    return;
+  }
+
+  const persona = ensureActivePersonaForJob();
+  if (!persona) {
+    toastInfo('Primero inspira o crea un influencer — el job necesita un character_lock.', {
+      actionLabel: 'Inspirar',
+      onAction: () => runJobRouterAction('inspirar')
+    });
+    return;
+  }
+
+  if (j === 'chatbot') {
+    runHappyPathAction('copy-pack');
+  } else if (j === 'ugc') {
+    runBriefAction('ugc');
+  } else if (j === 'producto') {
+    runBriefAction('copy_product');
+  }
+}
+
+function setupJobRouter() {
+  document.querySelectorAll('[data-job-router]').forEach((btn) => {
+    btn.addEventListener('click', () => runJobRouterAction(btn.getAttribute('data-job-router')));
+  });
 }
 
 function setupMemberOnboarding() {
@@ -8657,5 +8705,7 @@ window.renderCampaigns = renderCampaigns;
 window.startCreateScratchFlow = startCreateScratchFlow;
 window.startImportFlow = startImportFlow;
 window.setupQuickCreateActions = setupQuickCreateActions;
+window.setupJobRouter = setupJobRouter;
+window.runJobRouterAction = runJobRouterAction;
 window.resetPersonaFormForNew = resetPersonaFormForNew;
 
