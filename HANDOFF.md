@@ -27,10 +27,10 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/tagline-router-workflow-d862` |
-| **Commit base** | `main` @ #140 |
-| **PR actual** | (en curso) tagline router de workflow |
-| **`main` remoto** | + #140 handoff · #139 acciones rápidas |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ `b970edb` (tagline router) |
+| **PR actual** | — |
+| **`main` remoto** | + tagline router · #140 handoff · #139 acciones rápidas |
 | **Prioridad inmediata** | Usabilidad (siguientes cortes UX); no seguridad/deploy salvo pedido |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
