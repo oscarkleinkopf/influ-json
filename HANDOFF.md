@@ -27,10 +27,10 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/l4-comfy-companion-d862` |
-| **Commit base** | `main` @ `e3fc3ee` |
-| **PR actual** | L4 companion Comfy / Locally Uncensored |
-| **`main` remoto** | + job router · tagline · #140 |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `main` @ `cb4f8d9` (L4 companion) |
+| **PR actual** | — |
+| **`main` remoto** | + L4 companion Comfy/LU · job router · tagline |
 | **Prioridad inmediata** | Usabilidad (siguientes cortes UX); no seguridad/deploy salvo pedido |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
