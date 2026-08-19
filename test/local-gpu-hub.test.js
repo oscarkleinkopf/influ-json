@@ -290,9 +290,13 @@ test('UI: panel L4 dentro de #loraAdvancedPanel (demoted)', () => {
   assert.match(html, /id="localGpuStatusPanel"/);
   assert.ok(html.indexOf('localGpuStatusPanel') > loraIdx);
   assert.match(html, /docs\/lora\/L4_LOCAL_GPU\.md/);
-  assert.match(app, /\/api\/local-gpu\/status/);
-  assert.match(app, /function refreshLocalGpuStatus/);
-  assert.match(app, /btnRefreshLocalGpu/);
+  assert.match(html, /id="localGpuCompanionHint"/);
+  assert.match(html, /PurpleDoubleD\/locally-uncensored/);
+  assert.match(html, /puerto típico/);
+  assert.match(app, /function updateLocalGpuCompanionHint/);
+  assert.match(app, /ComfyUI detectado \(online\)/);
+  assert.match(app, /updateLocalGpuCompanionHint\(\{ comfyConfigured, comfyOk \}\)/);
+  assert.doesNotMatch(html.slice(html.indexOf('localGpuCompanionHint'), html.indexOf('localGpuCompanionHint') + 900), /127\.0\.0\.1|COMFYUI_URL/);
 });
 
 test('GET /api/local-gpu/status responde sin backends', async () => {

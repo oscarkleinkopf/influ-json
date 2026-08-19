@@ -4555,6 +4555,19 @@ async function refreshFaceLockOptIn() {
   }
 }
 
+function updateLocalGpuCompanionHint({ comfyConfigured = false, comfyOk = false } = {}) {
+  const el = document.getElementById('localGpuCompanionHint');
+  if (!el) return;
+  const lu = '<a href="https://github.com/PurpleDoubleD/locally-uncensored" target="_blank" rel="noopener noreferrer">Locally Uncensored</a>';
+  if (comfyOk) {
+    el.innerHTML = 'ComfyUI detectado (online). Registra la LoRA abajo si quieres gen local. El path free sigue siendo <strong>Copiar JSON</strong>.';
+  } else if (comfyConfigured) {
+    el.innerHTML = `ComfyUI configurado pero offline. Arranca Comfy (p. ej. ${lu}) y pulsa Actualizar. El producto sigue siendo el JSON.`;
+  } else {
+    el.innerHTML = `¿GPU local? Puedes usar ComfyUI (puerto típico <code class="u-fs-10">8188</code>) — p. ej. ${lu} como gestor. El producto sigue siendo el JSON.`;
+  }
+}
+
 async function refreshLocalGpuStatus() {
   const textEl = document.getElementById('localGpuStatusText');
   const chipComfy = document.getElementById('localGpuChipComfy');
@@ -4583,7 +4596,9 @@ async function refreshLocalGpuStatus() {
     }
     const comfy = data.backends?.comfyui || {};
     const a1111 = data.backends?.a1111 || {};
-    setChip(chipComfy, 'ComfyUI', !!comfy.ok, comfy.reason !== 'not_configured');
+    const comfyConfigured = comfy.reason !== 'not_configured';
+    const comfyOk = !!comfy.ok;
+    setChip(chipComfy, 'ComfyUI', comfyOk, comfyConfigured);
     setChip(chipA1111, 'A1111/Forge', !!a1111.ok, a1111.reason !== 'not_configured');
     const active = data.active || 'ninguno';
     const prefer = data.preferLocal ? 'PREFER_LOCAL_GPU on' : 'solo con LoRA ready';
@@ -4592,6 +4607,7 @@ async function refreshLocalGpuStatus() {
         ? `Activo: ${active} · preferencia ${data.backendPreference || 'auto'} · ${prefer}`
         : 'Sin COMFYUI_URL ni A1111_URL — gens siguen por Pollinations / Copiar JSON.';
     }
+    updateLocalGpuCompanionHint({ comfyConfigured, comfyOk });
   } catch (err) {
     if (textEl) textEl.textContent = 'Estado: error al consultar hub local.';
   }

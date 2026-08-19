@@ -4,7 +4,7 @@
 
 Sin ComfyUI (o si falla) el Studio prueba L3 (Replicate, si `ENABLE_PAID_LORA=1`) y si no → **Pollinations**.
 
-**Hub multi-backend (L4):** además de ComfyUI puedes usar Automatic1111/Forge. Ver **[L4_LOCAL_GPU.md](./L4_LOCAL_GPU.md)**.
+**Hub multi-backend (L4):** además de ComfyUI puedes usar Automatic1111/Forge. Ver **[L4_LOCAL_GPU.md](./L4_LOCAL_GPU.md)** (incluye companion opcional [Locally Uncensored](https://github.com/PurpleDoubleD/locally-uncensored) como gestor de Comfy — el producto sigue siendo el JSON).
 
 ---
 

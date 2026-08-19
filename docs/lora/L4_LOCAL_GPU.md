@@ -17,6 +17,21 @@ Sin estas URLs el Studio se comporta igual: **Copiar JSON** + Pollinations. Fall
 
 ---
 
+## Companion: Locally Uncensored (opcional)
+
+Si ya tienes GPU y quieres **gestionar ComfyUI** (modelos, LoRA picker, vídeo local) sin pelearte con el grafo de nodos, [Locally Uncensored](https://github.com/PurpleDoubleD/locally-uncensored) es un instalador de escritorio que suele levantar Comfy en el puerto típico (`8188`).
+
+**No se integra en el Studio.** No sustituye `character_lock` ni Copiar JSON. Flujo:
+
+1. Instala/arranca LU (o ComfyUI a pelo).
+2. En `.env` del Studio: `COMFYUI_URL=http://127.0.0.1:8188` (u otra URL si LU usa otro puerto).
+3. Exporta pack L0 / registra `.safetensors` en la ficha → L4 usa ese Comfy.
+4. Si Comfy está caído, las gens caen a Pollinations. El producto sigue siendo el JSON.
+
+AGPL-3.0: no copies código de LU aquí. Solo apunta el hub al mismo Comfy.
+
+---
+
 ## Requisitos
 
 1. GPU local con ComfyUI y/o A1111/Forge corriendo.

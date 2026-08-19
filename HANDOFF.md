@@ -27,14 +27,24 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ `e79d193` (job router) |
-| **PR actual** | — |
-| **`main` remoto** | + job router mergeado · tagline router · #140 handoff |
+| **Rama de trabajo** | `cursor/l4-comfy-companion-d862` |
+| **Commit base** | `main` @ `e3fc3ee` |
+| **PR actual** | L4 companion Comfy / Locally Uncensored |
+| **`main` remoto** | + job router · tagline · #140 |
 | **Prioridad inmediata** | Usabilidad (siguientes cortes UX); no seguridad/deploy salvo pedido |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-19) — Job router Portafolio → `main`
+### Sesión reciente (Cursor, 2026-08-19) — L4 companion ComfyUI
+
+**Pedido:** Corte concreto: nota en `L4_LOCAL_GPU.md` + hint en panel GPU (Locally Uncensored como gestor Comfy, sin integrar).
+
+**Hecho:**
+- Docs L4 + enlace en L2
+- `#localGpuCompanionHint` en ficha (Avanzado · GPU local)
+- `updateLocalGpuCompanionHint`: off / offline / online — sin filtrar URLs internas
+- Tests `test/l4-comfy-companion.test.js` + ampliación `local-gpu-hub`
+
+### Sesión previa (Cursor, 2026-08-19) — Job router Portafolio → `main`
 
 **Pedido:** Implementar job router (inspirar / chatbot / UGC / producto) y merge.
 
