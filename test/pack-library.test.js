@@ -24,7 +24,7 @@ const samplePersona = {
   }
 };
 
-test('W13: los 4 packs incluyen character_lock y no APIs de pago', () => {
+test('W13: los packs incluyen character_lock y no APIs de pago', () => {
   for (const packId of listPackIds()) {
     const text = buildFreeChatbotPack(samplePersona, packId, {
       productData: { name: 'Serum Vera', benefit: 'glow' }
@@ -73,6 +73,7 @@ test('W13 UI: menú Packs portafolio + memoria último pack', () => {
   assert.match(html, /data-free-pack="bikini"/);
   assert.match(html, /data-free-pack="spicy"/);
   assert.match(html, /data-free-pack="product"/);
+  assert.match(html, /data-free-pack="explicit"/);
 
   assert.match(css, /portfolio-pack-menu/);
   assert.match(css, /portfolio-last-pack/);

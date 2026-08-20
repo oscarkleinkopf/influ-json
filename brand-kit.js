@@ -165,7 +165,7 @@ Qué incluye
 -----------
 • persona.json          → ficha completa
 • character_lock.json   → ancla de identidad (gratis)
-• packs/*.txt           → 4 packs listos para chatbot free
+• packs/*.txt           → 4 packs SFW + packs/explicit.txt (PPV opt-in, LU cajas separadas)
 • guion_ugc_15s.txt     → guión PAS/AIDA ~15–20s
 • COMO_USAR_KIT.txt     → este archivo
 • imagenes/             → ancla + variantes (si hay)
@@ -213,6 +213,14 @@ function buildBrandKitFiles(persona) {
       content: buildPackText(persona, lock, packId)
     });
   });
+
+  try {
+    const packs = require('./chatbot-packs');
+    files.push({
+      name: 'packs/explicit.txt',
+      content: packs.buildFreeChatbotPack(persona, 'explicit', { fallbackName: persona.name })
+    });
+  } catch (_) { /* chatbot-packs optional in some embeds */ }
 
   return { files, lock, nicheId, detailed };
 }

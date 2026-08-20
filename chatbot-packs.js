@@ -59,8 +59,33 @@
 • Fondo interior simple (casa/baño/cocina) con luz de ventana
 • Si hay datos de producto en el mensaje, úsalos; si no, usa un frasco/caja genérica de beauty
 • Estilo review de TikTok/Instagram, no anuncio de TV`
+    },
+    explicit: {
+      id: 'explicit',
+      label: 'PPV / explícito',
+      short: 'Opt-in · misma cara, no default',
+      nsfw: true,
+      sceneInstruction: `Genera UNA imagen UGC explícita / PPV FOTOREALISTA (opt-in):
+• MISMA persona del CHARACTER LOCK (cara, tez, pelo, silueta). NUNCA renegocies la cara.
+• Framing text-first: cuerpo entero (head-to-toe) o el plano del prompt A/B/C — no congelar el close-up del retrato ancla
+• Piel real con poros; luz de habitación / flash de celular
+• Estilo foto amateur PPV, no cine 8K, no CGI, no anime
+• NO cambiar edad, etnia, tez ni pelo
+
+Usa UNO de estos tres prompts (no mezcles A+B+C en la misma imagen):
+
+PROMPT A — SEMI / LINGERIE
+Lingerie o satén, cuerpo entero, dormitorio/hotel con luz cálida real. Sensual, ropa interior visible, no nude completo.
+
+PROMPT B — NUDE FULLBODY
+Desnudo artístico fotoreal, cuerpo entero head-to-toe, misma silueta del lock. Habitación real, no estudio de moda.
+
+PROMPT C — CLOSE-UP PPV
+Close-up íntimo PPV. Si el rostro entra en cuadro, ES el del CHARACTER LOCK (misma cara, tez, pelo).`
     }
   };
+
+  const SFW_PACK_IDS = ['fullbody', 'bikini', 'spicy', 'product'];
 
   /**
    * Acepta fila SQLite ({ detailedJSON }) o JSON de personaje ya expandido.
@@ -94,6 +119,126 @@
     'doll-like, CGI sheen, over-saturated, HDR glow, extra fingers, deformed hands, mangled jewelry, ' +
     'warped background, text artifacts, watermark, over-whitened teeth, uncanny eyes, glossy mannequin look, ' +
     '3d render, cartoon, anime, different person, face swap';
+
+  const FLAT_COMFY_NEGATIVE =
+    'ugly, deformed, extra limbs, extra fingers, mutated hands, bad anatomy, ' +
+    'blurry, low quality, worst quality, cartoon, anime, text, watermark, ' +
+    'wrong face, different person, age change, skin tone change, hair color change, ' +
+    STANDARD_NEGATIVE_PROMPT;
+
+  function lockTraitsCsv(must, name) {
+    const m = must || {};
+    const parts = [
+      m.name || name,
+      m.age,
+      m.gender,
+      m.ethnicity,
+      m.skin_tone,
+      m.skin_tone_hex,
+      m.eye_color ? `${m.eye_color} eyes` : null,
+      m.eyebrows,
+      m.hair_color ? `${m.hair_color} hair` : null,
+      m.hair_texture,
+      m.hair_length,
+      m.body_type,
+      m.height,
+      m.proportions,
+      m.facial_asymmetry,
+      isMeaningfulMarks(m.distinctive_marks) ? m.distinctive_marks : null
+    ];
+    return parts.filter((p) => p != null && String(p).trim()).map((p) => String(p).trim()).join(', ');
+  }
+
+  /**
+   * Prompt plano para ComfyUI / A1111 / Locally Uncensored (G513R).
+   * No sustituye el pack chatbot; es complemento cuando el modo NVIDIA está on.
+   */
+  function buildFlatComfyPrompt(must, opts = {}) {
+    const name = (must && must.name) || opts.fallbackName || 'Influencer';
+    const trigger = String(opts.triggerToken || '').trim();
+    const scene = opts.scene || 'full body, natural pose, photorealistic smartphone photo';
+    const identity = lockTraitsCsv(must, name);
+    const triggerBit = trigger ? `${trigger}, ` : '';
+    const positive =
+      `photorealistic, masterpiece, best quality, ultra detailed, 8k, ${triggerBit}${identity}, ${scene}, ` +
+      'detailed skin texture, natural pores, realistic lighting';
+    return {
+      positive: positive.replace(/\s+/g, ' ').trim(),
+      negative: FLAT_COMFY_NEGATIVE,
+      checkpointHint: opts.checkpointHint || 'juggernautXL_ragnarok.safetensors'
+    };
+  }
+
+  const LU_SHOTS = [
+    { id: 'A', label: 'semi / lingerie', scene: 'lingerie, full body, warm bedroom light, photorealistic smartphone photo' },
+    { id: 'B', label: 'nude fullbody', scene: 'nude full body head-to-toe, same silhouette, real bedroom, photorealistic smartphone photo' },
+    { id: 'C', label: 'close-up PPV', scene: 'intimate PPV close-up, same face if visible, photorealistic smartphone photo' }
+  ];
+
+  /**
+   * Locally Uncensored (y Comfy/A1111) usa DOS cajas: Positive y Negative.
+   * Devuelve strings limpios (sin etiquetas) listos para pegar cada uno en su campo.
+   */
+  function buildLuSplitPrompts(must, opts = {}) {
+    const name = (must && must.name) || opts.fallbackName || 'Influencer';
+    const triggerToken = String(opts.triggerToken || '').trim();
+    const shots = LU_SHOTS.map((shot) => {
+      const built = buildFlatComfyPrompt(must, {
+        ...opts,
+        fallbackName: name,
+        scene: shot.scene
+      });
+      return {
+        id: shot.id,
+        label: shot.label,
+        scene: shot.scene,
+        positive: built.positive,
+        negative: built.negative
+      };
+    });
+    return {
+      negative: shots[0] ? shots[0].negative : FLAT_COMFY_NEGATIVE,
+      shots,
+      triggerToken: triggerToken || null,
+      checkpointHint: opts.checkpointHint || 'juggernautXL_ragnarok.safetensors',
+      sfwCheckpoint: 'Juggernaut-XL_v9.safetensors',
+      lowVramCheckpoint: 'Realistic_Vision_V6.0_NV_B1_fp16.safetensors',
+      nsfwOptInCheckpoint: 'lustifyNSFWCheckpoint_zenithV9.safetensors',
+      note: 'Locally Uncensored: pega Positive y Negative en cajas distintas. El checkpoint se elige en el selector de LU, no dentro del prompt.'
+    };
+  }
+
+  function formatFlatComfySection(must, name, opts = {}) {
+    const split = buildLuSplitPrompts(must, { ...opts, fallbackName: name });
+    const trigger = split.triggerToken;
+    const shotBlocks = split.shots.map((s) => `
+▼ CAJA POSITIVE — shot ${s.id} (${s.label})
+Copia SOLO el texto entre las marcas (sin las marcas) → pégalo en Positive de LU.
+
+<<<LU_POSITIVE_${s.id}
+${s.positive}
+LU_POSITIVE_${s.id}>>>`).join('\n');
+    return `───────────────────────────────────────────
+LOCALLY UNCENSORED — cajas SEPARADAS (G513R)
+───────────────────────────────────────────
+En Locally Uncensored el Positive y el Negative son DOS campos.
+NO pegues ambos en la misma caja. NO incluyas las etiquetas ni las marcas <<< >>>.
+ComfyUI / A1111: mismo criterio (positive vs negative separados).
+
+Checkpoint (selector de LU, no va en el prompt):
+• PPV / explícito (default): ${split.checkpointHint}
+• SFW / body / beauty: ${split.sfwCheckpoint}
+• VRAM justa (SD1.5 fp16): ${split.lowVramCheckpoint}
+• Lustify zenith: ${split.nsfwOptInCheckpoint} — NSFW opt-in, NUNCA default
+${trigger ? `LoRA trigger (va DENTRO del Positive, no en Negative): ${trigger}\n` : ''}
+▼ CAJA NEGATIVE (la misma para A, B y C)
+Copia SOLO el texto entre las marcas → pégalo en Negative de LU.
+
+<<<LU_NEGATIVE
+${split.negative}
+LU_NEGATIVE>>>
+${shotBlocks}`;
+  }
 
   function isMeaningfulMarks(v) {
     if (v == null) return false;
@@ -274,6 +419,10 @@ PRODUCTO A MOSTRAR:
     const shotMeta = (cameraLabel || shotLabel)
       ? `\nCámara/formato: ${[shotLabel, cameraLabel].filter(Boolean).join(' · ')}\n`
       : '';
+    const triggerToken = String(opts.triggerToken || '').trim();
+    const flatBlock = packId === 'explicit'
+      ? `\n${formatFlatComfySection(must, name, { triggerToken, checkpointHint: 'juggernautXL_ragnarok.safetensors' })}\n`
+      : '';
 
     return `═══════════════════════════════════════════
 PACK GRATIS PARA CHATBOT — ${pack.label}
@@ -293,7 +442,7 @@ ${formatLockSummary(must, name)}
 PETICIÓN DE ESTA IMAGEN
 ───────────────────────────────────────────
 ${pack.sceneInstruction}
-${productBlock}${shotExtras}${extra}
+${productBlock}${shotExtras}${extra}${flatBlock}
 ${formatRealismNegativeSections()}
 
 ───────────────────────────────────────────
@@ -416,6 +565,11 @@ Si cara/tez/pelo/marcas cambian entre A/B/C, dilo explícitamente.
     return Object.keys(FREE_CHATBOT_PACKS);
   }
 
+  /** Packs SFW del happy path (sin PPV). El job router y Copiar JSON default usan estos. */
+  function listSfwPackIds() {
+    return SFW_PACK_IDS.slice();
+  }
+
   /**
    * W13 — Edad relativa de una copia ("hace 12s", "hace 3m").
    * @param {string|number|Date|null} copiedAt
@@ -451,11 +605,18 @@ Si cara/tez/pelo/marcas cambian entre A/B/C, dilo explícitamente.
     emptySessionChecklist,
     isSessionChecklistPassing,
     listPackIds,
+    listSfwPackIds,
     formatRelativeCopyAge,
     packLabel,
     REALISM_ANCHORS_BLOCK,
     REALISM_ANCHORS_ES,
     STANDARD_NEGATIVE_PROMPT,
+    FLAT_COMFY_NEGATIVE,
+    LU_SHOTS,
+    lockTraitsCsv,
+    buildFlatComfyPrompt,
+    buildLuSplitPrompts,
+    formatFlatComfySection,
     isMeaningfulMarks
   };
 });

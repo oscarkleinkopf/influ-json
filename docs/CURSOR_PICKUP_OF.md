@@ -8,9 +8,9 @@ Armar el pack OF/spicy + receta Juggernaut y dejarlo en el repo para desarrollar
 
 ## Hacer ahora
 
-Implementar **OF-1 → OF-3 → OF-5 → OF-4 → OF-2** como está en `docs/OF_SPICY_PACK.md`.
+Hecho en `cursor/of-explicit-pack-9b67`: OF-1 → OF-3 → OF-5 → OF-4 → OF-2 + **modo dual** (chatbots default vs GPU NVIDIA).
 
-Rama: `cursor/of-explicit-pack-20aug` + PR draft.
+Locally Uncensored: Positive y Negative se copian **por separado** (botones + bloques `<<<LU_NEGATIVE` / `<<<LU_POSITIVE_A`).
 
 ## No hacer
 

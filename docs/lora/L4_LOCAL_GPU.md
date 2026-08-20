@@ -70,6 +70,35 @@ Con `PREFER_LOCAL_GPU=1`, las gens **sin** LoRA también intentan el hub antes d
 
 ---
 
+## Notebook ASUS G513R (opt-in)
+
+Stack local del owner: **Ollama** + **LM Studio** (texto uncensored) y **Locally Uncensored** / Comfy (imagen). El Studio no exige esta máquina: el default sigue siendo **Copiar JSON**.
+
+En el Portafolio elige **Modo de trabajo → GPU NVIDIA local**. Sin NVIDIA, deja **Chatbots gratis**.
+
+### Locally Uncensored: Positive y Negative separados
+
+LU tiene **dos cajas**. No pegues el pack entero en una sola:
+
+1. Selector de checkpoint (no va dentro del prompt).
+2. **Negative** ← botón «Copiar negativo» (el mismo para shots A/B/C).
+3. **Positive** ← «Copiar positivo A / B / C».
+
+El pack `explicit` también marca los bloques con `<<<LU_NEGATIVE` / `<<<LU_POSITIVE_A` para copiar a mano.
+
+### Checkpoints en el disco de LU
+
+| Archivo | Uso |
+|---------|-----|
+| `Juggernaut-XL_v9.safetensors` | SFW / body / beauty |
+| `Realistic_Vision_V6.0_NV_B1_fp16.safetensors` | SD1.5, VRAM justa |
+| `juggernautXL_ragnarok.safetensors` | Default PPV / explícito + LoRA |
+| `lustifyNSFWCheckpoint_zenithV9.safetensors` | NSFW opt-in, **nunca** default |
+
+En `.env`: `COMFYUI_CHECKPOINT=juggernautXL_ragnarok.safetensors` si quieres que el hub L4 use Ragnarok (solo con modo NVIDIA / PREFER_LOCAL_GPU).
+
+---
+
 ## API
 
 | Método | Ruta | Uso |

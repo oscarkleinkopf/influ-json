@@ -378,6 +378,9 @@ function registerPersonasRoutes(app, deps) {
     const t0 = Date.now();
     const profileId = req.profileId || req.session?.profileId;
     const preferFaceLock = req.body.preferFaceLock === true;
+    const preferLocalGpu = req.body.preferLocalGpu === true;
+    const forceLocalGpu = req.body.forceLocalGpu === true;
+    const skipLocalGpu = req.body.preferLocalGpu === false;
     aiService.generateInfluencerImage(prompt, referenceUrl, {
       photoreal,
       identityLock,
@@ -385,6 +388,8 @@ function registerPersonasRoutes(app, deps) {
       framing,
       personaId: persona.id,
       preferFaceLock,
+      preferLocalGpu: skipLocalGpu ? false : (preferLocalGpu || forceLocalGpu || undefined),
+      forceLocalGpu,
       referenceLocalPath,
       faceImagePath: referenceLocalPath,
       setting: setting || '',
@@ -681,7 +686,12 @@ function registerPersonasRoutes(app, deps) {
       const persona = req.persona;
       const loraPack = require('../lora-pack');
       const variants = dbService.getVariantsForPersona(persona.id) || [];
-      const pack = loraPack.buildLoraPack(persona, variants);
+      let storedTrigger = null;
+      try { storedTrigger = dbService.getPersonaLora(persona.id)?.trigger_token; } catch (_) {}
+      const pack = loraPack.buildLoraPack(persona, variants, {
+        triggerToken: req.query.triggerToken || storedTrigger,
+        includeExplicitCaptions: req.query.explicitCaptions === '1' || req.query.explicitCaptions === 'true'
+      });
 
       try {
         dbService.recordAuditEvent({
@@ -790,7 +800,9 @@ function registerPersonasRoutes(app, deps) {
 
       const persona = req.persona;
       const variants = dbService.getVariantsForPersona(persona.id) || [];
-      const pack = loraPack.buildLoraPack(persona, variants);
+      const pack = loraPack.buildLoraPack(persona, variants, {
+        triggerToken: body.triggerToken || body.trigger_token
+      });
       if (pack.count < 4) {
         return res.status(400).json({
           success: false,
@@ -964,7 +976,9 @@ function registerPersonasRoutes(app, deps) {
 
       const persona = req.persona;
       const variants = dbService.getVariantsForPersona(persona.id) || [];
-      const pack = loraPack.buildLoraPack(persona, variants);
+      const pack = loraPack.buildLoraPack(persona, variants, {
+        triggerToken: body.triggerToken || body.trigger_token
+      });
       if (pack.count < 4) {
         return res.status(400).json({
           success: false,

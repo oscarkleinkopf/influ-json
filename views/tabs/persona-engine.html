@@ -142,15 +142,26 @@
                   Copiar JSON
                 </button>
                 <details id="packVariantsMenu" style="margin: 0 0 8px;">
-                  <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 6px 0;">Packs ▾ (bikini · spicy · producto · semana)</summary>
+                  <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 6px 0;">Packs ▾ (bikini · spicy · producto · PPV · semana)</summary>
                   <div class="pack-library-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="fullbody" >Cuerpo entero</button>
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="bikini" >Bikini / playa</button>
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="spicy" >Spicy (realista)</button>
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="product" >Producto en mano</button>
-                    <button type="button" class="btn btn-secondary btn-sm" id="btnCopyUgcWeek" style="font-size: 11px; padding: 8px 10px; text-align: left; grid-column: 1 / -1;" title="7 one-liners con el mismo character_lock">📅 Semana UGC (7 tomas)</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="explicit" title="Opt-in: misma cara, no es el default">PPV / explícito</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnCopyUgcWeek" style="font-size: 11px; padding: 8px 10px; text-align: left;" title="7 one-liners con el mismo character_lock">📅 Semana UGC (7 tomas)</button>
                   </div>
                 </details>
+                <div id="luSplitPromptPanel" data-nvidia-only class="lu-split-panel" style="margin: 8px 0 12px; padding: 10px; border-radius: 8px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.28);">
+                  <p class="u-field-title">Locally Uncensored — cajas separadas</p>
+                  <p class="u-hint-muted-sm" style="margin: 0 0 8px;">LU pide Positive y Negative en campos distintos. Copia cada uno y pégalo en su caja. El checkpoint se elige en el selector (Ragnarok = PPV).</p>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnCopyLuNegative" style="font-size: 11px;">Copiar negativo</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-lu-positive="A" style="font-size: 11px;">Copiar positivo A</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-lu-positive="B" style="font-size: 11px;">Copiar positivo B</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-lu-positive="C" style="font-size: 11px;">Copiar positivo C</button>
+                  </div>
+                </div>
                 <p class="pack-last-status" data-last-pack-status style="font-size: 10px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.4;"></p>
                 <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnRecopyLastPack" data-offline-highlight="pack" data-step2-secondary disabled>
                   Volver a copiar último pack
@@ -169,7 +180,8 @@
                   <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px;">Descargas (opcional, no sustituyen el pack free)</p>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnCopyProductionRecipe" style="width: 100%; font-size: 11px; padding: 8px 10px; margin-top: 8px;" title="JSON portable sin fotos ni must_match (plantilla comunitaria)">📋 Copiar receta de producción</button>
-                  <p style="font-size:10px;color:var(--text-muted);margin:6px 0 0;line-height:1.35;">Receta = shot + cámara + CTA + pack. No incluye cara/tez (seguro para compartir).</p>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnCopyG513rRecipe" data-nvidia-only style="width: 100%; font-size: 11px; padding: 8px 10px; margin-top: 8px;" title="Receta ASUS G513R: Ollama/LM Studio + Locally Uncensored (positive/negative separados)">🖥️ Copiar receta G513R (NVIDIA)</button>
+                  <p style="font-size:10px;color:var(--text-muted);margin:6px 0 0;line-height:1.35;">Receta = shot + cámara + CTA + pack. No incluye cara/tez (seguro para compartir). G513R solo en modo GPU.</p>
                   <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnExportBrandKitSheet" >🎁 Descargar kit marca (packs + guión)</button>
                 </div>
               </div>
@@ -221,12 +233,12 @@
                   </div>
                   <div class="qa-matrix-head-scores">
                     <span id="qaMatrixDhash" class="qa-matrix-dhash" title="Promedio dHash vs ancla (composición/color)">dHash —</span>
-                    <span id="qaMatrixScore" class="qa-matrix-score">0 / 3</span>
+                    <span id="qaMatrixScore" class="qa-matrix-score">0 / 5</span>
                   </div>
                 </div>
                 <div id="qaMatrixSlots" class="qa-matrix-slots"></div>
                 <div id="qaMatrixChecks" class="qa-matrix-checks"></div>
-                <p id="qaMatrixHint" class="qa-matrix-hint">Si falla cara o tez: re-pega el CHARACTER LOCK y regenera el slot débil. dHash alto ≠ cara distinta necesariamente.</p>
+                <p id="qaMatrixHint" class="qa-matrix-hint">Si falla cara, tez o silueta: re-pega el CHARACTER LOCK y regenera el slot débil. Anatomía: extra limbs ≠ spicy. dHash alto ≠ cara distinta necesariamente.</p>
                 <button type="button" class="btn btn-secondary btn-sm" id="btnRescoreConsistency" style="margin-top:8px;font-size:11px;">Recalcular dHash vs ancla</button>
               </div>
 
@@ -948,7 +960,7 @@
                   <div id="localGpuStatusPanel" style="margin-bottom: 12px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);">
                     <p class="u-field-title">GPU local (L4)</p>
                     <p class="u-hint-muted-sm">
-                      Opt-in · equipo con NVIDIA/self-host. El path free sigue siendo <strong>Copiar JSON</strong>.
+                      Opt-in · equipo con NVIDIA/self-host (ASUS G513R). Texto: Ollama / LM Studio. Imagen: Locally Uncensored / Comfy — Positive y Negative en cajas distintas. El path free sigue siendo <strong>Copiar JSON</strong>.
                     </p>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
                       <span id="localGpuChipComfy" style="font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);">ComfyUI —</span>
@@ -968,6 +980,10 @@
                   <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px;">Subir .safetensors (tras Colab)</label>
                   <input type="file" id="loraWeightsFile" accept=".safetensors,.pt,.ckpt" style="font-size: 10px; width: 100%; margin-bottom: 6px;" />
                   <input type="text" id="loraTriggerInput" placeholder="trigger (ohwx_…)" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-bottom: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
+                  <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin: 0 0 8px;">
+                    <input type="checkbox" id="chkLoraExplicitCaptions" style="margin-top: 2px;" />
+                    <span>Incluir captions explícitos en el ZIP LoRA (<code class="u-fs-10">captions/explicit/</code>) — off por defecto, no ensucia el dataset SFW.</span>
+                  </label>
                   <div class="u-gap-wrap">
                     <button type="button" class="btn btn-secondary btn-sm" id="btnRegisterLora" style="flex: 1; font-size: 11px; padding: 8px 10px;">Registrar LoRA</button>
                     <button type="button" class="btn btn-sm u-btn-sm-pad-tight" id="btnClearLora" >Quitar</button>

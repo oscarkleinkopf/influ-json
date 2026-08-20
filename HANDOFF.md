@@ -27,14 +27,27 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ `cb4f8d9` (L4 companion) |
-| **PR actual** | — |
-| **`main` remoto** | + L4 companion Comfy/LU · job router · tagline |
-| **Prioridad inmediata** | Usabilidad (siguientes cortes UX); no seguridad/deploy salvo pedido |
+| **Rama de trabajo** | `cursor/of-explicit-pack-9b67` |
+| **Commit base** | `main` @ `ab247ba` (pickup OF) |
+| **PR actual** | draft OF / G513R |
+| **`main` remoto** | + L4 companion · job router · tagline · pickup OF |
+| **Prioridad inmediata** | Usabilidad; pack explicit opt-in + modo dual chatbots/NVIDIA |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
 
-### Sesión reciente (Cursor, 2026-08-19) — L4 companion ComfyUI
+### Sesión reciente (Cursor, 2026-08-20) — OF + modo dual G513R
+
+**Pedido:** Pack OF/spicy + receta Juggernaut en notebook ASUS G513R (Ollama, LM Studio, Locally Uncensored). Modo para elegir NVIDIA local vs chatbots sin GPU. En LU, Positive y Negative se ingresan por separado.
+
+**Hecho:**
+- Pack `explicit` (PPV) + 3 prompts; ZIP `packs/explicit.txt`
+- LU: `buildLuSplitPrompts` + botones Copiar negativo / positivo A–C (cajas distintas)
+- Modo de trabajo Portafolio + Ajustes: `chatbots` (default) vs `nvidia`
+- Receta G513R (4 checkpoints; Lustify nunca default; Ragnarok = PPV)
+- `lora_trigger` en export L0; captions explícitos opt-in
+- QA: 5 checks (cara/tez/pelo/silueta/anatomía)
+- Spec: [docs/OF_SPICY_PACK.md](./docs/OF_SPICY_PACK.md)
+
+### Sesión previa (Cursor, 2026-08-19) — L4 companion ComfyUI
 
 **Pedido:** Corte concreto: nota en `L4_LOCAL_GPU.md` + hint en panel GPU (Locally Uncensored como gestor Comfy, sin integrar).
 
@@ -1002,6 +1015,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-20 | Cursor | **OF + modo dual G513R**: pack explicit; LU cajas +/- separadas; chatbots vs NVIDIA | *(este PR)* |
 | 2026-08-15 | Cursor | **Corte F LAN casera**: SQLite sessions, PIN≥6, allowlist, límites, audit auth | *(este PR)* |
 | 2026-08-11 | Cursor | **fix(ux-0)**: HTML nesting + móvil margin + offline bar fixed + test estructura | *(este PR)* |
 | 2026-08-10 | Cursor | **fix**: Resumen thumbs — fallback static `DATA_DIR` para references/generated | *(este PR)* |

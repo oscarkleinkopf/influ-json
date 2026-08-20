@@ -123,6 +123,12 @@ function registerGenerationRoutes(app, deps) {
     if (personaId) genOptions.personaId = personaId;
     // R2 — face-lock only when client explicitly opts in (never default)
     if (req.body.preferFaceLock === true) genOptions.preferFaceLock = true;
+    if (req.body.preferLocalGpu === true || req.body.forceLocalGpu === true) {
+      genOptions.preferLocalGpu = true;
+      genOptions.forceLocalGpu = true;
+    } else if (req.body.preferLocalGpu === false) {
+      genOptions.preferLocalGpu = false;
+    }
     if (referenceLocalPath) {
       genOptions.referenceLocalPath = referenceLocalPath;
       genOptions.faceImagePath = referenceLocalPath;

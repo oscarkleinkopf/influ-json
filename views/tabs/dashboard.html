@@ -78,6 +78,29 @@
           </div>
         </div>
 
+        <!-- Modo de trabajo: chatbots (default, sin GPU) vs NVIDIA local (G513R) -->
+        <div class="glass-card work-mode-card" id="workModeCard" style="margin-top: 8px;">
+          <div style="margin-bottom: 12px;">
+            <h2 id="workModeTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">Modo de trabajo</h2>
+            <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+              El default es <strong>chatbots gratis</strong> (sin NVIDIA). El modo GPU es opt-in para el notebook G513R.
+            </p>
+          </div>
+          <div class="work-mode-grid" role="group" aria-labelledby="workModeTitle">
+            <button type="button" class="work-mode-btn is-active" id="btnWorkModeChatbots" data-work-mode-btn="chatbots" aria-pressed="true">
+              <span class="work-mode-btn-icon" aria-hidden="true">💬</span>
+              <span class="work-mode-btn-label">Chatbots gratis (sin GPU)</span>
+              <span class="work-mode-btn-hint">Copiar JSON → ChatGPT / Gemini / Claude. No hace falta NVIDIA.</span>
+            </button>
+            <button type="button" class="work-mode-btn" id="btnWorkModeNvidia" data-work-mode-btn="nvidia" aria-pressed="false">
+              <span class="work-mode-btn-icon" aria-hidden="true">🖥️</span>
+              <span class="work-mode-btn-label">GPU NVIDIA local</span>
+              <span class="work-mode-btn-hint">Ollama + LM Studio (texto) · Locally Uncensored / Comfy (imagen). Positive y Negative en cajas distintas.</span>
+            </button>
+          </div>
+          <p id="workModeStatus" style="margin:10px 0 0;font-size:12px;color:var(--text-muted);line-height:1.45;">Modo chatbots: Copiar JSON a ChatGPT / Gemini / Claude. No se usa la GPU.</p>
+        </div>
+
         <!-- Acciones rápidas: Dashboard → origen → analizar → JSON → editar → guardar -->
         <div class="glass-card" id="quickCreateCard" style="margin-top: 8px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
@@ -119,7 +142,7 @@
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
             <div>
               <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Arranque en 60 segundos</h2>
-              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Elige un job arriba o este checklist — el router fija el JSON y encadena pasos free. Gen local es opcional.</p>
+              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Elige un job arriba o este checklist. Path free: Copiar JSON. Gen local (NVIDIA) es opt-in.</p>
             </div>
             <span id="happyPathProgress" class="happy-path-progress">0 / 3</span>
           </div>

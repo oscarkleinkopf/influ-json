@@ -6,6 +6,10 @@ Sin ComfyUI (o si falla) el Studio prueba L3 (Replicate, si `ENABLE_PAID_LORA=1`
 
 **Hub multi-backend (L4):** además de ComfyUI puedes usar Automatic1111/Forge. Ver **[L4_LOCAL_GPU.md](./L4_LOCAL_GPU.md)** (incluye companion opcional [Locally Uncensored](https://github.com/PurpleDoubleD/locally-uncensored) como gestor de Comfy — el producto sigue siendo el JSON).
 
+En Locally Uncensored el **Positive** y el **Negative** se pegan en cajas distintas. El Studio emite ambos por separado (botones «Copiar positivo / Copiar negativo» en modo GPU NVIDIA). No mezclarlos en un solo campo.
+
+Notebook G513R (opt-in): checkpoints `Juggernaut-XL_v9`, `Realistic_Vision_V6.0_NV_B1_fp16`, `juggernautXL_ragnarok` (PPV default), `lustifyNSFWCheckpoint_zenithV9` (NSFW opt-in, nunca default). Texto local: Ollama / LM Studio.
+
 ---
 
 ## Requisitos

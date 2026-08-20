@@ -39,9 +39,11 @@ Permitir que un emprendedor arme **personajes consistentes** para cuentas tipo O
 
 ### Prompt plano de referencia (Juggernaut XL Ragnarok)
 
-El pack debe poder emitir también una versión **plana** (sin JSON) para Comfy/A1111:
+El pack debe poder emitir también una versión **plana** (sin JSON) para Comfy/A1111/**Locally Uncensored**:
 
-**Positive (plantilla):**
+**Locally Uncensored:** Positive y Negative se ingresan en **cajas distintas**. El Studio copia cada campo por separado (nunca un solo bloque mezclado). Checkpoint se elige en el selector de LU, no dentro del prompt.
+
+**Positive (plantilla — caja Positive):**
 ```
 photorealistic, masterpiece, best quality, ultra detailed, 8k,
 {identity from character_lock as comma-separated traits},
@@ -49,7 +51,7 @@ photorealistic, masterpiece, best quality, ultra detailed, 8k,
 detailed skin texture, natural pores, realistic lighting
 ```
 
-**Negative (plantilla):**
+**Negative (plantilla — caja Negative, la misma para A/B/C):**
 ```
 ugly, deformed, extra limbs, extra fingers, mutated hands, bad anatomy,
 blurry, low quality, worst quality, cartoon, anime, text, watermark,
@@ -130,14 +132,16 @@ dHash existente sigue siendo señal grosera (no face-lock). Tooltip honesto.
 
 ## Criterios de hecho
 
-- [ ] Pack `explicit` aparece en Packs ▾ y en ZIP de persona.
-- [ ] El texto copiado contiene `character_lock` + 3 prompts PPV.
-- [ ] Receta Juggernaut visible en Producir / recetas.
-- [ ] `lora_trigger` se exporta en L0.
-- [ ] QA spicy muestra los 5 checks.
-- [ ] `npm test` verde + test nuevo del pack.
-- [ ] Free path: crear → guardar → Copiar JSON (fullbody) intacto.
-- [ ] Sin keys de pago, sin InstantID obligatorio.
+- [x] Pack `explicit` aparece en Packs ▾ y en ZIP de persona.
+- [x] El texto copiado contiene `character_lock` + 3 prompts PPV.
+- [x] Receta Juggernaut / G513R visible en modo GPU NVIDIA.
+- [x] `lora_trigger` se exporta en L0.
+- [x] QA spicy muestra los 5 checks.
+- [x] `npm test` verde + test nuevo del pack.
+- [x] Free path: crear → guardar → Copiar JSON (fullbody) intacto.
+- [x] Sin keys de pago, sin InstantID obligatorio.
+- [x] Modo dual: chatbots (default, sin GPU) vs NVIDIA local (G513R).
+- [x] Locally Uncensored: Positive y Negative en cajas / copias separadas.
 
 ## Qué no hacer
 

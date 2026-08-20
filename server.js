@@ -318,6 +318,9 @@ app.get('/identity-trial.js', (req, res) => {
 app.get('/lock-lab.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'lock-lab.js'));
 });
+app.get('/studio-work-mode.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'studio-work-mode.js'));
+});
 app.get('/production-recipe.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'production-recipe.js'));
 });
