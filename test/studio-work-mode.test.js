@@ -19,6 +19,27 @@ function memStore(seed) {
   };
 }
 
+test('applyWorkModeToDocument marca html (una sola fuente CSS)', () => {
+  const fakeBtns = [];
+  const html = {
+    setAttribute(k, v) { this[k] = v; },
+    classList: { toggle() {} }
+  };
+  const body = {
+    setAttribute(k, v) { this[k] = v; },
+    classList: { toggle() {} }
+  };
+  const doc = {
+    documentElement: html,
+    body,
+    querySelectorAll: () => fakeBtns,
+    getElementById: () => null
+  };
+  mode.applyWorkModeToDocument('nvidia', doc);
+  assert.equal(html['data-work-mode'], 'nvidia');
+  assert.equal(body['data-work-mode'], 'nvidia');
+});
+
 test('default es chatbots; nvidia es opt-in', () => {
   const s = memStore();
   assert.equal(mode.getWorkMode(s), 'chatbots');
@@ -55,5 +76,6 @@ test('Portafolio + Ajustes cablean el switch; CSS oculta nvidia-only por default
   assert.match(app, /function setupWorkMode/);
   assert.match(css, /data-work-mode="nvidia"/);
   assert.match(css, /\[data-nvidia-only\]/);
+  assert.doesNotMatch(css, /body:not\(\[data-work-mode="nvidia"\]\)/);
   assert.match(variants, /genLocalGpuRequestFlags/);
 });

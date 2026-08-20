@@ -91,8 +91,20 @@
     const d = doc || (typeof document !== 'undefined' ? document : null);
     if (!d) return resolved;
     const rootEl = d.documentElement;
-    if (rootEl && rootEl.setAttribute) rootEl.setAttribute('data-work-mode', resolved);
-    if (d.body && d.body.setAttribute) d.body.setAttribute('data-work-mode', resolved);
+    if (rootEl) {
+      if (rootEl.setAttribute) rootEl.setAttribute('data-work-mode', resolved);
+      if (rootEl.classList) {
+        rootEl.classList.toggle('work-mode-nvidia', resolved === NVIDIA);
+        rootEl.classList.toggle('work-mode-chatbots', resolved !== NVIDIA);
+      }
+    }
+    if (d.body) {
+      if (d.body.setAttribute) d.body.setAttribute('data-work-mode', resolved);
+      if (d.body.classList) {
+        d.body.classList.toggle('work-mode-nvidia', resolved === NVIDIA);
+        d.body.classList.toggle('work-mode-chatbots', resolved !== NVIDIA);
+      }
+    }
     const buttons = d.querySelectorAll ? d.querySelectorAll('[data-work-mode-btn]') : [];
     buttons.forEach((btn) => {
       const id = btn.getAttribute('data-work-mode-btn');

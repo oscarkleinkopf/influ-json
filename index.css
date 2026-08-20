@@ -875,8 +875,7 @@ body {
   color: var(--text-muted);
   line-height: 1.35;
 }
-html:not([data-work-mode="nvidia"]) [data-nvidia-only],
-body:not([data-work-mode="nvidia"]) [data-nvidia-only] {
+html:not([data-work-mode="nvidia"]) [data-nvidia-only] {
   display: none !important;
 }
 

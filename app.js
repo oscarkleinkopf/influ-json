@@ -3392,6 +3392,7 @@ function updateQueueStatusChip(q) {
 
 function navigateToTab(tabId) {
   const resolved = resolveStudioTab(tabId);
+  try { applyCurrentWorkMode(); } catch (_) {}
   const panel = document.getElementById(resolved);
   if (panel && panel.classList.contains('tab-panel')) {
     switchStudioTab(resolved);
@@ -3665,6 +3666,7 @@ function resetPersonaFormForNew() {
 // Select Persona
 function selectPersona(persona) {
   if (!persona) return;
+  try { applyCurrentWorkMode(); } catch (_) {}
   const prevId = state.selectedPersona?.id;
   // Selecting an existing persona always exits pure "create new" mode
   state.isCreatingNewPersona = false;
