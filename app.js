@@ -838,13 +838,18 @@ function applyCurrentWorkMode() {
 }
 
 function setupWorkMode() {
-  const api = getWorkModeApi();
   document.querySelectorAll('[data-work-mode-btn]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-work-mode-btn');
+      const api = getWorkModeApi();
       const mode = api ? api.setWorkMode(id) : (id === 'nvidia' ? 'nvidia' : 'chatbots');
       if (api) api.applyWorkModeToDocument(mode);
-      else applyCurrentWorkMode();
+      else {
+        try {
+          document.documentElement.setAttribute('data-work-mode', mode);
+          document.body?.setAttribute('data-work-mode', mode);
+        } catch (_) {}
+      }
       if (mode === 'nvidia') {
         toastInfo('Modo GPU NVIDIA: imagen en Locally Uncensored / Comfy (Positive y Negative en cajas distintas). Texto: Ollama / LM Studio. El JSON sigue siendo el producto.');
       } else {
