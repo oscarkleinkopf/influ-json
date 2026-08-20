@@ -229,6 +229,7 @@ ${JSON.stringify(r, null, 2)}
     G513R_LORA_STRENGTH_RANGE,
     G513R_LORA_TRIGGER_PLACEHOLDER,
     G513R_LORA_FILE_HINT,
+    g513rTriggerLabel,
     g513rLoraLine,
     buildRecipe,
     buildG513rRecipe,

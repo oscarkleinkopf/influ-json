@@ -39,11 +39,12 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 **Pedido:** Plan plataformas similares / tema LoRA — corte mínimo: línea explícita `LoRA: <token> @ 0.8` en receta G513R + guía de carpeta `models/loras` en Locally Uncensored. No tocar Chatbots/Copiar JSON. No integrar Higgsfield/Sozee/Picovix. No hacer LoRA el tema del producto.
 
 **Hecho:**
-- `production-recipe.js`: `lora_line` + `lora_file_hint` en `inference`; bloque clipboard LORA; pasos post-train (copiar `.safetensors` → picker LU + trigger en Positive)
-- Guía [docs/lora/L4_LOCAL_GPU.md](./docs/lora/L4_LOCAL_GPU.md) sección **Dónde poner el `.safetensors` (Locally Uncensored)** (Windows/Linux, LU bundled, A1111)
-- Punteros cortos en L2 y L5 (Kohya SDXL en G513R; Flux = Colab L1)
-- Tests: clipboard `LoRA:` + trigger + `models/loras`; placeholder sin trigger
-- Chatbots sigue default; Copiar JSON intacto
+- `production-recipe.js`: `lora_line` + `lora_file_hint` en `inference`; bloque clipboard LORA; pasos post-train (copiar `.safetensors` → picker LU + trigger en Positive); helpers `g513rLoraLine` / `g513rTriggerLabel`
+- Guía [docs/lora/L4_LOCAL_GPU.md](./docs/lora/L4_LOCAL_GPU.md) sección **Dónde poner el `.safetensors` (Locally Uncensored)** — Windows `%USERPROFILE%\Documents\ComfyUI\models\loras`, Linux `~/ComfyUI/models/loras`, A1111 `models/Lora`; LU solo escanea `ComfyUI/models/` (symlink / `extra_model_paths.yaml`); YouTube Load LoRA opcional
+- Punteros cortos en L2 y L5 (Kohya SDXL en G513R; Flux = Colab L1, no Flux.2 en 8 GB)
+- Hint `#localGpuCompanionHint`: one-liner `models/loras`
+- Tests: clipboard `LoRA:` + trigger + `models/loras`; placeholder sin trigger; paths L4
+- Chatbots sigue default; Copiar JSON intacto; LoRA = capa de identidad NVIDIA, no tema del producto
 
 ### Sesión previa (Cursor, 2026-08-20) — OF + modo dual G513R
 

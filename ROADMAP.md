@@ -151,7 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
-| 2026-08-20 | **G513R LoRA+trigger (NVIDIA)** | Receta clipboard `LoRA: token @ 0.8` + carpeta LU `models/loras`; Copiar JSON sigue default |
+| 2026-08-20 | **G513R LoRA+trigger (NVIDIA)** | Receta clipboard `LoRA: token @ 0.8` + carpeta LU `models/loras` (Windows Documents / Linux ~ / A1111 `models/Lora`); Copiar JSON sigue default |
 | 2026-08-19 | **L4 companion ComfyUI** | Docs + hint ficha: LU como gestor Comfy; JSON sigue siendo el producto |
 | 2026-08-19 | **Job router Portafolio** | Inspirar / chatbot / UGC / producto → flujos free cableados |
 | 2026-08-19 | **Tagline router de workflow** | Portafolio / Cómo usar / onboarding: «Un router de workflow, no de GPUs…» |

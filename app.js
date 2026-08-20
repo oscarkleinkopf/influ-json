@@ -4668,11 +4668,11 @@ function updateLocalGpuCompanionHint({ comfyConfigured = false, comfyOk = false 
   if (!el) return;
   const lu = '<a href="https://github.com/PurpleDoubleD/locally-uncensored" target="_blank" rel="noopener noreferrer">Locally Uncensored</a>';
   if (comfyOk) {
-    el.innerHTML = 'ComfyUI detectado (online). Registra la LoRA abajo si quieres gen local. El path free sigue siendo <strong>Copiar JSON</strong>.';
+    el.innerHTML = 'ComfyUI detectado (online). Pon el <code class="u-fs-10">.safetensors</code> en <code class="u-fs-10">models/loras</code> y registra la LoRA abajo si quieres gen local. El path free sigue siendo <strong>Copiar JSON</strong>.';
   } else if (comfyConfigured) {
-    el.innerHTML = `ComfyUI configurado pero offline. Arranca Comfy (p. ej. ${lu}) y pulsa Actualizar. El producto sigue siendo el JSON.`;
+    el.innerHTML = `ComfyUI configurado pero offline. Arranca Comfy (p. ej. ${lu}) y pulsa Actualizar. Pon el <code class="u-fs-10">.safetensors</code> en <code class="u-fs-10">models/loras</code>. El producto sigue siendo el JSON.`;
   } else {
-    el.innerHTML = `¿GPU local? Puedes usar ComfyUI (puerto típico <code class="u-fs-10">8188</code>) — p. ej. ${lu} como gestor. El producto sigue siendo el JSON.`;
+    el.innerHTML = `¿GPU local? Puedes usar ComfyUI (puerto típico <code class="u-fs-10">8188</code>) — p. ej. ${lu} como gestor. Pon el <code class="u-fs-10">.safetensors</code> en <code class="u-fs-10">models/loras</code>. El producto sigue siendo el JSON.`;
   }
 }
 

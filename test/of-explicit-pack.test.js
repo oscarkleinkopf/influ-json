@@ -110,6 +110,8 @@ test('receta G513R: sin trigger usa placeholder en línea LoRA', () => {
   const r = recipe.buildG513rRecipe({ personaName: 'Lina' });
   assert.equal(r.inference.trigger_token, null);
   assert.equal(r.inference.lora_line, 'LoRA: (ohwx_<slug> al exportar) @ 0.8');
+  assert.equal(recipe.g513rLoraLine(null), 'LoRA: (ohwx_<slug> al exportar) @ 0.8');
+  assert.equal(recipe.g513rTriggerLabel(''), '(ohwx_<slug> al exportar)');
   const text = recipe.toG513rClipboardText(r);
   assert.match(text, /LoRA: \(ohwx_<slug> al exportar\) @ 0\.8/);
   assert.match(text, /models\/loras/);
