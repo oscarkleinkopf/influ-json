@@ -97,6 +97,35 @@ El pack `explicit` también marca los bloques con `<<<LU_NEGATIVE` / `<<<LU_POSI
 
 En `.env`: `COMFYUI_CHECKPOINT=juggernautXL_ragnarok.safetensors` si quieres que el hub L4 use Ragnarok (solo con modo NVIDIA / PREFER_LOCAL_GPU).
 
+### Dónde poner el `.safetensors` (Locally Uncensored)
+
+El picker de LU/Comfy lista **el nombre del archivo** (sin path). Copia el LoRA de personaje ahí; si el picker queda vacío, **reinicia** LU o Comfy.
+
+| Backend | Carpeta típica |
+|---------|----------------|
+| **LU / Comfy** | `…/ComfyUI/models/loras/<nombre>.safetensors` |
+| **LU con Comfy embebido** | misma `models/loras` relativa al root Comfy de LU |
+| **A1111 / Forge** | `…/models/Lora/<nombre>.safetensors` (L mayúscula) |
+
+**Windows (ejemplos):**
+
+- Comfy a pelo: `C:\ComfyUI\models\loras\<nombre>.safetensors`
+- LU bundled: busca la carpeta `ComfyUI` junto al instalador o bajo `%LOCALAPPDATA%` → `ComfyUI\models\loras\`
+- A1111: `C:\stable-diffusion-webui\models\Lora\<nombre>.safetensors`
+
+**Linux (ejemplos):**
+
+- `~/ComfyUI/models/loras/<nombre>.safetensors`
+- LU bundled: `<lu-root>/ComfyUI/models/loras/<nombre>.safetensors`
+- A1111: `~/stable-diffusion-webui/models/Lora/<nombre>.safetensors`
+
+En el Studio (modo **GPU NVIDIA local** solamente):
+
+1. Registrar el LoRA en la ficha (panel Avanzado), **o**
+2. Poner `COMFYUI_LORAS_DIR` al mismo `models/loras` para que `POST /api/personas/:id/lora` copie el archivo ahí.
+
+Receta G513R: el character LoRA es **SDXL** (Kohya / Ragnarok / Juggernaut). **Flux LoRA = solo Colab L1** — no entrenes Flux.2 en 8 GB VRAM. El path **Chatbots gratis** (Copiar JSON) no cambia.
+
 ---
 
 ## API

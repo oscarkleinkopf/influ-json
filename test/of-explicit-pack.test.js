@@ -89,6 +89,9 @@ test('receta G513R: 4 checkpoints + LU split + no Lustify default', () => {
   assert.equal(r.inference.lu_split_prompts, true);
   assert.equal(r.inference.default_explicit_checkpoint, 'juggernautXL_ragnarok.safetensors');
   assert.equal(r.inference.nsfw_optin_checkpoint, 'lustifyNSFWCheckpoint_zenithV9.safetensors');
+  assert.equal(r.inference.lora_line, 'LoRA: ohwx_lina @ 0.8');
+  assert.equal(r.inference.lora_strength_mid, '0.8');
+  assert.match(r.inference.lora_file_hint, /models\/loras/);
   const lustify = r.checkpoints.find((c) => c.id === 'lustify');
   assert.equal(lustify.neverDefault, true);
   const text = recipe.toG513rClipboardText(r);
@@ -97,6 +100,20 @@ test('receta G513R: 4 checkpoints + LU split + no Lustify default', () => {
   assert.match(text, /LM Studio/);
   assert.match(text, /Locally Uncensored/);
   assert.match(text, /ohwx_lina/);
+  assert.match(text, /LoRA: ohwx_lina @ 0\.8/);
+  assert.match(text, /models\/loras/);
+  assert.match(text, /no sustituye Copiar JSON/i);
+  assert.match(text, /Copia el \.safetensors a models\/loras/);
+});
+
+test('receta G513R: sin trigger usa placeholder en línea LoRA', () => {
+  const r = recipe.buildG513rRecipe({ personaName: 'Lina' });
+  assert.equal(r.inference.trigger_token, null);
+  assert.equal(r.inference.lora_line, 'LoRA: (ohwx_<slug> al exportar) @ 0.8');
+  const text = recipe.toG513rClipboardText(r);
+  assert.match(text, /LoRA: \(ohwx_<slug> al exportar\) @ 0\.8/);
+  assert.match(text, /models\/loras/);
+  assert.match(text, /Strength 0\.7–0\.9 \(receta 0\.8\)/);
 });
 
 test('UI: botones LU + pack explicit + receta G513R (nvidia-only)', () => {

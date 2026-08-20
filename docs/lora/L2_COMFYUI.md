@@ -25,7 +25,7 @@ Notebook G513R (opt-in): checkpoints `Juggernaut-XL_v9`, `Realistic_Vision_V6.0_
    # Opcional: workflow custom (Flux, etc.) con placeholders
    # COMFYUI_WORKFLOW_JSON=./docs/lora/comfy_workflow_template.json
    ```
-3. El archivo `.safetensors` **también** debe estar visible para ComfyUI como `lora_name` (carpeta `models/loras`). Usa `COMFYUI_LORAS_DIR` o cópialo a mano con el mismo nombre.
+3. El archivo `.safetensors` **también** debe estar visible para ComfyUI como `lora_name` (carpeta `models/loras`). Usa `COMFYUI_LORAS_DIR` o cópialo a mano con el mismo nombre. Rutas exactas (LU bundled, Windows/Linux, A1111): **[L4 — Dónde poner el `.safetensors`](./L4_LOCAL_GPU.md#dónde-poner-el-safetensors-locally-uncensored)**.
 
 ---
 
