@@ -133,9 +133,14 @@ test('pack product: on-skin alternate when shot selected; in-hand default intact
   assert.match(onSkin, /SKU/);
   assert.match(onSkin, /esquina/);
   assert.match(onSkin, /no cubre los ojos/i);
+  assert.match(onSkin, /NO sostengas el frasco/i);
   assert.match(onSkin, /SHOT TYPE \(Producto en la cara\)/);
   assert.match(onSkin, /Cámara\/formato: Producto en la cara/);
+  assert.match(onSkin, /PACK GRATIS PARA CHATBOT — Producto on-skin/);
+  assert.match(onSkin, /Modo: ON-SKIN/);
+  assert.match(onSkin, /OK — pack product on-skin/);
   assert.doesNotMatch(onSkin, /sostiene el producto cerca de la cámara/);
+  assert.doesNotMatch(onSkin, /PACK GRATIS PARA CHATBOT — Producto en mano/);
   assert.doesNotMatch(onSkin, /Midjourney|midjourney/);
 
   const fullbody = buildFreeChatbotPack(persona, 'fullbody');
@@ -143,6 +148,23 @@ test('pack product: on-skin alternate when shot selected; in-hand default intact
   assert.doesNotMatch(fullbody, /producto EN LA PIEL/);
   assert.doesNotMatch(fullbody, /SHOT TYPE \(Producto en la cara\)/);
   assert.doesNotMatch(fullbody, /sostiene el producto cerca de la cámara/);
+});
+
+test('packLabel product: on-skin vs en mano', () => {
+  const { packLabel } = require('../chatbot-packs');
+  assert.equal(packLabel('product'), 'Producto en mano');
+  assert.equal(packLabel('product', { shotTypeId: 'product_on_face' }), 'Producto on-skin');
+  assert.match(packLabel('fullbody', { shotTypeId: 'product_on_face' }), /Cuerpo entero/);
+});
+
+test('UI Packs: hint on-skin cuando chip activo', () => {
+  const views = fs.readFileSync(path.join(__dirname, '..', 'views/tabs/persona-engine.html'), 'utf8');
+  const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  assert.match(views, /id="productPackOnSkinHint"/);
+  assert.match(views, /id="btnFreePackProduct"/);
+  assert.match(app, /productPackOnSkinHint/);
+  assert.match(app, /Producto on-skin/);
+  assert.match(app, /data-pack-mode/);
 });
 
 test('getCamera / getShotType null-safe', () => {

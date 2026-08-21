@@ -112,6 +112,27 @@ test('buildFreeChatbotPack rechaza pack desconocido', () => {
   assert.throws(() => buildFreeChatbotPack({}, 'nope'), /Pack desconocido/);
 });
 
+test('pack product: default en mano; on-skin cambia label + escena', () => {
+  const persona = {
+    identity: { name: 'Mia' },
+    character_lock: {
+      must_match_every_image: { name: 'Mia', skin_tone: 'clara', skin_tone_hex: '#f0d5c0' }
+    }
+  };
+  const inHand = buildFreeChatbotPack(persona, 'product');
+  assert.match(inHand, /PACK GRATIS PARA CHATBOT — Producto en mano/);
+  assert.match(inHand, /sostiene el producto cerca de la cámara/);
+  assert.equal(FREE_CHATBOT_PACKS.product.label, 'Producto en mano');
+  assert.ok(FREE_CHATBOT_PACKS.product.sceneInstructionOnSkin);
+  assert.ok(FREE_CHATBOT_PACKS.product.labelOnSkin);
+
+  const onSkin = buildFreeChatbotPack(persona, 'product', { shotTypeId: 'product_on_face' });
+  assert.match(onSkin, /PACK GRATIS PARA CHATBOT — Producto on-skin/);
+  assert.match(onSkin, /producto EN LA PIEL/);
+  assert.match(onSkin, /SKU/);
+  assert.doesNotMatch(onSkin, /sostiene el producto cerca de la cámara/);
+});
+
 test('W11 buildChatbotSessionCheck: lock + 3 prompts', () => {
   const text = buildChatbotSessionCheck({
     identity: { name: 'Nora' },

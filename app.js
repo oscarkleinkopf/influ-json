@@ -5014,17 +5014,31 @@ function refreshUgcComposerChips() {
     }
   });
   const hint = document.getElementById('ugcShotComposerHint');
-  if (!hint || typeof InfluUgcShotComposer === 'undefined') return;
-  const composed = InfluUgcShotComposer.composeShotExtras({
-    cameraId: state.ugcCameraId,
-    shotTypeId: state.ugcShotTypeId
+  if (hint && typeof InfluUgcShotComposer !== 'undefined') {
+    const composed = InfluUgcShotComposer.composeShotExtras({
+      cameraId: state.ugcCameraId,
+      shotTypeId: state.ugcShotTypeId
+    });
+    const bits = [];
+    if (composed.shot) bits.push(`formato «${composed.shot.label}»`);
+    if (composed.camera) bits.push(`cámara «${composed.camera.label}»`);
+    hint.textContent = bits.length
+      ? `Activo: ${bits.join(' + ')}. Se inyecta al copiar el pack (cara fija del lock).`
+      : 'Elige cámara y/o formato; se inyectan al copiar el pack (sin renegociar la cara).';
+  }
+  const onSkin = state.ugcShotTypeId === 'product_on_face';
+  document.querySelectorAll('[data-free-pack="product"]').forEach((btn) => {
+    btn.textContent = onSkin ? 'Producto on-skin' : 'Producto en mano';
+    btn.title = onSkin
+      ? 'On-skin activo: close-up con producto EN LA PIEL + SKU en esquina (no «en mano»)'
+      : 'Default: producto en la mano (plano medio). Activa el chip On-skin para close-up en piel.';
+    btn.setAttribute('data-pack-mode', onSkin ? 'on-skin' : 'in-hand');
   });
-  const bits = [];
-  if (composed.shot) bits.push(`formato «${composed.shot.label}»`);
-  if (composed.camera) bits.push(`cámara «${composed.camera.label}»`);
-  hint.textContent = bits.length
-    ? `Activo: ${bits.join(' + ')}. Se inyecta al copiar el pack (cara fija del lock).`
-    : 'Elige cámara y/o formato; se inyectan al copiar el pack (sin renegociar la cara).';
+  const onSkinHint = document.getElementById('productPackOnSkinHint');
+  if (onSkinHint) {
+    onSkinHint.hidden = !onSkin;
+    onSkinHint.style.display = onSkin ? 'block' : 'none';
+  }
 }
 
 function setUgcCamera(cameraId) {

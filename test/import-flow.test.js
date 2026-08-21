@@ -200,17 +200,46 @@ test('applyImportConfirmTraits actualiza must_match y detailedJSON', () => {
     skin: 'piel clara natural',
     eyes: 'marrón oscuro',
     hair: 'Castaño, largo, ondas suaves',
-    ethnicity: 'Latina de tez clara'
+    ethnicity: 'Latina de tez clara',
+    marks: 'Pecas suaves en pómulos'
   });
   assert.equal(next.detailedJSON.facial_features.skin_tone, 'piel clara natural');
   assert.equal(next.detailedJSON.facial_features.eye_color, 'marrón oscuro');
   assert.equal(next.detailedJSON.identity.ethnicity_appearance, 'Latina de tez clara');
   assert.equal(next.ethnicity, 'Latina de tez clara');
   assert.equal(next.detailedJSON.hair.color, 'Castaño');
+  assert.equal(next.detailedJSON.facial_features.distinctive_marks, 'Pecas suaves en pómulos');
+  assert.match(next.detailedJSON.facial_features.skin_texture, /marcas fijas/i);
   assert.equal(next.detailedJSON.character_lock.must_match_every_image.skin_tone, 'piel clara natural');
   assert.equal(next.detailedJSON.character_lock.must_match_every_image.eyes, 'marrón oscuro');
   assert.match(next.detailedJSON.character_lock.must_match_every_image.hair, /Castaño/);
+  assert.equal(next.detailedJSON.character_lock.must_match_every_image.distinctive_marks, 'Pecas suaves en pómulos');
   assert.equal(next.character_lock.must_match_every_image.name, 'Luna');
+});
+
+test('applyImportConfirmTraits no inventa schema: marks → distinctive_marks', () => {
+  const next = applyImportConfirmTraits(
+    { name: 'Sofi', detailedJSON: { facial_features: { skin_texture: 'Poros visibles' } } },
+    { marks: 'Lunar junto al labio' }
+  );
+  assert.equal(next.detailedJSON.facial_features.distinctive_marks, 'Lunar junto al labio');
+  assert.equal(next.detailedJSON.facial_features.skin_texture, 'Poros visibles');
+  assert.equal(next.character_lock.must_match_every_image.distinctive_marks, 'Lunar junto al labio');
+  assert.equal(next.detailedJSON.character_lock.must_match_every_image.freckles, undefined);
+});
+
+test('getImportPreviewTraits lee distinctive_marks existentes', () => {
+  const traits = getImportPreviewTraits({
+    detailedJSON: {
+      facial_features: {
+        skin_tone: 'clara',
+        eye_color: 'verde',
+        distinctive_marks: 'Peca en pómulo'
+      },
+      hair: { color: 'rubio' }
+    }
+  });
+  assert.equal(traits.marks, 'Peca en pómulo');
 });
 
 test('setImportRitualStep marca paso activo', () => {
@@ -234,6 +263,10 @@ test('modal ritual: confirmar tez/ojos/pelo + CTA Copiar JSON', () => {
   assert.match(foot, /id="importConfirmSkin"/);
   assert.match(foot, /id="importConfirmEyes"/);
   assert.match(foot, /id="importConfirmHair"/);
+  assert.match(foot, /id="importConfirmMarks"/);
+  assert.match(foot, /Marcas \(pecas \/ lunar\)/);
+  assert.match(foot, /id="importMarksPropWarning"/);
+  assert.match(foot, /No pongas props de la toma/);
   assert.match(foot, /Guardar → Copiar JSON/);
   assert.match(foot, /data-import-ritual="1"/);
   assert.match(foot, /id="importJsonReview"/);

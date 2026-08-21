@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-21 | **On-skin polish + pecas soft** | Pack `product` label/escena on-skin honesta; Packs ▾ hint; import «Marcas (pecas/lunar)» → `distinctive_marks` + aviso props |
 | 2026-08-21 | **Shot `product_on_face`** | Close-up on-skin + SKU en esquina; pack `product` (en mano sigue default); chip On-skin; Copiar JSON fullbody intacto |
 | 2026-08-21 | **G513R smoke checklist** | Pasada de uso real owner: Camino A + receta/LU/LoRA en notebook; VM no es G513R (`docs/G513R_SMOKE.md`) |
 | 2026-08-21 | **UX dos caminos (JSON primero)** | Portafolio Camino A (Copiar JSON, default) vs Camino B (GPU NVIDIA opt-in); LoRA oculto salvo modo NVIDIA (#144 `ab78462`) |

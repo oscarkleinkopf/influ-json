@@ -51,7 +51,9 @@
     product: {
       id: 'product',
       label: 'Producto en mano',
+      labelOnSkin: 'Producto on-skin',
       short: 'UGC con producto',
+      shortOnSkin: 'Close-up en la piel + SKU',
       sceneInstruction: `Genera UNA imagen UGC del influencer mostrando un producto:
 • El personaje sostiene el producto cerca de la cámara (mano visible)
 • Rostro reconocible según CHARACTER LOCK (misma cara y tez)
@@ -60,12 +62,13 @@
 • Si hay datos de producto en el mensaje, úsalos; si no, usa un frasco/caja genérica de beauty
 • Estilo review de TikTok/Instagram, no anuncio de TV`,
       // Alternate when UGC shot type `product_on_face` is selected (Layer 4). Default stays in-hand.
-      sceneInstructionOnSkin: `Genera UNA imagen UGC beauty close-up 3:4 con producto EN LA PIEL:
-• El rostro llena el cuadro (close-up); NO plano medio, NO «producto en mano»
+      sceneInstructionOnSkin: `Genera UNA imagen UGC beauty close-up 3:4 con producto EN LA PIEL (on-skin):
+• El rostro llena el cuadro (close-up); NO plano medio; NO «producto en mano»
+• NO sostengas el frasco/tubo en la mano ni delante de la cara
 • El producto ya está aplicado en la piel: parches hidrogel, mascarilla o sérum — no cubre los ojos
-• El SKU (frasco/tubo/tarro) visible en una esquina del cuadro, etiqueta legible
+• El SKU (frasco/tubo/tarro) visible en una esquina del cuadro, etiqueta legible — no flota ni tapa el rostro
 • Iluminación beauty comercial suave; poros naturales visibles
-• MISMA cara y tez del CHARACTER LOCK
+• MISMA cara y tez del CHARACTER LOCK (pecas/lunares del lock sí; props de la toma no)
 • Distinto de Demo (manos aplicando) y de Producto en mano (plano medio)
 • Estilo still comercial de skincare, foto de celular, no CGI`
     },
@@ -433,15 +436,20 @@ PRODUCTO A MOSTRAR:
       ? `\n${formatFlatComfySection(must, name, { triggerToken, checkpointHint: 'juggernautXL_ragnarok.safetensors' })}\n`
       : '';
 
-    const sceneInstruction =
-      packId === 'product' && opts.shotTypeId === 'product_on_face' && pack.sceneInstructionOnSkin
-        ? pack.sceneInstructionOnSkin
-        : pack.sceneInstruction;
+    const onSkinProduct =
+      packId === 'product' && opts.shotTypeId === 'product_on_face' && !!pack.sceneInstructionOnSkin;
+    const sceneInstruction = onSkinProduct ? pack.sceneInstructionOnSkin : pack.sceneInstruction;
+    const packDisplayLabel = onSkinProduct
+      ? (pack.labelOnSkin || 'Producto on-skin')
+      : pack.label;
+    const onSkinHonesty = onSkinProduct
+      ? '\nModo: ON-SKIN (close-up). No uses la escena «producto en mano».\n'
+      : '';
 
     return `═══════════════════════════════════════════
-PACK GRATIS PARA CHATBOT — ${pack.label}
+PACK GRATIS PARA CHATBOT — ${packDisplayLabel}
 Influencer: ${name}
-Cero costo: sin Replicate / InstantID / GPU de pago${shotMeta}═══════════════════════════════════════════
+Cero costo: sin Replicate / InstantID / GPU de pago${shotMeta}${onSkinHonesty}═══════════════════════════════════════════
 
 ${lock.free_chatbot_system || 'Mantén la misma persona del JSON en todas las imágenes.'}
 
@@ -471,7 +479,7 @@ AL FINAL
 2) Aplica el bloque REALISMO; si el modelo acepta negativo, úsalo.
 3) Si hay CAMERA / SHOT TYPE, respétalos (Layer 4 / escenario) sin renegociar la cara.
 4) Si la cara, tez o marcas cambian, re-pega el lock y regenera.
-5) Responde en español con una línea: "OK — pack ${pack.id} para ${name}".
+5) Responde en español con una línea: "OK — pack ${pack.id}${onSkinProduct ? ' on-skin' : ''} para ${name}".
 `;
   }
 
@@ -604,9 +612,13 @@ Si cara/tez/pelo/marcas cambian entre A/B/C, dilo explícitamente.
   }
 
   /** @returns {string|null} etiqueta corta del pack o null */
-  function packLabel(packId) {
+  function packLabel(packId, opts = {}) {
     const p = FREE_CHATBOT_PACKS[packId];
-    return p ? p.label : null;
+    if (!p) return null;
+    if (packId === 'product' && opts.shotTypeId === 'product_on_face' && p.labelOnSkin) {
+      return p.labelOnSkin;
+    }
+    return p.label;
   }
 
   return {
