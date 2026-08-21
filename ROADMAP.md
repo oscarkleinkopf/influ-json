@@ -151,7 +151,8 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
-| 2026-08-21 | **UX dos caminos (JSON primero)** | Portafolio Camino A (Copiar JSON, default) vs Camino B (GPU NVIDIA opt-in); LoRA oculto salvo modo NVIDIA |
+| 2026-08-21 | **G513R smoke checklist** | Pasada de uso real owner: Camino A + receta/LU/LoRA en notebook; VM no es G513R (`docs/G513R_SMOKE.md`) |
+| 2026-08-21 | **UX dos caminos (JSON primero)** | Portafolio Camino A (Copiar JSON, default) vs Camino B (GPU NVIDIA opt-in); LoRA oculto salvo modo NVIDIA (#144 `ab78462`) |
 | 2026-08-21 | **#142 superseded por #143** | #143 MERGED en `main` (`298eb46`); #142 draft+conflictos — no mergear. Cierre API 403 (sigue OPEN) |
 | 2026-08-20 | **G513R LoRA+trigger (NVIDIA)** | Receta clipboard `LoRA: token @ 0.8` + carpeta LU `models/loras` (Windows Documents / Linux ~ / A1111 `models/Lora`); Copiar JSON sigue default |
 | 2026-08-19 | **L4 companion ComfyUI** | Docs + hint ficha: LU como gestor Comfy; JSON sigue siendo el producto |
