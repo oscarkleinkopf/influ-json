@@ -43,7 +43,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - Packs ▾: botón renombra a «Producto on-skin» + hint verde cuando chip On-skin activo; Copiar JSON fullbody sin cambios.
 - Import confirm: campo «Marcas (pecas / lunar)» + aviso props (parches/tarro/makeup) no van al lock; `applyImportConfirmTraits` → `facial_features.distinctive_marks` + `must_match.distinctive_marks` (sin schema nuevo).
 - Tests: ugc / chatbot-packs / import-flow. `npm run build:index`.
-- Rama `cursor/product-on-skin-polish-9b67`.
+- Rama `cursor/product-on-skin-polish-9b67` en origin. Draft PR: `gh pr create --draft` → **403** (integration); el padre puede abrir desde https://github.com/oscarkleinkopf/influ-json/pull/new/cursor/product-on-skin-polish-9b67
+- QA Studio :3000: import marcas + warning; On-skin → Packs «Producto on-skin» + pack EN LA PIEL/SKU; Copiar JSON fullbody sin on-skin. `npm test` **517/517**.
 
 **No hecho (a propósito):** auto-cleaner de props en marks; auto-seleccionar On-skin en job Producto; NVIDIA/G513R/#99.
 
