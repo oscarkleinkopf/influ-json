@@ -28,7 +28,10 @@ describe('Corte I4 — community templates (safe share)', () => {
     assert.ok(t);
     assert.equal(t.niche, 'beauty');
     assert.equal(t.shot?.camera, 'mirror');
+    assert.equal(t.shot?.type, 'testimonial');
     assert.ok(Array.isArray(t.script_hooks) && t.script_hooks.length >= 1);
+    assert.ok(Array.isArray(t.shots) && t.shots.some((s) => s.type === 'product_on_face'));
+    assert.ok(t.script_hooks.some((h) => /on-skin/i.test(h)));
   });
 
   it('validateCommunitySafe rejects identity / photos', () => {

@@ -27,14 +27,28 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/g513r-smoke-checklist-9b67` |
-| **Commit base** | `ab78462` (`main`, squash [#144](https://github.com/oscarkleinkopf/influ-json/pull/144)) |
-| **PR actual** | Draft docs vs `main` (esta rama). #144 MERGED. #143 MERGED. #142 superseded — **no mergear** |
-| **`main` remoto** | Dos caminos (#144) + OF pack + puente LoRA NVIDIA (#143) |
-| **Prioridad inmediata** | Owner: pasada G513R ([docs/G513R_SMOKE.md](./docs/G513R_SMOKE.md)). No más UI hasta esa pasada. No Replicate. No marketplace LoRA. |
-| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace · **cierre #142** (API write 403) · pack explicit discovery UI |
+| **Rama de trabajo** | `cursor/product-on-face-9b67` |
+| **Commit base** | `c424d88` (`main`, [#145](https://github.com/oscarkleinkopf/influ-json/pull/145) G513R smoke docs) |
+| **PR actual** | Draft feat: shot `product_on_face` vs `main` (esta rama). #145 MERGED. #144 MERGED. #142 superseded — **no mergear** |
+| **`main` remoto** | G513R checklist (#145) + dos caminos (#144) + OF/LoRA NVIDIA (#143) |
+| **Prioridad inmediata** | Shot UGC `product_on_face` (pack `product`). No pecas ritual. No Replicate. No NVIDIA/LoRA/G513R/#99. |
+| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace · **cierre #142** (API write 403) · pack explicit discovery UI · pecas como must_match |
 
-### Sesión reciente (Cursor, 2026-08-21) — Pasada G513R (docs + verify VM)
+### Sesión reciente (Cursor, 2026-08-21) — Shot `product_on_face` (pack product)
+
+**Pedido:** Sigue. Corte recomendado: shot type `product_on_face` — close-up beauty con producto EN LA PIEL + SKU en esquina. Camino A / Copiar JSON. No clonar caras. No pecas ritual. No NVIDIA/LoRA.
+
+**Hecho:**
+- `ugc-shot-composer.js`: `product_on_face` junto a `product_demo` (label «Producto en la cara», suggested pack `product`).
+- Chip On-skin en ficha (`views/tabs/persona-engine.html`) + `npm run build:index`.
+- Pack `product`: `sceneInstruction` en mano intacto; `sceneInstructionOnSkin` si el shot está seleccionado.
+- Plantilla beauty I4: lista `shots` + hook on-skin; default sigue testimonial.
+- Tests en `test/ugc-camera-shot-types.test.js` + I4. Copiar JSON fullbody sin shot sigue igual.
+- No Replicate, no pecas, no LoRA.
+
+**No hecho (a propósito):** pecas como campo ritual; auto-seleccionar el shot en job Producto; NVIDIA/G513R/#99.
+
+### Sesión previa (Cursor, 2026-08-21) — Pasada G513R (docs + verify VM)
 
 **Pedido:** Sigue. Default next cut: validar Camino A/B de #143+#144 **sin código de feature**. Esta VM no es el G513R.
 

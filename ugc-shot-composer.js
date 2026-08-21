@@ -107,6 +107,19 @@
         'Product demo close-up: applying or using the product, hands and face focus, before/after energy, clear how-it-works framing.',
       weekBrief: 'product demo, applying serum, close rear cam'
     },
+    product_on_face: {
+      id: 'product_on_face',
+      label: 'Producto en la cara',
+      short: 'On-skin / close-up',
+      defaultCamera: 'rear',
+      suggestedPack: 'product',
+      scenarioSeed:
+        'Beauty commercial close-up 3:4: face fills the frame, product already applied on skin ' +
+        '(hydrogel patches, sheet mask or serum — not held in hand), SKU jar or tube visible in a ' +
+        'lower corner, does not cover the eyes, soft commercial beauty lighting, natural pores. ' +
+        'Distinct from a hands-applying product demo and from a mid-shot product-in-hand.',
+      weekBrief: 'on-skin close-up, hydrogel patches, SKU jar in corner'
+    },
     haul: {
       id: 'haul',
       label: 'Haul / try-on',
@@ -177,7 +190,7 @@
   }
 
   /**
-   * Seven one-line briefs for a content-week calendar (same identity card).
+   * One-line briefs for a content-week calendar (same identity card).
    * @param {string} name
    * @param {{ cameraId?: string }} [opts]
    */
@@ -195,10 +208,11 @@
    */
   function buildWeekCalendarText(name, opts = {}) {
     const lines = buildWeekBriefs(name, opts);
+    const n = lines.length;
     return `═══════════════════════════════════════════
-CALENDARIO UGC — 7 TOMAS (cero costo)
+CALENDARIO UGC — ${n} TOMAS (cero costo)
 Influencer: ${name || 'Influencer'}
-Misma persona en las 7: reutiliza el CHARACTER LOCK byte-idéntico.
+Misma persona en las ${n}: reutiliza el CHARACTER LOCK byte-idéntico.
 Solo cambian escenario + cámara (Layers 2–4).
 ═══════════════════════════════════════════
 
