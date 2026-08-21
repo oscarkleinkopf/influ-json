@@ -27,14 +27,26 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/ux-dos-caminos-9b67` |
-| **Commit base** | `1a61cfc` (`main`) + corte UX dos caminos |
-| **PR actual** | Rama pushed `cursor/ux-dos-caminos-9b67`. Draft PR **no creado** (`gh` 403 integration). Padre: abrir draft vs `main`. #143 MERGED. #142 superseded — **no mergear** |
-| **`main` remoto** | OF pack + modo dual + puente LoRA NVIDIA |
-| **Prioridad inmediata** | Este corte: Portafolio lee Camino A (Copiar JSON) vs Camino B (NVIDIA opt-in). No Replicate. No marketplace LoRA. |
-| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace · **cierre #142** (API write 403) |
+| **Rama de trabajo** | `cursor/g513r-smoke-checklist-9b67` |
+| **Commit base** | `ab78462` (`main`, squash [#144](https://github.com/oscarkleinkopf/influ-json/pull/144)) |
+| **PR actual** | Draft docs vs `main` (esta rama). #144 MERGED. #143 MERGED. #142 superseded — **no mergear** |
+| **`main` remoto** | Dos caminos (#144) + OF pack + puente LoRA NVIDIA (#143) |
+| **Prioridad inmediata** | Owner: pasada G513R ([docs/G513R_SMOKE.md](./docs/G513R_SMOKE.md)). No más UI hasta esa pasada. No Replicate. No marketplace LoRA. |
+| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace · **cierre #142** (API write 403) · pack explicit discovery UI |
 
-### Sesión reciente (Cursor, 2026-08-21) — UX dos caminos (JSON primero)
+### Sesión reciente (Cursor, 2026-08-21) — Pasada G513R (docs + verify VM)
+
+**Pedido:** Sigue. Default next cut: validar Camino A/B de #143+#144 **sin código de feature**. Esta VM no es el G513R.
+
+**Hecho:**
+- `main` = `ab78462` (#144 squash). Receta: `toG513rClipboardText` sigue con `LoRA: … @ 0.8` y `models/loras`.
+- `npm test` 510/510; `npm run smoke` 9/9.
+- GUI Camino A en Studio :3000 (Puppeteer headed): default chatbots, Copiar JSON como producto, extras NVIDIA ocultos → visibles al cambiar a GPU → ocultos al volver. Sin exigir Pollinations.
+- Checklist owner: [docs/G513R_SMOKE.md](./docs/G513R_SMOKE.md) (puntero en L4).
+
+**No hecho (a propósito):** entrenar LoRA / generar en Ragnarok (no hay NVIDIA aquí). Pack explicit discovery. S1. #99. Replicate.
+
+### Sesión previa (Cursor, 2026-08-21) — UX dos caminos (JSON primero)
 
 **Pedido:** Continua tras corte 1 (#142). Hacer inequívocos Camino A (chatbots / Copiar JSON, default) vs Camino B (GPU NVIDIA local, opt-in). No promover LoRA en Portafolio en modo chatbots. No Replicate. No marketplace.
 
@@ -1051,7 +1063,8 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-08-21 | Cursor | **UX dos caminos (JSON primero)**: Camino A Copiar JSON default; Camino B NVIDIA opt-in; LoRA `data-nvidia-only` | *(este PR)* |
+| 2026-08-21 | Cursor | **G513R smoke**: checklist owner + verify Camino A en VM (`docs/G513R_SMOKE.md`); sin feature | *(este PR)* |
+| 2026-08-21 | Cursor | **UX dos caminos (JSON primero)**: Camino A Copiar JSON default; Camino B NVIDIA opt-in; LoRA `data-nvidia-only` | `ab78462` (#144) |
 | 2026-08-21 | Cursor | **#142 superseded por #143**: OF pack + dual mode + LoRA NVIDIA ya en `main`; cierre API 403 (sigue OPEN/draft) | `298eb46` (#143) |
 | 2026-08-20 | Cursor | **G513R LoRA+trigger**: línea `LoRA: token @ 0.8` + carpeta LU `models/loras`; Chatbots intacto | `298eb46` (#143) |
 | 2026-08-20 | Cursor | **OF + modo dual G513R**: pack explicit; LU cajas +/- separadas; chatbots vs NVIDIA | `298eb46` (#143) |

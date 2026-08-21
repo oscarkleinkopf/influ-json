@@ -74,6 +74,8 @@ Con `PREFER_LOCAL_GPU=1`, las gens **sin** LoRA también intentan el hub antes d
 
 Stack local del owner: **Ollama** + **LM Studio** (texto uncensored) y **Locally Uncensored** / Comfy (imagen). El Studio no exige esta máquina: el default sigue siendo **Copiar JSON**.
 
+Pasada de uso real (owner, no un agente en cloud): checklist [G513R_SMOKE.md](../G513R_SMOKE.md).
+
 En el Portafolio elige **Dos caminos → Camino B · GPU NVIDIA local**. Sin NVIDIA, deja **Camino A · Chatbots gratis**.
 
 ### Locally Uncensored: Positive y Negative separados
