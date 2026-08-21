@@ -141,7 +141,8 @@ test('pack product: on-skin alternate when shot selected; in-hand default intact
   const fullbody = buildFreeChatbotPack(persona, 'fullbody');
   assert.match(fullbody, /CUERPO ENTERO/);
   assert.doesNotMatch(fullbody, /producto EN LA PIEL/);
-  assert.doesNotMatch(fullbody, /SHOT TYPE/);
+  assert.doesNotMatch(fullbody, /SHOT TYPE \(Producto en la cara\)/);
+  assert.doesNotMatch(fullbody, /sostiene el producto cerca de la cámara/);
 });
 
 test('getCamera / getShotType null-safe', () => {
