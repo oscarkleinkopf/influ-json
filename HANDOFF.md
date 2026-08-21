@@ -43,8 +43,8 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - Chip On-skin en ficha (`views/tabs/persona-engine.html`) + `npm run build:index`.
 - Pack `product`: `sceneInstruction` en mano intacto; `sceneInstructionOnSkin` si el shot está seleccionado.
 - Plantilla beauty I4: lista `shots` + hook on-skin; default sigue testimonial.
-- Tests en `test/ugc-camera-shot-types.test.js` + I4. Copiar JSON fullbody sin shot sigue igual.
-- No Replicate, no pecas, no LoRA.
+- Tests: `npm test` **512/512**. Puppeteer Studio :3000: chip On-skin, Copiar JSON fullbody sin on-skin, pack `product` con shot → on-skin / close-up / SKU en esquina. Sin Pollinations.
+- Rama `cursor/product-on-face-9b67` en origin. Draft PR: ManagePullRequest no está en el entorno.
 
 **No hecho (a propósito):** pecas como campo ritual; auto-seleccionar el shot en job Producto; NVIDIA/G513R/#99.
 
