@@ -779,7 +779,8 @@
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="fullbody" >Cuerpo entero</button>
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="bikini" >Bikini / playa</button>
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="spicy" >Spicy (realista)</button>
-                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="product" >Producto en mano</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="product" id="btnFreePackProduct" title="Default: producto en la mano (plano medio). Activa el chip On-skin para close-up en piel.">Producto en mano</button>
+                    <p id="productPackOnSkinHint" class="u-hint-10" hidden style="display:none; grid-column: 1 / -1; margin: 0; color: #86efac;">On-skin activo → este pack copia close-up en la piel + SKU en esquina (no «en mano»).</p>
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="explicit" title="Opt-in: misma cara, no es el default">PPV / explícito</button>
                     <button type="button" class="btn btn-secondary btn-sm" id="btnCopyUgcWeek" style="font-size: 11px; padding: 8px 10px; text-align: left;" title="One-liners con el mismo character_lock">📅 Semana UGC</button>
                   </div>
@@ -2458,6 +2459,13 @@
               <input type="text" id="importConfirmEthnicity" list="dlImportEthnicity" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--glass-border); background:rgba(0,0,0,0.3); color:var(--text-primary); font-size:12px;">
             </div>
           </div>
+          <div class="form-row u-mt-10" style="gap:10px;">
+            <div style="flex:1; min-width:200px;">
+              <label for="importConfirmMarks" style="display:block; margin-bottom:4px; font-size:11px;">Marcas (pecas / lunar)</label>
+              <input type="text" id="importConfirmMarks" list="dlImportMarks" placeholder="Ej. pecas suaves en pómulos, lunar junto al labio" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--glass-border); background:rgba(0,0,0,0.3); color:var(--text-primary); font-size:12px;">
+              <p id="importMarksPropWarning" class="u-hint-10" style="margin:6px 0 0; color:#fde68a; line-height:1.35;">Solo pecas/lunares del rostro. No pongas props de la toma (parches, tarro, makeup) en el lock.</p>
+            </div>
+          </div>
           <datalist id="dlImportSkin">
             <option value="piel clara natural"></option>
             <option value="Claro / porcelana"></option>
@@ -2487,6 +2495,13 @@
             <option value="Afrodescendiente / Mixta"></option>
             <option value="Asiática / Oriental"></option>
             <option value="Mixta / Universal"></option>
+          </datalist>
+          <datalist id="dlImportMarks">
+            <option value="Pecas suaves en pómulos y nariz"></option>
+            <option value="Peca sutil en el pómulo izquierdo"></option>
+            <option value="Pequeño lunar natural junto al labio"></option>
+            <option value="Lunar bajo mandíbula derecha"></option>
+            <option value="Sin marcas distintivas visibles"></option>
           </datalist>
         </div>
 

@@ -27,14 +27,28 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/product-on-face-9b67` |
-| **Commit base** | `c424d88` (`main`, [#145](https://github.com/oscarkleinkopf/influ-json/pull/145) G513R smoke docs) |
-| **PR actual** | Draft feat: shot `product_on_face` vs `main` (esta rama). #145 MERGED. #144 MERGED. #142 superseded — **no mergear** |
-| **`main` remoto** | G513R checklist (#145) + dos caminos (#144) + OF/LoRA NVIDIA (#143) |
-| **Prioridad inmediata** | Shot UGC `product_on_face` (pack `product`). No pecas ritual. No Replicate. No NVIDIA/LoRA/G513R/#99. |
-| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace · **cierre #142** (API write 403) · pack explicit discovery UI · pecas como must_match |
+| **Rama de trabajo** | `cursor/product-on-skin-polish-9b67` |
+| **Commit base** | `08d4bb0` (`main`, [#146](https://github.com/oscarkleinkopf/influ-json/pull/146) product_on_face MERGED) |
+| **PR actual** | Draft polish on-skin + import marcas vs `main` (esta rama). #146 MERGED. |
+| **`main` remoto** | `product_on_face` (#146) + G513R checklist (#145) + dos caminos (#144) |
+| **Prioridad inmediata** | Polish Camino A beauty on-skin: pack `product` honesto + ritual import pecas soft. No LoRA/NVIDIA/#99/Replicate/video. No esperar G513R. |
+| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace · **cierre #142** (API write 403) · pack explicit discovery UI · cleaner auto de props en marks |
 
-### Sesión reciente (Cursor, 2026-08-21) — Shot `product_on_face` (pack product)
+### Sesión reciente (Cursor, 2026-08-21) — On-skin polish + pecas ritual soft
+
+**Pedido:** Continua tras #146 MERGED. Pack `product` on-skin vs en mano honestidad; import ritual marcas (pecas/lunar) soft → `distinctive_marks`. No G513R / LoRA / NVIDIA / #99 / Replicate.
+
+**Hecho:**
+- Pack `product`: default en mano intacto; con shot `product_on_face` → label `Producto on-skin`, `sceneInstructionOnSkin` endurecido (NO en mano, SKU esquina), header `Modo: ON-SKIN`.
+- Packs ▾: botón renombra a «Producto on-skin» + hint verde cuando chip On-skin activo; Copiar JSON fullbody sin cambios.
+- Import confirm: campo «Marcas (pecas / lunar)» + aviso props (parches/tarro/makeup) no van al lock; `applyImportConfirmTraits` → `facial_features.distinctive_marks` + `must_match.distinctive_marks` (sin schema nuevo).
+- Tests: ugc / chatbot-packs / import-flow. `npm run build:index`.
+- Rama `cursor/product-on-skin-polish-9b67` en origin. Draft PR: `gh pr create --draft` → **403** (integration); el padre puede abrir desde https://github.com/oscarkleinkopf/influ-json/pull/new/cursor/product-on-skin-polish-9b67
+- QA Studio :3000: import marcas + warning; On-skin → Packs «Producto on-skin» + pack EN LA PIEL/SKU; Copiar JSON fullbody sin on-skin. `npm test` **517/517**.
+
+**No hecho (a propósito):** auto-cleaner de props en marks; auto-seleccionar On-skin en job Producto; NVIDIA/G513R/#99.
+
+### Sesión previa (Cursor, 2026-08-21) — Shot `product_on_face` (pack product)
 
 **Pedido:** Sigue. Corte recomendado: shot type `product_on_face` — close-up beauty con producto EN LA PIEL + SKU en esquina. Camino A / Copiar JSON. No clonar caras. No pecas ritual. No NVIDIA/LoRA.
 
@@ -44,9 +58,9 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - Pack `product`: `sceneInstruction` en mano intacto; `sceneInstructionOnSkin` si el shot está seleccionado.
 - Plantilla beauty I4: lista `shots` + hook on-skin; default sigue testimonial.
 - Tests: `npm test` **512/512**. Puppeteer Studio :3000: chip On-skin, Copiar JSON fullbody sin on-skin, pack `product` con shot → on-skin / close-up / SKU en esquina. Sin Pollinations.
-- Rama `cursor/product-on-face-9b67` en origin. Draft PR: ManagePullRequest no está en el entorno.
+- Rama `cursor/product-on-face-9b67` → **#146 MERGED** (`08d4bb0`).
 
-**No hecho (a propósito):** pecas como campo ritual; auto-seleccionar el shot en job Producto; NVIDIA/G513R/#99.
+**No hecho (a propósito):** pecas como campo ritual (hecho en polish siguiente); auto-seleccionar el shot en job Producto; NVIDIA/G513R/#99.
 
 ### Sesión previa (Cursor, 2026-08-21) — Pasada G513R (docs + verify VM)
 

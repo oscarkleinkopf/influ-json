@@ -138,11 +138,19 @@
     const hairBits = [hair.color, hair.length, hair.style || hair.texture]
       .map((v) => String(v || '').trim())
       .filter(Boolean);
+    const must =
+      d.character_lock && typeof d.character_lock === 'object' && d.character_lock.must_match_every_image
+        ? d.character_lock.must_match_every_image
+        : {};
+    const marks = String(
+      facial.distinctive_marks || must.distinctive_marks || ''
+    ).trim();
     return {
       skin: skin || '—',
       eyes: eyes || '—',
       hair: hairBits.length ? hairBits.join(', ') : '—',
-      ethnicity: String(identity.ethnicity_appearance || persona?.ethnicity || '').trim()
+      ethnicity: String(identity.ethnicity_appearance || persona?.ethnicity || '').trim(),
+      marks: marks || ''
     };
   }
 
@@ -151,7 +159,8 @@
       skin: String(els?.skin?.value || '').trim(),
       eyes: String(els?.eyes?.value || '').trim(),
       hair: String(els?.hair?.value || '').trim(),
-      ethnicity: String(els?.ethnicity?.value || '').trim()
+      ethnicity: String(els?.ethnicity?.value || '').trim(),
+      marks: String(els?.marks?.value || '').trim()
     };
   }
 
@@ -165,6 +174,7 @@
       const eth = traits.ethnicity || (traits.skin !== '—' ? traits.skin : '');
       els.ethnicity.value = eth || '';
     }
+    if (els.marks) els.marks.value = traits.marks || '';
   }
 
   /**
@@ -255,6 +265,7 @@
     const eyes = String(t.eyes || '').trim();
     const hairText = String(t.hair || '').trim();
     const ethnicity = String(t.ethnicity || '').trim();
+    const marks = String(t.marks || '').trim();
 
     const next = { ...persona };
     const d = {
@@ -294,6 +305,16 @@
       next.hair = [d.hair.length, d.hair.texture, d.hair.color].filter(Boolean).join(', ') || hairText;
     }
 
+    // Soft: pecas/lunares → distinctive_marks (+ hint en skin_texture si estaba vacío).
+    // No inventar schema nuevo; el owner limpia props de producto a mano.
+    if (marks) {
+      d.facial_features.distinctive_marks = marks;
+      const tex = String(d.facial_features.skin_texture || '').trim();
+      if (!tex) {
+        d.facial_features.skin_texture = 'Piel real con poros; marcas fijas del lock';
+      }
+    }
+
     const lock = {
       ...(d.character_lock && typeof d.character_lock === 'object' ? d.character_lock : {})
     };
@@ -306,6 +327,7 @@
     if (skin) must.skin_tone = skin;
     if (eyes) must.eyes = eyes;
     if (hairText) must.hair = hairText;
+    if (marks) must.distinctive_marks = marks;
     if (Object.keys(must).length) {
       lock.must_match_every_image = must;
       d.character_lock = lock;
@@ -386,7 +408,8 @@
       skin: document.getElementById('importConfirmSkin'),
       eyes: document.getElementById('importConfirmEyes'),
       hair: document.getElementById('importConfirmHair'),
-      ethnicity: document.getElementById('importConfirmEthnicity')
+      ethnicity: document.getElementById('importConfirmEthnicity'),
+      marks: document.getElementById('importConfirmMarks')
     };
 
     let selectedFiles = [];
