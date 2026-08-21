@@ -9,7 +9,7 @@
 
 **Producto:** herramientas para **crear prompts** que generen influencers **consistentes** (desde cero o inspirados en foto/referencia), y un **JSON (`character_lock`)** que se pueda pegar en **chatbots gratuitos** para seguir desarrollando esos personajes sin pagar face-lock.
 
-**Resumen de utilidad (UI):** *Un router de workflow, no de GPUs* — eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free.
+**Resumen de utilidad (UI):** *Un router de workflow, no de GPUs* — eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free. **Camino A (default):** Copiar JSON a chatbots gratis. **Camino B:** GPU NVIDIA / LoRA, solo si lo eliges.
 
 **Cero costo primero.** Pollinations = bocetos locales opcionales. Replicate face-lock = opt-in (`ENABLE_PAID_FACE_LOCK`, `docs/FACELOCK_R.md`) que **nunca** rompe el free path.
 
@@ -27,14 +27,25 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `298eb46` — merge [#143](https://github.com/oscarkleinkopf/influ-json/pull/143) |
-| **PR actual** | #143 **MERGED**. #142 superseded (draft + CONFLICTING); **no mergear**. Cierre GitHub API 403 — sigue OPEN (ver sesión) |
-| **`main` remoto** | OF pack + modo dual + puente LoRA NVIDIA (G513R / LU `models/loras`) |
-| **Prioridad inmediata** | Usabilidad; Copiar JSON default; LoRA solo modo NVIDIA. No reabrir #142. No UX two-paths. |
-| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace · **cierre #142** (API write 403; token integración read-only) |
+| **Rama de trabajo** | `cursor/ux-dos-caminos-9b67` |
+| **Commit base** | `1a61cfc` (`main`) + corte UX dos caminos |
+| **PR actual** | draft vs `main` (este corte). #143 MERGED. #142 superseded — **no mergear** |
+| **`main` remoto** | OF pack + modo dual + puente LoRA NVIDIA |
+| **Prioridad inmediata** | Este corte: Portafolio lee Camino A (Copiar JSON) vs Camino B (NVIDIA opt-in). No Replicate. No marketplace LoRA. |
+| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace · **cierre #142** (API write 403) |
 
-### Sesión reciente (Cursor, 2026-08-21) — Cerrar #142 (no merge)
+### Sesión reciente (Cursor, 2026-08-21) — UX dos caminos (JSON primero)
+
+**Pedido:** Continua tras corte 1 (#142). Hacer inequívocos Camino A (chatbots / Copiar JSON, default) vs Camino B (GPU NVIDIA local, opt-in). No promover LoRA en Portafolio en modo chatbots. No Replicate. No marketplace.
+
+**Hecho:**
+- Portafolio: job router marcado **Camino A · default · sin GPU**; card **Dos caminos** (A chatbots / B NVIDIA). Default `chatbots`.
+- Cómo usar / founder / `happyPathLead`: una frase — Copiar JSON es el producto; GPU NVIDIA / LoRA es segundo camino opt-in.
+- `#loraAdvancedPanel` + extras G513R siguen `data-nvidia-only`; `<html data-work-mode="chatbots">` de arranque.
+- Tests: `test/ux-dos-caminos.test.js` + job-router / studio-work-mode. `npm run build:index`.
+- Pack library y Replicate intactos.
+
+### Sesión previa (Cursor, 2026-08-21) — Cerrar #142 (no merge)
 
 **Pedido:** Corte 1: cerrar [#142](https://github.com/oscarkleinkopf/influ-json/pull/142) **sin merge** porque lo supersede [#143](https://github.com/oscarkleinkopf/influ-json/pull/143) (ya en `main`). No reabrir. No implementar UX two-paths.
 
@@ -1039,6 +1050,7 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-21 | Cursor | **UX dos caminos (JSON primero)**: Camino A Copiar JSON default; Camino B NVIDIA opt-in; LoRA `data-nvidia-only` | *(este PR)* |
 | 2026-08-21 | Cursor | **#142 superseded por #143**: OF pack + dual mode + LoRA NVIDIA ya en `main`; cierre API 403 (sigue OPEN/draft) | `298eb46` (#143) |
 | 2026-08-20 | Cursor | **G513R LoRA+trigger**: línea `LoRA: token @ 0.8` + carpeta LU `models/loras`; Chatbots intacto | `298eb46` (#143) |
 | 2026-08-20 | Cursor | **OF + modo dual G513R**: pack explicit; LU cajas +/- separadas; chatbots vs NVIDIA | `298eb46` (#143) |

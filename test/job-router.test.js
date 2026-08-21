@@ -15,6 +15,8 @@ test('Portafolio: job router markup y cuatro jobs', () => {
   assert.match(dash, /id="jobRouterCard"/);
   assert.match(dash, /id="jobRouterTitle"/);
   assert.match(dash, /¿Qué quieres hacer\?/);
+  assert.match(dash, /Camino A · default · sin GPU/);
+  assert.match(dash, /El producto es <strong>Copiar JSON<\/strong>/);
   assert.match(dash, /data-job-router="inspirar"/);
   assert.match(dash, /data-job-router="chatbot"/);
   assert.match(dash, /data-job-router="ugc"/);
@@ -23,12 +25,15 @@ test('Portafolio: job router markup y cuatro jobs', () => {
   assert.match(dash, /btnJobChatbot/);
   assert.match(dash, /btnJobUgc/);
   assert.match(dash, /btnJobProducto/);
+  const router = dash.slice(dash.indexOf('id="jobRouterCard"'), dash.indexOf('id="workModeCard"'));
+  assert.doesNotMatch(router, /LoRA/);
 });
 
 test('happyPathLead alineado al router', () => {
   const dash = fs.readFileSync(path.join(root, 'views/tabs/dashboard.html'), 'utf8');
   assert.match(dash, /id="happyPathLead"/);
   assert.match(dash, /Elige un job arriba/);
+  assert.match(dash, /Camino A \(default\): Copiar JSON/);
 });
 
 test('app.js cablea job router a flujos free', () => {
