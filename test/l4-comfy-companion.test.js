@@ -19,9 +19,34 @@ test('L4 docs: companion LU sin integrar código', () => {
   assert.match(md, /AGPL-3\.0/);
 });
 
+test('L4 docs: carpeta models/loras para LU/Comfy', () => {
+  const md = fs.readFileSync(path.join(root, 'docs/lora/L4_LOCAL_GPU.md'), 'utf8');
+  assert.match(md, /Dónde poner el `\.safetensors` \(Locally Uncensored\)/);
+  assert.match(md, /USERPROFILE.*Documents\\ComfyUI\\models\\loras/);
+  assert.match(md, /~\/ComfyUI\/models\/loras/);
+  assert.match(md, /models\/Lora/);
+  assert.match(md, /extra_model_paths\.yaml/);
+  assert.match(md, /COMFYUI_LORAS_DIR/);
+  assert.match(md, /Flux LoRA = solo Colab L1/);
+  assert.match(md, /no sustituye Copiar JSON/);
+  assert.match(md, /IDxggZv2v6M/);
+  assert.match(md, /No Higgsfield \/ Sozee/);
+  assert.doesNotMatch(md, /Picovix/);
+});
+
 test('L2 apunta a companion L4', () => {
   const md = fs.readFileSync(path.join(root, 'docs/lora/L2_COMFYUI.md'), 'utf8');
   assert.match(md, /locally-uncensored/);
+  assert.match(md, /Dónde poner el `\.safetensors`/);
+  assert.match(md, /Kohya SDXL/);
+  assert.match(md, /Flux = Colab L1/);
+});
+
+test('L5 apunta Kohya SDXL en G513R; Flux sigue Colab L1', () => {
+  const md = fs.readFileSync(path.join(root, 'docs/lora/L5_LOCAL_TRAIN.md'), 'utf8');
+  assert.match(md, /Kohya/);
+  assert.match(md, /Flux se entrena solo en Colab L1/);
+  assert.match(md, /models\/loras/);
 });
 
 test('ficha GPU: hint companion + estados en app.js', () => {
@@ -29,7 +54,9 @@ test('ficha GPU: hint companion + estados en app.js', () => {
   const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
   assert.match(pe, /id="localGpuCompanionHint"/);
   assert.match(pe, /locally-uncensored/);
+  assert.match(pe, /models\/loras/);
   assert.match(app, /function updateLocalGpuCompanionHint/);
   assert.match(app, /ComfyUI detectado \(online\)/);
   assert.match(app, /ComfyUI configurado pero offline/);
+  assert.match(app, /models\/loras/);
 });

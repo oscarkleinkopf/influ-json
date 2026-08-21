@@ -27,14 +27,39 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `main` |
-| **Commit base** | `main` @ `cb4f8d9` (L4 companion) |
-| **PR actual** | — |
-| **`main` remoto** | + L4 companion Comfy/LU · job router · tagline |
-| **Prioridad inmediata** | Usabilidad (siguientes cortes UX); no seguridad/deploy salvo pedido |
-| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) |
+| **Rama de trabajo** | `cursor/lora-nvidia-bridge-9b67` (parte de `cursor/of-explicit-pack-9b67`) |
+| **Commit base** | OF/G513R `778e4d2` sobre `main` @ `ab247ba` |
+| **PR actual** | draft LoRA NVIDIA bridge (G513R línea LoRA + carpeta LU) |
+| **`main` remoto** | + L4 companion · job router · tagline · pickup OF |
+| **Prioridad inmediata** | Usabilidad; Copiar JSON default; LoRA solo modo NVIDIA |
+| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace |
 
-### Sesión reciente (Cursor, 2026-08-19) — L4 companion ComfyUI
+### Sesión reciente (Cursor, 2026-08-20) — G513R LoRA+trigger (corte mínimo)
+
+**Pedido:** Plan plataformas similares / tema LoRA — corte mínimo: línea explícita `LoRA: <token> @ 0.8` en receta G513R + guía de carpeta `models/loras` en Locally Uncensored. No tocar Chatbots/Copiar JSON. No integrar Higgsfield/Sozee/Picovix. No hacer LoRA el tema del producto.
+
+**Hecho:**
+- `production-recipe.js`: `lora_line` + `lora_file_hint` en `inference`; bloque clipboard LORA; pasos post-train (copiar `.safetensors` → picker LU + trigger en Positive); helpers `g513rLoraLine` / `g513rTriggerLabel`
+- Guía [docs/lora/L4_LOCAL_GPU.md](./docs/lora/L4_LOCAL_GPU.md) sección **Dónde poner el `.safetensors` (Locally Uncensored)** — Windows `%USERPROFILE%\Documents\ComfyUI\models\loras`, Linux `~/ComfyUI/models/loras`, A1111 `models/Lora`; LU solo escanea `ComfyUI/models/` (symlink / `extra_model_paths.yaml`); YouTube Load LoRA opcional
+- Punteros cortos en L2 y L5 (Kohya SDXL en G513R; Flux = Colab L1, no Flux.2 en 8 GB)
+- Hint `#localGpuCompanionHint`: one-liner `models/loras`
+- Tests: clipboard `LoRA:` + trigger + `models/loras`; placeholder sin trigger; paths L4
+- Chatbots sigue default; Copiar JSON intacto; LoRA = capa de identidad NVIDIA, no tema del producto
+
+### Sesión previa (Cursor, 2026-08-20) — OF + modo dual G513R
+
+**Pedido:** Pack OF/spicy + receta Juggernaut en notebook ASUS G513R (Ollama, LM Studio, Locally Uncensored). Modo para elegir NVIDIA local vs chatbots sin GPU. En LU, Positive y Negative se ingresan por separado.
+
+**Hecho:**
+- Pack `explicit` (PPV) + 3 prompts; ZIP `packs/explicit.txt`
+- LU: `buildLuSplitPrompts` + botones Copiar negativo / positivo A–C (cajas distintas)
+- Modo de trabajo Portafolio + Ajustes: `chatbots` (default) vs `nvidia`
+- Receta G513R (4 checkpoints; Lustify nunca default; Ragnarok = PPV)
+- `lora_trigger` en export L0; captions explícitos opt-in
+- QA: 5 checks (cara/tez/pelo/silueta/anatomía)
+- Spec: [docs/OF_SPICY_PACK.md](./docs/OF_SPICY_PACK.md)
+
+### Sesión previa (Cursor, 2026-08-19) — L4 companion ComfyUI
 
 **Pedido:** Corte concreto: nota en `L4_LOCAL_GPU.md` + hint en panel GPU (Locally Uncensored como gestor Comfy, sin integrar).
 
@@ -1002,6 +1027,8 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
+| 2026-08-20 | Cursor | **G513R LoRA+trigger**: línea `LoRA: token @ 0.8` + carpeta LU `models/loras`; Chatbots intacto | *(este PR)* |
+| 2026-08-20 | Cursor | **OF + modo dual G513R**: pack explicit; LU cajas +/- separadas; chatbots vs NVIDIA | *(este PR)* |
 | 2026-08-15 | Cursor | **Corte F LAN casera**: SQLite sessions, PIN≥6, allowlist, límites, audit auth | *(este PR)* |
 | 2026-08-11 | Cursor | **fix(ux-0)**: HTML nesting + móvil margin + offline bar fixed + test estructura | *(este PR)* |
 | 2026-08-10 | Cursor | **fix**: Resumen thumbs — fallback static `DATA_DIR` para references/generated | *(este PR)* |

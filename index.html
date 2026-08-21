@@ -198,6 +198,29 @@
           </div>
         </div>
 
+        <!-- Modo de trabajo: chatbots (default, sin GPU) vs NVIDIA local (G513R) -->
+        <div class="glass-card work-mode-card" id="workModeCard" style="margin-top: 8px;">
+          <div style="margin-bottom: 12px;">
+            <h2 id="workModeTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">Modo de trabajo</h2>
+            <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+              El default es <strong>chatbots gratis</strong> (sin NVIDIA). El modo GPU es opt-in para el notebook G513R.
+            </p>
+          </div>
+          <div class="work-mode-grid" role="group" aria-labelledby="workModeTitle">
+            <button type="button" class="work-mode-btn is-active" id="btnWorkModeChatbots" data-work-mode-btn="chatbots" aria-pressed="true">
+              <span class="work-mode-btn-icon" aria-hidden="true">💬</span>
+              <span class="work-mode-btn-label">Chatbots gratis (sin GPU)</span>
+              <span class="work-mode-btn-hint">Copiar JSON → ChatGPT / Gemini / Claude. No hace falta NVIDIA.</span>
+            </button>
+            <button type="button" class="work-mode-btn" id="btnWorkModeNvidia" data-work-mode-btn="nvidia" aria-pressed="false">
+              <span class="work-mode-btn-icon" aria-hidden="true">🖥️</span>
+              <span class="work-mode-btn-label">GPU NVIDIA local</span>
+              <span class="work-mode-btn-hint">Ollama + LM Studio (texto) · Locally Uncensored / Comfy (imagen). Positive y Negative en cajas distintas.</span>
+            </button>
+          </div>
+          <p id="workModeStatus" style="margin:10px 0 0;font-size:12px;color:var(--text-muted);line-height:1.45;">Modo chatbots: Copiar JSON a ChatGPT / Gemini / Claude. No se usa la GPU.</p>
+        </div>
+
         <!-- Acciones rápidas: Dashboard → origen → analizar → JSON → editar → guardar -->
         <div class="glass-card" id="quickCreateCard" style="margin-top: 8px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
@@ -239,7 +262,7 @@
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
             <div>
               <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Arranque en 60 segundos</h2>
-              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Elige un job arriba o este checklist — el router fija el JSON y encadena pasos free. Gen local es opcional.</p>
+              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Elige un job arriba o este checklist. Path free: Copiar JSON. Gen local (NVIDIA) es opt-in.</p>
             </div>
             <span id="happyPathProgress" class="happy-path-progress">0 / 3</span>
           </div>
@@ -748,15 +771,26 @@
                   Copiar JSON
                 </button>
                 <details id="packVariantsMenu" style="margin: 0 0 8px;">
-                  <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 6px 0;">Packs ▾ (bikini · spicy · producto · semana)</summary>
+                  <summary style="cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 6px 0;">Packs ▾ (bikini · spicy · producto · PPV · semana)</summary>
                   <div class="pack-library-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="fullbody" >Cuerpo entero</button>
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="bikini" >Bikini / playa</button>
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="spicy" >Spicy (realista)</button>
                     <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="product" >Producto en mano</button>
-                    <button type="button" class="btn btn-secondary btn-sm" id="btnCopyUgcWeek" style="font-size: 11px; padding: 8px 10px; text-align: left; grid-column: 1 / -1;" title="7 one-liners con el mismo character_lock">📅 Semana UGC (7 tomas)</button>
+                    <button type="button" class="btn btn-secondary btn-sm u-btn-left" data-free-pack="explicit" title="Opt-in: misma cara, no es el default">PPV / explícito</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnCopyUgcWeek" style="font-size: 11px; padding: 8px 10px; text-align: left;" title="7 one-liners con el mismo character_lock">📅 Semana UGC (7 tomas)</button>
                   </div>
                 </details>
+                <div id="luSplitPromptPanel" data-nvidia-only class="lu-split-panel" style="margin: 8px 0 12px; padding: 10px; border-radius: 8px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.28);">
+                  <p class="u-field-title">Locally Uncensored — cajas separadas</p>
+                  <p class="u-hint-muted-sm" style="margin: 0 0 8px;">LU pide Positive y Negative en campos distintos. Copia cada uno y pégalo en su caja. El checkpoint se elige en el selector (Ragnarok = PPV).</p>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnCopyLuNegative" style="font-size: 11px;">Copiar negativo</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-lu-positive="A" style="font-size: 11px;">Copiar positivo A</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-lu-positive="B" style="font-size: 11px;">Copiar positivo B</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-lu-positive="C" style="font-size: 11px;">Copiar positivo C</button>
+                  </div>
+                </div>
                 <p class="pack-last-status" data-last-pack-status style="font-size: 10px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.4;"></p>
                 <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnRecopyLastPack" data-offline-highlight="pack" data-step2-secondary disabled>
                   Volver a copiar último pack
@@ -775,7 +809,8 @@
                   <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 8px;">Descargas (opcional, no sustituyen el pack free)</p>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnExportPersonaZipSheet" style="width: 100%; font-size: 11px; padding: 8px 10px;">📦 Exportar pack completo (.zip)</button>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnCopyProductionRecipe" style="width: 100%; font-size: 11px; padding: 8px 10px; margin-top: 8px;" title="JSON portable sin fotos ni must_match (plantilla comunitaria)">📋 Copiar receta de producción</button>
-                  <p style="font-size:10px;color:var(--text-muted);margin:6px 0 0;line-height:1.35;">Receta = shot + cámara + CTA + pack. No incluye cara/tez (seguro para compartir).</p>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnCopyG513rRecipe" data-nvidia-only style="width: 100%; font-size: 11px; padding: 8px 10px; margin-top: 8px;" title="Receta ASUS G513R: Ollama/LM Studio + Locally Uncensored (positive/negative separados)">🖥️ Copiar receta G513R (NVIDIA)</button>
+                  <p style="font-size:10px;color:var(--text-muted);margin:6px 0 0;line-height:1.35;">Receta = shot + cámara + CTA + pack. No incluye cara/tez (seguro para compartir). G513R solo en modo GPU.</p>
                   <button type="button" class="btn btn-secondary btn-sm u-w-full-mt" id="btnExportBrandKitSheet" >🎁 Descargar kit marca (packs + guión)</button>
                 </div>
               </div>
@@ -827,12 +862,12 @@
                   </div>
                   <div class="qa-matrix-head-scores">
                     <span id="qaMatrixDhash" class="qa-matrix-dhash" title="Promedio dHash vs ancla (composición/color)">dHash —</span>
-                    <span id="qaMatrixScore" class="qa-matrix-score">0 / 3</span>
+                    <span id="qaMatrixScore" class="qa-matrix-score">0 / 5</span>
                   </div>
                 </div>
                 <div id="qaMatrixSlots" class="qa-matrix-slots"></div>
                 <div id="qaMatrixChecks" class="qa-matrix-checks"></div>
-                <p id="qaMatrixHint" class="qa-matrix-hint">Si falla cara o tez: re-pega el CHARACTER LOCK y regenera el slot débil. dHash alto ≠ cara distinta necesariamente.</p>
+                <p id="qaMatrixHint" class="qa-matrix-hint">Si falla cara, tez o silueta: re-pega el CHARACTER LOCK y regenera el slot débil. Anatomía: extra limbs ≠ spicy. dHash alto ≠ cara distinta necesariamente.</p>
                 <button type="button" class="btn btn-secondary btn-sm" id="btnRescoreConsistency" style="margin-top:8px;font-size:11px;">Recalcular dHash vs ancla</button>
               </div>
 
@@ -1554,7 +1589,7 @@
                   <div id="localGpuStatusPanel" style="margin-bottom: 12px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);">
                     <p class="u-field-title">GPU local (L4)</p>
                     <p class="u-hint-muted-sm">
-                      Opt-in · equipo con NVIDIA/self-host. El path free sigue siendo <strong>Copiar JSON</strong>.
+                      Opt-in · equipo con NVIDIA/self-host (ASUS G513R). Texto: Ollama / LM Studio. Imagen: Locally Uncensored / Comfy — Positive y Negative en cajas distintas. El path free sigue siendo <strong>Copiar JSON</strong>.
                     </p>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
                       <span id="localGpuChipComfy" style="font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);">ComfyUI —</span>
@@ -1562,7 +1597,7 @@
                     </div>
                     <p id="localGpuStatusText" style="font-size: 10px; color: var(--text-muted); margin: 0 0 6px; line-height: 1.4;">Estado: —</p>
                     <p id="localGpuCompanionHint" class="u-hint-10" style="margin: 0 0 8px; line-height: 1.45;">
-                      ¿GPU local? Puedes usar ComfyUI (puerto típico <code class="u-fs-10">8188</code>) — p. ej. <a href="https://github.com/PurpleDoubleD/locally-uncensored" target="_blank" rel="noopener noreferrer">Locally Uncensored</a> como gestor. El producto sigue siendo el JSON.
+                      ¿GPU local? Puedes usar ComfyUI (puerto típico <code class="u-fs-10">8188</code>) — p. ej. <a href="https://github.com/PurpleDoubleD/locally-uncensored" target="_blank" rel="noopener noreferrer">Locally Uncensored</a> como gestor. Pon el <code class="u-fs-10">.safetensors</code> en <code class="u-fs-10">models/loras</code>. El producto sigue siendo el JSON.
                     </p>
                     <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshLocalGpu" style="font-size: 10px; padding: 6px 8px;">Actualizar GPU local</button>
                     <p class="u-hint-10">
@@ -1574,6 +1609,10 @@
                   <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px;">Subir .safetensors (tras Colab)</label>
                   <input type="file" id="loraWeightsFile" accept=".safetensors,.pt,.ckpt" style="font-size: 10px; width: 100%; margin-bottom: 6px;" />
                   <input type="text" id="loraTriggerInput" placeholder="trigger (ohwx_…)" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-bottom: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); color: inherit;" />
+                  <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin: 0 0 8px;">
+                    <input type="checkbox" id="chkLoraExplicitCaptions" style="margin-top: 2px;" />
+                    <span>Incluir captions explícitos en el ZIP LoRA (<code class="u-fs-10">captions/explicit/</code>) — off por defecto, no ensucia el dataset SFW.</span>
+                  </label>
                   <div class="u-gap-wrap">
                     <button type="button" class="btn btn-secondary btn-sm" id="btnRegisterLora" style="flex: 1; font-size: 11px; padding: 8px 10px;">Registrar LoRA</button>
                     <button type="button" class="btn btn-sm u-btn-sm-pad-tight" id="btnClearLora" >Quitar</button>
@@ -2802,6 +2841,20 @@ cd influ-json
         </div>
 
         <div id="settingsPanelStudio" class="settings-panel" role="tabpanel" data-settings-panel="studio" hidden>
+          <div id="workModeSettingsSection">
+            <h3 class="u-section-title">Modo de trabajo</h3>
+            <p class="u-section-lead">
+              <strong>Chatbots gratis</strong> (default): Copiar JSON, sin NVIDIA.
+              <strong>GPU NVIDIA local</strong>: Ollama / LM Studio (texto) + Locally Uncensored / Comfy (imagen). En LU, Positive y Negative van en cajas distintas.
+            </p>
+            <div class="work-mode-grid" style="margin-bottom:12px;">
+              <button type="button" class="work-mode-btn is-active" data-work-mode-btn="chatbots" aria-pressed="true">Chatbots gratis (sin GPU)</button>
+              <button type="button" class="work-mode-btn" data-work-mode-btn="nvidia" aria-pressed="false">GPU NVIDIA local</button>
+            </div>
+          </div>
+
+          <hr class="settings-panel-divider">
+
           <div id="genMetricsSettingsSection">
             <h3 class="u-section-title">Métricas de generación (local)</h3>
             <p class="u-section-lead">
@@ -2898,16 +2951,16 @@ cd influ-json
   <script src="character-lock-validator.js?v=1.3.0"></script>
   <script src="influ-persona.js?v=1.0.0"></script>
   <script src="niche-presets.js?v=1.0.0"></script>
-  <script src="qa-matrix.js?v=1.0.0"></script>
+  <script src="qa-matrix.js?v=1.1.0"></script>
   <script src="face-pack.js?v=1.0.0"></script>
   <script src="ugc-shot-composer.js?v=1.0.0"></script>
-  <script src="chatbot-packs.js?v=1.4.0"></script>
+  <script src="chatbot-packs.js?v=1.5.0"></script>
   <script src="import-flow.js?v=1.0.3"></script>
   <script src="prompt-builder.js?v=1.1.0"></script>
   <script src="studio-toast.js?v=1.0.0"></script>
   <script src="queue-poller.js?v=1.0.0"></script>
   <script src="persona-form.js?v=1.0.0"></script>
-  <script src="persona-card.js?v=1.0.0"></script>
+  <script src="persona-card.js?v=1.1.0"></script>
   <script src="variant-presets.js?v=1.0.0"></script>
   <script src="variant-vault-ui.js?v=1.0.0"></script>
   <script src="photo-analysis.js?v=1.0.0"></script>
@@ -2917,9 +2970,10 @@ cd influ-json
   <script src="studio-activation.js?v=1.0.0"></script>
   <script src="identity-trial.js?v=1.0.0"></script>
   <script src="lock-lab.js?v=1.0.0"></script>
-  <script src="production-recipe.js?v=1.0.0"></script>
+  <script src="production-recipe.js?v=1.1.0"></script>
+  <script src="studio-work-mode.js?v=1.0.1"></script>
   <script src="production-brief.js?v=1.0.0"></script>
   <script src="community-templates.js?v=1.0.0"></script>
-  <script src="app.js?v=1.14.4"></script>
+  <script src="app.js?v=1.15.0"></script>
 </body>
 </html>

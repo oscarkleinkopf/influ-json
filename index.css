@@ -828,8 +828,61 @@ body {
 }
 .job-router-btn-hint {
   font-size: 11px;
-  color: var(--text-secondary);
-  line-height: 1.4;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* Work mode — chatbots (default) vs NVIDIA local */
+.work-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.work-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+.work-mode-btn:hover,
+.work-mode-btn:focus-visible {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(56, 189, 248, 0.1);
+  outline: none;
+}
+.work-mode-btn.is-active {
+  border-color: rgba(16, 185, 129, 0.55);
+  background: rgba(16, 185, 129, 0.14);
+}
+.work-mode-btn-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.work-mode-btn-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.work-mode-btn-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+html:not([data-work-mode="nvidia"]) [data-nvidia-only] {
+  display: none !important;
+}
+
+@media (max-width: 720px) {
+  .work-mode-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .quick-create-btn {

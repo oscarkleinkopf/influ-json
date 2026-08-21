@@ -11,8 +11,8 @@ const {
   isSessionChecklistPassing
 } = require('../chatbot-packs');
 
-test('listPackIds expone fullbody/bikini/spicy/product', () => {
-  assert.deepEqual(listPackIds().sort(), ['bikini', 'fullbody', 'product', 'spicy']);
+test('listPackIds expone fullbody/bikini/spicy/product + explicit opt-in', () => {
+  assert.deepEqual(listPackIds().sort(), ['bikini', 'explicit', 'fullbody', 'product', 'spicy']);
   assert.ok(FREE_CHATBOT_PACKS.fullbody.sceneInstruction.includes('CUERPO ENTERO'));
 });
 

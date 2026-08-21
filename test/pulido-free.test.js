@@ -34,7 +34,7 @@ test('pulido: happy path 3/3 core — gen no se completa al copiar', () => {
   assert.doesNotMatch(app, /genDone = totalGens > 0 \|\| hasVariants \|\| copied/);
 
   assert.match(html, /happyPathProgress[^>]*>0 \/ 3</);
-  assert.match(html, /happyPathLead[\s\S]{0,120}Copiar JSON/);
+  assert.match(html, /id="happyPathLead"[^>]*>[^<]*Copiar JSON/);
 });
 
 test('pulido: member pollen Ajustes no es dead-end', () => {

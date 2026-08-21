@@ -122,6 +122,7 @@
               <button type="button" data-portfolio-pack="bikini">Bikini / playa</button>
               <button type="button" data-portfolio-pack="spicy">Spicy</button>
               <button type="button" data-portfolio-pack="product">Producto en mano</button>
+              <button type="button" data-portfolio-pack="explicit">PPV / explícito</button>
             </div>
           </div>
           <button type="button" class="btn btn-secondary btn-quick-session btn-compact" data-offline-highlight="pack" title="Copia sesión 3 prompts + abre checklist">Probar chatbot</button>

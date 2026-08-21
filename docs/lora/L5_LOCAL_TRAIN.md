@@ -18,6 +18,8 @@ Sin `ENABLE_LOCAL_LORA_TRAIN=1` el Studio se comporta igual: **Copiar JSON** + C
 
 Regla: si no tenés GPU local, **preferí L1**. L5 nunca reemplaza Copiar JSON.
 
+**G513R / Kohya SDXL:** en el notebook ASUS el character LoRA es **SDXL** (Kohya / Ragnarok / Juggernaut). **Flux se entrena solo en Colab L1** — no entrenes Flux.2 en 8 GB VRAM. L5 no fork-ea trainers: materializa el pack; vos corrés Kohya o ai-toolkit. Tras el `.safetensors`, copialo a `models/loras` de LU/Comfy — [L4](./L4_LOCAL_GPU.md#dónde-poner-el-safetensors-locally-uncensored).
+
 ---
 
 ## Requisitos

@@ -70,6 +70,58 @@ Con `PREFER_LOCAL_GPU=1`, las gens **sin** LoRA también intentan el hub antes d
 
 ---
 
+## Notebook ASUS G513R (opt-in)
+
+Stack local del owner: **Ollama** + **LM Studio** (texto uncensored) y **Locally Uncensored** / Comfy (imagen). El Studio no exige esta máquina: el default sigue siendo **Copiar JSON**.
+
+En el Portafolio elige **Modo de trabajo → GPU NVIDIA local**. Sin NVIDIA, deja **Chatbots gratis**.
+
+### Locally Uncensored: Positive y Negative separados
+
+LU tiene **dos cajas**. No pegues el pack entero en una sola:
+
+1. Selector de checkpoint (no va dentro del prompt).
+2. **Negative** ← botón «Copiar negativo» (el mismo para shots A/B/C).
+3. **Positive** ← «Copiar positivo A / B / C».
+
+El pack `explicit` también marca los bloques con `<<<LU_NEGATIVE` / `<<<LU_POSITIVE_A` para copiar a mano.
+
+### Checkpoints en el disco de LU
+
+| Archivo | Uso |
+|---------|-----|
+| `Juggernaut-XL_v9.safetensors` | SFW / body / beauty |
+| `Realistic_Vision_V6.0_NV_B1_fp16.safetensors` | SD1.5, VRAM justa |
+| `juggernautXL_ragnarok.safetensors` | Default PPV / explícito + LoRA |
+| `lustifyNSFWCheckpoint_zenithV9.safetensors` | NSFW opt-in, **nunca** default |
+
+En `.env`: `COMFYUI_CHECKPOINT=juggernautXL_ragnarok.safetensors` si quieres que el hub L4 use Ragnarok (solo con modo NVIDIA / PREFER_LOCAL_GPU).
+
+### Dónde poner el `.safetensors` (Locally Uncensored)
+
+El picker de LU/Comfy lista **el nombre del archivo** (sin path). Copia el LoRA de personaje a `models/loras`. **Esto no sustituye Copiar JSON** — es solo la capa de identidad en modo GPU NVIDIA.
+
+| Backend | Carpeta |
+|---------|---------|
+| **Windows (Comfy / LU)** | `%USERPROFILE%\Documents\ComfyUI\models\loras` |
+| **Linux (Comfy / LU)** | `~/ComfyUI/models/loras` |
+| **A1111 / Forge** | `models/Lora` (L mayúscula) |
+
+**LU escanea solo el `ComfyUI/models/` por defecto.** Si entrenaste o guardaste el `.safetensors` en otra ruta, crea un **symlink** hacia `models/loras` o declara la carpeta en `extra_model_paths.yaml`. Si el picker queda vacío, **reinicia** LU o Comfy.
+
+En el Studio (modo **GPU NVIDIA local** solamente):
+
+1. Registrar el LoRA en la ficha (panel Avanzado), **o**
+2. Poner `COMFYUI_LORAS_DIR` al mismo `models/loras` para que `POST /api/personas/:id/lora` copie el archivo ahí.
+
+Receta G513R: el character LoRA es **SDXL** (Kohya / Ragnarok / Juggernaut). **Flux LoRA = solo Colab L1** — no entrenes Flux.2 en 8 GB VRAM.
+
+#### Ejemplos (YouTube)
+
+Opcional, ComfyUI a pelo: [Load LoRA · `models/loras` · trigger en Positive](https://www.youtube.com/watch?v=IDxggZv2v6M). No Higgsfield / Sozee. No LTX video IC-LoRA como feature del Studio.
+
+---
+
 ## API
 
 | Método | Ruta | Uso |

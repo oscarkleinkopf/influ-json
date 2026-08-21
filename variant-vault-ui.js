@@ -532,7 +532,10 @@
             framing,
             mode,
             seed: typeof seedFn === 'function' ? seedFn(p.id) + index : index,
-            preferFaceLock: !!(el('preferFaceLockToggle')?.checked)
+            preferFaceLock: !!(el('preferFaceLockToggle')?.checked),
+            ...((typeof window.genLocalGpuRequestFlags === 'function')
+              ? window.genLocalGpuRequestFlags()
+              : {})
           })
         });
         const data = await res.json();

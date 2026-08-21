@@ -10,10 +10,10 @@ const {
   SLOT_DEFS
 } = require('../qa-matrix');
 
-test('SLOT_DEFS y CHECKS tienen 3 entradas estables', () => {
+test('SLOT_DEFS 3 slots y CHECKS 5 (cara/tez/pelo/silueta/anatomía)', () => {
   assert.equal(SLOT_DEFS.length, 3);
-  assert.equal(CHECKS.length, 3);
-  assert.deepEqual(CHECKS.map((c) => c.id), ['face', 'skin', 'hair']);
+  assert.equal(CHECKS.length, 5);
+  assert.deepEqual(CHECKS.map((c) => c.id), ['face', 'skin', 'hair', 'body', 'anatomy']);
 });
 
 test('pickQaMatrixSlots usa imagen ancla como portrait', () => {
@@ -52,13 +52,13 @@ test('pickQaMatrixSlots no reutiliza la misma imagen en spicy si ya es fullbody'
   assert.equal(slots.spicy, null);
 });
 
-test('summarizeChecks cuenta 0–3 y allOk', () => {
+test('summarizeChecks cuenta 0–5 y allOk', () => {
   const empty = emptyChecks();
-  assert.deepEqual(summarizeChecks(empty), { done: 0, total: 3, allOk: false, pct: 0 });
-  const partial = { face: true, skin: true, hair: false };
+  assert.deepEqual(summarizeChecks(empty), { done: 0, total: 5, allOk: false, pct: 0 });
+  const partial = { face: true, skin: true, hair: false, body: false, anatomy: false };
   assert.equal(summarizeChecks(partial).done, 2);
   assert.equal(summarizeChecks(partial).allOk, false);
-  const full = { face: true, skin: true, hair: true };
+  const full = { face: true, skin: true, hair: true, body: true, anatomy: true };
   assert.equal(summarizeChecks(full).allOk, true);
   assert.equal(summarizeChecks(full).pct, 100);
 });

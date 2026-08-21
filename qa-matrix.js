@@ -20,7 +20,9 @@
   const CHECKS = [
     { id: 'face', label: 'Misma cara' },
     { id: 'skin', label: 'Misma tez' },
-    { id: 'hair', label: 'Mismo pelo base' }
+    { id: 'hair', label: 'Mismo pelo base' },
+    { id: 'body', label: 'Misma silueta / body type' },
+    { id: 'anatomy', label: 'Anatomía coherente (sin extra limbs)' }
   ];
 
   function textBlob(item) {
@@ -49,7 +51,7 @@
   function scoreSpicy(item) {
     const t = textBlob(item);
     let s = 0;
-    if (/spicy|bikini|lingerie|lencer|trikini|sensual|encaje|night-out/.test(t)) s += 3;
+    if (/spicy|bikini|lingerie|lencer|trikini|sensual|encaje|night-out|explicit|ppv|nude/.test(t)) s += 3;
     if (/playa|beach|swimsuit|traje de baño/.test(t)) s += 2;
     if (/traditional|oficina|blazer|suéter/.test(t)) s -= 1;
     return s;

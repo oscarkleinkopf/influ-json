@@ -291,6 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupLockRevisions', fn: setupLockRevisions },
     { name: 'setupLockLab', fn: setupLockLab },
     { name: 'setupProductionRecipe', fn: setupProductionRecipe },
+    { name: 'setupLuSplitCopyButtons', fn: setupLuSplitCopyButtons },
     { name: 'setupStudioActivation', fn: setupStudioActivation },
     { name: 'setupProductionBrief', fn: setupProductionBrief },
     { name: 'setupCommunityTemplates', fn: setupCommunityTemplates },
@@ -307,7 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'setupMemberOnboarding', fn: setupMemberOnboarding },
     { name: 'initImportModal', fn: initImportModal },
     { name: 'setupQuickCreateActions', fn: setupQuickCreateActions },
-    { name: 'setupJobRouter', fn: setupJobRouter }
+    { name: 'setupJobRouter', fn: setupJobRouter },
+    { name: 'setupWorkMode', fn: setupWorkMode }
   ];
 
   initSteps.forEach(step => {
@@ -818,6 +820,103 @@ function runJobRouterAction(job) {
 function setupJobRouter() {
   document.querySelectorAll('[data-job-router]').forEach((btn) => {
     btn.addEventListener('click', () => runJobRouterAction(btn.getAttribute('data-job-router')));
+  });
+}
+
+function getWorkModeApi() {
+  return (typeof InfluWorkMode !== 'undefined' && InfluWorkMode)
+    || (typeof window !== 'undefined' ? window.InfluWorkMode : null)
+    || null;
+}
+
+function applyCurrentWorkMode() {
+  const api = getWorkModeApi();
+  if (!api) return 'chatbots';
+  const mode = api.getWorkMode();
+  api.applyWorkModeToDocument(mode);
+  return mode;
+}
+
+function setupWorkMode() {
+  document.querySelectorAll('[data-work-mode-btn]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-work-mode-btn');
+      const api = getWorkModeApi();
+      const mode = api ? api.setWorkMode(id) : (id === 'nvidia' ? 'nvidia' : 'chatbots');
+      if (api) api.applyWorkModeToDocument(mode);
+      else {
+        try {
+          document.documentElement.setAttribute('data-work-mode', mode);
+          document.body?.setAttribute('data-work-mode', mode);
+        } catch (_) {}
+      }
+      if (mode === 'nvidia') {
+        toastInfo('Modo GPU NVIDIA: imagen en Locally Uncensored / Comfy (Positive y Negative en cajas distintas). Texto: Ollama / LM Studio. El JSON sigue siendo el producto.');
+      } else {
+        toastInfo('Modo chatbots: Copiar JSON. No se usa la GPU.');
+      }
+    });
+  });
+  applyCurrentWorkMode();
+  window.genLocalGpuRequestFlags = genLocalGpuRequestFlags;
+}
+
+function genLocalGpuRequestFlags() {
+  const api = getWorkModeApi();
+  if (api && typeof api.genLocalGpuFlags === 'function') return api.genLocalGpuFlags();
+  return { preferLocalGpu: false, forceLocalGpu: false };
+}
+
+function getLuSplitForActivePersona() {
+  const packs = typeof InfluChatbotPacks !== 'undefined' ? InfluChatbotPacks : null;
+  if (!packs || typeof packs.buildLuSplitPrompts !== 'function') return null;
+  const json = typeof getFullPersonaJSON === 'function' ? getFullPersonaJSON() : {};
+  const must = json?.character_lock?.must_match_every_image || {};
+  const trigger = (document.getElementById('loraTriggerInput')?.value || '').trim();
+  return packs.buildLuSplitPrompts(must, {
+    fallbackName: json?.identity?.name || state.selectedPersona?.name,
+    triggerToken: trigger
+  });
+}
+
+async function copyLuPromptPart(kind, shotId) {
+  const split = getLuSplitForActivePersona();
+  if (!split) {
+    toastError('Módulo de packs no cargado.');
+    return;
+  }
+  let text = '';
+  let label = '';
+  if (kind === 'negative') {
+    text = split.negative;
+    label = 'Negativo LU';
+  } else {
+    const shot = (split.shots || []).find((s) => s.id === String(shotId || 'A').toUpperCase());
+    if (!shot) {
+      toastError('Shot LU desconocido.');
+      return;
+    }
+    text = shot.positive;
+    label = `Positivo LU ${shot.id} (${shot.label})`;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    toastSuccess(`${label} copiado — pégalo solo en esa caja de Locally Uncensored`);
+  } catch (err) {
+    toastError('No se pudo copiar: ' + (err.message || 'error'));
+  }
+}
+
+function setupLuSplitCopyButtons() {
+  document.getElementById('btnCopyLuNegative')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    copyLuPromptPart('negative');
+  });
+  document.querySelectorAll('[data-lu-positive]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      copyLuPromptPart('positive', btn.getAttribute('data-lu-positive'));
+    });
   });
 }
 
@@ -2820,7 +2919,7 @@ function qaChecksStorageKey(personaId) {
 
 function loadQaChecks(personaId) {
   const api = window.InfluQaMatrix;
-  const empty = api?.emptyChecks?.() || { face: false, skin: false, hair: false };
+  const empty = api?.emptyChecks?.() || { face: false, skin: false, hair: false, body: false, anatomy: false };
   if (!personaId) return empty;
   try {
     const raw = localStorage.getItem(qaChecksStorageKey(personaId));
@@ -3298,6 +3397,7 @@ function updateQueueStatusChip(q) {
 
 function navigateToTab(tabId) {
   const resolved = resolveStudioTab(tabId);
+  try { applyCurrentWorkMode(); } catch (_) {}
   const panel = document.getElementById(resolved);
   if (panel && panel.classList.contains('tab-panel')) {
     switchStudioTab(resolved);
@@ -3571,6 +3671,7 @@ function resetPersonaFormForNew() {
 // Select Persona
 function selectPersona(persona) {
   if (!persona) return;
+  try { applyCurrentWorkMode(); } catch (_) {}
   const prevId = state.selectedPersona?.id;
   // Selecting an existing persona always exits pure "create new" mode
   state.isCreatingNewPersona = false;
@@ -4117,7 +4218,8 @@ function buildFreeChatbotPack(packId, opts = {}) {
     extraScene: opts.extraScene,
     fallbackName: state.selectedPersona?.name,
     cameraId: opts.cameraId !== undefined ? opts.cameraId : state.ugcCameraId,
-    shotTypeId: opts.shotTypeId !== undefined ? opts.shotTypeId : state.ugcShotTypeId
+    shotTypeId: opts.shotTypeId !== undefined ? opts.shotTypeId : state.ugcShotTypeId,
+    triggerToken: opts.triggerToken || (document.getElementById('loraTriggerInput')?.value || '').trim()
   });
 }
 
@@ -4510,7 +4612,13 @@ async function exportLoraTrainingPack() {
   }
   try {
     toastLoading('Empaquetando dataset + captions para LoRA…');
-    const res = await authFetch(`/api/export/persona/${p.id}/lora`);
+    const qs = new URLSearchParams();
+    const explicit = document.getElementById('chkLoraExplicitCaptions')?.checked;
+    const trigger = (document.getElementById('loraTriggerInput')?.value || '').trim();
+    if (explicit) qs.set('explicitCaptions', '1');
+    if (trigger) qs.set('triggerToken', trigger);
+    const suffix = qs.toString() ? `?${qs}` : '';
+    const res = await authFetch(`/api/export/persona/${p.id}/lora${suffix}`);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || `HTTP ${res.status}`);
@@ -4560,11 +4668,11 @@ function updateLocalGpuCompanionHint({ comfyConfigured = false, comfyOk = false 
   if (!el) return;
   const lu = '<a href="https://github.com/PurpleDoubleD/locally-uncensored" target="_blank" rel="noopener noreferrer">Locally Uncensored</a>';
   if (comfyOk) {
-    el.innerHTML = 'ComfyUI detectado (online). Registra la LoRA abajo si quieres gen local. El path free sigue siendo <strong>Copiar JSON</strong>.';
+    el.innerHTML = 'ComfyUI detectado (online). Pon el <code class="u-fs-10">.safetensors</code> en <code class="u-fs-10">models/loras</code> y registra la LoRA abajo si quieres gen local. El path free sigue siendo <strong>Copiar JSON</strong>.';
   } else if (comfyConfigured) {
-    el.innerHTML = `ComfyUI configurado pero offline. Arranca Comfy (p. ej. ${lu}) y pulsa Actualizar. El producto sigue siendo el JSON.`;
+    el.innerHTML = `ComfyUI configurado pero offline. Arranca Comfy (p. ej. ${lu}) y pulsa Actualizar. Pon el <code class="u-fs-10">.safetensors</code> en <code class="u-fs-10">models/loras</code>. El producto sigue siendo el JSON.`;
   } else {
-    el.innerHTML = `¿GPU local? Puedes usar ComfyUI (puerto típico <code class="u-fs-10">8188</code>) — p. ej. ${lu} como gestor. El producto sigue siendo el JSON.`;
+    el.innerHTML = `¿GPU local? Puedes usar ComfyUI (puerto típico <code class="u-fs-10">8188</code>) — p. ej. ${lu} como gestor. Pon el <code class="u-fs-10">.safetensors</code> en <code class="u-fs-10">models/loras</code>. El producto sigue siendo el JSON.`;
   }
 }
 
@@ -5612,6 +5720,40 @@ function setupProductionRecipe() {
       toastSuccess('Receta de producción copiada (sin must_match — segura para compartir)');
     } catch (err) {
       toastError('No se pudo copiar la receta: ' + (err.message || 'error'));
+    }
+  });
+  document.getElementById('btnCopyG513rRecipe')?.addEventListener('click', async () => {
+    const api = getRecipeApi();
+    if (!api || typeof api.buildG513rRecipe !== 'function') {
+      toastError('Módulo de recetas no cargado.');
+      return;
+    }
+    const p = state.selectedPersona;
+    const json = typeof getFullPersonaJSON === 'function' ? getFullPersonaJSON() : {};
+    const trigger = (document.getElementById('loraTriggerInput')?.value || '').trim();
+    const recipe = api.buildG513rRecipe({
+      title: `${p?.name || json?.identity?.name || 'Influencer'} · G513R`,
+      personaName: p?.name || json?.identity?.name || null,
+      lockRevisionId: p?.lockRevisionId || null,
+      niche: json?.character_lock?.niche || null,
+      shotType: state.ugcShotTypeId || 'testimonial',
+      camera: state.ugcCameraId || 'selfie',
+      format: '9:16',
+      product: state.selectedProduct || null,
+      tone: json?.psychology?.communication_style || 'cálido y cercano',
+      mbti: json?.psychology?.mbti || null,
+      packId: 'explicit',
+      lora_trigger: trigger || undefined,
+      character_lock: json?.character_lock
+    }, { includeIdentity: false, triggerToken: trigger });
+    const text = typeof api.toG513rClipboardText === 'function'
+      ? api.toG513rClipboardText(recipe)
+      : api.toClipboardText(recipe);
+    try {
+      await navigator.clipboard.writeText(text);
+      toastSuccess('Receta G513R copiada — LU: Positive y Negative en cajas distintas');
+    } catch (err) {
+      toastError('No se pudo copiar la receta G513R: ' + (err.message || 'error'));
     }
   });
 }

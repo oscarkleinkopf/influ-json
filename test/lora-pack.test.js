@@ -50,6 +50,33 @@ test('buildLoraPack derives trigger token + captions from character_lock', () =>
   assert.match(readme, /influ_json_lora_train\.ipynb/, 'README points to L1 notebook');
 });
 
+test('buildLoraPack respeta trigger persistido y captions explícitos opt-in', () => {
+  const persona = {
+    name: 'Colorina',
+    gender: 'Female',
+    lora_trigger: 'ohwx colorina',
+    image: 'assets/generated/anchor.jpg',
+    detailedJSON: {
+      character_lock: {
+        must_match_every_image: { name: 'Colorina', skin_tone: 'clara', hair_color: 'rojo' }
+      }
+    }
+  };
+  const variants = [
+    { image_path: 'assets/generated/v1.jpg', pose: 'De pie', clothing: 'Lingerie negra', setting: 'Dormitorio' }
+  ];
+  const sfw = loraPack.buildLoraPack(persona, variants);
+  assert.equal(sfw.triggerToken, 'ohwx colorina');
+  assert.equal(sfw.includeExplicitCaptions, false);
+  assert.ok(!sfw.textFiles.some((f) => f.name.startsWith('captions/explicit/')));
+
+  const nsfw = loraPack.buildLoraPack(persona, variants, { includeExplicitCaptions: true });
+  const explicit = nsfw.textFiles.find((f) => f.name === 'captions/explicit/img_02.txt');
+  assert.ok(explicit, 'caption explícita de variante');
+  assert.match(explicit.content, /ohwx colorina/);
+  assert.match(explicit.content, /lingerie/i);
+});
+
 test('L1 Colab docs exist in repo', () => {
   const root = path.join(__dirname, '..');
   assert.ok(fs.existsSync(path.join(root, 'docs', 'lora', 'L1_COLAB.md')));

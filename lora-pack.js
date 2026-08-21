@@ -35,6 +35,19 @@ function buildTriggerToken(persona) {
   return `ohwx_${slug}`.slice(0, 40);
 }
 
+/**
+ * Trigger persistido (UI / persona_loras) o default ohwx_<slug>.
+ * Nunca deriva de PII extra.
+ */
+function resolveTriggerToken(persona, opts = {}) {
+  const raw = opts.triggerToken
+    || persona?.lora_trigger
+    || persona?.trigger_token
+    || persona?.loraTrigger;
+  if (raw && String(raw).trim()) return String(raw).trim().slice(0, 40);
+  return buildTriggerToken(persona || {});
+}
+
 /** Limpia una frase de variante para caption (quita paréntesis y ruido). */
 function cleanPhrase(s) {
   if (!s) return '';
@@ -67,6 +80,62 @@ function buildCaption({ trigger, cls, variant }) {
   }
   parts.push('photo, photorealistic');
   // dedupe conservando orden
+  return [...new Set(parts.filter(Boolean))].join(', ');
+}
+
+function inferExplicitTags(variant) {
+  const blob = [
+    variant?.pose,
+    variant?.clothing,
+    variant?.attitude,
+    variant?.setting,
+    variant?.prompt
+  ].filter(Boolean).join(' ').toLowerCase();
+  const tags = [];
+  if (/lingerie|lencer|satén|saten|encaje/.test(blob)) tags.push('lingerie');
+  if (/bikini|swimsuit|traje de baño/.test(blob)) tags.push('bikini');
+  if (/\bnude\b|desnud|nsfw|explicit|ppv/.test(blob)) tags.push('nsfw');
+  if (/boudoir|bedroom|dormitorio|hotel/.test(blob)) tags.push('boudoir');
+  if (!tags.length) tags.push('sensual');
+  return tags.join(', ');
+}
+
+function lockTraitBits(persona) {
+  let lock = {};
+  try {
+    const detailed = persona.detailedJSON;
+    const parsed = typeof detailed === 'string' ? JSON.parse(detailed) : (detailed || {});
+    lock = parsed.character_lock?.must_match_every_image || {};
+  } catch (_) {}
+  return [
+    lock.skin_tone,
+    lock.eye_color,
+    lock.hair_color,
+    lock.hair_length,
+    lock.body_type
+  ].filter(Boolean).join(', ');
+}
+
+/**
+ * Caption NSFW opt-in (carpeta captions/explicit/). Off por defecto.
+ * trigger + rasgos lock + escena + tags de la variante. No va al dataset SFW.
+ */
+function buildExplicitCaption({ trigger, cls, variant, persona }) {
+  const parts = [`${trigger} ${cls}`];
+  const traits = lockTraitBits(persona);
+  if (traits) parts.push(traits);
+  if (variant) {
+    const pose = cleanPhrase(variant.pose);
+    const clothing = cleanPhrase(variant.clothing);
+    const setting = cleanPhrase(variant.setting);
+    if (pose) parts.push(pose);
+    if (clothing) parts.push(`wearing ${clothing}`);
+    if (setting) parts.push(setting);
+    parts.push(inferExplicitTags(variant));
+  } else {
+    parts.push('portrait, looking at camera');
+  }
+  parts.push('photorealistic');
   return [...new Set(parts.filter(Boolean))].join(', ');
 }
 
@@ -206,8 +275,9 @@ influ-JSON (JSON + Pollinations + chatbots gratis) sigue funcionando sin esto.
  */
 function buildLoraPack(persona, variants = [], opts = {}) {
   const maxImages = Number.isFinite(opts.maxImages) ? opts.maxImages : 40;
-  const trigger = buildTriggerToken(persona);
+  const trigger = resolveTriggerToken(persona, opts);
   const cls = classWord(persona);
+  const includeExplicitCaptions = opts.includeExplicitCaptions === true;
 
   // Fuentes de imagen: ancla primero, luego variantes (dedup por ruta).
   const sources = [];
@@ -245,13 +315,41 @@ function buildLoraPack(persona, variants = [], opts = {}) {
     { name: 'character_lock.json', content: JSON.stringify(lock, null, 2) }
   ];
 
-  return { triggerToken: trigger, classWord: cls, count, datasetItems, textFiles };
+  if (includeExplicitCaptions) {
+    datasetItems.forEach((item, i) => {
+      const src = sources.slice(0, maxImages)[i];
+      textFiles.push({
+        name: `captions/explicit/${item.captionName}`,
+        content: `${buildExplicitCaption({ trigger, cls, variant: src?.variant, persona })}\n`
+      });
+    });
+    textFiles.push({
+      name: 'captions/explicit/README.txt',
+      content: `Captions NSFW opt-in (influ-JSON OF-5)
+=====================================
+Estas captions NO sustituyen dataset/*.txt (SFW).
+Úsalas solo si entrenas un LoRA explícito. Off por defecto en el Studio.
+Trigger: ${trigger}
+`
+    });
+  }
+
+  return {
+    triggerToken: trigger,
+    classWord: cls,
+    count,
+    datasetItems,
+    textFiles,
+    includeExplicitCaptions
+  };
 }
 
 module.exports = {
   buildLoraPack,
   buildTriggerToken,
+  resolveTriggerToken,
   buildCaption,
+  buildExplicitCaption,
   classWord,
   slugify,
   /**

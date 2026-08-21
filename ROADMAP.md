@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-20 | **G513R LoRA+trigger (NVIDIA)** | Receta clipboard `LoRA: token @ 0.8` + carpeta LU `models/loras` (Windows Documents / Linux ~ / A1111 `models/Lora`); Copiar JSON sigue default |
 | 2026-08-19 | **L4 companion ComfyUI** | Docs + hint ficha: LU como gestor Comfy; JSON sigue siendo el producto |
 | 2026-08-19 | **Job router Portafolio** | Inspirar / chatbot / UGC / producto → flujos free cableados |
 | 2026-08-19 | **Tagline router de workflow** | Portafolio / Cómo usar / onboarding: «Un router de workflow, no de GPUs…» |
@@ -162,7 +163,7 @@
 | 2026-08-14 | **Polish fino → main (#131)** | Declutter vacío · copy CTA · ¡Copiado! · ES · login a11y |
 | 2026-08-14 | **Polish fino (en curso)** | Declutter vacío · copy CTA · ¡Copiado! · ES · login a11y |
 | 2026-08-14 | **U1 → main (#129)** | Launcher abre browser + `pack:release` ZIP sin secretos |
-| 2026-08-14 | **U1 launcher (en curso)** | Node 18+ · abre browser · `pack:release` ZIP sin secretos |
+| 2026-08-20 | **OF + modo dual G513R** | pack `explicit`; LU Positive/Negative separados; chatbots vs NVIDIA |
 | 2026-08-14 | **I4 → main (#128)** | Plantillas comunitarias sin must_match/fotos |
 | 2026-08-14 | **I4 plantillas (en curso)** | Pack/shot/hooks sin must_match — Dashboard + import seguro |
 | 2026-08-14 | **I2 → main (#126)** | «Qué producir ahora» — brief→checklist + CTAs |

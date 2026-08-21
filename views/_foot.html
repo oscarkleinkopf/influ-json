@@ -513,6 +513,20 @@ cd influ-json
         </div>
 
         <div id="settingsPanelStudio" class="settings-panel" role="tabpanel" data-settings-panel="studio" hidden>
+          <div id="workModeSettingsSection">
+            <h3 class="u-section-title">Modo de trabajo</h3>
+            <p class="u-section-lead">
+              <strong>Chatbots gratis</strong> (default): Copiar JSON, sin NVIDIA.
+              <strong>GPU NVIDIA local</strong>: Ollama / LM Studio (texto) + Locally Uncensored / Comfy (imagen). En LU, Positive y Negative van en cajas distintas.
+            </p>
+            <div class="work-mode-grid" style="margin-bottom:12px;">
+              <button type="button" class="work-mode-btn is-active" data-work-mode-btn="chatbots" aria-pressed="true">Chatbots gratis (sin GPU)</button>
+              <button type="button" class="work-mode-btn" data-work-mode-btn="nvidia" aria-pressed="false">GPU NVIDIA local</button>
+            </div>
+          </div>
+
+          <hr class="settings-panel-divider">
+
           <div id="genMetricsSettingsSection">
             <h3 class="u-section-title">Métricas de generación (local)</h3>
             <p class="u-section-lead">
@@ -609,16 +623,16 @@ cd influ-json
   <script src="character-lock-validator.js?v=1.3.0"></script>
   <script src="influ-persona.js?v=1.0.0"></script>
   <script src="niche-presets.js?v=1.0.0"></script>
-  <script src="qa-matrix.js?v=1.0.0"></script>
+  <script src="qa-matrix.js?v=1.1.0"></script>
   <script src="face-pack.js?v=1.0.0"></script>
   <script src="ugc-shot-composer.js?v=1.0.0"></script>
-  <script src="chatbot-packs.js?v=1.4.0"></script>
+  <script src="chatbot-packs.js?v=1.5.0"></script>
   <script src="import-flow.js?v=1.0.3"></script>
   <script src="prompt-builder.js?v=1.1.0"></script>
   <script src="studio-toast.js?v=1.0.0"></script>
   <script src="queue-poller.js?v=1.0.0"></script>
   <script src="persona-form.js?v=1.0.0"></script>
-  <script src="persona-card.js?v=1.0.0"></script>
+  <script src="persona-card.js?v=1.1.0"></script>
   <script src="variant-presets.js?v=1.0.0"></script>
   <script src="variant-vault-ui.js?v=1.0.0"></script>
   <script src="photo-analysis.js?v=1.0.0"></script>
@@ -628,9 +642,10 @@ cd influ-json
   <script src="studio-activation.js?v=1.0.0"></script>
   <script src="identity-trial.js?v=1.0.0"></script>
   <script src="lock-lab.js?v=1.0.0"></script>
-  <script src="production-recipe.js?v=1.0.0"></script>
+  <script src="production-recipe.js?v=1.1.0"></script>
+  <script src="studio-work-mode.js?v=1.0.1"></script>
   <script src="production-brief.js?v=1.0.0"></script>
   <script src="community-templates.js?v=1.0.0"></script>
-  <script src="app.js?v=1.14.4"></script>
+  <script src="app.js?v=1.15.0"></script>
 </body>
 </html>
