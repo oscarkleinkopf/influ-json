@@ -27,14 +27,26 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 
 | Campo | Valor |
 |-------|--------|
-| **Rama de trabajo** | `cursor/lora-nvidia-bridge-9b67` (parte de `cursor/of-explicit-pack-9b67`) |
-| **Commit base** | OF/G513R `778e4d2` sobre `main` @ `ab247ba` |
-| **PR actual** | draft LoRA NVIDIA bridge (G513R línea LoRA + carpeta LU) |
-| **`main` remoto** | + L4 companion · job router · tagline · pickup OF |
-| **Prioridad inmediata** | Usabilidad; Copiar JSON default; LoRA solo modo NVIDIA |
-| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace |
+| **Rama de trabajo** | `main` |
+| **Commit base** | `298eb46` — merge [#143](https://github.com/oscarkleinkopf/influ-json/pull/143) |
+| **PR actual** | #143 **MERGED**. #142 superseded (draft + CONFLICTING); **no mergear**. Cierre GitHub API 403 — sigue OPEN (ver sesión) |
+| **`main` remoto** | OF pack + modo dual + puente LoRA NVIDIA (G513R / LU `models/loras`) |
+| **Prioridad inmediata** | Usabilidad; Copiar JSON default; LoRA solo modo NVIDIA. No reabrir #142. No UX two-paths. |
+| **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace · **cierre #142** (API write 403; token integración read-only) |
 
-### Sesión reciente (Cursor, 2026-08-20) — G513R LoRA+trigger (corte mínimo)
+### Sesión reciente (Cursor, 2026-08-21) — Cerrar #142 (no merge)
+
+**Pedido:** Corte 1: cerrar [#142](https://github.com/oscarkleinkopf/influ-json/pull/142) **sin merge** porque lo supersede [#143](https://github.com/oscarkleinkopf/influ-json/pull/143) (ya en `main`). No reabrir. No implementar UX two-paths.
+
+**Hecho:**
+- Confirmado: #143 `MERGED` (2026-08-21T00:12:25Z, head `cursor/lora-nvidia-bridge-9b67`). #142 `OPEN` + **draft** + `CONFLICTING` (head `cursor/of-explicit-pack-9b67`).
+- Local: `git checkout main` + `git pull origin main` → `298eb46`.
+- Cierre: ManagePullRequest no está en este entorno (subagente; GitHub MCP en error). `gh pr comment` / `gh pr close` / REST PATCH → **403** `Resource not accessible by integration`. El PR **sigue OPEN**.
+- Comentario previsto (no publicado): superseded por #143; pack OF + dual NVIDIA/chatbots + puente LoRA ya en `main`; no mergear.
+
+**Bloqueo:** token `ghs_` de integración sin `pull_requests: write`. El padre / usuario puede cerrar #142 a mano en GitHub (Close pull request, no merge).
+
+### Sesión previa (Cursor, 2026-08-20) — G513R LoRA+trigger (corte mínimo)
 
 **Pedido:** Plan plataformas similares / tema LoRA — corte mínimo: línea explícita `LoRA: <token> @ 0.8` en receta G513R + guía de carpeta `models/loras` en Locally Uncensored. No tocar Chatbots/Copiar JSON. No integrar Higgsfield/Sozee/Picovix. No hacer LoRA el tema del producto.
 
@@ -1027,8 +1039,9 @@ Extracciones W5 de `server.js` ✅. Producto W6–W11 ✅ en `main`. W12 en PR. 
 
 | Fecha | Plataforma | Resumen | Commit |
 |-------|------------|---------|--------|
-| 2026-08-20 | Cursor | **G513R LoRA+trigger**: línea `LoRA: token @ 0.8` + carpeta LU `models/loras`; Chatbots intacto | *(este PR)* |
-| 2026-08-20 | Cursor | **OF + modo dual G513R**: pack explicit; LU cajas +/- separadas; chatbots vs NVIDIA | *(este PR)* |
+| 2026-08-21 | Cursor | **#142 superseded por #143**: OF pack + dual mode + LoRA NVIDIA ya en `main`; cierre API 403 (sigue OPEN/draft) | `298eb46` (#143) |
+| 2026-08-20 | Cursor | **G513R LoRA+trigger**: línea `LoRA: token @ 0.8` + carpeta LU `models/loras`; Chatbots intacto | `298eb46` (#143) |
+| 2026-08-20 | Cursor | **OF + modo dual G513R**: pack explicit; LU cajas +/- separadas; chatbots vs NVIDIA | `298eb46` (#143) |
 | 2026-08-15 | Cursor | **Corte F LAN casera**: SQLite sessions, PIN≥6, allowlist, límites, audit auth | *(este PR)* |
 | 2026-08-11 | Cursor | **fix(ux-0)**: HTML nesting + móvil margin + offline bar fixed + test estructura | *(este PR)* |
 | 2026-08-10 | Cursor | **fix**: Resumen thumbs — fallback static `DATA_DIR` para references/generated | *(este PR)* |

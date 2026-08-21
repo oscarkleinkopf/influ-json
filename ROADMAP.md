@@ -151,6 +151,7 @@
 
 | Fecha | Hecho | Notas |
 |-------|--------|-------|
+| 2026-08-21 | **#142 superseded por #143** | #143 MERGED en `main` (`298eb46`); #142 draft+conflictos — no mergear. Cierre API 403 (sigue OPEN) |
 | 2026-08-20 | **G513R LoRA+trigger (NVIDIA)** | Receta clipboard `LoRA: token @ 0.8` + carpeta LU `models/loras` (Windows Documents / Linux ~ / A1111 `models/Lora`); Copiar JSON sigue default |
 | 2026-08-19 | **L4 companion ComfyUI** | Docs + hint ficha: LU como gestor Comfy; JSON sigue siendo el producto |
 | 2026-08-19 | **Job router Portafolio** | Inspirar / chatbot / UGC / producto → flujos free cableados |
