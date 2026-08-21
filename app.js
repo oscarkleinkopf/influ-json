@@ -600,7 +600,7 @@ function showFounderWelcomeModal() {
   const name = state.currentProfile?.name;
   const lead = document.getElementById('founderWelcomeLead');
   if (lead) {
-    const utilityLine = 'Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON (character_lock) y encadena pasos free. Pollinations es opcional.';
+    const utilityLine = 'Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON (character_lock) y encadena pasos free. El producto es Copiar JSON; GPU NVIDIA / LoRA es un segundo camino opt-in.';
     lead.textContent = name ? `${name}: ${utilityLine}` : utilityLine;
   }
   modal.style.display = 'flex';
@@ -851,9 +851,9 @@ function setupWorkMode() {
         } catch (_) {}
       }
       if (mode === 'nvidia') {
-        toastInfo('Modo GPU NVIDIA: imagen en Locally Uncensored / Comfy (Positive y Negative en cajas distintas). Texto: Ollama / LM Studio. El JSON sigue siendo el producto.');
+        toastInfo('Camino B: GPU NVIDIA local. Imagen en Locally Uncensored / Comfy (Positive y Negative en cajas distintas). Texto: Ollama / LM Studio. El JSON sigue siendo el producto.');
       } else {
-        toastInfo('Modo chatbots: Copiar JSON. No se usa la GPU.');
+        toastInfo('Camino A: Copiar JSON a chatbots gratis. No se usa la GPU.');
       }
     });
   });

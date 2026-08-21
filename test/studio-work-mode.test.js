@@ -58,6 +58,23 @@ test('default es chatbots; nvidia es opt-in', () => {
   assert.equal(mode.setWorkMode('nope', s), 'chatbots');
 });
 
+test('etiquetas Camino A / Camino B; status default chatbots', () => {
+  assert.match(mode.MODES.chatbots.label, /Camino A/);
+  assert.match(mode.MODES.nvidia.label, /Camino B/);
+  const status = { textContent: '' };
+  const doc = {
+    documentElement: { setAttribute() {}, classList: { toggle() {} } },
+    body: { setAttribute() {}, classList: { toggle() {} } },
+    querySelectorAll: () => [],
+    getElementById: (id) => (id === 'workModeStatus' ? status : null)
+  };
+  mode.applyWorkModeToDocument('chatbots', doc);
+  assert.match(status.textContent, /Camino A/);
+  assert.match(status.textContent, /Copiar JSON/);
+  mode.applyWorkModeToDocument('nvidia', doc);
+  assert.match(status.textContent, /Camino B/);
+});
+
 test('Portafolio + Ajustes cablean el switch; CSS oculta nvidia-only por default', () => {
   const dash = fs.readFileSync(path.join(__dirname, '..', 'views', 'tabs', 'dashboard.html'), 'utf8');
   const foot = fs.readFileSync(path.join(__dirname, '..', 'views', '_foot.html'), 'utf8');
@@ -67,6 +84,9 @@ test('Portafolio + Ajustes cablean el switch; CSS oculta nvidia-only por default
   const variants = fs.readFileSync(path.join(__dirname, '..', 'variant-vault-ui.js'), 'utf8');
 
   assert.match(dash, /id="workModeCard"/);
+  assert.match(dash, /Dos caminos/);
+  assert.match(dash, /Camino A/);
+  assert.match(dash, /Camino B/);
   assert.match(dash, /data-work-mode-btn="chatbots"/);
   assert.match(dash, /data-work-mode-btn="nvidia"/);
   assert.match(dash, /Locally Uncensored/);

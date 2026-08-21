@@ -172,7 +172,7 @@
     };
     recipe.steps = [
       'Lock sólido en Studio (tez hex, ojos, pelo, silueta, marcas).',
-      'Modo de trabajo = GPU NVIDIA local (el default sigue siendo chatbots).',
+      'Camino B = GPU NVIDIA local (el default sigue siendo Camino A: chatbots / Copiar JSON).',
       'Generar / curar 15–30 variantes (retrato, cuerpo, spicy/explicit).',
       'Export Pack LoRA (L0) + captions (explícitos solo si el checkbox está on).',
       'Entrenar LoRA (Colab L1 o L5 local) con el trigger de la persona.',

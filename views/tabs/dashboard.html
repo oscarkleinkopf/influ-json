@@ -2,7 +2,7 @@
         <div class="content-header">
           <div class="content-title">
             <h1>Influencers</h1>
-            <p>Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free.</p>
+            <p>Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free. Copiar JSON es el producto; GPU NVIDIA / LoRA es un segundo camino opt-in.</p>
           </div>
         </div>
         
@@ -46,12 +46,13 @@
           </div>
         </div>
 
-        <!-- Job router: elegir workflow (inspirar · chatbot · UGC · producto) -->
+        <!-- Job router: Camino A (default) — chatbots / Copiar JSON, sin GPU -->
         <div class="glass-card job-router-card" id="jobRouterCard" style="margin-top: 8px;">
           <div style="margin-bottom: 12px;">
+            <p class="path-kicker path-kicker-a" id="jobRouterPathKicker">Camino A · default · sin GPU</p>
             <h2 id="jobRouterTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">¿Qué quieres hacer?</h2>
-            <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
-              Elige un job — el Studio fija el <code>character_lock</code> y encadena pasos free (sin GPUs obligatorias).
+            <p id="jobRouterLead" style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+              El producto es <strong>Copiar JSON</strong> a ChatGPT / Gemini / Claude. Elige un job — el Studio fija el <code>character_lock</code>. No hace falta NVIDIA.
             </p>
           </div>
           <div class="job-router-grid" role="group" aria-labelledby="jobRouterTitle">
@@ -78,27 +79,28 @@
           </div>
         </div>
 
-        <!-- Modo de trabajo: chatbots (default, sin GPU) vs NVIDIA local (G513R) -->
+        <!-- Dos caminos: A chatbots/Copiar JSON (default) vs B NVIDIA opt-in -->
         <div class="glass-card work-mode-card" id="workModeCard" style="margin-top: 8px;">
           <div style="margin-bottom: 12px;">
-            <h2 id="workModeTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">Modo de trabajo</h2>
-            <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
-              El default es <strong>chatbots gratis</strong> (sin NVIDIA). El modo GPU es opt-in para el notebook G513R.
+            <h2 id="workModeTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">Dos caminos</h2>
+            <p id="workModeLead" style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+              <strong>Camino A</strong> (default): Copiar JSON a chatbots gratis, sin GPU.
+              <strong>Camino B</strong>: GPU NVIDIA local (G513R / LU) — opt-in; extras solo si lo eliges.
             </p>
           </div>
           <div class="work-mode-grid" role="group" aria-labelledby="workModeTitle">
             <button type="button" class="work-mode-btn is-active" id="btnWorkModeChatbots" data-work-mode-btn="chatbots" aria-pressed="true">
               <span class="work-mode-btn-icon" aria-hidden="true">💬</span>
-              <span class="work-mode-btn-label">Chatbots gratis (sin GPU)</span>
+              <span class="work-mode-btn-label">Camino A · Chatbots gratis (sin GPU)</span>
               <span class="work-mode-btn-hint">Copiar JSON → ChatGPT / Gemini / Claude. No hace falta NVIDIA.</span>
             </button>
             <button type="button" class="work-mode-btn" id="btnWorkModeNvidia" data-work-mode-btn="nvidia" aria-pressed="false">
               <span class="work-mode-btn-icon" aria-hidden="true">🖥️</span>
-              <span class="work-mode-btn-label">GPU NVIDIA local</span>
-              <span class="work-mode-btn-hint">Ollama + LM Studio (texto) · Locally Uncensored / Comfy (imagen). Positive y Negative en cajas distintas.</span>
+              <span class="work-mode-btn-label">Camino B · GPU NVIDIA local</span>
+              <span class="work-mode-btn-hint">Opt-in. Ollama + LM Studio (texto) · Locally Uncensored / Comfy (imagen). Positive y Negative en cajas distintas.</span>
             </button>
           </div>
-          <p id="workModeStatus" style="margin:10px 0 0;font-size:12px;color:var(--text-muted);line-height:1.45;">Modo chatbots: Copiar JSON a ChatGPT / Gemini / Claude. No se usa la GPU.</p>
+          <p id="workModeStatus" style="margin:10px 0 0;font-size:12px;color:var(--text-muted);line-height:1.45;">Camino A: Copiar JSON a ChatGPT / Gemini / Claude. No se usa la GPU.</p>
         </div>
 
         <!-- Acciones rápidas: Dashboard → origen → analizar → JSON → editar → guardar -->
@@ -142,7 +144,7 @@
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
             <div>
               <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Arranque en 60 segundos</h2>
-              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Elige un job arriba o este checklist. Path free: Copiar JSON. Gen local (NVIDIA) es opt-in.</p>
+              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Camino A (default): Copiar JSON a chatbots gratis. Elige un job arriba o este checklist. GPU NVIDIA / LoRA es Camino B, solo si eliges ese modo.</p>
             </div>
             <span id="happyPathProgress" class="happy-path-progress">0 / 3</span>
           </div>

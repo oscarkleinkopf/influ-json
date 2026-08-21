@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-work-mode="chatbots">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>influ-JSON - AI UGC Production Studio</title>
-  <link rel="stylesheet" href="index.css?v=1.3.9">
+  <link rel="stylesheet" href="index.css?v=1.3.10">
 </head>
 <body>
   <div class="app-container">
@@ -122,7 +122,7 @@
         <div class="content-header">
           <div class="content-title">
             <h1>Influencers</h1>
-            <p>Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free.</p>
+            <p>Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free. Copiar JSON es el producto; GPU NVIDIA / LoRA es un segundo camino opt-in.</p>
           </div>
         </div>
         
@@ -166,12 +166,13 @@
           </div>
         </div>
 
-        <!-- Job router: elegir workflow (inspirar · chatbot · UGC · producto) -->
+        <!-- Job router: Camino A (default) — chatbots / Copiar JSON, sin GPU -->
         <div class="glass-card job-router-card" id="jobRouterCard" style="margin-top: 8px;">
           <div style="margin-bottom: 12px;">
+            <p class="path-kicker path-kicker-a" id="jobRouterPathKicker">Camino A · default · sin GPU</p>
             <h2 id="jobRouterTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">¿Qué quieres hacer?</h2>
-            <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
-              Elige un job — el Studio fija el <code>character_lock</code> y encadena pasos free (sin GPUs obligatorias).
+            <p id="jobRouterLead" style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+              El producto es <strong>Copiar JSON</strong> a ChatGPT / Gemini / Claude. Elige un job — el Studio fija el <code>character_lock</code>. No hace falta NVIDIA.
             </p>
           </div>
           <div class="job-router-grid" role="group" aria-labelledby="jobRouterTitle">
@@ -198,27 +199,28 @@
           </div>
         </div>
 
-        <!-- Modo de trabajo: chatbots (default, sin GPU) vs NVIDIA local (G513R) -->
+        <!-- Dos caminos: A chatbots/Copiar JSON (default) vs B NVIDIA opt-in -->
         <div class="glass-card work-mode-card" id="workModeCard" style="margin-top: 8px;">
           <div style="margin-bottom: 12px;">
-            <h2 id="workModeTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">Modo de trabajo</h2>
-            <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
-              El default es <strong>chatbots gratis</strong> (sin NVIDIA). El modo GPU es opt-in para el notebook G513R.
+            <h2 id="workModeTitle" style="font-family: var(--font-display); margin: 0; font-size: 18px;">Dos caminos</h2>
+            <p id="workModeLead" style="margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
+              <strong>Camino A</strong> (default): Copiar JSON a chatbots gratis, sin GPU.
+              <strong>Camino B</strong>: GPU NVIDIA local (G513R / LU) — opt-in; extras solo si lo eliges.
             </p>
           </div>
           <div class="work-mode-grid" role="group" aria-labelledby="workModeTitle">
             <button type="button" class="work-mode-btn is-active" id="btnWorkModeChatbots" data-work-mode-btn="chatbots" aria-pressed="true">
               <span class="work-mode-btn-icon" aria-hidden="true">💬</span>
-              <span class="work-mode-btn-label">Chatbots gratis (sin GPU)</span>
+              <span class="work-mode-btn-label">Camino A · Chatbots gratis (sin GPU)</span>
               <span class="work-mode-btn-hint">Copiar JSON → ChatGPT / Gemini / Claude. No hace falta NVIDIA.</span>
             </button>
             <button type="button" class="work-mode-btn" id="btnWorkModeNvidia" data-work-mode-btn="nvidia" aria-pressed="false">
               <span class="work-mode-btn-icon" aria-hidden="true">🖥️</span>
-              <span class="work-mode-btn-label">GPU NVIDIA local</span>
-              <span class="work-mode-btn-hint">Ollama + LM Studio (texto) · Locally Uncensored / Comfy (imagen). Positive y Negative en cajas distintas.</span>
+              <span class="work-mode-btn-label">Camino B · GPU NVIDIA local</span>
+              <span class="work-mode-btn-hint">Opt-in. Ollama + LM Studio (texto) · Locally Uncensored / Comfy (imagen). Positive y Negative en cajas distintas.</span>
             </button>
           </div>
-          <p id="workModeStatus" style="margin:10px 0 0;font-size:12px;color:var(--text-muted);line-height:1.45;">Modo chatbots: Copiar JSON a ChatGPT / Gemini / Claude. No se usa la GPU.</p>
+          <p id="workModeStatus" style="margin:10px 0 0;font-size:12px;color:var(--text-muted);line-height:1.45;">Camino A: Copiar JSON a ChatGPT / Gemini / Claude. No se usa la GPU.</p>
         </div>
 
         <!-- Acciones rápidas: Dashboard → origen → analizar → JSON → editar → guardar -->
@@ -262,7 +264,7 @@
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
             <div>
               <h2 style="font-family: var(--font-display); margin: 0; font-size: 18px;">Arranque en 60 segundos</h2>
-              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Elige un job arriba o este checklist. Path free: Copiar JSON. Gen local (NVIDIA) es opt-in.</p>
+              <p id="happyPathLead" style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Camino A (default): Copiar JSON a chatbots gratis. Elige un job arriba o este checklist. GPU NVIDIA / LoRA es Camino B, solo si eliges ese modo.</p>
             </div>
             <span id="happyPathProgress" class="happy-path-progress">0 / 3</span>
           </div>
@@ -431,7 +433,7 @@
             <div class="como-usar-hero-copy">
               <p class="como-usar-brand">influ-JSON</p>
               <h1>Cómo usar el Studio</h1>
-              <p class="como-usar-lead">Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free. Pollinations es opcional.</p>
+              <p class="como-usar-lead">Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON y encadena pasos free. El producto es Copiar JSON; GPU NVIDIA / LoRA es un segundo camino opt-in.</p>
               <div class="como-usar-cta-row">
                 <button type="button" class="btn" data-guide-action="packs">Ir a Copiar JSON</button>
                 <button type="button" class="btn btn-secondary" data-guide-action="create">Empezar en Ficha</button>
@@ -1574,8 +1576,8 @@
               </div>
                         </div>
 
-              <!-- LoRA L1–L3: avanzado / opt-in — fuera del card verde de Copiar JSON -->
-              <div id="loraAdvancedPanel" class="persona-advanced-section">
+              <!-- LoRA L1–L5: Camino B (NVIDIA) — oculto salvo data-work-mode=nvidia -->
+              <div id="loraAdvancedPanel" class="persona-advanced-section" data-nvidia-only>
                 <h4 class="persona-advanced-section-title">LoRA (opt-in, no es el path free)</h4>
                 <p style="font-size: 10px; color: var(--text-muted); margin: 10px 0 8px; line-height: 1.4;">
                   Consistencia “dura” con pesos. El emprendedor free no necesita esto: usa <strong>Copiar JSON</strong> arriba.
@@ -2681,7 +2683,7 @@ cd influ-json
       <p class="u-eyebrow">Cero costo primero</p>
       <h2 id="founderWelcomeTitle" class="u-title-display">Tu estudio de influencers</h2>
       <p id="founderWelcomeLead" class="u-lead-13">
-        Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON (<code>character_lock</code>) y encadena pasos free. Pollinations es opcional.
+        Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON (<code>character_lock</code>) y encadena pasos free. El producto es Copiar JSON; GPU NVIDIA / LoRA es un segundo camino opt-in.
       </p>
       <ol class="u-list-soft">
         <li class="u-mb-8"><strong class="u-color-white">Crear o importar</strong> un personaje</li>
@@ -2842,14 +2844,14 @@ cd influ-json
 
         <div id="settingsPanelStudio" class="settings-panel" role="tabpanel" data-settings-panel="studio" hidden>
           <div id="workModeSettingsSection">
-            <h3 class="u-section-title">Modo de trabajo</h3>
+            <h3 class="u-section-title">Dos caminos</h3>
             <p class="u-section-lead">
-              <strong>Chatbots gratis</strong> (default): Copiar JSON, sin NVIDIA.
-              <strong>GPU NVIDIA local</strong>: Ollama / LM Studio (texto) + Locally Uncensored / Comfy (imagen). En LU, Positive y Negative van en cajas distintas.
+              <strong>Camino A · Chatbots gratis</strong> (default): Copiar JSON, sin NVIDIA.
+              <strong>Camino B · GPU NVIDIA local</strong> (opt-in): Ollama / LM Studio (texto) + Locally Uncensored / Comfy (imagen). Receta G513R y LoRA solo en este modo.
             </p>
             <div class="work-mode-grid" style="margin-bottom:12px;">
-              <button type="button" class="work-mode-btn is-active" data-work-mode-btn="chatbots" aria-pressed="true">Chatbots gratis (sin GPU)</button>
-              <button type="button" class="work-mode-btn" data-work-mode-btn="nvidia" aria-pressed="false">GPU NVIDIA local</button>
+              <button type="button" class="work-mode-btn is-active" data-work-mode-btn="chatbots" aria-pressed="true">Camino A · Chatbots gratis (sin GPU)</button>
+              <button type="button" class="work-mode-btn" data-work-mode-btn="nvidia" aria-pressed="false">Camino B · GPU NVIDIA local</button>
             </div>
           </div>
 
@@ -2971,7 +2973,7 @@ cd influ-json
   <script src="identity-trial.js?v=1.0.0"></script>
   <script src="lock-lab.js?v=1.0.0"></script>
   <script src="production-recipe.js?v=1.1.0"></script>
-  <script src="studio-work-mode.js?v=1.0.1"></script>
+  <script src="studio-work-mode.js?v=1.0.2"></script>
   <script src="production-brief.js?v=1.0.0"></script>
   <script src="community-templates.js?v=1.0.0"></script>
   <script src="app.js?v=1.15.0"></script>

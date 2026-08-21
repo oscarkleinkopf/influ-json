@@ -22,14 +22,14 @@
   const MODES = {
     chatbots: {
       id: CHATBOTS,
-      label: 'Chatbots gratis (sin GPU)',
+      label: 'Camino A · Chatbots gratis (sin GPU)',
       short: 'Copiar JSON → ChatGPT / Gemini / Claude. No hace falta NVIDIA.',
       preferLocalGpu: false
     },
     nvidia: {
       id: NVIDIA,
-      label: 'GPU NVIDIA local',
-      short: 'Ollama + LM Studio (texto) · Locally Uncensored / Comfy (imagen).',
+      label: 'Camino B · GPU NVIDIA local',
+      short: 'Opt-in. Ollama + LM Studio (texto) · Locally Uncensored / Comfy (imagen).',
       preferLocalGpu: true
     }
   };
@@ -115,8 +115,8 @@
     const status = d.getElementById ? d.getElementById('workModeStatus') : null;
     if (status) {
       status.textContent = resolved === NVIDIA
-        ? 'Modo GPU NVIDIA: imagen en Locally Uncensored / Comfy; texto en Ollama / LM Studio. El JSON sigue siendo el producto.'
-        : 'Modo chatbots: Copiar JSON a ChatGPT / Gemini / Claude. No se usa la GPU.';
+        ? 'Camino B: GPU NVIDIA local. Imagen en Locally Uncensored / Comfy; texto en Ollama / LM Studio. El JSON sigue siendo el producto.'
+        : 'Camino A: Copiar JSON a ChatGPT / Gemini / Claude. No se usa la GPU.';
     }
     return resolved;
   }

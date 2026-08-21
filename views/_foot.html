@@ -353,7 +353,7 @@ cd influ-json
       <p class="u-eyebrow">Cero costo primero</p>
       <h2 id="founderWelcomeTitle" class="u-title-display">Tu estudio de influencers</h2>
       <p id="founderWelcomeLead" class="u-lead-13">
-        Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON (<code>character_lock</code>) y encadena pasos free. Pollinations es opcional.
+        Un router de workflow, no de GPUs: eliges el job (inspirar, UGC, producto, chatbot); el sistema fija el JSON (<code>character_lock</code>) y encadena pasos free. El producto es Copiar JSON; GPU NVIDIA / LoRA es un segundo camino opt-in.
       </p>
       <ol class="u-list-soft">
         <li class="u-mb-8"><strong class="u-color-white">Crear o importar</strong> un personaje</li>
@@ -514,14 +514,14 @@ cd influ-json
 
         <div id="settingsPanelStudio" class="settings-panel" role="tabpanel" data-settings-panel="studio" hidden>
           <div id="workModeSettingsSection">
-            <h3 class="u-section-title">Modo de trabajo</h3>
+            <h3 class="u-section-title">Dos caminos</h3>
             <p class="u-section-lead">
-              <strong>Chatbots gratis</strong> (default): Copiar JSON, sin NVIDIA.
-              <strong>GPU NVIDIA local</strong>: Ollama / LM Studio (texto) + Locally Uncensored / Comfy (imagen). En LU, Positive y Negative van en cajas distintas.
+              <strong>Camino A · Chatbots gratis</strong> (default): Copiar JSON, sin NVIDIA.
+              <strong>Camino B · GPU NVIDIA local</strong> (opt-in): Ollama / LM Studio (texto) + Locally Uncensored / Comfy (imagen). Receta G513R y LoRA solo en este modo.
             </p>
             <div class="work-mode-grid" style="margin-bottom:12px;">
-              <button type="button" class="work-mode-btn is-active" data-work-mode-btn="chatbots" aria-pressed="true">Chatbots gratis (sin GPU)</button>
-              <button type="button" class="work-mode-btn" data-work-mode-btn="nvidia" aria-pressed="false">GPU NVIDIA local</button>
+              <button type="button" class="work-mode-btn is-active" data-work-mode-btn="chatbots" aria-pressed="true">Camino A · Chatbots gratis (sin GPU)</button>
+              <button type="button" class="work-mode-btn" data-work-mode-btn="nvidia" aria-pressed="false">Camino B · GPU NVIDIA local</button>
             </div>
           </div>
 
@@ -643,7 +643,7 @@ cd influ-json
   <script src="identity-trial.js?v=1.0.0"></script>
   <script src="lock-lab.js?v=1.0.0"></script>
   <script src="production-recipe.js?v=1.1.0"></script>
-  <script src="studio-work-mode.js?v=1.0.1"></script>
+  <script src="studio-work-mode.js?v=1.0.2"></script>
   <script src="production-brief.js?v=1.0.0"></script>
   <script src="community-templates.js?v=1.0.0"></script>
   <script src="app.js?v=1.15.0"></script>
