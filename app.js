@@ -5065,15 +5065,16 @@ async function copyUgcWeekCalendar() {
     const json = getFullPersonaJSON();
     const name = json?.identity?.name || state.selectedPersona?.name || 'Influencer';
     const lock = json?.character_lock || {};
+    const n = InfluUgcShotComposer.listShotTypeIds().length;
     const week = InfluUgcShotComposer.buildWeekCalendarText(name, { cameraId: state.ugcCameraId });
     const text = `═══════════════════════════════════════════
-CHARACTER LOCK (pegar una vez — byte-idéntico en las 7 tomas)
+CHARACTER LOCK (pegar una vez — byte-idéntico en las ${n} tomas)
 ═══════════════════════════════════════════
 ${JSON.stringify(lock, null, 2)}
 
 ${week}`;
     await navigator.clipboard.writeText(text);
-    toastSuccess(`Semana UGC (7 tomas) copiada — ${name}`);
+    toastSuccess(`Semana UGC (${n} tomas) copiada — ${name}`);
   } catch (err) {
     console.error(err);
     toastError('No se pudo copiar el calendario UGC');

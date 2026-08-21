@@ -31,6 +31,10 @@
       short: 'Espejo + producto + PAS',
       pack: { free_pack_id: 'product', notes: 'Copiar JSON product → chatbot free' },
       shot: { type: 'testimonial', camera: 'mirror', format: '9:16', duration_hint_s: 18 },
+      shots: [
+        { type: 'testimonial', camera: 'mirror', format: '9:16' },
+        { type: 'product_on_face', camera: 'rear', format: '3:4' }
+      ],
       voice: {
         tone: 'amiga que recomienda rutina',
         cta: 'Guarda este tip y pruébalo 7 días',
@@ -40,6 +44,7 @@
         'Hook 0–3s: «Si tu piel se ve apagada al mediodía…»',
         'Problema: textura / deshidratación visible en selfie',
         'Agitar producto cerca de cámara (mano + etiqueta legible)',
+        'Opcional: close-up on-skin (parches/mascarilla) + SKU en esquina; no tapa ojos',
         'CTA: rutina AM/PM en comentarios'
       ],
       realism_rules: [
@@ -288,6 +293,7 @@
       short: stripped.short || '',
       pack: stripped.pack || { free_pack_id: 'fullbody' },
       shot: stripped.shot || { type: 'testimonial', camera: 'selfie', format: '9:16' },
+      shots: Array.isArray(stripped.shots) ? stripped.shots : undefined,
       voice: stripped.voice || {},
       script_hooks: Array.isArray(stripped.script_hooks) ? stripped.script_hooks : [],
       realism_rules: Array.isArray(stripped.realism_rules) ? stripped.realism_rules : [...REALISM_RULES_BASE],

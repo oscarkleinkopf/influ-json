@@ -58,7 +58,16 @@
 • Plano medio o selfie con producto
 • Fondo interior simple (casa/baño/cocina) con luz de ventana
 • Si hay datos de producto en el mensaje, úsalos; si no, usa un frasco/caja genérica de beauty
-• Estilo review de TikTok/Instagram, no anuncio de TV`
+• Estilo review de TikTok/Instagram, no anuncio de TV`,
+      // Alternate when UGC shot type `product_on_face` is selected (Layer 4). Default stays in-hand.
+      sceneInstructionOnSkin: `Genera UNA imagen UGC beauty close-up 3:4 con producto EN LA PIEL:
+• El rostro llena el cuadro (close-up); NO plano medio, NO «producto en mano»
+• El producto ya está aplicado en la piel: parches hidrogel, mascarilla o sérum — no cubre los ojos
+• El SKU (frasco/tubo/tarro) visible en una esquina del cuadro, etiqueta legible
+• Iluminación beauty comercial suave; poros naturales visibles
+• MISMA cara y tez del CHARACTER LOCK
+• Distinto de Demo (manos aplicando) y de Producto en mano (plano medio)
+• Estilo still comercial de skincare, foto de celular, no CGI`
     },
     explicit: {
       id: 'explicit',
@@ -424,6 +433,11 @@ PRODUCTO A MOSTRAR:
       ? `\n${formatFlatComfySection(must, name, { triggerToken, checkpointHint: 'juggernautXL_ragnarok.safetensors' })}\n`
       : '';
 
+    const sceneInstruction =
+      packId === 'product' && opts.shotTypeId === 'product_on_face' && pack.sceneInstructionOnSkin
+        ? pack.sceneInstructionOnSkin
+        : pack.sceneInstruction;
+
     return `═══════════════════════════════════════════
 PACK GRATIS PARA CHATBOT — ${pack.label}
 Influencer: ${name}
@@ -441,7 +455,7 @@ ${formatLockSummary(must, name)}
 ───────────────────────────────────────────
 PETICIÓN DE ESTA IMAGEN
 ───────────────────────────────────────────
-${pack.sceneInstruction}
+${sceneInstruction}
 ${productBlock}${shotExtras}${extra}${flatBlock}
 ${formatRealismNegativeSections()}
 
