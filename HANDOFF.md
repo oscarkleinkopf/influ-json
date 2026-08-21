@@ -29,7 +29,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 |-------|--------|
 | **Rama de trabajo** | `cursor/ux-dos-caminos-9b67` |
 | **Commit base** | `1a61cfc` (`main`) + corte UX dos caminos |
-| **PR actual** | draft vs `main` (este corte). #143 MERGED. #142 superseded — **no mergear** |
+| **PR actual** | Rama pushed `cursor/ux-dos-caminos-9b67`. Draft PR **no creado** (`gh` 403 integration). Padre: abrir draft vs `main`. #143 MERGED. #142 superseded — **no mergear** |
 | **`main` remoto** | OF pack + modo dual + puente LoRA NVIDIA |
 | **Prioridad inmediata** | Este corte: Portafolio lee Camino A (Copiar JSON) vs Camino B (NVIDIA opt-in). No Replicate. No marketplace LoRA. |
 | **Aparcado** | S1 tokens API ≠ PIN · Comercial [#99](https://github.com/oscarkleinkopf/influ-json/pull/99) · overlays style-LoRA / marketplace · **cierre #142** (API write 403) |
@@ -44,6 +44,7 @@ Regresión P0: “guardé y no aparece”, o free path roto por feature de pago.
 - `#loraAdvancedPanel` + extras G513R siguen `data-nvidia-only`; `<html data-work-mode="chatbots">` de arranque.
 - Tests: `test/ux-dos-caminos.test.js` + job-router / studio-work-mode. `npm run build:index`.
 - Pack library y Replicate intactos.
+- Draft PR: ManagePullRequest no está en el entorno; `gh pr create --draft` → **403** `Resource not accessible by integration`. Rama en origin; el padre puede abrir el draft.
 
 ### Sesión previa (Cursor, 2026-08-21) — Cerrar #142 (no merge)
 
